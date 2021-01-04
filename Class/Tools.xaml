@@ -1,0 +1,31 @@
+﻿<UserControl x:Class="WoTB_Voice_Mod_Creater.Class.Tools"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="1080" d:DesignWidth="1920">
+    <Viewbox>
+        <DockPanel Width="1920" Height="1080">
+            <Border BorderBrush="Black" BorderThickness="1" Background="#4E3E5C" Height="1080" VerticalAlignment="Top" Width="1920"/>
+            <TextBlock Height="50" Width="625" TextWrapping="Wrap" Text="DVPL解除(同じフォルダに作成されます)" Foreground="Aqua" FontSize="40" VerticalAlignment="Top" Margin="-2800,50,0,0" TextAlignment="Center"/>
+            <Button x:Name="DVPL_Extract_B" Content="ファイルを選択" Height="65" Margin="-2800,125,0,0" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" VerticalAlignment="Top" Width="350" Click="DVPL_Extract_B_Click"/>
+            <TextBlock Height="50" Width="625" TextWrapping="Wrap" Text="DVPL化(同じフォルダに作成されます)" Foreground="Aqua" FontSize="40" VerticalAlignment="Top" Margin="-1000,50,0,0" TextAlignment="Center"/>
+            <Button x:Name="DVPL_Create_B" Content="ファイルを選択" Height="65" Margin="-1000,125,0,0" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" VerticalAlignment="Top" Width="350" Click="DVPL_Create_B_Click"/>
+            <TextBlock x:Name="Message_T" Height="50" Width="1468" Foreground="Aqua" FontSize="40" Margin="-1920,950,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" TextAlignment="Center"/>
+            <Button x:Name="Exit_B" Content="戻る" Height="75" Margin="-3532,1000,0,0" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" VerticalAlignment="Top" Width="300" Click="Exit_B_Click"/>
+            <TextBlock Height="50" Width="625" TextWrapping="Wrap" Text="BGMMod作成(戦闘中に流れます)" Foreground="Aqua" FontSize="40" VerticalAlignment="Top" Margin="-1920,300,0,0" TextAlignment="Center"/>
+            <ListBox x:Name="BGM_List" Height="400" FontSize="35" VerticalAlignment="Top" Width="750" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" Margin="-2500,475,0,0" MouseDown="BGM_List_MouseDown"/>
+            <TextBlock Height="50" Width="190" TextWrapping="Wrap" Text="BGMリスト" Foreground="Aqua" FontSize="40" VerticalAlignment="Top" Margin="-2500,400,0,0" TextAlignment="Center"/>
+            <Button x:Name="BGM_Add_B" Content="ファイルを追加" Height="65" Margin="-2190,875,0,0" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" VerticalAlignment="Top" Width="300" Click="BGM_Add_B_Click"/>
+            <Button x:Name="BGM_Delete_B" Content="ファイルを取消" Height="65" Margin="-2810,875,0,0" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" VerticalAlignment="Top" Width="300" Click="BGM_Delete_B_Click"/>
+            <Button x:Name="BGM_Create_B" Content="FEV + FSBを作成" Height="85" Margin="-1300,625,0,0" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" VerticalAlignment="Top" Width="350" Click="BGM_Create_B_Click"/>
+            <CheckBox x:Name="BGM_Volume_Set_C" Content="" Height="15" VerticalAlignment="Top" Width="16" Margin="-1620,425,0,0"/>
+            <TextBlock Height="50" Width="285" TextWrapping="Wrap" Text="音量を均一にする" Foreground="Aqua" FontSize="40" VerticalAlignment="Top" Margin="-1275,405,0,0" TextAlignment="Center"/>
+            <CheckBox x:Name="BGM_Encode_Set_C" Content="" Height="15" VerticalAlignment="Top" Width="16" Margin="-1620,525,0,0"/>
+            <TextBlock Height="50" Width="305" TextWrapping="Wrap" Text="作成したらDVPL化" Foreground="Aqua" FontSize="40" VerticalAlignment="Top" Margin="-1250,505,0,0" TextAlignment="Center"/>
+            <Button x:Name="BGM_Load_B" Content="リストをロード" Height="65" Margin="-2970,395,0,0" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" VerticalAlignment="Top" Width="280" Click="BGM_Load_B_Click"/>
+            <Button x:Name="BGM_Install_B" Content="BGMを反映" Height="85" Margin="-1300,750,0,0" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" VerticalAlignment="Top" Width="350" Click="BGM_Install_B_Click"/>
+        </DockPanel>
+    </Viewbox>
+</UserControl>

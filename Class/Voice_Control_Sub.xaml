@@ -1,0 +1,28 @@
+﻿<UserControl x:Class="WoTB_Voice_Mod_Creater.Class.Voice_Control_Sub"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="1080" d:DesignWidth="1920">
+    <Viewbox>
+        <DockPanel Width="1920" Height="1080">
+            <Border BorderBrush="Black" BorderThickness="1" Height="1080" VerticalAlignment="Top" Width="1920"/>
+            <Button x:Name="Enemy_Sight_B" Content="敵発見" HorizontalAlignment="Left" Margin="-1920,375,0,0" VerticalAlignment="Top" Width="225" Height="75" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="30" Click="Enemy_Sight_B_Click"/>
+            <Button x:Name="Ally_Sight_B" Content="第六感" HorizontalAlignment="Left" Margin="-1690,375,0,0" VerticalAlignment="Top" Width="225" Height="75" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="30" Click="Ally_Sight_B_Click"/>
+            <Button x:Name="OK_B" Content="了解" HorizontalAlignment="Left" Margin="-1460,375,0,0" VerticalAlignment="Top" Width="225" Height="75" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="30" Click="OK_B_Click"/>
+            <Button x:Name="No_B" Content="拒否" HorizontalAlignment="Left" Margin="-1230,375,0,0" VerticalAlignment="Top" Width="225" Height="75" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="30" Click="No_B_Click"/>
+            <Button x:Name="Help" Content="救援を請う" HorizontalAlignment="Left" Margin="-1000,375,0,0" VerticalAlignment="Top" Width="225" Height="75" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="30" Click="Help_Click"/>
+            <Button x:Name="Attack_B" Content="攻撃せよ！" HorizontalAlignment="Left" Margin="-1920,455,0,0" VerticalAlignment="Top" Width="225" Height="75" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="30" Click="Attack_B_Click"/>
+            <Button x:Name="Attack_This" Content="攻撃中" HorizontalAlignment="Left" Margin="-1690,455,0,0" VerticalAlignment="Top" Width="225" Height="75" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="30" Click="Attack_This_Click"/>
+            <Button x:Name="Capture_B" Content="陣地を占領せよ！" HorizontalAlignment="Left" Margin="-1460,455,0,0" VerticalAlignment="Top" Width="225" Height="75" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="30" Click="Capture_B_Click"/>
+            <Button x:Name="Defense_B" Content="陣地を防衛せよ！" HorizontalAlignment="Left" Margin="-1230,455,0,0" VerticalAlignment="Top" Width="225" Height="75" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="30" Click="Defense_B_Click"/>
+            <Button x:Name="Keep_B" Content="固守せよ！" HorizontalAlignment="Left" Margin="-1000,455,0,0" VerticalAlignment="Top" Width="225" Height="75" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="30" Click="Keep_B_Click"/>
+            <Button x:Name="Lock_B" Content="ロックオン" HorizontalAlignment="Left" Margin="-1920,535,0,0" VerticalAlignment="Top" Width="225" Height="75" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="30" Click="Lock_B_Click"/>
+            <Button x:Name="Unlock_B" Content="アンロック" HorizontalAlignment="Left" Margin="-1690,535,0,0" VerticalAlignment="Top" Width="225" Height="75" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="30" Click="Unlock_B_Click"/>
+            <Button x:Name="Reload_B" Content="装填完了" HorizontalAlignment="Left" Margin="-1460,535,0,0" VerticalAlignment="Top" Width="225" Height="75" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="30" Click="Reload_B_Click"/>
+            <Button x:Name="Map_B" Content="マップクリック時" HorizontalAlignment="Left" Margin="-1230,535,0,0" VerticalAlignment="Top" Width="225" Height="75" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="30" Click="Map_B_Click"/>
+            <Button x:Name="Battle_End_B" Content="戦闘終了時" HorizontalAlignment="Left" Margin="-1000,535,0,0" VerticalAlignment="Top" Width="225" Height="75" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="30" Click="Battle_End_B_Click"/>
+        </DockPanel>
+    </Viewbox>
+</UserControl>

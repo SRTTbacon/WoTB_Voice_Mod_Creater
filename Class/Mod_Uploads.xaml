@@ -1,0 +1,32 @@
+﻿<UserControl x:Class="WoTB_Voice_Mod_Creater.Class.Mod_Uploads"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="1080" d:DesignWidth="1920">
+    <Viewbox>
+        <DockPanel Width="1920" Height="1080">
+            <Border BorderBrush="Black" BorderThickness="1" Background="Black" Height="1080" VerticalAlignment="Top" Width="1920" Opacity="0.6"/>
+            <Border BorderBrush="Black" Background="Aqua" BorderThickness="1" Height="968" VerticalAlignment="Top" Width="1700" Margin="-1920,0,0,0" Opacity="0.4"/>
+            <ListBox x:Name="Mod_File_List" Height="650" VerticalAlignment="Top" Width="575" Background="Transparent" Foreground="Aqua" FontSize="40" BorderBrush="Aqua" Margin="-2990,20,0,0"/>
+            <Button x:Name="Mod_Add_B" Content="ファイルを追加" Height="75" VerticalAlignment="Top" Width="280" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" Margin="-2694,670,0,0" FontSize="40" Click="Mod_Add_B_Click"/>
+            <Button x:Name="Mod_Delete_B" Content="取り消し" Height="75" VerticalAlignment="Top" Width="280" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" Margin="-3284,670,0,0" FontSize="40" Click="Mod_Delete_B_Click"/>
+            <Button x:Name="Exit_B" Content="キャンセル" Height="75" VerticalAlignment="Top" Width="280" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" Margin="-3338,892,0,0" FontSize="40" Click="Exit_B_Click"/>
+            <TextBox x:Name="Mod_Create_Name_T" Height="50" Width="600" Margin="-1350,150,0,0" TextWrapping="Wrap" FontSize="35" Text="" VerticalAlignment="Top"/>
+            <TextBlock Height="55" Width="250" Margin="-1350,78,0,0" Foreground="Aqua" FontSize="40" TextWrapping="Wrap" Text="Mod名を入力" VerticalAlignment="Top" TextAlignment="Center"/>
+            <Button x:Name="Help_B" Content="注意事項" Height="75" VerticalAlignment="Top" Width="300" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Margin="-1920,892,0,0" Click="Help_B_Click"/>
+            <CheckBox x:Name="BGM_Mode_C" Content="" Height="15" VerticalAlignment="Top" Width="16" Margin="-2200,350,0,0"/>
+            <TextBlock Height="55" Width="285" Margin="-1850,330,0,0" Foreground="Aqua" FontSize="40" TextWrapping="Wrap" Text="BGMModに設定" VerticalAlignment="Top" TextAlignment="Center"/>
+            <CheckBox x:Name="R_18_C" Content="" Height="15" VerticalAlignment="Top" Width="16" Margin="-2200,470,0,0"/>
+            <TextBlock Height="55" Width="250" Margin="-1880,450,0,0" Foreground="Aqua" FontSize="40" TextWrapping="Wrap" Text="R18音声を含む" VerticalAlignment="Top" TextAlignment="Center"/>
+            <CheckBox x:Name="Password_C" Content="" Height="15" VerticalAlignment="Top" Width="16" Margin="-2200,590,0,0" Click="Password_C_Click"/>
+            <TextBlock Height="55" Width="285" Margin="-1850,570,0,0" Foreground="Aqua" FontSize="40" TextWrapping="Wrap" Text="パスワードを付ける" VerticalAlignment="Top" TextAlignment="Center"/>
+            <TextBox x:Name="Password_T" Height="50" Width="400" Margin="-1875,655,0,0" TextWrapping="Wrap" FontSize="35" Text="" VerticalAlignment="Top"/>
+            <Button x:Name="Mod_Create_B" Content="公開" Height="75" VerticalAlignment="Top" Width="300" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Margin="-522,892,0,0" Click="Mod_Create_B_Click"/>
+            <TextBlock x:Name="Message_T" Height="55" Width="1200" Margin="-1900,775,0,0" Foreground="Aqua" FontSize="40" TextWrapping="Wrap" Text="" VerticalAlignment="Top" TextAlignment="Center"/>
+            <TextBlock Height="55" Width="200" Margin="-850,330,0,0" Foreground="Aqua" FontSize="40" TextWrapping="Wrap" Text="Modの説明" VerticalAlignment="Top" TextAlignment="Center"/>
+            <TextBox x:Name="Mod_Explanation_T" Height="375" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="500" Margin="-850,400,0,0" Background="#30000000" BorderBrush="Aqua" Foreground="Aqua" FontSize="40"/>
+        </DockPanel>
+    </Viewbox>
+</UserControl>
