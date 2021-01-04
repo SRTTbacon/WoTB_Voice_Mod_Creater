@@ -1,0 +1,2 @@
+# WoTB_Voice_Mod_Creater
+FMod Designerの使い方がわからなくても自動でプロジェクトを作成、ビルド、適応をしてくれるソフトです。
