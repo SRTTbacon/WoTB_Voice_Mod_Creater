@@ -19,4 +19,5 @@ Obfuscar.2.2.28<br>
 SimpleTCP.1.0.24<br>
 System.Buffers.4.5.1<br>
 System.Memory.4.5.4<br>
-System.Runtime.CompilerServices.Unsafe.5.0.0
+System.Runtime.CompilerServices.Unsafe.5.0.0<br>
+Cauldron.FMOD(V1.1から導入)
