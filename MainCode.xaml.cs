@@ -29,7 +29,7 @@ namespace WoTB_Voice_Mod_Creater
 {
     public partial class MainCode : Window
     {
-        readonly string Version = "1";
+        readonly string Version = "1.1";
         readonly string Path = Directory.GetCurrentDirectory();
         readonly string Special_Path = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "/WoTB_Voice_Mod_Creater";
         bool IsClosing = false;
@@ -54,6 +54,7 @@ namespace WoTB_Voice_Mod_Creater
                 Password_Text.Visibility = Visibility.Hidden;
                 Password_T.Visibility = Visibility.Hidden;
                 Server_Create_Name_T.Visibility = Visibility.Hidden;
+                WoTB_Select_B.Visibility = Visibility.Hidden;
                 Server_Create_Window.Opacity = 0;
                 Save_Window.Opacity = 0;
                 try
@@ -72,7 +73,7 @@ namespace WoTB_Voice_Mod_Creater
                 //自分はサーバーに参加できないためIPを分ける
                 if (Environment.UserName == "SRTTbacon" || Environment.UserName == "SRTTbacon_V1")
                 {
-                    IP = "不正アクセス防止のため非公開";
+                    IP = "非公開";
                     ConnectType = FtpDataConnectionType.PASV;
                     IsPassiveMode = true;
                     if (Environment.UserName == "SRTTbacon_V1")
@@ -82,7 +83,7 @@ namespace WoTB_Voice_Mod_Creater
                 }
                 else
                 {
-                    IP = "不正アクセス防止のため非公開";
+                    IP = "非公開";
                     ConnectType = FtpDataConnectionType.PASV;
                     IsPassiveMode = true;
                 }
@@ -127,7 +128,11 @@ namespace WoTB_Voice_Mod_Creater
                         File.Delete(Special_Path + "/Temp_WoTB_Path.dat");
                         if (!File.Exists(Read + "/wotblitz.exe"))
                         {
-                            Sub_Code.WoTB_Get_Directory();
+                            if (!Sub_Code.WoTB_Get_Directory())
+                            {
+                                WoTB_Select_B.Visibility = Visibility.Visible;
+                                Message_T.Text = "WoTBのインストール先を取得できません。手動で指定してください。";
+                            }
                         }
                         else
                         {
@@ -136,11 +141,16 @@ namespace WoTB_Voice_Mod_Creater
                     }
                     catch
                     {
-                        Sub_Code.WoTB_Get_Directory();
+                        if (!Sub_Code.WoTB_Get_Directory())
+                        {
+                            WoTB_Select_B.Visibility = Visibility.Visible;
+                            Message_T.Text = "WoTBのインストール先を取得できません。手動で指定してください。";
+                        }
                     }
                 }
-                if (!Sub_Code.DVPL_File_Exists(Path + "/Backup/Main/sounds.yaml") && Voice_Set.WoTB_Path != "")
+                if (Voice_Set.WoTB_Path != "" && !Sub_Code.DVPL_File_Exists(Path + "/Backup/Main/sounds.yaml"))
                 {
+                    Directory.CreateDirectory(Path + "/Backup/Main");
                     Sub_Code.DVPL_File_Copy(Voice_Set.WoTB_Path + "/Data/sounds.yaml", Path + "/Backup/Main/sounds.yaml", false);
                     Sub_Code.DVPL_File_Copy(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_high.yaml", Path + "/Backup/Main/sfx_high.yaml", false);
                     Sub_Code.DVPL_File_Copy(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_low.yaml", Path + "/Backup/Main/sfx_low.yaml", false);
@@ -494,8 +504,8 @@ namespace WoTB_Voice_Mod_Creater
                 XElement item2 = xml2.Element("Server_Create_Config");
                 if (bool.Parse(item2.Element("IsEnablePassword").Value))
                 {
-                    Server_Connect_B.Margin = new Thickness(-600, 525, 0, 0);
-                    Server_Create_B.Margin = new Thickness(-600, 700, 0, 0);
+                    Server_Connect_B.Margin = new Thickness(-600, 500, 0, 0);
+                    Server_Create_B.Margin = new Thickness(-600, 650, 0, 0);
                     Password_Text.Visibility = Visibility.Visible;
                     Password_T.Visibility = Visibility.Visible;
                 }
@@ -890,6 +900,75 @@ namespace WoTB_Voice_Mod_Creater
         private void Voice_Create_Tool_B_Click(object sender, RoutedEventArgs e)
         {
             Voice_Create_Window.Window_Show();
+        }
+        private void WoTB_Select_B_Click(object sender, RoutedEventArgs e)
+        {
+            System.Windows.Forms.OpenFileDialog openFileDialog = new System.Windows.Forms.OpenFileDialog
+            {
+                Title = "WoTBのフォルダを選択してください。",
+                InitialDirectory = "C:",
+                FileName = "WoTBのフォルダを選択",
+                Filter = "フォルダ |.",
+                CheckFileExists = false
+            };
+            if (openFileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                if (System.IO.Path.GetDirectoryName(openFileDialog.FileName) == "C:\\")
+                {
+                    Message_T.Text = "C:/を選択することはできません。";
+                    return;
+                }
+                ApplyAllFiles(System.IO.Path.GetDirectoryName(openFileDialog.FileName), ProcessFile);
+                if (Voice_Set.WoTB_Path == "")
+                {
+                    Message_T.Text = "WoTBのフォルダを取得できませんでした。";
+                }
+            }
+        }
+        void ProcessFile(string path)
+        {
+            string Dir = System.IO.Path.GetDirectoryName(path);
+            if (Sub_Code.File_Exists(Dir + "/sounds"))
+            {
+                string WoTB_Path = Dir.Substring(0, Dir.LastIndexOf('\\'));
+                StreamWriter stw = File.CreateText(Special_Path + "/Temp_WoTB_Path.dat");
+                stw.Write(WoTB_Path);
+                stw.Close();
+                using (var eifs = new FileStream(Special_Path + "/Temp_WoTB_Path.dat", FileMode.Open, FileAccess.Read))
+                {
+                    using (var eofs = new FileStream(Directory.GetCurrentDirectory() + "/WoTB_Path.dat", FileMode.Create, FileAccess.Write))
+                    {
+                        FileEncode.FileEncryptor.Encrypt(eifs, eofs, "WoTB_Directory_Path_Pass");
+                    }
+                }
+                File.Delete(Special_Path + "/Temp_WoTB_Path.dat");
+                Voice_Set.WoTB_Path = WoTB_Path;
+                Message_T.Text = "WoTBのフォルダを取得しました。";
+                WoTB_Select_B.Visibility = Visibility.Hidden;
+                return;
+            }
+        }
+        void ApplyAllFiles(string folder, Action<string> fileAction)
+        {
+            foreach (string file in Directory.GetFiles(folder, "sounds.*"))
+            {
+                if (file.Contains("World of Tanks Blitz"))
+                {
+                    fileAction(file);
+                    return;
+                }
+            }
+            foreach (string subDir in Directory.GetDirectories(folder))
+            {
+                try
+                {
+                    ApplyAllFiles(subDir, fileAction);
+                }
+                catch
+                {
+                    // swallow, log, whatever
+                }
+            }
         }
     }
 }
