@@ -47,7 +47,7 @@ namespace WoTB_Voice_Mod_Creater
             return false;
         }
         //WoTBのディレクトリを取得
-        public static void WoTB_Get_Directory()
+        public static bool WoTB_Get_Directory()
         {
             try
             {
@@ -55,6 +55,22 @@ namespace WoTB_Voice_Mod_Creater
                 string location = (string)rKey.GetValue("InstallPath");
                 rKey.Close();
                 string driveRegex = @"[A-Z]:\\";
+                if (File.Exists(location + "/steamapps/common/World of Tanks Blitz/wotblitz.exe"))
+                {
+                    StreamWriter stw = File.CreateText(Special_Path + "/Temp_WoTB_Path.dat");
+                    stw.Write(location + "/steamapps/common/World of Tanks Blitz");
+                    stw.Close();
+                    using (var eifs = new FileStream(Special_Path + "/Temp_WoTB_Path.dat", FileMode.Open, FileAccess.Read))
+                    {
+                        using (var eofs = new FileStream(Directory.GetCurrentDirectory() + "/WoTB_Path.dat", FileMode.Create, FileAccess.Write))
+                        {
+                            FileEncode.FileEncryptor.Encrypt(eifs, eofs, "WoTB_Directory_Path_Pass");
+                        }
+                    }
+                    File.Delete(Special_Path + "/Temp_WoTB_Path.dat");
+                    Voice_Set.WoTB_Path = location + "/steamapps/common/World of Tanks Blitz";
+                    return true;
+                }
                 string[] configLines = File.ReadAllLines(location + "/steamapps/libraryfolders.vdf");
                 foreach (var item in configLines)
                 {
@@ -79,14 +95,16 @@ namespace WoTB_Voice_Mod_Creater
                             }
                             File.Delete(Special_Path + "/Temp_WoTB_Path.dat");
                             Voice_Set.WoTB_Path = item2 + "World of Tanks Blitz";
-                            return;
+                            return true;
                         }
                     }
                 }
+                return false;
             }
             catch
             {
                 MessageBox.Show("WoTBのインストール先を取得できませんでした。SteamにWoTBがインストールされていないか、32BitOSを使用している可能性があります。");
+                return false;
             }
         }
         //.dvplを抜いたファイルをコピーする
@@ -492,6 +510,93 @@ namespace WoTB_Voice_Mod_Creater
                 }
             }
             return "";
+        }
+        //sounds.yamlの中身が古かった場合サーバーに置いてある最新のものと比較して置き換える
+        public static void Sounds_Yaml_Update(string File_Path, string To_Path, bool IsDVPLEncode)
+        {
+            try
+            {
+                Voice_Set.FTP_Server.DownloadFile(Special_Path + "/Temp_Download_Sounds.yaml.dvpl", "/WoTB_Voice_Mod/Mods/Backup/sounds.yaml.dvpl");
+                DVPL_Unlock(Special_Path + "/Temp_Download_Sounds.yaml.dvpl", Special_Path + "/Temp_Download_Sounds.yaml");
+                File.Delete(Special_Path + "/Temp_Download_Sounds.yaml.dvpl");
+                string Server_File = Special_Path + "/Temp_Download_Sounds.yaml";
+                StreamReader str = new StreamReader(File_Path);
+                bool IsSoundsIn = false;
+                while (str.EndOfStream == false)
+                {
+                    string Line = str.ReadLine();
+                    if (Line.Contains("sounds:"))
+                    {
+                        IsSoundsIn = true;
+                    }
+                    if (IsSoundsIn)
+                    {
+                        Sounds_Yaml_IsUpdate(Server_File, Line);
+                    }
+                }
+                str.Close();
+                StreamReader str2 = new StreamReader(Server_File);
+                string Read_All = str2.ReadToEnd();
+                str2.Close();
+                StreamWriter stw = File.CreateText(To_Path);
+                stw.Write(Read_All);
+                stw.Close();
+                if (IsDVPLEncode)
+                {
+                    DVPL.DVPL_Encode(To_Path);
+                    File.Delete(To_Path);
+                    try
+                    {
+                        File.Move(To_Path + ".dvpl", To_Path);
+                    }
+                    catch
+                    {
+                        MessageBox.Show("sounds.yamlを置き換えれませんでした。");
+                    }
+                }
+            }
+            catch
+            {
+                //サーバーにsounds.yaml.dvplが存在しない場合
+            }
+        }
+        static bool Sounds_Yaml_IsUpdate(string Server_File, string Line)
+        {
+            if (Line == "" || !Line.Contains(":"))
+            {
+                return false;
+            }
+            string Line_Head = Line.Substring(0, Line.IndexOf(':'));
+            string line_01;
+            StreamReader str = new StreamReader(Server_File);
+            string Read_All = str.ReadToEnd();
+            str.Close();
+            bool IsChanging = false;
+            StreamReader file_01 = new StreamReader(Server_File);
+            while ((line_01 = file_01.ReadLine()) != null)
+            {
+                if (line_01.Contains(":"))
+                {
+                    if (line_01.Substring(0, line_01.IndexOf(':')).Contains(Line_Head))
+                    {
+                        if (Line != line_01)
+                        {
+                            IsChanging = true;
+                            file_01.Close();
+                            break;
+                        }
+                    }
+                }
+            }
+            if (!IsChanging)
+            {
+                file_01.Close();
+                return false;
+            }
+            StreamWriter stw = File.CreateText(Server_File);
+            stw.Write(Read_All.Replace(line_01, Line));
+            stw.Close();
+            return true;
         }
     }
 }

@@ -42,6 +42,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                     Opacity -= 0.025;
                     await Task.Delay(1000 / 60);
                 }
+                IsClosing = false;
                 Visibility = System.Windows.Visibility.Hidden;
             }
         }

@@ -7,16 +7,17 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Xml.Linq;
 
-public class Fmod_Player
-{
-    public static Fmod.EventSystem ESystem = new Fmod.EventSystem();
-    public static Fmod.EVENT_LOADINFO ELI;
-    public static Fmod.EventProject EP;
-    public static Fmod.EventGroup EG;
-    public static Fmod.Event FE;
-}
 namespace WoTB_Voice_Mod_Creater.Class
 {
+    public class Fmod_Player
+    {
+        static Cauldron.FMOD.EventSystem ESystem_01 = new Cauldron.FMOD.EventSystem();
+        public static Cauldron.FMOD.EventSystem ESystem
+        {
+            get { return ESystem_01; }
+            set { ESystem_01 = value; }
+        }
+    }
     public partial class Voice_Mod_Distribution : UserControl
     {
         readonly string Special_Path = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "/WoTB_Voice_Mod_Creater";
@@ -25,6 +26,10 @@ namespace WoTB_Voice_Mod_Creater.Class
         float Voice_Pitch = 0f;
         bool IsBusy = false;
         string Mod_Select_Name = "";
+        Cauldron.FMOD.EVENT_LOADINFO ELI = new Cauldron.FMOD.EVENT_LOADINFO();
+        Cauldron.FMOD.EventProject EP = new Cauldron.FMOD.EventProject();
+        Cauldron.FMOD.EventGroup EG = new Cauldron.FMOD.EventGroup();
+        Cauldron.FMOD.Event FE = new Cauldron.FMOD.Event();
         //サーバー内のファイルを直接読み込む(改行で分ける)
         List<string> Server_Open_File_Line(string From_File)
         {
@@ -51,10 +56,10 @@ namespace WoTB_Voice_Mod_Creater.Class
             Explanation_Border.Visibility = Visibility.Hidden;
             Explanation_Text.Visibility = Visibility.Hidden;
             Create_Name_T.Visibility = Visibility.Hidden;
+            Mod_Select_B.Visibility = Visibility.Hidden;
             Mod_Control_Change_Visible(false);
             Opacity = 0;
-            Fmod.Event_Factory.EventSystem_Create(ref Fmod_Player.ESystem);
-            Fmod_Player.ESystem.init(256, Fmod.INITFLAGS.NORMAL, IntPtr.Zero, Fmod.EVENT_INITFLAGS.NORMAL);
+            Fmod_Player.ESystem.Init(256, Cauldron.FMOD.INITFLAGS.NORMAL, IntPtr.Zero);
             Voice_Pitch_S.Minimum = -4;
             Voice_Pitch_S.Maximum = 2;
             Voice_Volume_S.Minimum = 0;
@@ -78,7 +83,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             }
             while (Opacity > 0)
             {
-                Fmod_Player.ESystem.update();
+                Fmod_Player.ESystem.Update();
                 await Task.Delay(1000 / 60);
             }
         }
@@ -98,9 +103,9 @@ namespace WoTB_Voice_Mod_Creater.Class
         }
         private void Stop_B_Click(object sender, RoutedEventArgs e)
         {
-            if (Fmod_Player.FE != null)
+            if (FE != null)
             {
-                Fmod_Player.FE.stop();
+                FE.Stop();
             }
         }
         private void Voice_Index_Play_Click(object sender, RoutedEventArgs e)
@@ -111,7 +116,32 @@ namespace WoTB_Voice_Mod_Creater.Class
         {
             Voice_Index_T.Text = (int)(Voice_Index_S.Value + 1) + "/" + Voice_Max_Index;
         }
-        private async void Fmod_Bank_List_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        async void Sample_Download()
+        {
+            string Bank_Name = Fmod_Bank_List.Items[Fmod_Bank_List.SelectedIndex].ToString();
+            if (!Directory.Exists(Special_Path + "/Server/Download_Mods/" + Bank_Name) || Directory.GetFiles(Special_Path + "/Server/Download_Mods/" + Bank_Name, "*", SearchOption.AllDirectories).Length == 0)
+            {
+                if (Directory.Exists(Special_Path + "/Server/Download_Mods/" + Bank_Name))
+                {
+                    Directory.Delete(Special_Path + "/Server/Download_Mods/" + Bank_Name, true);
+                }
+                Directory.CreateDirectory(Special_Path + "/Server/Download_Mods/" + Bank_Name);
+                Message_T.Text = "サンプルをダウンロードしています...";
+                await Task.Delay(100);
+                Voice_Set.FTP_Server.DownloadDirectory(Special_Path + "/Server/Download_Mods/" + Bank_Name, "/WoTB_Voice_Mod/Mods/" + Bank_Name + "/Files");
+                Message_T.Text = "";
+            }
+            Mod_Select_Name = Bank_Name;
+            Fmod_Bank_List.Items.Clear();
+            string[] Dir = Directory.GetFiles(Special_Path + "/Server/Download_Mods/" + Bank_Name, "*.fev", SearchOption.AllDirectories);
+            foreach (string Name in Dir)
+            {
+                Fmod_Bank_List.Items.Add(Path.GetFileName(Name));
+            }
+            Mod_Back_B.Visibility = Visibility.Visible;
+            Mod_Install_B.Visibility = Visibility.Visible;
+        }
+        private void Fmod_Bank_List_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (Fmod_Bank_List.SelectedIndex != -1)
             {
@@ -123,16 +153,16 @@ namespace WoTB_Voice_Mod_Creater.Class
                 string Bank_Name = Fmod_Bank_List.Items[Fmod_Bank_List.SelectedIndex].ToString();
                 if (Mod_Select_Name != "")
                 {
-                    if (Fmod_Player.FE != null)
+                    if (FE != null)
                     {
-                        Fmod_Player.EP.release();
-                        Fmod_Player.FE.release();
+                        EP.Release();
+                        FE.Release();
                     }
-                    Fmod_Player.ESystem.load(Special_Path + "/Server/Download_Mods/" + Mod_Select_Name + "/" + Bank_Name, ref Fmod_Player.ELI, ref Fmod_Player.EP);
-                    Fmod.EventProject EC = new Fmod.EventProject();
-                    Fmod_Player.ESystem.getProjectByIndex(0, ref EC);
-                    EC.getGroupByIndex(0, true, ref Fmod_Player.EG);
-                    Fmod_Player.EG.getNumEvents(ref Voice_Max_Index);
+                    Fmod_Player.ESystem.Load(Special_Path + "/Server/Download_Mods/" + Mod_Select_Name + "/" + Bank_Name, ref ELI, ref EP);
+                    Cauldron.FMOD.EventProject EC = new Cauldron.FMOD.EventProject();
+                    Fmod_Player.ESystem.GetProjectByIndex(0, ref EC);
+                    EC.GetGroupByIndex(0, true, ref EG);
+                    EG.GetNumEvents(ref Voice_Max_Index);
                     Voice_Index_S.Value = 0;
                     Voice_Index_S.Maximum = Voice_Max_Index - 1;
                     Voice_Index_T.Text = "1/" + Voice_Max_Index;
@@ -149,30 +179,14 @@ namespace WoTB_Voice_Mod_Creater.Class
                         Mod_Password_B.Visibility = Visibility.Visible;
                         Mod_Password_T.Visibility = Visibility.Visible;
                         Mod_Password_Text.Visibility = Visibility.Visible;
+                        Mod_Select_B.Visibility = Visibility.Hidden;
                     }
                     else
                     {
-                        if (!Directory.Exists(Special_Path + "/Server/Download_Mods/" + Bank_Name) || Directory.GetFiles(Special_Path + "/Server/Download_Mods/" + Bank_Name, "*", SearchOption.AllDirectories).Length == 0)
-                        {
-                            if (Directory.Exists(Special_Path + "/Server/Download_Mods/" + Bank_Name))
-                            {
-                                Directory.Delete(Special_Path + "/Server/Download_Mods/" + Bank_Name, true);
-                            }
-                            Directory.CreateDirectory(Special_Path + "/Server/Download_Mods/" + Bank_Name);
-                            Message_T.Text = "サンプルをダウンロードしています...";
-                            await Task.Delay(100);
-                            Voice_Set.FTP_Server.DownloadDirectory(Special_Path + "/Server/Download_Mods/" + Bank_Name, "/WoTB_Voice_Mod/Mods/" + Bank_Name + "/Files");
-                            Message_T.Text = "";
-                        }
-                        Mod_Select_Name = Bank_Name;
-                        Fmod_Bank_List.Items.Clear();
-                        string[] Dir = Directory.GetFiles(Special_Path + "/Server/Download_Mods/" + Bank_Name, "*.fev", SearchOption.AllDirectories);
-                        foreach (string Name in Dir)
-                        {
-                            Fmod_Bank_List.Items.Add(Path.GetFileName(Name));
-                        }
-                        Mod_Back_B.Visibility = Visibility.Visible;
-                        Mod_Install_B.Visibility = Visibility.Visible;
+                        Mod_Password_B.Visibility = Visibility.Hidden;
+                        Mod_Password_T.Visibility = Visibility.Hidden;
+                        Mod_Password_Text.Visibility = Visibility.Hidden;
+                        Mod_Select_B.Visibility = Visibility.Visible;
                     }
                     Create_Name_T.Text = "制作者:" + item2.Element("UserName").Value;
                     Create_Name_T.Visibility = Visibility.Visible;
@@ -221,14 +235,14 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 return;
             }
-            if (Fmod_Player.FE != null)
+            if (FE != null)
             {
-                Fmod_Player.FE.stop();
+                FE.Stop();
             }
-            Fmod_Player.EG.getEventByIndex(Voice_Number, Fmod.EVENT_MODE.DEFAULT, ref Fmod_Player.FE);
-            Fmod_Player.FE.setVolume(Voice_Volume);
-            Fmod_Player.FE.setPitch(Voice_Pitch, Fmod.EVENT_PITCHUNITS.TONES);
-            Fmod_Player.FE.start();
+            EG.GetEventByIndex(Voice_Number, Cauldron.FMOD.EVENT_MODE.DEFAULT, ref FE);
+            FE.SetVolume(Voice_Volume);
+            FE.SetPitch(Voice_Pitch, Cauldron.FMOD.EVENT_PITCHUNITS.TONES);
+            FE.Start();
         }
         void Mod_Control_Change_Visible(bool IsVisible)
         {
@@ -256,19 +270,19 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Voice_Pitch_S.Visibility = Visibility.Hidden;
                 Voice_Pitch_T.Visibility = Visibility.Hidden;
                 Mod_Install_B.Visibility = Visibility.Hidden;
-                if (Fmod_Player.FE != null)
+                if (FE != null)
                 {
-                    Fmod_Player.EP.release();
-                    Fmod_Player.FE.release();
-                    Fmod_Player.EP = null;
-                    Fmod_Player.EG = null;
-                    Fmod_Player.FE = null;
+                    EP.Release();
+                    FE.Release();
+                    EP = null;
+                    EG = null;
+                    FE = null;
                 }
             }
         }
         private async void Back_B_Click(object sender, RoutedEventArgs e)
         {
-            if (Opacity >= 1)
+            if (!IsBusy)
             {
                 IsBusy = true;
                 while (Opacity > 0)
@@ -287,18 +301,18 @@ namespace WoTB_Voice_Mod_Creater.Class
         {
             Voice_Volume = (float)Voice_Volume_S.Value / 100;
             Voice_Volume_T.Text = "音量:" + (int)Voice_Volume_S.Value;
-            if (Fmod_Player.FE != null)
+            if (FE != null)
             {
-                Fmod_Player.FE.setVolume(Voice_Volume);
+                FE.SetVolume(Voice_Volume);
             }
         }
         private void Voice_Pitch_S_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             Voice_Pitch = (float)Voice_Pitch_S.Value;
             Voice_Pitch_T.Text = "ピッチ:" + Math.Round(Voice_Pitch_S.Value, 2, MidpointRounding.AwayFromZero);
-            if (Fmod_Player.FE != null)
+            if (FE != null)
             {
-                Fmod_Player.FE.setPitch(Voice_Pitch, Fmod.EVENT_PITCHUNITS.TONES);
+                FE.SetPitch(Voice_Pitch, Cauldron.FMOD.EVENT_PITCHUNITS.TONES);
             }
         }
         private void Mod_Back_B_Click(object sender, RoutedEventArgs e)
@@ -308,6 +322,10 @@ namespace WoTB_Voice_Mod_Creater.Class
                 return;
             }
             Mod_Control_Change_Visible(false);
+            if (Directory.Exists(Special_Path + "/Server/Download_Mods/" + Mod_Select_Name) && Mod_Select_Name != "")
+            {
+                Directory.Delete(Special_Path + "/Server/Download_Mods/" + Mod_Select_Name, true);
+            }
             Mod_Install_B.Margin = new Thickness(-1245, 125, 0, 0);
             Mod_Back_B.Visibility = Visibility.Hidden;
             Explanation_Scrool.Visibility = Visibility.Hidden;
@@ -334,11 +352,11 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Mod_List_Update();
             }
         }
-        private void Mod_Install_B_Click(object sender, RoutedEventArgs e)
+        private async void Mod_Install_B_Click(object sender, RoutedEventArgs e)
         {
             if (Voice_Set.WoTB_Path == "")
             {
-                Sub_Code.WoTB_Get_Directory();
+                Message_T.Text = "WoTBのフォルダを取得できませんでした。";
                 return;
             }
             if (IsBusy || Opacity < 1)
@@ -353,9 +371,21 @@ namespace WoTB_Voice_Mod_Creater.Class
                 string Name_Only = Path.GetFileName(Name).Replace(".dvpl", "");
                 if (Name_Only.Contains("sounds.yaml"))
                 {
+                    Message_T.Text = "sounds.yamlを更新しています...";
+                    await Task.Delay(10);
+                    if (Path.GetExtension(Name) == ".dvpl")
+                    {
+                        Sub_Code.DVPL_Unlock(Name, Path.GetDirectoryName(Name) + "/sounds.yaml", false);
+                        File.Delete(Name);
+                        Sub_Code.Sounds_Yaml_Update(Path.GetDirectoryName(Name) + "/sounds.yaml", Special_Path + "/Temp_Change_Sounds.yaml.dvpl", true);
+                    }
+                    else
+                    {
+                        Sub_Code.Sounds_Yaml_Update(Name, Special_Path + "/Temp_Change_Sounds.yaml", false);
+                    }
                     File.Delete(Voice_Set.WoTB_Path + "/Data/sounds.yaml");
                     File.Delete(Voice_Set.WoTB_Path + "/Data/sounds.yaml.dvpl");
-                    Sub_Code.DVPL_File_Copy(Name.Replace(".dvpl", ""), Voice_Set.WoTB_Path + "/Data/sounds.yaml", true);
+                    Sub_Code.DVPL_File_Copy(Special_Path + "/Temp_Change_Sounds.yaml", Voice_Set.WoTB_Path + "/Data/sounds.yaml", true);
                 }
                 if (Name_Only.Contains(".fev") || Name_Only.Contains(".fsb"))
                 {
@@ -368,43 +398,34 @@ namespace WoTB_Voice_Mod_Creater.Class
             }
             if (FEV_List.Count != 0)
             {
-                if (File.Exists(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_high.yaml"))
+                try
                 {
-                    Change_Sfx_High_And_Low(FEV_List, Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_high.yaml", Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_low.yaml");
-                }
-                else if (File.Exists(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_high.yaml.dvpl"))
-                {
-                    StreamWriter DVPL_Unpack_01 = File.CreateText(Special_Path + "/DVPL/UnPack.bat");
-                    DVPL_Unpack_01.Write("\"" + Special_Path + "/DVPL/Python/python.exe\" \"" + Special_Path + "/DVPL/UnPack.py\" \"" + Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_high.yaml.dvpl\" \"" + Special_Path + "/Temp_sfx_high.yaml\"");
-                    DVPL_Unpack_01.Close();
-                    ProcessStartInfo processStartInfo1 = new ProcessStartInfo
+                    if (File.Exists(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_high.yaml"))
                     {
-                        FileName = Special_Path + "/DVPL/UnPack.bat",
-                        CreateNoWindow = true,
-                        UseShellExecute = false
-                    };
-                    Process p = Process.Start(processStartInfo1);
-                    p.WaitForExit();
-                    File.Delete(Special_Path + "/DVPL/UnPack.bat");
-                    StreamWriter DVPL_Unpack_02 = File.CreateText(Special_Path + "/DVPL/UnPack.bat");
-                    DVPL_Unpack_02.Write("\"" + Special_Path + "/DVPL/Python/python.exe\" \"" + Special_Path + "/DVPL/UnPack.py\" \"" + Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_low.yaml.dvpl\" \"" + Special_Path + "/Temp_sfx_low.yaml\"");
-                    DVPL_Unpack_02.Close();
-                    ProcessStartInfo processStartInfo2 = new ProcessStartInfo
+                        Change_Sfx_High_And_Low(FEV_List, Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_high.yaml", Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_low.yaml");
+                        File.Delete(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_high.yaml.dvpl");
+                        File.Delete(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_low.yaml.dvpl");
+                    }
+                    else if (File.Exists(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_high.yaml.dvpl"))
                     {
-                        FileName = Special_Path + "/DVPL/UnPack.bat",
-                        CreateNoWindow = true,
-                        UseShellExecute = false
-                    };
-                    Process p2 = Process.Start(processStartInfo2);
-                    p2.WaitForExit();
-                    File.Delete(Special_Path + "/DVPL/UnPack.bat");
-                    Change_Sfx_High_And_Low(FEV_List, Special_Path + "/Temp_sfx_high.yaml", Special_Path + "/Temp_sfx_low.yaml");
-                    File.Copy(Special_Path + "/Temp_sfx_high.yaml", Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_high.yaml", true);
-                    File.Copy(Special_Path + "/Temp_sfx_low.yaml", Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_low.yaml", true);
-                    File.Delete(Special_Path + "/Temp_sfx_high.yaml");
-                    File.Delete(Special_Path + "/Temp_sfx_low.yaml");
+                        Sub_Code.DVPL_Unlock(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_high.yaml.dvpl", Special_Path + "/Temp_sfx_high.yaml", true);
+                        Sub_Code.DVPL_Unlock(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_low.yaml.dvpl", Special_Path + "/Temp_sfx_low.yaml", true);
+                        Change_Sfx_High_And_Low(FEV_List, Special_Path + "/Temp_sfx_high.yaml", Special_Path + "/Temp_sfx_low.yaml");
+                        DVPL.DVPL_Encode(Special_Path + "/Temp_sfx_high.yaml");
+                        DVPL.DVPL_Encode(Special_Path + "/Temp_sfx_low.yaml");
+                        File.Copy(Special_Path + "/Temp_sfx_high.yaml.dvpl", Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_high.yaml.dvpl", true);
+                        File.Copy(Special_Path + "/Temp_sfx_low.yaml.dvpl", Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_low.yaml.dvpl", true);
+                        File.Delete(Special_Path + "/Temp_sfx_high.yaml");
+                        File.Delete(Special_Path + "/Temp_sfx_low.yaml");
+                        File.Delete(Special_Path + "/Temp_sfx_high.yaml.dvpl");
+                        File.Delete(Special_Path + "/Temp_sfx_low.yaml.dvpl");
+                    }
+                    else
+                    {
+                        throw new Exception("sfx_high(low).yamlが存在しません。");
+                    }
                 }
-                else
+                catch
                 {
                     Message_T.Text = "sfx_high(low).yamlが見つかりませんでした。";
                     return;
@@ -414,20 +435,12 @@ namespace WoTB_Voice_Mod_Creater.Class
             XElement item2 = xml2.Element("Mod_Upload_Config");
             if (bool.Parse(item2.Element("IsBGMMode").Value) == true)
             {
+                bool IsDVPLEncode = false;
                 if (File.Exists(Voice_Set.WoTB_Path + "/Data/sounds.yaml.dvpl"))
                 {
-                    StreamWriter DVPL_Unpack_01 = File.CreateText(Special_Path + "/DVPL/UnPack.bat");
-                    DVPL_Unpack_01.Write("\"" + Special_Path + "/DVPL/Python/python.exe\" \"" + Special_Path + "/DVPL/UnPack.py\" \"" + Voice_Set.WoTB_Path + "/Data/sounds.yaml.dvpl\" \"" + Voice_Set.WoTB_Path + "/Data/sounds.yaml\"");
-                    DVPL_Unpack_01.Close();
-                    ProcessStartInfo processStartInfo1 = new ProcessStartInfo
-                    {
-                        FileName = Special_Path + "/DVPL/UnPack.bat",
-                        CreateNoWindow = true,
-                        UseShellExecute = false
-                    };
-                    Process p = Process.Start(processStartInfo1);
-                    p.WaitForExit();
-                    File.Delete(Special_Path + "/DVPL/UnPack.bat");
+                    Sub_Code.DVPL_Unlock(Voice_Set.WoTB_Path + "/Data/sounds.yaml.dvpl", Voice_Set.WoTB_Path + "/Data/sounds.yaml", true);
+                    File.Delete(Voice_Set.WoTB_Path + "/Data/sounds.yaml.dvpl");
+                    IsDVPLEncode = true;
                 }
                 StreamReader str = new StreamReader(Voice_Set.WoTB_Path + "/Data/sounds.yaml");
                 string Read = str.ReadToEnd();
@@ -446,7 +459,11 @@ namespace WoTB_Voice_Mod_Creater.Class
                 StreamWriter stw = File.CreateText(Voice_Set.WoTB_Path + "/Data/sounds.yaml");
                 stw.Write(Temp);
                 stw.Close();
-                File.Delete(Voice_Set.WoTB_Path + "/Data/sounds.yaml.dvpl");
+                if (IsDVPLEncode)
+                {
+                    DVPL.DVPL_Encode(Voice_Set.WoTB_Path + "/Data/sounds.yaml");
+                    File.Delete(Voice_Set.WoTB_Path + "/Data/sounds.yaml");
+                }
             }
             IsBusy = false;
             Message_T.Text = "インストールしました。";
@@ -488,22 +505,26 @@ namespace WoTB_Voice_Mod_Creater.Class
             }
             if (Voice_Set.WoTB_Path == "")
             {
-                Sub_Code.WoTB_Get_Directory();
+                Message_T.Text = "WoTBのフォルダを取得できませんでした。";
                 return;
             }
-            if (Sub_Code.DVPL_File_Exists(Directory.GetCurrentDirectory() + "/Backup/Main/sounds.yaml") && Voice_Set.WoTB_Path != "")
+            MessageBoxResult result = MessageBox.Show("初めて起動したときに生成されるファイルからバックアップします。よろしいですか？", "確認", MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.No);
+            if (result == MessageBoxResult.Yes)
             {
-                Sub_Code.DVPL_File_Delete(Voice_Set.WoTB_Path + "/Data/sounds.yaml");
-                Sub_Code.DVPL_File_Delete(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_high.yaml");
-                Sub_Code.DVPL_File_Delete(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_low.yaml");
-                Sub_Code.DVPL_File_Copy(Directory.GetCurrentDirectory() + "/Backup/Main/sounds.yaml", Voice_Set.WoTB_Path + "/Data/sounds.yaml", true);
-                Sub_Code.DVPL_File_Copy(Directory.GetCurrentDirectory() + "/Backup/Main/sfx_high.yaml", Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_high.yaml", true);
-                Sub_Code.DVPL_File_Copy(Directory.GetCurrentDirectory() + "/Backup/Main/sfx_low.yaml", Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_low.yaml", true);
-                MessageBox.Show("バックアップから復元しました。この操作でうまく復元できていなかった場合は、\"サーバーから復元\"をお試しください。");
-            }
-            else
-            {
-                Message_T.Text = "バックアップファイルが存在しません。";
+                if (Sub_Code.DVPL_File_Exists(Directory.GetCurrentDirectory() + "/Backup/Main/sounds.yaml") && Voice_Set.WoTB_Path != "")
+                {
+                    Sub_Code.DVPL_File_Delete(Voice_Set.WoTB_Path + "/Data/sounds.yaml");
+                    Sub_Code.DVPL_File_Delete(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_high.yaml");
+                    Sub_Code.DVPL_File_Delete(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_low.yaml");
+                    Sub_Code.DVPL_File_Copy(Directory.GetCurrentDirectory() + "/Backup/Main/sounds.yaml", Voice_Set.WoTB_Path + "/Data/sounds.yaml", true);
+                    Sub_Code.DVPL_File_Copy(Directory.GetCurrentDirectory() + "/Backup/Main/sfx_high.yaml", Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_high.yaml", true);
+                    Sub_Code.DVPL_File_Copy(Directory.GetCurrentDirectory() + "/Backup/Main/sfx_low.yaml", Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_low.yaml", true);
+                    MessageBox.Show("バックアップから復元しました。この操作でうまく復元できていなかった場合は、\"サーバーから復元\"をお試しください。");
+                }
+                else
+                {
+                    Message_T.Text = "バックアップファイルが存在しません。";
+                }
             }
         }
         private void Mod_Server_Backup_B_Click(object sender, RoutedEventArgs e)
@@ -514,29 +535,33 @@ namespace WoTB_Voice_Mod_Creater.Class
             }
             if (Voice_Set.WoTB_Path == "")
             {
-                Sub_Code.WoTB_Get_Directory();
+                Message_T.Text = "WoTBのフォルダを取得できませんでした。";
                 return;
             }
-            try
+            MessageBoxResult result = MessageBox.Show("サーバーに保存してある初期状態のファイルからバックアップします。よろしいですか？", "確認", MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.No);
+            if (result == MessageBoxResult.Yes)
             {
-                FluentFTP.FtpStatus result = Voice_Set.FTP_Server.DownloadFile(Voice_Set.WoTB_Path + "/Data/sounds.yaml.dvpl", "/WoTB_Voice_Mod/Mods/Backup/sounds.yaml.dvpl", FluentFTP.FtpLocalExists.Overwrite);
-                Voice_Set.FTP_Server.DownloadFile(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_high.yaml.dvpl", "/WoTB_Voice_Mod/Mods/Backup/sfx_high.yaml.dvpl", FluentFTP.FtpLocalExists.Overwrite);
-                Voice_Set.FTP_Server.DownloadFile(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_low.yaml.dvpl", "/WoTB_Voice_Mod/Mods/Backup/sfx_low.yaml.dvpl", FluentFTP.FtpLocalExists.Overwrite);
-                if (result != FluentFTP.FtpStatus.Failed)
+                try
                 {
-                    File.Delete(Voice_Set.WoTB_Path + "/Data/sounds.yaml");
-                    File.Delete(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_high.yaml");
-                    File.Delete(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_low.yaml");
+                    FluentFTP.FtpStatus result2 = Voice_Set.FTP_Server.DownloadFile(Voice_Set.WoTB_Path + "/Data/sounds.yaml.dvpl", "/WoTB_Voice_Mod/Mods/Backup/sounds.yaml.dvpl", FluentFTP.FtpLocalExists.Overwrite);
+                    Voice_Set.FTP_Server.DownloadFile(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_high.yaml.dvpl", "/WoTB_Voice_Mod/Mods/Backup/sfx_high.yaml.dvpl", FluentFTP.FtpLocalExists.Overwrite);
+                    Voice_Set.FTP_Server.DownloadFile(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_low.yaml.dvpl", "/WoTB_Voice_Mod/Mods/Backup/sfx_low.yaml.dvpl", FluentFTP.FtpLocalExists.Overwrite);
+                    if (result2 == FluentFTP.FtpStatus.Success)
+                    {
+                        File.Delete(Voice_Set.WoTB_Path + "/Data/sounds.yaml");
+                        File.Delete(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_high.yaml");
+                        File.Delete(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_low.yaml");
+                    }
+                    else
+                    {
+                        Message_T.Text = "エラー:サーバーから復元できませんでした。";
+                    }
                 }
-                else
+                catch
                 {
-                    Message_T.Text = "エラー:サーバーから復元できませんでした。";
+                    Message_T.Text = "エラー:元ファイルが使用中です。";
+                    return;
                 }
-            }
-            catch
-            {
-                Message_T.Text = "エラー:元ファイルが使用中です。";
-                return;
             }
         }
         private void Mod_Backup_Help_B_Click(object sender, RoutedEventArgs e)
@@ -549,7 +574,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             string Message_02 = "\"バックアップから復元\"は、このソフトを初めて起動したときにコピーされたファイルから復元します。";
             MessageBox.Show(Message_01 + Message_02);
         }
-        private async void Mod_Password_B_Click(object sender, RoutedEventArgs e)
+        private void Mod_Password_B_Click(object sender, RoutedEventArgs e)
         {
             if (IsBusy)
             {
@@ -562,28 +587,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Mod_Password_B.Visibility = Visibility.Hidden;
                 Mod_Password_T.Visibility = Visibility.Hidden;
                 Mod_Password_Text.Visibility = Visibility.Hidden;
-                string Bank_Name = Fmod_Bank_List.Items[Fmod_Bank_List.SelectedIndex].ToString();
-                if (!Directory.Exists(Special_Path + "/Server/Download_Mods/" + Bank_Name) || Directory.GetFiles(Special_Path + "/Server/Download_Mods/" + Bank_Name, "*", SearchOption.AllDirectories).Length == 0)
-                {
-                    if (Directory.Exists(Special_Path + "/Server/Download_Mods/" + Bank_Name))
-                    {
-                        Directory.Delete(Special_Path + "/Server/Download_Mods/" + Bank_Name, true);
-                    }
-                    Directory.CreateDirectory(Special_Path + "/Server/Download_Mods/" + Bank_Name);
-                    Message_T.Text = "サンプルをダウンロードしています...";
-                    await Task.Delay(100);
-                    Voice_Set.FTP_Server.DownloadDirectory(Special_Path + "/Server/Download_Mods/" + Bank_Name, "/WoTB_Voice_Mod/Mods/" + Bank_Name + "/Files");
-                    Message_T.Text = "";
-                }
-                Mod_Select_Name = Bank_Name;
-                Fmod_Bank_List.Items.Clear();
-                string[] Dir = Directory.GetFiles(Special_Path + "/Server/Download_Mods/" + Bank_Name, "*.fev", SearchOption.AllDirectories);
-                foreach (string Name in Dir)
-                {
-                    Fmod_Bank_List.Items.Add(Path.GetFileName(Name));
-                }
-                Mod_Back_B.Visibility = Visibility.Visible;
-                Mod_Install_B.Visibility = Visibility.Visible;
+                Sample_Download();
                 Explanation_Scrool.Visibility = Visibility.Visible;
                 Explanation_Border.Visibility = Visibility.Visible;
                 Explanation_Text.Visibility = Visibility.Visible;
@@ -601,6 +605,15 @@ namespace WoTB_Voice_Mod_Creater.Class
         private void Voice_Pitch_S_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             Voice_Pitch_S.Value = 0;
+        }
+        private void Mod_Select_B_Click(object sender, RoutedEventArgs e)
+        {
+            if (IsBusy)
+            {
+                return;
+            }
+            Sample_Download();
+            Mod_Select_B.Visibility = Visibility.Hidden;
         }
     }
 }
