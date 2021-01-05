@@ -612,7 +612,7 @@ namespace WoTB_Voice_Mod_Creater
                 Chat.WriteLine("---ここで管理者と1:1でチャットできます。---");
                 Chat.Close();
                 Voice_Set.FTP_Server.UploadFile(Special_Path + "/Temp_User_Chat.dat", "/WoTB_Voice_Mod/Users/" + User_Name_T.Text + "_Chat.dat");
-                Voice_Set.AppendString("/WoTB_Voice_Mod/Accounts.dat", Encoding.UTF8.GetBytes(User_Name_T.Text + ":" + User_Password_T.Text));
+                Voice_Set.AppendString("/WoTB_Voice_Mod/Accounts.dat", Encoding.UTF8.GetBytes(User_Name_T.Text + ":" + User_Password_T.Text + "\n"));
                 StreamWriter stw = File.CreateText(Special_Path + "/Temp_User_Set.dat");
                 stw.WriteLine(User_Name_T.Text + ":" + User_Password_T.Text);
                 stw.Close();
