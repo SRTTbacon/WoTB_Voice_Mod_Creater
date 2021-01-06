@@ -99,7 +99,9 @@ namespace WoTB_Voice_Mod_Creater.Class
         private void Random_Play_B_Click(object sender, RoutedEventArgs e)
         {
             Random r = new Random();
-            Set_Fmod_Bank_Play(r.Next(0, Voice_Max_Index - 1));
+            int Number = r.Next(0, Voice_Max_Index - 1);
+            Set_Fmod_Bank_Play(Number);
+            Voice_Index_S.Value = Number;
         }
         private void Stop_B_Click(object sender, RoutedEventArgs e)
         {
@@ -292,6 +294,10 @@ namespace WoTB_Voice_Mod_Creater.Class
                 }
                 Visibility = Visibility.Hidden;
                 Mod_Control_Change_Visible(false);
+                if (Directory.Exists(Special_Path + "/Server/Download_Mods/" + Mod_Select_Name) && Mod_Select_Name != "")
+                {
+                    Directory.Delete(Special_Path + "/Server/Download_Mods/" + Mod_Select_Name, true);
+                }
                 Mod_Install_B.Margin = new Thickness(-1245, 125, 0, 0);
                 Message_T.Text = "";
                 IsBusy = false;
@@ -396,6 +402,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                     }
                 }
             }
+            bool IsDVPL = false;
             if (FEV_List.Count != 0)
             {
                 try
@@ -408,6 +415,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                     }
                     else if (File.Exists(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_high.yaml.dvpl"))
                     {
+                        IsDVPL = true;
                         Sub_Code.DVPL_Unlock(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_high.yaml.dvpl", Special_Path + "/Temp_sfx_high.yaml", true);
                         Sub_Code.DVPL_Unlock(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_low.yaml.dvpl", Special_Path + "/Temp_sfx_low.yaml", true);
                         Change_Sfx_High_And_Low(FEV_List, Special_Path + "/Temp_sfx_high.yaml", Special_Path + "/Temp_sfx_low.yaml");
@@ -435,12 +443,10 @@ namespace WoTB_Voice_Mod_Creater.Class
             XElement item2 = xml2.Element("Mod_Upload_Config");
             if (bool.Parse(item2.Element("IsBGMMode").Value) == true)
             {
-                bool IsDVPLEncode = false;
                 if (File.Exists(Voice_Set.WoTB_Path + "/Data/sounds.yaml.dvpl"))
                 {
                     Sub_Code.DVPL_Unlock(Voice_Set.WoTB_Path + "/Data/sounds.yaml.dvpl", Voice_Set.WoTB_Path + "/Data/sounds.yaml", true);
                     File.Delete(Voice_Set.WoTB_Path + "/Data/sounds.yaml.dvpl");
-                    IsDVPLEncode = true;
                 }
                 StreamReader str = new StreamReader(Voice_Set.WoTB_Path + "/Data/sounds.yaml");
                 string Read = str.ReadToEnd();
@@ -459,11 +465,16 @@ namespace WoTB_Voice_Mod_Creater.Class
                 StreamWriter stw = File.CreateText(Voice_Set.WoTB_Path + "/Data/sounds.yaml");
                 stw.Write(Temp);
                 stw.Close();
-                if (IsDVPLEncode)
-                {
-                    DVPL.DVPL_Encode(Voice_Set.WoTB_Path + "/Data/sounds.yaml");
-                    File.Delete(Voice_Set.WoTB_Path + "/Data/sounds.yaml");
-                }
+            }
+            if (IsDVPL)
+            {
+                DVPL.DVPL_Encode(Voice_Set.WoTB_Path + "/Data/sounds.yaml");
+                File.Delete(Voice_Set.WoTB_Path + "/Data/sounds.yaml");
+            }
+            else if (File.Exists(Voice_Set.WoTB_Path + "/Data/sounds.yaml.dvpl"))
+            {
+                Sub_Code.DVPL_Unlock(Voice_Set.WoTB_Path + "/Data/sounds.yaml.dvpl", Voice_Set.WoTB_Path + "/Data/sounds.yaml", true);
+                File.Delete(Voice_Set.WoTB_Path + "/Data/sounds.yaml.dvpl");
             }
             IsBusy = false;
             Message_T.Text = "インストールしました。";
@@ -473,11 +484,17 @@ namespace WoTB_Voice_Mod_Creater.Class
             StreamReader str = new StreamReader(High_Path);
             string[] Lines = str.ReadToEnd().Split('\n');
             str.Close();
+            bool IsIncludeMusic = false;
+            bool IsIncludedMusic = false;
             StreamWriter stw1 = new StreamWriter(High_Path, true);
             StreamWriter stw2 = new StreamWriter(Low_Path, true);
             foreach (string FEV_Name in Write)
             {
                 bool IsExist = false;
+                if (FEV_Name == "Music.fev")
+                {
+                    IsIncludeMusic = true;
+                }
                 foreach (string Line in Lines)
                 {
                     if (Line.Contains("/"))
@@ -485,6 +502,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                         if (Line.Substring(Line.LastIndexOf('/')).Contains(FEV_Name))
                         {
                             IsExist = true;
+                            break;
                         }
                     }
                 }
@@ -493,6 +511,22 @@ namespace WoTB_Voice_Mod_Creater.Class
                     stw1.Write("\n -\n  \"~res:/Mods/" + FEV_Name + "\"");
                     stw2.Write("\n -\n  \"~res:/Mods/" + FEV_Name + "\"");
                 }
+            }
+            foreach (string Line_01 in Lines)
+            {
+                if (Line_01.Contains("/"))
+                {
+                    if (Line_01.Substring(Line_01.LastIndexOf('/')).Contains("Music.fev"))
+                    {
+                        IsIncludedMusic = true;
+                        break;
+                    }
+                }
+            }
+            if (!IsIncludeMusic && !IsIncludedMusic)
+            {
+                stw1.Write("\n -\n  \"~res:/Mods/Music.fev\"");
+                stw2.Write("\n -\n  \"~res:/Mods/Music.fev\"");
             }
             stw1.Close();
             stw2.Close();
@@ -551,6 +585,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                         File.Delete(Voice_Set.WoTB_Path + "/Data/sounds.yaml");
                         File.Delete(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_high.yaml");
                         File.Delete(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_low.yaml");
+                        Message_T.Text = "サーバーから復元しました。";
                     }
                     else
                     {

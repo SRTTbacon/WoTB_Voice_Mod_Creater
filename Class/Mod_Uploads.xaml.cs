@@ -14,6 +14,9 @@ namespace WoTB_Voice_Mod_Creater.Class
         bool IsBusy = false;
         readonly string Special_Path = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "/WoTB_Voice_Mod_Creater";
         readonly List<string> Mod_Name_Full = new List<string>();
+        Cauldron.FMOD.EVENT_LOADINFO ELI = new Cauldron.FMOD.EVENT_LOADINFO();
+        Cauldron.FMOD.EventProject EP = new Cauldron.FMOD.EventProject();
+        Cauldron.FMOD.Event FE = new Cauldron.FMOD.Event();
         public Mod_Uploads()
         {
             InitializeComponent();
@@ -79,7 +82,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             OpenFileDialog ofd = new OpenFileDialog
             {
                 Title = "Modファイルを選択してください。",
-                Filter = "Modファイル(*.yaml;*.fev;*.fsb)|*.yaml;*.fev;*.fsb",
+                Filter = "Modファイル(*.yaml;*.fev;*.fsb;*.yaml.dvpl;*.fev.dvpl;*.fsb.dvpl)|*.yaml;*.fev;*.fsb;*.yaml.dvpl;*.fev.dvpl;*.fsb.dvpl",
                 Multiselect = true
             };
             if (ofd.ShowDialog() == DialogResult.OK)
@@ -87,9 +90,9 @@ namespace WoTB_Voice_Mod_Creater.Class
                 foreach (string Mod_File in ofd.FileNames)
                 {
                     string Name = Path.GetFileName(Mod_File);
-                    if (Path.GetExtension(Mod_File) == ".yaml")
+                    if (Path.GetExtension(Mod_File) == ".yaml" || Mod_File.Contains(".yaml.dvpl"))
                     {
-                        if (Name != "sounds.yaml")
+                        if (Name != "sounds.yaml" && Name != "sounds.yaml.dvpl")
                         {
                             System.Windows.MessageBox.Show(".yamlファイルは、sounds.yamlファイル以外追加できません。\n現在のファイル名:" + Name);
                             continue;
@@ -155,14 +158,14 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Message_T.Text = "Mod名に空白を2つ続けて付けることはできません。";
                 return;
             }
+            if (Mod_Create_Name_T.Text == "Backup")
+            {
+                Message_T.Text = "そのMod名は別の目的に使用されています。";
+            }
             if (Voice_Set.FTP_Server.DirectoryExists("/WoTB_Voice_Mod/Mods/" + Mod_Create_Name_T.Text))
             {
                 Message_T.Text = "同名のModが既に存在します。";
                 return;
-            }
-            if (Mod_Create_Name_T.Text == "Backup")
-            {
-                Message_T.Text = "そのMod名は別の目的に使用されています。";
             }
             if (BGM_Mode_C.IsChecked.Value)
             {
@@ -184,11 +187,11 @@ namespace WoTB_Voice_Mod_Creater.Class
                     }
                     Message_T.Text = "BGMファイルを確認しています...";
                     await Task.Delay(100);
-                    Fmod_Player.ESystem.load(Mod_Name_Full[Number], ref Fmod_Player.ELI, ref Fmod_Player.EP);
-                    Fmod.RESULT result = Fmod_Player.ESystem.getEvent("Music/Music/Music", Fmod.EVENT_MODE.DEFAULT, ref Fmod_Player.FE);
-                    Fmod_Player.EP.release();
-                    Fmod_Player.FE.release();
-                    if (result != Fmod.RESULT.OK)
+                    Fmod_Player.ESystem.Load(Mod_Name_Full[Number], ref ELI, ref EP);
+                    Cauldron.FMOD.RESULT result = Fmod_Player.ESystem.GetEvent("Music/Music/Music", Cauldron.FMOD.EVENT_MODE.DEFAULT, ref FE);
+                    EP.Release();
+                    FE.Release();
+                    if (result != Cauldron.FMOD.RESULT.OK)
                     {
                         throw new Exception("Music/Music/Musicが存在しません。");
                     }

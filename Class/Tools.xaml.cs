@@ -44,7 +44,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             if (ofd.ShowDialog() == DialogResult.OK)
             {
                 Message_T.Text = "DVPLファイルを展開しています...";
-                await Task.Delay(100);
+                await Task.Delay(50);
                 string Error_Path = "";
                 foreach (string File_Path in ofd.FileNames)
                 {
@@ -64,7 +64,6 @@ namespace WoTB_Voice_Mod_Creater.Class
                     {
                         Error_Path += File_Path + "\n";
                     }
-                    System.Windows.MessageBox.Show(Path.GetDirectoryName(File_Path) + "/" + Path.GetFileNameWithoutExtension(File_Path));
                 }
                 Message_T.Text = "DVPLファイルを展開しました。";
                 if (Error_Path != "")
@@ -90,7 +89,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 string Error_Path = "";
                 Message_T.Text = "DVPL化しています...";
-                await Task.Delay(100);
+                await Task.Delay(50);
                 foreach (string File_Path in ofd.FileNames)
                 {
                     if (Path.GetExtension(File_Path) == ".dvpl")
@@ -520,9 +519,9 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 BGM_Dir_Now = BGM_Dir;
             }
-            if (BGM_Dir_Now == "" || !File.Exists(AA + "/Projects/BGM_Mod/" + BGM_Dir_Now + "/Music.fev") || !File.Exists(AA + "/Projects/BGM_Mod/" + BGM_Dir_Now + "/Music.fsb"))
+            if (BGM_Dir_Now == "" || !File.Exists(AA + "/Projects/BGM_Mod/BGM_" + BGM_Dir_Now + "/Music.fev") || !File.Exists(AA + "/Projects/BGM_Mod/BGM_" + BGM_Dir_Now + "/Music.fsb"))
             {
-                if (BGM_Dir_Now == "" || !File.Exists(AA + "/Projects/BGM_Mod/" + BGM_Dir_Now + "/Music.fev.dvpl") || !File.Exists(AA + "/Projects/BGM_Mod/" + BGM_Dir_Now + "/Music.fsb.dvpl"))
+                if (BGM_Dir_Now == "" || !File.Exists(AA + "/Projects/BGM_Mod/BGM_" + BGM_Dir_Now + "/Music.fev.dvpl") || !File.Exists(AA + "/Projects/BGM_Mod/BGM_" + BGM_Dir_Now + "/Music.fsb.dvpl"))
                 {
                     Message_T.Text = "データを取得できませんでした。先に\"FEV + FSBを作成\"ボタンを押してください。";
                     return;
@@ -627,21 +626,21 @@ namespace WoTB_Voice_Mod_Creater.Class
                         File.Delete(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_low.yaml.dvpl");
                     }
                 }
+                bool IsSoundsDVPL = false;
                 if (File.Exists(Voice_Set.WoTB_Path + "/Data/sounds.yaml.dvpl"))
                 {
-                    StreamWriter DVPL_Unpack = File.CreateText(Special_Path + "/DVPL/UnPack.bat");
-                    DVPL_Unpack.Write("\"" + Special_Path + "/DVPL/Python/python.exe\" \"" + Special_Path + "/DVPL/UnPack.py\" \"" + Voice_Set.WoTB_Path + "/Data/sounds.yaml.dvpl\" \"" + Voice_Set.WoTB_Path + "/Data/sounds.yaml\"");
-                    DVPL_Unpack.Close();
-                    ProcessStartInfo processStartInfo = new ProcessStartInfo
-                    {
-                        FileName = Special_Path + "/DVPL/UnPack.bat",
-                        CreateNoWindow = true,
-                        UseShellExecute = false
-                    };
-                    Process p = Process.Start(processStartInfo);
-                    p.WaitForExit();
-                    File.Delete(Special_Path + "/DVPL/UnPack.bat");
+                    Sub_Code.DVPL_Unlock(Voice_Set.WoTB_Path + "/Data/sounds.yaml.dvpl", Voice_Set.WoTB_Path + "/Data/sounds.yaml", true);
                     File.Delete(Voice_Set.WoTB_Path + "/Data/sounds.yaml.dvpl");
+                    IsSoundsDVPL = true;
+                }
+                bool IsSFXDVPL = false;
+                if (File.Exists(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_high.yaml.dvpl"))
+                {
+                    Sub_Code.DVPL_Unlock(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_high.yaml.dvpl", Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_high.yaml", true);
+                    Sub_Code.DVPL_Unlock(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_low.yaml.dvpl", Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_low.yaml", true);
+                    File.Delete(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_high.yaml.dvpl");
+                    File.Delete(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_low.yaml.dvpl");
+                    IsSFXDVPL = true;
                 }
                 StreamReader str = new StreamReader(Voice_Set.WoTB_Path + "/Data/sounds.yaml");
                 string[] Lines = str.ReadToEnd().Split('\n');
@@ -679,6 +678,20 @@ namespace WoTB_Voice_Mod_Creater.Class
                         stw4.Write("\n -\n  \"~res:/Mods/Music.fev\"");
                         stw4.Close();
                     }
+                }
+                if (IsSFXDVPL)
+                {
+                    DVPL.DVPL_Encode(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_high.yaml");
+                    DVPL.DVPL_Encode(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_low.yaml");
+                    DVPL.DVPL_Encode(Voice_Set.WoTB_Path + "/Data/sounds.yaml");
+                    File.Delete(Voice_Set.WoTB_Path + "/Data/sounds.yaml");
+                    File.Delete(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_high.yaml");
+                    File.Delete(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_low.yaml");
+                }
+                if (IsSoundsDVPL)
+                {
+                    DVPL.DVPL_Encode(Voice_Set.WoTB_Path + "/Data/sounds.yaml");
+                    File.Delete(Voice_Set.WoTB_Path + "/Data/sounds.yaml");
                 }
                 Sub_Code.DVPL_File_Delete(Voice_Set.WoTB_Path + "/back_sounds.yaml");
                 Sub_Code.DVPL_File_Delete(Voice_Set.WoTB_Path + "/back_sfx_high.yaml");

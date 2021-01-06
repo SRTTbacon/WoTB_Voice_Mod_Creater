@@ -95,10 +95,12 @@ namespace WoTB_Voice_Mod_Creater
                             }
                             File.Delete(Special_Path + "/Temp_WoTB_Path.dat");
                             Voice_Set.WoTB_Path = item2 + "World of Tanks Blitz";
+                            MessageBox.Show("テスト2");
                             return true;
                         }
                     }
                 }
+                MessageBox.Show("WoTBのインストール先を取得できませんでした。SteamにWoTBがインストールされていないか、32BitOSを使用している可能性があります。");
                 return false;
             }
             catch
@@ -577,7 +579,7 @@ namespace WoTB_Voice_Mod_Creater
             {
                 if (line_01.Contains(":"))
                 {
-                    if (line_01.Substring(0, line_01.IndexOf(':')).Contains(Line_Head))
+                    if (line_01.Substring(0, line_01.IndexOf(':')) == Line_Head)
                     {
                         if (Line != line_01)
                         {
