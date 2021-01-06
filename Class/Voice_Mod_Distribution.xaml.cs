@@ -293,6 +293,11 @@ namespace WoTB_Voice_Mod_Creater.Class
                     Directory.Delete(Special_Path + "/Server/Download_Mods/" + Mod_Select_Name, true);
                 }
                 Mod_Install_B.Margin = new Thickness(-1245, 125, 0, 0);
+                Mod_Back_B.Visibility = Visibility.Hidden;
+                Explanation_Scrool.Visibility = Visibility.Hidden;
+                Explanation_Border.Visibility = Visibility.Hidden;
+                Explanation_Text.Visibility = Visibility.Hidden;
+                Create_Name_T.Visibility = Visibility.Hidden;
                 Message_T.Text = "";
                 Mod_Select_Name = "";
                 IsBusy = false;
