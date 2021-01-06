@@ -33,6 +33,7 @@ namespace WoTB_Voice_Mod_Creater
         readonly string Path = Directory.GetCurrentDirectory();
         readonly string Special_Path = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "/WoTB_Voice_Mod_Creater";
         bool IsClosing = false;
+        bool IsMessageShowing = false;
         readonly bool IsSRTTbacon_V1 = false;
         //チャットモード(0が全体:1がサーバー内:2が管理者チャット)
         //管理者チャットは管理者(SRTTbacon)と個人チャットする用(主にバグ報告かな？)
@@ -131,7 +132,7 @@ namespace WoTB_Voice_Mod_Creater
                             if (!Sub_Code.WoTB_Get_Directory())
                             {
                                 WoTB_Select_B.Visibility = Visibility.Visible;
-                                Message_T.Text = "WoTBのインストール先を取得できません。手動で指定してください。";
+                                Message_Feed_Out("WoTBのインストール先を取得できません。手動で指定してください。");
                             }
                         }
                         else
@@ -144,7 +145,7 @@ namespace WoTB_Voice_Mod_Creater
                         if (!Sub_Code.WoTB_Get_Directory())
                         {
                             WoTB_Select_B.Visibility = Visibility.Visible;
-                            Message_T.Text = "WoTBのインストール先を取得できません。手動で指定してください。";
+                            Message_Feed_Out("WoTBのインストール先を取得できません。手動で指定してください。");
                         }
                     }
                 }
@@ -825,7 +826,7 @@ namespace WoTB_Voice_Mod_Creater
                 str.Close();
                 if (Line == Version)
                 {
-                    Message_T.Text = "既に最新のバージョンです。";
+                    Message_Feed_Out("既に最新のバージョンです。");
                 }
                 else
                 {
@@ -893,7 +894,7 @@ namespace WoTB_Voice_Mod_Creater
             {
                 Voice_Set.App_Busy = false;
                 IsProcessing = false;
-                Message_T.Text = "最新バージョンを取得できませんでした。";
+                Message_Feed_Out("最新バージョンを取得できませんでした。");
             }
         }
         private void Other_B_Click(object sender, RoutedEventArgs e)
@@ -922,13 +923,13 @@ namespace WoTB_Voice_Mod_Creater
             {
                 if (System.IO.Path.GetDirectoryName(openFileDialog.FileName) == "C:\\")
                 {
-                    Message_T.Text = "C:/を選択することはできません。";
+                    Message_Feed_Out("C:/を選択することはできません。");
                     return;
                 }
                 ApplyAllFiles(System.IO.Path.GetDirectoryName(openFileDialog.FileName), ProcessFile);
                 if (Voice_Set.WoTB_Path == "")
                 {
-                    Message_T.Text = "WoTBのフォルダを取得できませんでした。";
+                    Message_Feed_Out("WoTBのフォルダを取得できませんでした。");
                 }
             }
         }
@@ -950,7 +951,7 @@ namespace WoTB_Voice_Mod_Creater
                 }
                 File.Delete(Special_Path + "/Temp_WoTB_Path.dat");
                 Voice_Set.WoTB_Path = WoTB_Path;
-                Message_T.Text = "WoTBのフォルダを取得しました。";
+                Message_Feed_Out("WoTBのフォルダを取得しました。");
                 WoTB_Select_B.Visibility = Visibility.Hidden;
                 return;
             }
@@ -976,6 +977,28 @@ namespace WoTB_Voice_Mod_Creater
                     // swallow, log, whatever
                 }
             }
+        }
+        async void Message_Feed_Out(string Message)
+        {
+            if (IsMessageShowing)
+            {
+                IsMessageShowing = false;
+                await Task.Delay(1000 / 59);
+            }
+            Message_T.Text = Message;
+            IsMessageShowing = true;
+            Message_T.Opacity = 1;
+            int Number = 0;
+            while (Message_T.Opacity > 0 && IsMessageShowing)
+            {
+                Number++;
+                if (Number >= 120)
+                {
+                    Message_T.Opacity -= 0.025;
+                }
+                await Task.Delay(1000 / 60);
+            }
+            IsMessageShowing = false;
         }
     }
 }
