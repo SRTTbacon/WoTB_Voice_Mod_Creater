@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using System.Windows;
@@ -25,6 +24,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         float Voice_Volume = 1f;
         float Voice_Pitch = 0f;
         bool IsBusy = false;
+        bool IsMessageShowing = false;
         string Mod_Select_Name = "";
         Cauldron.FMOD.EVENT_LOADINFO ELI = new Cauldron.FMOD.EVENT_LOADINFO();
         Cauldron.FMOD.EventProject EP = new Cauldron.FMOD.EventProject();
@@ -59,7 +59,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             Mod_Select_B.Visibility = Visibility.Hidden;
             Mod_Control_Change_Visible(false);
             Opacity = 0;
-            Fmod_Player.ESystem.Init(256, Cauldron.FMOD.INITFLAGS.NORMAL, IntPtr.Zero);
+            Fmod_Player.ESystem.Init(128, Cauldron.FMOD.INITFLAGS.NORMAL, IntPtr.Zero);
             Voice_Pitch_S.Minimum = -4;
             Voice_Pitch_S.Maximum = 2;
             Voice_Volume_S.Minimum = 0;
@@ -155,11 +155,8 @@ namespace WoTB_Voice_Mod_Creater.Class
                 string Bank_Name = Fmod_Bank_List.Items[Fmod_Bank_List.SelectedIndex].ToString();
                 if (Mod_Select_Name != "")
                 {
-                    if (FE != null)
-                    {
-                        EP.Release();
-                        FE.Release();
-                    }
+                    EP.Release();
+                    FE.Release();
                     Fmod_Player.ESystem.Load(Special_Path + "/Server/Download_Mods/" + Mod_Select_Name + "/" + Bank_Name, ref ELI, ref EP);
                     Cauldron.FMOD.EventProject EC = new Cauldron.FMOD.EventProject();
                     Fmod_Player.ESystem.GetProjectByIndex(0, ref EC);
@@ -272,14 +269,11 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Voice_Pitch_S.Visibility = Visibility.Hidden;
                 Voice_Pitch_T.Visibility = Visibility.Hidden;
                 Mod_Install_B.Visibility = Visibility.Hidden;
-                if (FE != null)
-                {
-                    EP.Release();
-                    FE.Release();
-                    EP = null;
-                    EG = null;
-                    FE = null;
-                }
+                EP.Release();
+                FE.Release();
+                EP = new Cauldron.FMOD.EventProject();
+                EG = new Cauldron.FMOD.EventGroup(); ;
+                FE = new Cauldron.FMOD.Event();
             }
         }
         private async void Back_B_Click(object sender, RoutedEventArgs e)
@@ -300,6 +294,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 }
                 Mod_Install_B.Margin = new Thickness(-1245, 125, 0, 0);
                 Message_T.Text = "";
+                Mod_Select_Name = "";
                 IsBusy = false;
             }
         }
@@ -362,7 +357,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         {
             if (Voice_Set.WoTB_Path == "")
             {
-                Message_T.Text = "WoTBのフォルダを取得できませんでした。";
+                Message_Feed_Out("WoTBのフォルダを取得できませんでした。");
                 return;
             }
             if (IsBusy || Opacity < 1)
@@ -435,7 +430,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 }
                 catch
                 {
-                    Message_T.Text = "sfx_high(low).yamlが見つかりませんでした。";
+                    Message_Feed_Out("sfx_high(low).yamlが見つかりませんでした。");
                     return;
                 }
             }
@@ -477,7 +472,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 File.Delete(Voice_Set.WoTB_Path + "/Data/sounds.yaml.dvpl");
             }
             IsBusy = false;
-            Message_T.Text = "インストールしました。";
+            Message_Feed_Out("インストールしました。");
         }
         void Change_Sfx_High_And_Low(List<string> Write,string High_Path,string Low_Path)
         {
@@ -539,7 +534,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             }
             if (Voice_Set.WoTB_Path == "")
             {
-                Message_T.Text = "WoTBのフォルダを取得できませんでした。";
+                Message_Feed_Out("WoTBのフォルダを取得できませんでした。");
                 return;
             }
             MessageBoxResult result = MessageBox.Show("初めて起動したときに生成されるファイルからバックアップします。よろしいですか？", "確認", MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.No);
@@ -557,7 +552,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 }
                 else
                 {
-                    Message_T.Text = "バックアップファイルが存在しません。";
+                    Message_Feed_Out("WoTBのフォルダを取得できませんでした。");
                 }
             }
         }
@@ -569,7 +564,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             }
             if (Voice_Set.WoTB_Path == "")
             {
-                Message_T.Text = "WoTBのフォルダを取得できませんでした。";
+                Message_Feed_Out("WoTBのフォルダを取得できませんでした。");
                 return;
             }
             MessageBoxResult result = MessageBox.Show("サーバーに保存してある初期状態のファイルからバックアップします。よろしいですか？", "確認", MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.No);
@@ -585,16 +580,16 @@ namespace WoTB_Voice_Mod_Creater.Class
                         File.Delete(Voice_Set.WoTB_Path + "/Data/sounds.yaml");
                         File.Delete(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_high.yaml");
                         File.Delete(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_low.yaml");
-                        Message_T.Text = "サーバーから復元しました。";
+                        Message_Feed_Out("サーバーから復元しました。");
                     }
                     else
                     {
-                        Message_T.Text = "エラー:サーバーから復元できませんでした。";
+                        Message_Feed_Out("エラー:サーバーから復元できませんでした。");
                     }
                 }
                 catch
                 {
-                    Message_T.Text = "エラー:元ファイルが使用中です。";
+                    Message_Feed_Out("エラー:元ファイルが使用中です。");
                     return;
                 }
             }
@@ -630,7 +625,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             }
             else
             {
-                Message_T.Text = "パスワードが違います。";
+                Message_Feed_Out("パスワードが違います。");
             }
         }
         private void Voice_Volume_S_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
@@ -649,6 +644,28 @@ namespace WoTB_Voice_Mod_Creater.Class
             }
             Sample_Download();
             Mod_Select_B.Visibility = Visibility.Hidden;
+        }
+        async void Message_Feed_Out(string Message)
+        {
+            if (IsMessageShowing)
+            {
+                IsMessageShowing = false;
+                await Task.Delay(1000 / 59);
+            }
+            Message_T.Text = Message;
+            IsMessageShowing = true;
+            Message_T.Opacity = 1;
+            int Number = 0;
+            while (Message_T.Opacity > 0 && IsMessageShowing)
+            {
+                Number++;
+                if (Number >= 120)
+                {
+                    Message_T.Opacity -= 0.025;
+                }
+                await Task.Delay(1000 / 60);
+            }
+            IsMessageShowing = false;
         }
     }
 }

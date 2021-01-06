@@ -116,7 +116,7 @@ namespace WoTB_Voice_Mod_Creater
             }
             if (Server_Lists.SelectedIndex == -1)
             {
-                Message_T.Text = "サーバーが選択されていません。";
+                Message_Feed_Out("サーバーが選択されていません。");
                 return;
             }
             else
@@ -132,7 +132,7 @@ namespace WoTB_Voice_Mod_Creater
                 {
                     if (Password_T.Text != item2.Element("Password").Value)
                     {
-                        Message_T.Text = "パスワードが違います。";
+                        Message_Feed_Out("パスワードが違います。");
                         return;
                     }
                 }
@@ -334,14 +334,7 @@ namespace WoTB_Voice_Mod_Creater
                 Chat_Scrool.ScrollToEnd();
                 Player.settings.volume = (int)Voice_Volume_S.Value;
                 IsProcessing = false;
-                await Task.Delay(1000);
-                while (Message_T.Opacity > 0)
-                {
-                    Message_T.Opacity -= 0.025;
-                    await Task.Delay(1000 / 60);
-                }
-                Message_T.Text = "";
-                Message_T.Opacity = 1;
+                Message_Feed_Out("サーバーに参加しました。");
                 while (true)
                 {
                     if (Voice_S.Value != Voice_Set.Voice_Files_Number)
