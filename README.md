@@ -20,13 +20,13 @@ BASS.ASIO.1.3.1.2<br>
 BASS.Native.2.4.12.2<br>
 Bass.NetWrapper.2.4.12.5<br>
 Costura.Fody.4.1.0<br>
-Crc32.NET.1.2.0(V1.3から廃止)<br>
 FluentFTP.33.0.3<br>
 Fody.6.3.0<br>
-K4os.Compression.LZ4.1.2.6(V1.3から廃止)<br>
 Obfuscar.2.2.28<br>
 SimpleTCP.1.0.24<br>
+Cauldron.FMOD(V1.1から導入)
+K4os.Compression.LZ4.1.2.6(V1.3から廃止)<br>
+Crc32.NET.1.2.0(V1.3から廃止)<br>
 System.Buffers.4.5.1(V1.3から廃止)<br>
 System.Memory.4.5.4(V1.3から廃止)<br>
-System.Runtime.CompilerServices.Unsafe.5.0.0(V1.3から廃止)<br>
-Cauldron.FMOD(V1.1から導入)
+System.Runtime.CompilerServices.Unsafe.5.0.0(V1.3から廃止)
