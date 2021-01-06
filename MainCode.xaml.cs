@@ -29,7 +29,7 @@ namespace WoTB_Voice_Mod_Creater
 {
     public partial class MainCode : Window
     {
-        readonly string Version = "1.1";
+        readonly string Version = "1.2";
         readonly string Path = Directory.GetCurrentDirectory();
         readonly string Special_Path = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "/WoTB_Voice_Mod_Creater";
         bool IsClosing = false;
@@ -180,6 +180,7 @@ namespace WoTB_Voice_Mod_Creater
                 }
                 catch (Exception)
                 {
+
                 }
                 Directory.Delete(Path + "/Backup/Update", true);
             }
@@ -204,8 +205,12 @@ namespace WoTB_Voice_Mod_Creater
             bool IsOK_04 = true;
             Task task = Task.Run(() =>
             {
-                if (!File.Exists(Special_Path + "/DVPL/UnPack.py"))
+                if (!File.Exists(Special_Path + "/DVPL/Pack.py"))
                 {
+                    if (Directory.Exists(Special_Path + "/DVPL"))
+                    {
+                        Directory.Delete(Special_Path + "/DVPL", true);
+                    }
                     IsOK_01 = false;
                     Task task_01 = Task.Run(() =>
                     {
@@ -811,7 +816,7 @@ namespace WoTB_Voice_Mod_Creater
         {
             Tools_Window.Window_Show();
         }
-        private void Update_B_Click(object sender, RoutedEventArgs e)
+        private async void Update_B_Click(object sender, RoutedEventArgs e)
         {
             try
             {
@@ -829,6 +834,7 @@ namespace WoTB_Voice_Mod_Creater
                     {
                         Voice_Set.App_Busy = true;
                         Message_T.Text = "ダウンロード中です。処理が完了したらソフトを再起動します。";
+                        await Task.Delay(50);
                         if (Directory.Exists(Path + "/Backup/Update"))
                         {
                             Directory.Delete(Path + "/Backup/Update", true);
@@ -836,11 +842,6 @@ namespace WoTB_Voice_Mod_Creater
                         Directory.CreateDirectory(Path + "/Backup/Update");
                         IsProcessing = true;
                         Voice_Set.FTP_Server.DownloadDirectory(Special_Path + "/Update", "/WoTB_Voice_Mod/Update/" + Line, FtpFolderSyncMode.Update, FtpLocalExists.Overwrite);
-                        if (File.Exists(Special_Path + "/Update/WoTB_Voice_Mod_Creater.exe"))
-                        {
-                            File.Delete(Path + "/WoTB_Voice_Mod_Creater.old");
-                            File.Move(Path + "/WoTB_Voice_Mod_Creater.exe", Path + "/WoTB_Voice_Mod_Creater.old");
-                        }
                         bool IsReboot = false;
                         string[] Dir_Update = Directory.GetFiles(Special_Path + "/Update", "*", SearchOption.AllDirectories);
                         foreach (string File_Now in Dir_Update)
@@ -850,7 +851,9 @@ namespace WoTB_Voice_Mod_Creater
                                 IsReboot = true;
                             }
                             string Dir_Only = File_Now.Replace(System.IO.Path.GetFileName(File_Now), "");
-                            string File_Dir = Dir_Only.Replace(Special_Path + "\\Update\\", "");
+                            string Temp_01 = Dir_Only.Replace("/", "\\");
+                            string File_Dir = Temp_01.Replace(Special_Path.Replace("/", "\\") + "\\Update\\", "");
+                            MessageBox.Show(Temp_01 + "|" + File_Dir);
                             if (File_Dir.Contains("\\"))
                             {
                                 if (!Directory.Exists(Path + "/" + File_Dir))
@@ -870,7 +873,7 @@ namespace WoTB_Voice_Mod_Creater
                                 }
                                 else
                                 {
-                                    File.Move(Path + "/" + File_Dir + System.IO.Path.GetFileName(File_Now), Path + "/Backup/Update/" + System.IO.Path.GetFileName(File_Now));
+                                    File.Move(Path + "/" + System.IO.Path.GetFileName(File_Now), Path + "/Backup/Update/" + System.IO.Path.GetFileName(File_Now));
                                 }
                             }
                             File.Copy(File_Now, Path + "/" + File_Dir + System.IO.Path.GetFileName(File_Now), true);
@@ -878,14 +881,18 @@ namespace WoTB_Voice_Mod_Creater
                         Directory.Delete(Special_Path + "/Update", true);
                         if (IsReboot)
                         {
-                            Process.Start(Path + "WoTB_Voice_Mod_Creater.exe", "/up " + Process.GetCurrentProcess().Id);
+                            Process.Start(Path + "/WoTB_Voice_Mod_Creater.exe", "/up " + Process.GetCurrentProcess().Id);
                             Close();
                         }
+                        Voice_Set.App_Busy = false;
+                        IsProcessing = false;
                     }
                 }
             }
             catch
             {
+                Voice_Set.App_Busy = false;
+                IsProcessing = false;
                 Message_T.Text = "最新バージョンを取得できませんでした。";
             }
         }
