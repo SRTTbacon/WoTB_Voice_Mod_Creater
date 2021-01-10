@@ -29,9 +29,8 @@ namespace WoTB_Voice_Mod_Creater
 {
     public partial class MainCode : Window
     {
-        readonly string Version = "1.2";
+        readonly string Version = "1.2.2";
         readonly string Path = Directory.GetCurrentDirectory();
-        readonly string Special_Path = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "/WoTB_Voice_Mod_Creater";
         bool IsClosing = false;
         bool IsMessageShowing = false;
         readonly bool IsSRTTbacon_V1 = false;
@@ -74,7 +73,7 @@ namespace WoTB_Voice_Mod_Creater
                 //自分はサーバーに参加できないためIPを分ける
                 if (Environment.UserName == "SRTTbacon" || Environment.UserName == "SRTTbacon_V1")
                 {
-                    IP = "非公開";
+                    IP = "192.168.3.12";
                     ConnectType = FtpDataConnectionType.PASV;
                     IsPassiveMode = true;
                     if (Environment.UserName == "SRTTbacon_V1")
@@ -84,13 +83,18 @@ namespace WoTB_Voice_Mod_Creater
                 }
                 else
                 {
-                    IP = "非公開";
+                    IP = "60.151.34.219";
                     ConnectType = FtpDataConnectionType.PASV;
                     IsPassiveMode = true;
                 }
-                if (!Directory.Exists(Special_Path + "/Server"))
+                if (!Directory.Exists(Voice_Set.Special_Path + "/Server"))
                 {
-                    Directory.CreateDirectory(Special_Path + "/Server");
+                    Directory.CreateDirectory(Voice_Set.Special_Path + "/Server");
+                }
+                //V1.2を実行した人用に削除
+                if (File.Exists(Voice_Set.Special_Path + "/DVPL/Pack.py"))
+                {
+                    File.Delete(Voice_Set.Special_Path + "/DVPL/Pack.py");
                 }
                 Server_Connect();
                 Voice_Volume_S.Maximum = 100;
@@ -99,13 +103,13 @@ namespace WoTB_Voice_Mod_Creater
                 Voice_Type_C.Items.Add("モード:サブ");
                 Voice_Type_C.SelectedIndex = 0;
                 BrushConverter bc = new BrushConverter();
-                Chat_Mode = 1;
                 Chat_Mode_Public_B.Background = Brushes.Transparent;
-                Chat_Mode_Server_B.Background = (Brush)bc.ConvertFrom("#59999999");
-                Chat_Mode_Private_B.Background = Brushes.Transparent;
+                Chat_Mode_Server_B.Background = Brushes.Transparent;
+                Chat_Mode_Private_B.Background = (Brush)bc.ConvertFrom("#59999999");
                 Chat_Mode_Public_B.BorderBrush = Brushes.Transparent;
-                Chat_Mode_Server_B.BorderBrush = Brushes.Red;
-                Chat_Mode_Private_B.BorderBrush = Brushes.Transparent;
+                Chat_Mode_Server_B.BorderBrush = Brushes.Transparent;
+                Chat_Mode_Private_B.BorderBrush = Brushes.Red;
+                Chat_Mode_Change(2);
                 Player_Position_Change();
                 Window_Show();
                 if (!File.Exists(Path + "/WoTB_Path.dat"))
@@ -118,15 +122,15 @@ namespace WoTB_Voice_Mod_Creater
                     {
                         using (var eifs = new FileStream(Path + "/WoTB_Path.dat", FileMode.Open, FileAccess.Read))
                         {
-                            using (var eofs = new FileStream(Special_Path + "/Temp_WoTB_Path.dat", FileMode.Create, FileAccess.Write))
+                            using (var eofs = new FileStream(Voice_Set.Special_Path + "/Temp_WoTB_Path.dat", FileMode.Create, FileAccess.Write))
                             {
                                 FileEncode.FileEncryptor.Decrypt(eifs, eofs, "WoTB_Directory_Path_Pass");
                             }
                         }
-                        StreamReader str = new StreamReader(Special_Path + "/Temp_WoTB_Path.dat");
+                        StreamReader str = new StreamReader(Voice_Set.Special_Path + "/Temp_WoTB_Path.dat");
                         string Read = str.ReadLine();
                         str.Close();
-                        File.Delete(Special_Path + "/Temp_WoTB_Path.dat");
+                        File.Delete(Voice_Set.Special_Path + "/Temp_WoTB_Path.dat");
                         if (!File.Exists(Read + "/wotblitz.exe"))
                         {
                             if (!Sub_Code.WoTB_Get_Directory())
@@ -160,6 +164,7 @@ namespace WoTB_Voice_Mod_Creater
                 MaxWidth = MaxSize.Width;
                 MaxHeight = MaxSize.Height;
                 Player.settings.volume = 100;
+                Version_T.Text = "バージョン:" + Version;
             }
             catch (Exception e)
             {
@@ -177,7 +182,7 @@ namespace WoTB_Voice_Mod_Creater
                 {
                     string[] args = Environment.GetCommandLineArgs();
                     int pid = Convert.ToInt32(args[2]);
-                    Process.GetProcessById(pid).WaitForExit();    // 終了待ち
+                    Process.GetProcessById(pid).Kill();
                 }
                 catch (Exception)
                 {
@@ -206,12 +211,8 @@ namespace WoTB_Voice_Mod_Creater
             bool IsOK_04 = true;
             Task task = Task.Run(() =>
             {
-                if (!File.Exists(Special_Path + "/DVPL/Pack.py"))
+                if (!File.Exists(Voice_Set.Special_Path + "/DVPL/UnPack.py"))
                 {
-                    if (Directory.Exists(Special_Path + "/DVPL"))
-                    {
-                        Directory.Delete(Special_Path + "/DVPL", true);
-                    }
                     IsOK_01 = false;
                     Task task_01 = Task.Run(() =>
                     {
@@ -220,7 +221,7 @@ namespace WoTB_Voice_Mod_Creater
                     task_01.Wait();
                     IsOK_01 = true;
                 }
-                if (!File.Exists(Special_Path + "/Encode_Mp3/ffmpeg.exe"))
+                if (!File.Exists(Voice_Set.Special_Path + "/Encode_Mp3/ffmpeg.exe"))
                 {
                     IsOK_02 = false;
                     Task task_01 = Task.Run(() =>
@@ -230,7 +231,7 @@ namespace WoTB_Voice_Mod_Creater
                     task_01.Wait();
                     IsOK_02 = true;
                 }
-                if (!File.Exists(Special_Path + "/Fmod_Designer/Fmod_designer.exe"))
+                if (!File.Exists(Voice_Set.Special_Path + "/Fmod_Designer/Fmod_designer.exe"))
                 {
                     IsOK_03 = false;
                     Task task_01 = Task.Run(() =>
@@ -240,7 +241,7 @@ namespace WoTB_Voice_Mod_Creater
                     task_01.Wait();
                     IsOK_03 = true;
                 }
-                if (!File.Exists(Special_Path + "/SE/Capture_End_01.wav"))
+                if (!File.Exists(Voice_Set.Special_Path + "/SE/Capture_End_01.wav"))
                 {
                     IsOK_04 = false;
                     Task task_01 = Task.Run(() =>
@@ -284,13 +285,13 @@ namespace WoTB_Voice_Mod_Creater
         //全てのサーバーの情報を取得
         void Connect_Start()
         {
-            Server_List_Reset();
+            //Server_List_Reset();
             //コマンドをリアルタイムで通信
             Voice_Set.TCP_Server.DataReceived += (sender, msg) =>
             {
                 try
                 {
-                    if (Voice_Set.SRTTbacon_Server_Name != "")
+                    if (Voice_Set.SRTTbacon_Server_Name != "" || Voice_Set.TCP_Server.TcpClient.Connected)
                     {
                         string[] Message_Temp = msg.MessageString.Split('|');
                         if (Message_Temp[0] == Voice_Set.SRTTbacon_Server_Name)
@@ -299,8 +300,8 @@ namespace WoTB_Voice_Mod_Creater
                             {
                                 Voice_Set.App_Busy = true;
                                 string Server_Voice_Temp = Message_Temp[3].Replace("\0", "");
-                                File.Copy(Special_Path + "/Server/" + Voice_Set.SRTTbacon_Server_Name + "/Voices/" + Message_Temp[2], Special_Path + "/Server/" + Voice_Set.SRTTbacon_Server_Name + "/Voices/" + Server_Voice_Temp, true);
-                                File.Delete(Special_Path + "/Server/" + Voice_Set.SRTTbacon_Server_Name + "/Voices/" + Message_Temp[2]);
+                                File.Copy(Voice_Set.Special_Path + "/Server/" + Voice_Set.SRTTbacon_Server_Name + "/Voices/" + Message_Temp[2], Voice_Set.Special_Path + "/Server/" + Voice_Set.SRTTbacon_Server_Name + "/Voices/" + Server_Voice_Temp, true);
+                                File.Delete(Voice_Set.Special_Path + "/Server/" + Voice_Set.SRTTbacon_Server_Name + "/Voices/" + Message_Temp[2]);
                                 int Index = Voice_Set.Voice_Files.IndexOf(Message_Temp[2]);
                                 if (Voice_Set.Voice_Files_Number > Index)
                                 {
@@ -325,7 +326,7 @@ namespace WoTB_Voice_Mod_Creater
                             {
                                 Voice_Set.App_Busy = true;
                                 string Server_Voice_Remove = Message_Temp[2].Replace("\0", "");
-                                File.Delete(Special_Path + "/Server/" + Voice_Set.SRTTbacon_Server_Name + "/Voices/" + Server_Voice_Remove);
+                                File.Delete(Voice_Set.Special_Path + "/Server/" + Voice_Set.SRTTbacon_Server_Name + "/Voices/" + Server_Voice_Remove);
                                 int Index = Voice_Set.Voice_Files.IndexOf(Server_Voice_Remove);
                                 Voice_Set.Voice_Files.RemoveAt(Index);
                                 if (Voice_Set.Voice_Files_Number > Index)
@@ -427,7 +428,7 @@ namespace WoTB_Voice_Mod_Creater
         //音声を再生
         private void Voice_Play_B_Click(object sender, RoutedEventArgs e)
         {
-            Player.URL = Special_Path + "/Server/" + Voice_Set.SRTTbacon_Server_Name + "/Voices/" + Voice_Set.Voice_Files[Voice_Set.Voice_Files_Number];
+            Player.URL = Voice_Set.Special_Path + "/Server/" + Voice_Set.SRTTbacon_Server_Name + "/Voices/" + Voice_Set.Voice_Files[Voice_Set.Voice_Files_Number];
             Player.controls.play();
         }
         //音声の位置を反映
@@ -478,12 +479,12 @@ namespace WoTB_Voice_Mod_Creater
             MessageBoxResult result = MessageBox.Show(Message_01, "確認", MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.No);
             if (result == MessageBoxResult.Yes)
             {
-                if (Directory.Exists(Special_Path + "/Server"))
+                if (Directory.Exists(Voice_Set.Special_Path + "/Server"))
                 {
                     try
                     {
-                        Directory.Delete(Special_Path + "/Server", true);
-                        Directory.CreateDirectory(Special_Path + "/Server");
+                        Directory.Delete(Voice_Set.Special_Path + "/Server", true);
+                        Directory.CreateDirectory(Voice_Set.Special_Path + "/Server");
                         MessageBox.Show("キャッシュを削除しました。");
                     }
                     catch (Exception m)
@@ -494,7 +495,7 @@ namespace WoTB_Voice_Mod_Creater
                 else
                 {
                     MessageBox.Show("既に削除されています。");
-                    Directory.CreateDirectory(Special_Path + "/Server");
+                    Directory.CreateDirectory(Voice_Set.Special_Path + "/Server");
                 }
             }
         }
@@ -556,22 +557,23 @@ namespace WoTB_Voice_Mod_Creater
             {
                 if (Account_Exist(User_Name_T.Text, User_Password_T.Text))
                 {
-                    StreamWriter stw = File.CreateText(Special_Path + "/Temp_User_Set.dat");
+                    StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Temp_User_Set.dat");
                     stw.WriteLine(User_Name_T.Text + ":" + User_Password_T.Text);
                     stw.Close();
-                    using (var eifs = new FileStream(Special_Path + "/Temp_User_Set.dat", FileMode.Open, FileAccess.Read))
+                    using (var eifs = new FileStream(Voice_Set.Special_Path + "/Temp_User_Set.dat", FileMode.Open, FileAccess.Read))
                     {
                         using (var eofs = new FileStream(Path + "/User.dat", FileMode.Create, FileAccess.Write))
                         {
                             FileEncode.FileEncryptor.Encrypt(eifs, eofs, "SRTTbacon_Server_User_Pass_Save");
                         }
                     }
-                    File.Delete(Special_Path + "/Temp_User_Set.dat");
+                    File.Delete(Voice_Set.Special_Path + "/Temp_User_Set.dat");
                     if (Login())
                     {
                         Connectiong = true;
                         Connect_Start();
                         Connect_Mode_Layout();
+                        Chat_Mode_Change(2);
                     }
                 }
                 else
@@ -614,22 +616,23 @@ namespace WoTB_Voice_Mod_Creater
                     MessageBox.Show("そのユーザー名は既に登録されています。別のユーザー名でお試しください。");
                     return;
                 }
-                StreamWriter Chat = File.CreateText(Special_Path + "/Temp_User_Chat.dat");
+                StreamWriter Chat = File.CreateText(Voice_Set.Special_Path + "/Temp_User_Chat.dat");
                 Chat.WriteLine("---ここで管理者と1:1でチャットできます。---");
                 Chat.Close();
-                Voice_Set.FTP_Server.UploadFile(Special_Path + "/Temp_User_Chat.dat", "/WoTB_Voice_Mod/Users/" + User_Name_T.Text + "_Chat.dat");
+                Voice_Set.FTP_Server.UploadFile(Voice_Set.Special_Path + "/Temp_User_Chat.dat", "/WoTB_Voice_Mod/Users/" + User_Name_T.Text + "_Chat.dat");
                 Voice_Set.AppendString("/WoTB_Voice_Mod/Accounts.dat", Encoding.UTF8.GetBytes(User_Name_T.Text + ":" + User_Password_T.Text + "\n"));
-                StreamWriter stw = File.CreateText(Special_Path + "/Temp_User_Set.dat");
+                StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Temp_User_Set.dat");
                 stw.WriteLine(User_Name_T.Text + ":" + User_Password_T.Text);
                 stw.Close();
-                using (var eifs = new FileStream(Special_Path + "/Temp_User_Set.dat", FileMode.Open, FileAccess.Read))
+                using (var eifs = new FileStream(Voice_Set.Special_Path + "/Temp_User_Set.dat", FileMode.Open, FileAccess.Read))
                 {
                     using (var eofs = new FileStream(Path + "/User.dat", FileMode.Create, FileAccess.Write))
                     {
                         FileEncode.FileEncryptor.Encrypt(eifs, eofs, "SRTTbacon_Server_User_Pass_Save");
                     }
                 }
-                File.Delete(Special_Path + "/Temp_User_Set.dat");
+                File.Delete(Voice_Set.Special_Path + "/Temp_User_Chat.dat");
+                File.Delete(Voice_Set.Special_Path + "/Temp_User_Set.dat");
                 if (Login())
                 {
                     Connectiong = true;
@@ -667,6 +670,11 @@ namespace WoTB_Voice_Mod_Creater
         private void Chat_Send_B_Click(object sender, RoutedEventArgs e)
         {
             if (Chat_Send_T.Text == "")
+            {
+                return;
+            }
+            //現在のバージョンでは使用できません。
+            if (Chat_Mode == 1)
             {
                 return;
             }
@@ -709,39 +717,58 @@ namespace WoTB_Voice_Mod_Creater
         }
         private void Chat_Mode_Public_B_Click(object sender, RoutedEventArgs e)
         {
-            BrushConverter bc = new BrushConverter();
-            Chat_Mode = 0;
-            Chat_Mode_Public_B.Background = (Brush)bc.ConvertFrom("#59999999");
-            Chat_Mode_Server_B.Background = Brushes.Transparent;
-            Chat_Mode_Private_B.Background = Brushes.Transparent;
-            Chat_Mode_Public_B.BorderBrush = Brushes.Red;
-            Chat_Mode_Server_B.BorderBrush = Brushes.Transparent;
-            Chat_Mode_Private_B.BorderBrush = Brushes.Transparent;
-            Chat_T.Text = Server_Open_File("/WoTB_Voice_Mod/Chat.dat");
+            Chat_Mode_Change(0);
         }
         private void Chat_Mode_Server_B_Click(object sender, RoutedEventArgs e)
         {
-            BrushConverter bc = new BrushConverter();
-            Chat_Mode = 1;
-            Chat_Mode_Public_B.Background = Brushes.Transparent;
-            Chat_Mode_Server_B.Background = (Brush)bc.ConvertFrom("#59999999");
-            Chat_Mode_Private_B.Background = Brushes.Transparent;
-            Chat_Mode_Public_B.BorderBrush = Brushes.Transparent;
-            Chat_Mode_Server_B.BorderBrush = Brushes.Red;
-            Chat_Mode_Private_B.BorderBrush = Brushes.Transparent;
-            Chat_T.Text = Server_Open_File("/WoTB_Voice_Mod/" + Voice_Set.SRTTbacon_Server_Name + "/Chat.dat");
+            Chat_Mode_Change(1);
         }
         private void Chat_Mode_Private_B_Click(object sender, RoutedEventArgs e)
         {
-            BrushConverter bc = new BrushConverter();
-            Chat_Mode = 2;
-            Chat_Mode_Public_B.Background = Brushes.Transparent;
-            Chat_Mode_Server_B.Background = Brushes.Transparent;
-            Chat_Mode_Private_B.Background = (Brush)bc.ConvertFrom("#59999999");
-            Chat_Mode_Public_B.BorderBrush = Brushes.Transparent;
-            Chat_Mode_Server_B.BorderBrush = Brushes.Transparent;
-            Chat_Mode_Private_B.BorderBrush = Brushes.Red;
-            Chat_T.Text = Server_Open_File("/WoTB_Voice_Mod/Users/" + Voice_Set.UserName + "_Chat.dat");
+            Chat_Mode_Change(2);
+        }
+        void Chat_Mode_Change(int Mode_Number)
+        {
+            if (Voice_Set.UserName != "")
+            {
+                if (Mode_Number == 0)
+                {
+                    BrushConverter bc = new BrushConverter();
+                    Chat_Mode = 0;
+                    Chat_Mode_Public_B.Background = (Brush)bc.ConvertFrom("#59999999");
+                    Chat_Mode_Server_B.Background = Brushes.Transparent;
+                    Chat_Mode_Private_B.Background = Brushes.Transparent;
+                    Chat_Mode_Public_B.BorderBrush = Brushes.Red;
+                    Chat_Mode_Server_B.BorderBrush = Brushes.Transparent;
+                    Chat_Mode_Private_B.BorderBrush = Brushes.Transparent;
+                    Chat_T.Text = Server_Open_File("/WoTB_Voice_Mod/Chat.dat");
+                }
+                else if (Mode_Number == 1)
+                {
+                    BrushConverter bc = new BrushConverter();
+                    Chat_Mode = 1;
+                    Chat_Mode_Public_B.Background = Brushes.Transparent;
+                    Chat_Mode_Server_B.Background = (Brush)bc.ConvertFrom("#59999999");
+                    Chat_Mode_Private_B.Background = Brushes.Transparent;
+                    Chat_Mode_Public_B.BorderBrush = Brushes.Transparent;
+                    Chat_Mode_Server_B.BorderBrush = Brushes.Red;
+                    Chat_Mode_Private_B.BorderBrush = Brushes.Transparent;
+                    //Chat_T.Text = Server_Open_File("/WoTB_Voice_Mod/" + Voice_Set.SRTTbacon_Server_Name + "/Chat.dat");
+                    Chat_T.Text = "---現在のバージョンでは使用できません。---";
+                }
+                else if (Mode_Number == 2)
+                {
+                    BrushConverter bc = new BrushConverter();
+                    Chat_Mode = 2;
+                    Chat_Mode_Public_B.Background = Brushes.Transparent;
+                    Chat_Mode_Server_B.Background = Brushes.Transparent;
+                    Chat_Mode_Private_B.Background = (Brush)bc.ConvertFrom("#59999999");
+                    Chat_Mode_Public_B.BorderBrush = Brushes.Transparent;
+                    Chat_Mode_Server_B.BorderBrush = Brushes.Transparent;
+                    Chat_Mode_Private_B.BorderBrush = Brushes.Red;
+                    Chat_T.Text = Server_Open_File("/WoTB_Voice_Mod/Users/" + Voice_Set.UserName + "_Chat.dat");
+                }
+            }
         }
         async Task Loading_Show()
         {
@@ -749,7 +776,7 @@ namespace WoTB_Voice_Mod_Creater
             int File_Number = 1;
             WindowsMediaPlayer SE_Load = new WindowsMediaPlayer
             {
-                URL = Special_Path + "/Loading/Load_Voice.mp3"
+                URL = Voice_Set.Special_Path + "/Loading/Load_Voice.mp3"
             };
             SE_Load.settings.volume = 25;
             SE_Load.controls.play();
@@ -757,7 +784,7 @@ namespace WoTB_Voice_Mod_Creater
             int Max_Number = r.Next(100, 149);
             while (File_Number <= Max_Number)
             {
-                Load_Image.Source = new BitmapImage(new Uri(Special_Path + "/Loading/" + File_Number + ".png"));
+                Load_Image.Source = new BitmapImage(new Uri(Voice_Set.Special_Path + "/Loading/" + File_Number + ".png"));
                 File_Number++;
                 await Task.Delay(1000 / 30);
             }
@@ -830,7 +857,7 @@ namespace WoTB_Voice_Mod_Creater
                 }
                 else
                 {
-                    MessageBoxResult result = MessageBox.Show("新しいバージョンが見つかりました。ダウンロードして適応しますか？", "確認", MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.Yes);
+                    MessageBoxResult result = MessageBox.Show("新しいバージョンが見つかりました(V" + Line + ")。ダウンロードして適応しますか？", "確認", MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.Yes);
                     if (result == MessageBoxResult.Yes)
                     {
                         Voice_Set.App_Busy = true;
@@ -842,9 +869,9 @@ namespace WoTB_Voice_Mod_Creater
                         }
                         Directory.CreateDirectory(Path + "/Backup/Update");
                         IsProcessing = true;
-                        Voice_Set.FTP_Server.DownloadDirectory(Special_Path + "/Update", "/WoTB_Voice_Mod/Update/" + Line, FtpFolderSyncMode.Update, FtpLocalExists.Overwrite);
+                        Voice_Set.FTP_Server.DownloadDirectory(Voice_Set.Special_Path + "/Update", "/WoTB_Voice_Mod/Update/" + Line, FtpFolderSyncMode.Update, FtpLocalExists.Overwrite);
                         bool IsReboot = false;
-                        string[] Dir_Update = Directory.GetFiles(Special_Path + "/Update", "*", SearchOption.AllDirectories);
+                        string[] Dir_Update = Directory.GetFiles(Voice_Set.Special_Path + "/Update", "*", SearchOption.AllDirectories);
                         foreach (string File_Now in Dir_Update)
                         {
                             if (System.IO.Path.GetFileName(File_Now) == "WoTB_Voice_Mod_Creater.exe")
@@ -853,8 +880,7 @@ namespace WoTB_Voice_Mod_Creater
                             }
                             string Dir_Only = File_Now.Replace(System.IO.Path.GetFileName(File_Now), "");
                             string Temp_01 = Dir_Only.Replace("/", "\\");
-                            string File_Dir = Temp_01.Replace(Special_Path.Replace("/", "\\") + "\\Update\\", "");
-                            MessageBox.Show(Temp_01 + "|" + File_Dir);
+                            string File_Dir = Temp_01.Replace(Voice_Set.Special_Path.Replace("/", "\\") + "\\Update\\", "");
                             if (File_Dir.Contains("\\"))
                             {
                                 if (!Directory.Exists(Path + "/" + File_Dir))
@@ -879,7 +905,7 @@ namespace WoTB_Voice_Mod_Creater
                             }
                             File.Copy(File_Now, Path + "/" + File_Dir + System.IO.Path.GetFileName(File_Now), true);
                         }
-                        Directory.Delete(Special_Path + "/Update", true);
+                        Directory.Delete(Voice_Set.Special_Path + "/Update", true);
                         if (IsReboot)
                         {
                             Process.Start(Path + "/WoTB_Voice_Mod_Creater.exe", "/up " + Process.GetCurrentProcess().Id);
@@ -939,17 +965,17 @@ namespace WoTB_Voice_Mod_Creater
             if (Sub_Code.File_Exists(Dir + "/sounds"))
             {
                 string WoTB_Path = Dir.Substring(0, Dir.LastIndexOf('\\'));
-                StreamWriter stw = File.CreateText(Special_Path + "/Temp_WoTB_Path.dat");
+                StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Temp_WoTB_Path.dat");
                 stw.Write(WoTB_Path);
                 stw.Close();
-                using (var eifs = new FileStream(Special_Path + "/Temp_WoTB_Path.dat", FileMode.Open, FileAccess.Read))
+                using (var eifs = new FileStream(Voice_Set.Special_Path + "/Temp_WoTB_Path.dat", FileMode.Open, FileAccess.Read))
                 {
-                    using (var eofs = new FileStream(Directory.GetCurrentDirectory() + "/WoTB_Path.dat", FileMode.Create, FileAccess.Write))
+                    using (var eofs = new FileStream(Path + "/WoTB_Path.dat", FileMode.Create, FileAccess.Write))
                     {
                         FileEncode.FileEncryptor.Encrypt(eifs, eofs, "WoTB_Directory_Path_Pass");
                     }
                 }
-                File.Delete(Special_Path + "/Temp_WoTB_Path.dat");
+                File.Delete(Voice_Set.Special_Path + "/Temp_WoTB_Path.dat");
                 Voice_Set.WoTB_Path = WoTB_Path;
                 Message_Feed_Out("WoTBのフォルダを取得しました。");
                 WoTB_Select_B.Visibility = Visibility.Hidden;
@@ -999,6 +1025,153 @@ namespace WoTB_Voice_Mod_Creater
                 await Task.Delay(1000 / 60);
             }
             IsMessageShowing = false;
+        }
+        private async void DockPanel_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            //アンインストール
+            if ((System.Windows.Forms.Control.ModifierKeys & System.Windows.Forms.Keys.Shift) == System.Windows.Forms.Keys.Shift && e.Key == System.Windows.Input.Key.Escape)
+            {
+                if (IsClosing || Voice_Set.App_Busy)
+                {
+                    return;
+                }
+                IsClosing = true;
+                MessageBoxResult result = MessageBox.Show("ソフトをアンインストールしますか？これには一時ファイルも削除されます。", "確認", MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.No);
+                if (result == MessageBoxResult.Yes)
+                {
+                    Voice_Set.App_Busy = true;
+                    Message_T.Text = "一時ファイルを削除しています...";
+                    await Task.Delay(50);
+                    try
+                    {
+                        string[] Files = Directory.GetFiles(Voice_Set.Special_Path, "*", SearchOption.AllDirectories);
+                        foreach (string File_Name in Files)
+                        {
+                            try
+                            {
+                                File.Delete(File_Name);
+                            }
+                            catch
+                            {
+
+                            }
+                        }
+                    }
+                    catch
+                    {
+
+                    }
+                    try
+                    {
+                        if (Voice_Set.FTP_Server.IsConnected)
+                        {
+                            Voice_Set.FTP_Server.Disconnect();
+                            Voice_Set.FTP_Server.Dispose();
+                        }
+                    }
+                    catch
+                    {
+
+                    }
+                    int Minus = (int)(Voice_Volume_S.Value / 40);
+                    while (Opacity > 0)
+                    {
+                        Player.settings.volume -= Minus;
+                        Opacity -= 0.025;
+                        await Task.Delay(1000 / 60);
+                    }
+                    StreamWriter stw = File.CreateText(System.IO.Path.GetTempPath() + "/WoTB_Voice_Mod_Creater_Remove_01.bat");
+                    stw.Write("timeout 2\nrd /s /q \"" + Path + "\"\ndel %0");
+                    stw.Close();
+                    ProcessStartInfo processStartInfo = new ProcessStartInfo
+                    {
+                        FileName = System.IO.Path.GetTempPath() + "/WoTB_Voice_Mod_Creater_Remove_01.bat",
+                        CreateNoWindow = true,
+                        UseShellExecute = false
+                    };
+                    Process.Start(processStartInfo);
+                    StreamWriter stw2 = File.CreateText(System.IO.Path.GetTempPath() + "/WoTB_Voice_Mod_Creater_Remove_02.bat");
+                    stw2.Write("timeout 2\nrd /s /q \"" + Voice_Set.Special_Path + "\"\ndel %0");
+                    stw2.Close();
+                    ProcessStartInfo processStartInfo2 = new ProcessStartInfo
+                    {
+                        FileName = System.IO.Path.GetTempPath() + "/WoTB_Voice_Mod_Creater_Remove_02.bat",
+                        CreateNoWindow = true,
+                        UseShellExecute = false
+                    };
+                    Process.Start(processStartInfo2);
+                    Application.Current.Shutdown();
+                }
+            }
+            //一時ファイルの保存場所を指定
+            if ((System.Windows.Forms.Control.ModifierKeys & System.Windows.Forms.Keys.Shift) == System.Windows.Forms.Keys.Shift && e.Key == System.Windows.Input.Key.D)
+            {
+                MessageBoxResult result = MessageBox.Show("一時ファイルの保存先を変更しますか？", "確認", MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.No);
+                if (result == MessageBoxResult.Yes)
+                {
+                    System.Windows.Forms.OpenFileDialog ofd = new System.Windows.Forms.OpenFileDialog()
+                    {
+                        Title = "フォルダを選択してください。",
+                        Filter = "フォルダを選択(Folder;)|",
+                        FileName = "フォルダを指定",
+                        CheckFileExists = false
+                    };
+                    if (ofd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                    {
+                        string Dir = System.IO.Path.GetDirectoryName(ofd.FileName);
+                        if (Sub_Code.IsTextIncludeJapanese(Dir))
+                        {
+                            Message_Feed_Out("エラー:パスに日本語を含むことはできません。");
+                            return;
+                        }
+                        if (Directory.GetFiles(Dir, "*", SearchOption.AllDirectories).Length > 0)
+                        {
+                            MessageBox.Show("フォルダ内は空である必要があります。");
+                            return;
+                        }
+                        Message_T.Text = "一時フォルダの場所を変更しています...";
+                        await Task.Delay(50);
+                        Sub_Code.Directory_Copy(Voice_Set.Special_Path, Dir);
+                        try
+                        {
+                            string[] Files = Directory.GetFiles(Voice_Set.Special_Path, "*", SearchOption.AllDirectories);
+                            foreach (string File_Name in Files)
+                            {
+                                try
+                                {
+                                    File.Delete(File_Name);
+                                    if (Directory.GetFiles(System.IO.Path.GetDirectoryName(File_Name), "*", SearchOption.TopDirectoryOnly).Length == 0)
+                                    {
+                                        Directory.Delete(System.IO.Path.GetDirectoryName(File_Name), true);
+                                    }
+                                }
+                                catch
+                                {
+
+                                }
+                            }
+                            Directory.Delete(Voice_Set.Special_Path, true);
+                        }
+                        catch
+                        {
+
+                        }
+                        StreamWriter stw = File.CreateText(Dir + "/TempDirPath.dat");
+                        stw.Write(Dir);
+                        stw.Close();
+                        using (var eifs = new FileStream(Dir + "/TempDirPath.dat", FileMode.Open, FileAccess.Read))
+                        {
+                            using (var eofs = new FileStream(Path + "/TempDirPath.dat", FileMode.Create, FileAccess.Write))
+                            {
+                                FileEncode.FileEncryptor.Encrypt(eifs, eofs, "Temp_Directory_Path_Pass");
+                            }
+                        }
+                        File.Delete(Dir + "/TempDirPath.dat");
+                        Voice_Set.Special_Path = Dir;
+                        Message_Feed_Out("一時ファイルの保存先を変更しました。");
+                    }
+                }
+            }
         }
     }
 }
