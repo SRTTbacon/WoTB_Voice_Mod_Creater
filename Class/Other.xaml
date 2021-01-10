@@ -138,6 +138,8 @@
             <CheckBox x:Name="Loop_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-2975,945,0,0" Click="Loop_C_Click"/>
             <TextBlock x:Name="Random_T" FontSize="40" Height="55" Width="200" TextWrapping="Wrap" Text="ランダム再生" VerticalAlignment="Top" Margin="-2725,1000,0,0" Foreground="Aqua"/>
             <CheckBox x:Name="Random_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-2975,1020,0,0" Click="Random_C_Click"/>
+            <TextBlock x:Name="Background_T" FontSize="37" Height="50" Width="300" TextWrapping="Wrap" Text="バックグラウンド再生" VerticalAlignment="Top" Margin="-2000,1005,0,0" Foreground="Aqua"/>
+            <CheckBox x:Name="Background_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-2350,1020,0,0"/>
             <Button x:Name="Video_Change_B" Content="動画として再生" Height="85" VerticalAlignment="Top" Width="325" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Margin="-2000,910,0,0" Click="Video_Change_B_Click"/>
             <Button x:Name="Music_Fix_B" Content="音ズレを修正" Height="70" VerticalAlignment="Top" Width="325" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Margin="-3513,900,0,0" Click="Music_Fix_B_Click"/>
             <Button x:Name="Exit_B" Content="戻る" Height="85" VerticalAlignment="Top" Width="325" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Margin="-3513,995,0,0" Click="Exit_B_Click"/>

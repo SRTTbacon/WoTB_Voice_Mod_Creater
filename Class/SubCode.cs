@@ -11,7 +11,6 @@ namespace WoTB_Voice_Mod_Creater
 {
     public class Sub_Code
     {
-        readonly static string Special_Path = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "/WoTB_Voice_Mod_Creater";
         static bool IsServerCreating = false;
         static bool IsCreatingProject = false;
         static bool IsVolumeSet = false;
@@ -57,17 +56,17 @@ namespace WoTB_Voice_Mod_Creater
                 string driveRegex = @"[A-Z]:\\";
                 if (File.Exists(location + "/steamapps/common/World of Tanks Blitz/wotblitz.exe"))
                 {
-                    StreamWriter stw = File.CreateText(Special_Path + "/Temp_WoTB_Path.dat");
+                    StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Temp_WoTB_Path.dat");
                     stw.Write(location + "/steamapps/common/World of Tanks Blitz");
                     stw.Close();
-                    using (var eifs = new FileStream(Special_Path + "/Temp_WoTB_Path.dat", FileMode.Open, FileAccess.Read))
+                    using (var eifs = new FileStream(Voice_Set.Special_Path + "/Temp_WoTB_Path.dat", FileMode.Open, FileAccess.Read))
                     {
                         using (var eofs = new FileStream(Directory.GetCurrentDirectory() + "/WoTB_Path.dat", FileMode.Create, FileAccess.Write))
                         {
                             FileEncode.FileEncryptor.Encrypt(eifs, eofs, "WoTB_Directory_Path_Pass");
                         }
                     }
-                    File.Delete(Special_Path + "/Temp_WoTB_Path.dat");
+                    File.Delete(Voice_Set.Special_Path + "/Temp_WoTB_Path.dat");
                     Voice_Set.WoTB_Path = location + "/steamapps/common/World of Tanks Blitz";
                     return true;
                 }
@@ -83,19 +82,18 @@ namespace WoTB_Voice_Mod_Creater
                         item2 = item2.Replace("\"", "\\steamapps\\common\\");
                         if (File.Exists(item2 + "World of Tanks Blitz\\wotblitz.exe"))
                         {
-                            StreamWriter stw = File.CreateText(Special_Path + "/Temp_WoTB_Path.dat");
+                            StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Temp_WoTB_Path.dat");
                             stw.Write(item2 + "World of Tanks Blitz");
                             stw.Close();
-                            using (var eifs = new FileStream(Special_Path + "/Temp_WoTB_Path.dat", FileMode.Open, FileAccess.Read))
+                            using (var eifs = new FileStream(Voice_Set.Special_Path + "/Temp_WoTB_Path.dat", FileMode.Open, FileAccess.Read))
                             {
                                 using (var eofs = new FileStream(Directory.GetCurrentDirectory() + "/WoTB_Path.dat", FileMode.Create, FileAccess.Write))
                                 {
                                     FileEncode.FileEncryptor.Encrypt(eifs, eofs, "WoTB_Directory_Path_Pass");
                                 }
                             }
-                            File.Delete(Special_Path + "/Temp_WoTB_Path.dat");
+                            File.Delete(Voice_Set.Special_Path + "/Temp_WoTB_Path.dat");
                             Voice_Set.WoTB_Path = item2 + "World of Tanks Blitz";
-                            MessageBox.Show("テスト2");
                             return true;
                         }
                     }
@@ -107,6 +105,28 @@ namespace WoTB_Voice_Mod_Creater
             {
                 MessageBox.Show("WoTBのインストール先を取得できませんでした。SteamにWoTBがインストールされていないか、32BitOSを使用している可能性があります。");
                 return false;
+            }
+        }
+        //ディレクトリをコピー(サブフォルダを含む)
+        public static void Directory_Copy(string From_Dir, string To_Dir)
+        {
+            DirectoryInfo dir = new DirectoryInfo(From_Dir);
+            if (!dir.Exists)
+            {
+                throw new DirectoryNotFoundException("指定したディレクトリが存在しません。\n" + From_Dir);
+            }
+            DirectoryInfo[] dirs = dir.GetDirectories(); 
+            Directory.CreateDirectory(To_Dir);
+            FileInfo[] files = dir.GetFiles();
+            foreach (FileInfo file in files)
+            {
+                string tempPath = Path.Combine(To_Dir, file.Name);
+                file.CopyTo(tempPath, false);
+            }
+            foreach (DirectoryInfo subdir in dirs)
+            {
+                string tempPath = Path.Combine(To_Dir, subdir.Name);
+                Directory_Copy(subdir.FullName, tempPath);
             }
         }
         //.dvplを抜いたファイルをコピーする
@@ -146,13 +166,14 @@ namespace WoTB_Voice_Mod_Creater
         //.dvplを抜いたファイルを削除する
         public static bool DVPL_File_Delete(string FilePath)
         {
+            bool IsDelected = false;
             FilePath = FilePath.Replace(".dvpl", "");
             if (File.Exists(FilePath))
             {
                 try
                 {
                     File.Delete(FilePath);
-                    return true;
+                    IsDelected = true;
                 }
                 catch
                 {
@@ -164,14 +185,14 @@ namespace WoTB_Voice_Mod_Creater
                 try
                 {
                     File.Delete(FilePath + ".dvpl");
-                    return true;
+                    IsDelected = true;
                 }
                 catch
                 {
                     
                 }
             }
-            return false;
+            return IsDelected;
         }
         //ファイル拡張子なしでファイルが存在するか取得
         //戻り値:存在した場合true,それ以外はfalse
@@ -325,7 +346,7 @@ namespace WoTB_Voice_Mod_Creater
                 string Read = Read_01.Substring(0, 3);
                 //最初の3文字がID3だった場合.mp3形式
                 //Xrecordで変換した場合ヘッダがなくなるためXingが含まれていたら
-                if (Read != "ID3" || Read_01.Contains("Xing"))
+                if (Read != "ID3" && !Read_01.Contains("Xing"))
                 {
                     try
                     {
@@ -352,18 +373,18 @@ namespace WoTB_Voice_Mod_Creater
             string[] Files_02 = Directory.GetFiles(Dir, "*.raw", SearchOption.TopDirectoryOnly);
             foreach (string File_Now in Files_02)
             {
-                StreamWriter stw = File.CreateText(Special_Path + "/Encode_Mp3/Start.bat");
-                stw.Write("\"" + Special_Path + "/Encode_Mp3/ffmpeg.exe\" -i \"" + File_Now + "\" -acodec libmp3lame -ab 128k \"" + Dir + "/" + Path.GetFileNameWithoutExtension(File_Now) + ".mp3\"");
+                StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Encode_Mp3/Start.bat");
+                stw.Write("\"" + Voice_Set.Special_Path + "/Encode_Mp3/ffmpeg.exe\" -i \"" + File_Now + "\" -acodec libmp3lame -ab 128k \"" + Dir + "/" + Path.GetFileNameWithoutExtension(File_Now) + ".mp3\"");
                 stw.Close();
                 ProcessStartInfo processStartInfo1 = new ProcessStartInfo
                 {
-                    FileName = Special_Path + "/Encode_Mp3/Start.bat",
+                    FileName = Voice_Set.Special_Path + "/Encode_Mp3/Start.bat",
                     CreateNoWindow = true,
                     UseShellExecute = false
                 };
                 Process p = Process.Start(processStartInfo1);
                 p.WaitForExit();
-                File.Delete(Special_Path + "/Encode_Mp3/Start.bat");
+                File.Delete(Voice_Set.Special_Path + "/Encode_Mp3/Start.bat");
                 File.Delete(File_Now);
             }
             string File_Import = "";
@@ -382,29 +403,29 @@ namespace WoTB_Voice_Mod_Creater
             await Task.Delay(50);
             if (File_Import != "")
             {
-                StreamWriter stw = File.CreateText(Special_Path + "/Encode_Mp3/Volume_Set.bat");
-                stw.Write("\"" + Special_Path + "/Encode_Mp3/mp3gain.exe\" -r -c -p -d 10 " + File_Import);
+                StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Encode_Mp3/Volume_Set.bat");
+                stw.Write("\"" + Voice_Set.Special_Path + "/Encode_Mp3/mp3gain.exe\" -r -c -p -d 10 " + File_Import);
                 stw.Close();
                 ProcessStartInfo processStartInfo1 = new ProcessStartInfo
                 {
-                    FileName = Special_Path + "/Encode_Mp3/Volume_Set.bat",
+                    FileName = Voice_Set.Special_Path + "/Encode_Mp3/Volume_Set.bat",
                     CreateNoWindow = true,
                     UseShellExecute = false
                 };
                 Process p = Process.Start(processStartInfo1);
                 p.WaitForExit();
-                File.Delete(Special_Path + "/Encode_Mp3/Volume_Set.bat");
+                File.Delete(Voice_Set.Special_Path + "/Encode_Mp3/Volume_Set.bat");
             }
         }
         //.fdpファイルから.fev + .fsbを作成する
         //例:Test.fdp -> Test.fevとTest.fsbを作成
         public static async Task Project_Build(string Project_File, System.Windows.Controls.TextBlock Message_T)
         {
-            StreamWriter stw2 = File.CreateText(Special_Path + "/Fmod_Designer/BGM_Create.bat");
-            stw2.Write("\"" + Special_Path + "/Fmod_Designer/fmod_designercl.exe\" -pc -adpcm " + Project_File);
+            StreamWriter stw2 = File.CreateText(Voice_Set.Special_Path + "/Fmod_Designer/BGM_Create.bat");
+            stw2.Write("\"" + Voice_Set.Special_Path + "/Fmod_Designer/fmod_designercl.exe\" -pc -adpcm \"" + Project_File + "\"");
             stw2.Close();
             Process p2 = new Process();
-            p2.StartInfo.FileName = Special_Path + "/Fmod_Designer/BGM_Create.bat";
+            p2.StartInfo.FileName = Voice_Set.Special_Path + "/Fmod_Designer/BGM_Create.bat";
             p2.StartInfo.CreateNoWindow = true;
             p2.StartInfo.UseShellExecute = false;
             p2.Start();
@@ -432,28 +453,9 @@ namespace WoTB_Voice_Mod_Creater
                 Number_01++;
                 await Task.Delay(1000);
             }
-            File.Delete(Special_Path + "/Fmod_Designer/BGM_Create.bat");
-        }
-        //.dvplを解除する
-        //例:sounds.yaml.dvpl->sounds.yaml
-        public static void DVPL_Unlock(string From_File, string To_File, bool IsOverWrite = true)
-        {
-            if (!IsOverWrite && File.Exists(To_File))
-            {
-                return;
-            }
-            StreamWriter DVPL_Unpack = File.CreateText(Special_Path + "/DVPL/UnPack.bat");
-            DVPL_Unpack.Write("\"" + Special_Path + "/DVPL/Python/python.exe\" \"" + Special_Path + "/DVPL/UnPack.py\" \"" + From_File + "\" \"" + To_File + "\"");
-            DVPL_Unpack.Close();
-            ProcessStartInfo processStartInfo = new ProcessStartInfo
-            {
-                FileName = Special_Path + "/DVPL/UnPack.bat",
-                CreateNoWindow = true,
-                UseShellExecute = false
-            };
-            Process p = Process.Start(processStartInfo);
-            p.WaitForExit();
-            File.Delete(Special_Path + "/DVPL/UnPack.bat");
+            File.Delete(Voice_Set.Special_Path + "/Fmod_Designer/BGM_Create.bat");
+            File.Delete(Directory.GetCurrentDirectory() + "/fmod_designer.log");
+            File.Delete(Directory.GetCurrentDirectory() + "/undo-log.txt");
         }
         //現在の時間を文字列で取得
         //引数:DateTime.Now,間に入れる文字,どの部分から開始するか,どの部分で終了するか(その数字の部分は含まれる)
@@ -518,10 +520,9 @@ namespace WoTB_Voice_Mod_Creater
         {
             try
             {
-                Voice_Set.FTP_Server.DownloadFile(Special_Path + "/Temp_Download_Sounds.yaml.dvpl", "/WoTB_Voice_Mod/Mods/Backup/sounds.yaml.dvpl");
-                DVPL_Unlock(Special_Path + "/Temp_Download_Sounds.yaml.dvpl", Special_Path + "/Temp_Download_Sounds.yaml");
-                File.Delete(Special_Path + "/Temp_Download_Sounds.yaml.dvpl");
-                string Server_File = Special_Path + "/Temp_Download_Sounds.yaml";
+                Voice_Set.FTP_Server.DownloadFile(Voice_Set.Special_Path + "/Temp_Download_Sounds.yaml.dvpl", "/WoTB_Voice_Mod/Mods/Backup/sounds.yaml.dvpl");
+                DVPL.DVPL_UnPack(Voice_Set.Special_Path + "/Temp_Download_Sounds.yaml.dvpl", Voice_Set.Special_Path + "/Temp_Download_Sounds.yaml", true);
+                string Server_File = Voice_Set.Special_Path + "/Temp_Download_Sounds.yaml";
                 StreamReader str = new StreamReader(File_Path);
                 bool IsSoundsIn = false;
                 while (str.EndOfStream == false)
@@ -540,21 +541,13 @@ namespace WoTB_Voice_Mod_Creater
                 StreamReader str2 = new StreamReader(Server_File);
                 string Read_All = str2.ReadToEnd();
                 str2.Close();
-                StreamWriter stw = File.CreateText(To_Path);
+                File.Delete(Server_File);
+                StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Temp_DVPL.yaml");
                 stw.Write(Read_All);
                 stw.Close();
                 if (IsDVPLEncode)
                 {
-                    DVPL.DVPL_Encode(To_Path);
-                    File.Delete(To_Path);
-                    try
-                    {
-                        File.Move(To_Path + ".dvpl", To_Path);
-                    }
-                    catch
-                    {
-                        MessageBox.Show("sounds.yamlを置き換えれませんでした。");
-                    }
+                    DVPL.DVPL_Pack(Voice_Set.Special_Path + "/Temp_DVPL.yaml", To_Path, true);
                 }
             }
             catch
@@ -599,6 +592,11 @@ namespace WoTB_Voice_Mod_Creater
             stw.Write(Read_All.Replace(line_01, Line));
             stw.Close();
             return true;
+        }
+        public static bool IsTextIncludeJapanese(string text)
+        {
+            bool isJapanese = Regex.IsMatch(text, @"[\p{IsHiragana}\p{IsKatakana}\p{IsCJKUnifiedIdeographs}]+");
+            return isJapanese;
         }
     }
 }

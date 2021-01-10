@@ -82,19 +82,21 @@
             <Button x:Name="Mod_Backup_B" Content="バックアップから復元" Height="90" VerticalAlignment="Top" Width="375" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Margin="-375,880,0,0" Click="Mod_Backup_B_Click"/>
             <Button x:Name="Mod_Server_Backup_B" Content="サーバーから復元" Height="90" VerticalAlignment="Top" Width="375" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Margin="-375,770,0,0" Click="Mod_Server_Backup_B_Click"/>
             <Button x:Name="Mod_Backup_Help_B" Content="?" Height="75" VerticalAlignment="Top" Width="75" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Margin="-850,830,0,0" Click="Mod_Backup_Help_B_Click"/>
-            <TextBlock x:Name="Message_T" Height="50" Width="925" Foreground="Aqua" FontSize="40" Margin="-1920,950,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" TextAlignment="Center"/>
+            <TextBlock x:Name="Message_T" Height="50" Width="1075" Foreground="Aqua" FontSize="40" Margin="-1920,1000,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" TextAlignment="Center"/>
             <Button x:Name="Mod_Back_B" Content="←" Height="75" VerticalAlignment="Top" Width="142" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Margin="-3657,700,0,0" Click="Mod_Back_B_Click"/>
             <Button x:Name="Mod_Install_B" Content="Modをインストール" Height="90" VerticalAlignment="Top" Width="375" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Margin="-1250,475,0,0" Click="Mod_Install_B_Click"/>
+            <Button x:Name="Mod_Select_B" Content="サンプルを聞く" Height="85" VerticalAlignment="Top" Width="375" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Margin="-1550,500,0,0" Click="Mod_Select_B_Click"/>
             <TextBox x:Name="Mod_Password_T" Height="55" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="400" FontSize="40" Margin="-1400,250,0,0"/>
             <TextBlock x:Name="Mod_Password_Text" Height="50" Width="300" Foreground="Aqua" FontSize="40" Margin="-1395,175,0,0" TextWrapping="Wrap" Text="パスワードを入力" VerticalAlignment="Top" TextAlignment="Center"/>
-            <Button x:Name="Mod_Password_B" Content="確定" Height="65" VerticalAlignment="Top" Width="140" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Margin="-850,195,0,0" Click="Mod_Password_B_Click"/>
-            <ScrollViewer x:Name ="Explanation_Scrool" Width="538" Height="250" VerticalScrollBarVisibility="Auto" Margin="-1525,575,0,0">
+            <Button x:Name="Mod_Password_B" Content="確定" Height="65" VerticalAlignment="Top" Width="140" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Margin="-850,245,0,0" Click="Mod_Password_B_Click"/>
+            <ScrollViewer x:Name ="Explanation_Scrool" Width="538" Height="250" VerticalScrollBarVisibility="Auto" Margin="-1525,600,0,0">
                 <TextBlock x:Name="Explanation_T" HorizontalAlignment="Left" TextWrapping="Wrap" Text="" Background="Transparent" Foreground="Aqua" FontSize="35" VerticalAlignment="Top" Height="250" Width="535"/>
             </ScrollViewer>
-            <Border x:Name="Explanation_Border" BorderBrush="Aqua" Width="538" Height="250" Margin="-1525,575,0,0" BorderThickness="1"/>
-            <TextBlock x:Name="Explanation_Text" Height="50" Width="300" Foreground="Aqua" FontSize="40" Margin="-1525,640,0,0" TextWrapping="Wrap" Text="内容(説明)" VerticalAlignment="Top" TextAlignment="Center"/>
-            <TextBlock x:Name="Create_Name_T" Height="50" Width="1000" Foreground="Aqua" FontSize="40" Margin="-1000,50,0,0" TextWrapping="Wrap" Text="制作者:SRTTbacon" VerticalAlignment="Top" TextAlignment="Center"/>
+            <Border x:Name="Explanation_Border" BorderBrush="Aqua" Width="538" Height="250" Margin="-1525,600,0,0" BorderThickness="1"/>
+            <TextBlock x:Name="Explanation_Text" Height="50" Width="300" Foreground="Aqua" FontSize="40" Margin="-1525,650,0,0" TextWrapping="Wrap" Text="内容(説明)" VerticalAlignment="Top" TextAlignment="Center"/>
+            <TextBlock x:Name="Create_Name_T" Height="50" Width="1000" Foreground="Aqua" FontSize="40" Margin="-1000,50,0,0" TextWrapping="Wrap" Text="配布者:SRTTbacon" VerticalAlignment="Top" TextAlignment="Center"/>
             <Class1:Mod_Uploads x:Name="Mod_Uploads_Window" Width="1920" Height="1080" Margin="-1920,0,0,0" Visibility="Hidden"/>
+            <TextBlock x:Name="Mod_Config_T" Height="100" Width="400" Foreground="Aqua" FontSize="40" Margin="-2525,885,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" TextAlignment="Center"/>
         </DockPanel>
     </Viewbox>
 </UserControl>

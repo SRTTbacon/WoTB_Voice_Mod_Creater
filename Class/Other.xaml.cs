@@ -13,7 +13,6 @@ namespace WoTB_Voice_Mod_Creater.Class
 {
     public partial class Other : System.Windows.Controls.UserControl
     {
-        readonly string Special_Path = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "/WoTB_Voice_Mod_Creater";
         readonly List<string> File_Full_Path = new List<string>();
         bool IsBusy = false;
         bool IsLocationChanging = false;
@@ -45,6 +44,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             Location_S.Maximum = 0;
             Video_V.MaxWidth = 5760;
             Video_V.MaxHeight = 3240;
+            Position_Change();
         }
         private void Video_V_MediaFailed(object sender, ExceptionRoutedEventArgs e)
         {
@@ -61,10 +61,9 @@ namespace WoTB_Voice_Mod_Creater.Class
         {
             Visibility = Visibility.Visible;
             Zoom_S.Value = 1;
-            Position_Change();
-            if (File.Exists(Special_Path + "/Other_Music_List.dat"))
+            if (File.Exists(Voice_Set.Special_Path + "/Other_Music_List.dat") && Bass.BASS_ChannelIsActive(Stream) == BASSActive.BASS_ACTIVE_STOPPED)
             {
-                StreamReader str = new StreamReader(Special_Path + "/Other_Music_List.dat");
+                StreamReader str = new StreamReader(Voice_Set.Special_Path + "/Other_Music_List.dat");
                 File_Full_Path.Clear();
                 Music_List.Items.Clear();
                 string line;
@@ -78,6 +77,19 @@ namespace WoTB_Voice_Mod_Creater.Class
                 }
                 str.Close();
             }
+            if (Video_V.Source != null && Music_Fix_B.Visibility == Visibility.Visible)
+            {
+                Video_V.Play();
+                long position2 = Bass.BASS_ChannelGetPosition(Stream);
+                Location_S.Value = Bass.BASS_ChannelBytes2Seconds(Stream, position2);
+                TimeSpan time = TimeSpan.FromSeconds(Location_S.Value);
+                Video_V.Position = time;
+                Video_V.Visibility = Visibility.Visible;
+                if (Bass.BASS_ChannelIsActive(Stream) != BASSActive.BASS_ACTIVE_PLAYING)
+                {
+                    Video_V.Pause();
+                }
+            }
             while (Opacity < 1 && !IsBusy)
             {
                 Opacity += 0.025;
@@ -86,7 +98,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         }
         async void Position_Change()
         {
-            while (Visibility == Visibility.Visible)
+            while (true)
             {
                 if (IsEnded)
                 {
@@ -180,7 +192,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                     Music_List.Items.Add(Path.GetFileName(File_Now));
                 }
             }
-            StreamWriter stw = File.CreateText(Special_Path + "/Other_Music_List.dat");
+            StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Other_Music_List.dat");
             foreach (string Now in File_Full_Path)
             {
                 stw.WriteLine(Now);
@@ -198,7 +210,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             Video_V.Source = null;
             Video_Change_B.Visibility = Visibility.Hidden;
             Bass.BASS_StreamFree(Stream);
-            StreamWriter stw = File.CreateText(Special_Path + "/Other_Music_List.dat");
+            StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Other_Music_List.dat");
             foreach (string Now in File_Full_Path)
             {
                 stw.WriteLine(Now);
@@ -375,16 +387,13 @@ namespace WoTB_Voice_Mod_Creater.Class
         }
         private async void Music_Play_B_Click(object sender, RoutedEventArgs e)
         {
-            if (IsBusy)
+            if (IsBusy || Bass.BASS_ChannelIsActive(Stream) == BASSActive.BASS_ACTIVE_PLAYING)
             {
                 return;
             }
             IsPaused = false;
-            if (Bass.BASS_ChannelIsActive(Stream) != BASSActive.BASS_ACTIVE_PLAYING)
-            {
-                Video_V.Play();
-                Bass.BASS_ChannelPlay(Stream, false);
-            }
+            Video_V.Play();
+            Bass.BASS_ChannelPlay(Stream, false);
             float Volume_Now = 1f;
             Bass.BASS_ChannelGetAttribute(Stream, BASSAttribute.BASS_ATTRIB_VOL, ref Volume_Now);
             float Volume_Plus = (float)(Volume_S.Value / 100) / 30f;
@@ -539,6 +548,8 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Loop_C.Margin = new Thickness(-2975, 945, 0, 0);
                 Random_T.Margin = new Thickness(-2725, 1000, 0, 0);
                 Random_C.Margin = new Thickness(-2975, 1020, 0, 0);
+                Background_T.Margin = new Thickness(-2000, 1005, 0, 0);
+                Background_C.Margin = new Thickness(-2350, 1020, 0, 0);
                 Video_Change_B.Margin = new Thickness(-2000, 900, 0, 0);
             }
             else
@@ -569,6 +580,8 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Loop_C.Margin = new Thickness(-3350, 700, 0, 0);
                 Random_T.Margin = new Thickness(-3100, 755, 0, 0);
                 Random_C.Margin = new Thickness(-3350, 775, 0, 0);
+                Background_T.Margin = new Thickness(-3005, 825, 0, 0);
+                Background_C.Margin = new Thickness(-3350, 840, 0, 0);
                 Video_Change_B.Margin = new Thickness(-2225, 657, 0, 0);
             }
         }
@@ -580,21 +593,31 @@ namespace WoTB_Voice_Mod_Creater.Class
         }
         private async void Exit_B_Click(object sender, RoutedEventArgs e)
         {
-            Pause_Volume_Animation(false);
+            if (!Background_C.IsChecked.Value)
+            {
+                Pause_Volume_Animation(false);
+            }
             IsBusy = true;
             while (Opacity > 0)
             {
                 Opacity -= 0.025;
                 await Task.Delay(1000 / 60);
             }
-            Pause_Volume_Animation(true);
-            Video_Mode_Change(false);
-            Video_V.Visibility = Visibility.Hidden;
-            Video_Change_B.Visibility = Visibility.Hidden;
-            X_Move = 0;
-            Y_Move = 0;
-            Zoom_S.Value = 1;
-            IsPaused = false;
+            if (!Background_C.IsChecked.Value)
+            {
+                Pause_Volume_Animation(true);
+                Video_Mode_Change(false);
+                Video_V.Visibility = Visibility.Hidden;
+                Video_Change_B.Visibility = Visibility.Hidden;
+                X_Move = 0;
+                Y_Move = 0;
+                Zoom_S.Value = 1;
+            }
+            else if (Video_V.Source != null)
+            {
+                Video_V.Pause();
+                Video_V.Visibility = Visibility.Hidden;
+            }
             IsBusy = false;
             Visibility = Visibility.Hidden;
         }

@@ -29,7 +29,7 @@ namespace WoTB_Voice_Mod_Creater
                 Voice_Set.TCP_Server.Delimiter = 0x00;
                 Voice_Set.FTP_Server = new FtpClient(IP)
                 {
-                    Credentials = new NetworkCredential("非公開", "非公開"),
+                    Credentials = new NetworkCredential("SRTTbacon_Server", "SRTTbacon"),
                     SocketKeepAlive = false,
                     DataConnectionType = ConnectType,
                     SslProtocols = SslProtocols.Tls,
@@ -37,7 +37,6 @@ namespace WoTB_Voice_Mod_Creater
                 };
                 Voice_Set.FTP_Server.ValidateCertificate += new FtpSslValidation(OnValidateCertificate);
                 Voice_Set.FTP_Server.Connect();
-                Voice_Set.Create_File_Server("/WoTB_Voice_Mod/Mods/Mod_Names.dat", false, true);
                 Server_OK = true;
                 Message_T.Text = "";
                 if (Login())
@@ -75,15 +74,15 @@ namespace WoTB_Voice_Mod_Creater
                 {
                     using (var eifs = new FileStream(Path + "/User.dat", FileMode.Open, FileAccess.Read))
                     {
-                        using (var eofs = new FileStream(Special_Path + "/Temp_User.dat", FileMode.Create, FileAccess.Write))
+                        using (var eofs = new FileStream(Voice_Set.Special_Path + "/Temp_User.dat", FileMode.Create, FileAccess.Write))
                         {
                             FileEncode.FileEncryptor.Decrypt(eifs, eofs, "SRTTbacon_Server_User_Pass_Save");
                         }
                     }
-                    StreamReader str = new StreamReader(Special_Path + "/Temp_User.dat");
+                    StreamReader str = new StreamReader(Voice_Set.Special_Path + "/Temp_User.dat");
                     string Login_Read = str.ReadLine();
                     str.Close();
-                    File.Delete(Special_Path + "/Temp_User.dat");
+                    File.Delete(Voice_Set.Special_Path + "/Temp_User.dat");
                     string User_Name = Login_Read.Substring(0, Login_Read.IndexOf(':'));
                     string Password = Login_Read.Substring(Login_Read.IndexOf(':') + 1);
                     if (Account_Exist(User_Name, Password))
@@ -122,9 +121,9 @@ namespace WoTB_Voice_Mod_Creater
             else
             {
                 string Directory_Name = Server_Names_List[Server_Lists.SelectedIndex].ToString() + "/Voices/";
-                if (Directory.Exists(Special_Path + "/Server/" + Directory_Name) && Directory.GetFiles(Special_Path + "/Server/" + Directory_Name).Length == 0)
+                if (Directory.Exists(Voice_Set.Special_Path + "/Server/" + Directory_Name) && Directory.GetFiles(Voice_Set.Special_Path + "/Server/" + Directory_Name).Length == 0)
                 {
-                    Directory.Delete(Special_Path + "/Server/" + Directory_Name, true);
+                    Directory.Delete(Voice_Set.Special_Path + "/Server/" + Directory_Name, true);
                 }
                 XDocument xml2 = XDocument.Load(Voice_Set.FTP_Server.OpenRead("/WoTB_Voice_Mod/" + Server_Names_List[Server_Lists.SelectedIndex] + "/Server_Config.dat"));
                 XElement item2 = xml2.Element("Server_Create_Config");
@@ -153,17 +152,17 @@ namespace WoTB_Voice_Mod_Creater
                     {
                         Message_T.Text = "サーバーから直接適応します...";
                         await Task.Delay(50);
-                        if (Directory.Exists(Special_Path + "/Server/" + Server_Names_List[Server_Lists.SelectedIndex]))
+                        if (Directory.Exists(Voice_Set.Special_Path + "/Server/" + Server_Names_List[Server_Lists.SelectedIndex]))
                         {
-                            Directory.Delete(Special_Path + "/Server/" + Server_Names_List[Server_Lists.SelectedIndex], true);
+                            Directory.Delete(Voice_Set.Special_Path + "/Server/" + Server_Names_List[Server_Lists.SelectedIndex], true);
                         }
                         await Task.Delay(50);
-                        Directory.CreateDirectory(Special_Path + "/Server/" + Server_Names_List[Server_Lists.SelectedIndex].ToString() + "/Voices");
+                        Directory.CreateDirectory(Voice_Set.Special_Path + "/Server/" + Server_Names_List[Server_Lists.SelectedIndex].ToString() + "/Voices");
                         string[] Files = Directory.GetFiles("E:/SRTTbacon_Server/WoTB_Voice_Mod/" + Directory_Name, "*", SearchOption.TopDirectoryOnly);
                         for (int Number = 0; Number <= Files.Length - 1; Number++)
                         {
                             string File_Name = System.IO.Path.GetFileName(Files[Number]);
-                            File.Copy(Files[Number], Special_Path + "/Server/" + Directory_Name + File_Name, true);
+                            File.Copy(Files[Number], Voice_Set.Special_Path + "/Server/" + Directory_Name + File_Name, true);
                         }
                         Message_T.Text = "ロード中です。しばらくお待ちください。";
                     }
@@ -172,28 +171,28 @@ namespace WoTB_Voice_Mod_Creater
                         MessageBox.Show(e1.Message);
                     }
                 }
-                else if (Directory.Exists(Special_Path + "/Server/" + Directory_Name))
+                else if (Directory.Exists(Voice_Set.Special_Path + "/Server/" + Directory_Name))
                 {
                     Message_T.Text = "キャッシュから適応します...";
                     await Task.Delay(100);
-                    Voice_Set.FTP_Server.DownloadFile(Special_Path + "/Temp_Download_Change_Names.dat", "/WoTB_Voice_Mod/" + Server_Names_List[Server_Lists.SelectedIndex] + "/Change_Names.dat");
+                    Voice_Set.FTP_Server.DownloadFile(Voice_Set.Special_Path + "/Temp_Download_Change_Names.dat", "/WoTB_Voice_Mod/" + Server_Names_List[Server_Lists.SelectedIndex] + "/Change_Names.dat");
                     try
                     {
                         List<string> Change_Names_Read = new List<string>();
-                        StreamReader file = new StreamReader(Special_Path + "/Temp_Download_Change_Names.dat");
+                        StreamReader file = new StreamReader(Voice_Set.Special_Path + "/Temp_Download_Change_Names.dat");
                         while (file.EndOfStream == false)
                         {
                             Change_Names_Read.Add(file.ReadLine());
                         }
                         file.Close();
-                        File.Delete(Special_Path + "/Temp_Download_Change_Names.dat");
+                        File.Delete(Voice_Set.Special_Path + "/Temp_Download_Change_Names.dat");
                         foreach (string Line in Change_Names_Read)
                         {
                             if (Line.Contains("->"))
                             {
                                 string From_Name = Line.Substring(0, Line.IndexOf('>') - 1);
                                 string To_Name = Line.Substring(Line.IndexOf('>') + 1);
-                                File.Move(Special_Path + "/Server/" + Directory_Name + From_Name, Special_Path + "/Server/" + Directory_Name + To_Name);
+                                File.Move(Voice_Set.Special_Path + "/Server/" + Directory_Name + From_Name, Voice_Set.Special_Path + "/Server/" + Directory_Name + To_Name);
                             }
                         }
                     }
@@ -212,7 +211,7 @@ namespace WoTB_Voice_Mod_Creater
                     Message_T.Text = "サーバーから音声をダウンロードしています...";
                     Download_Progress_T.Text = "計算しています...";
                     IsProcessing = true;
-                    Directory.CreateDirectory(Special_Path + "/Server/" + Directory_Name);
+                    Directory.CreateDirectory(Voice_Set.Special_Path + "/Server/" + Directory_Name);
                     await Task.Delay(50);
                     List<string> strList = new List<string>();
                     FtpWebRequest fwr = (FtpWebRequest)WebRequest.Create(new Uri("ftp://" + IP + "/WoTB_Voice_Mod/" + Directory_Name));
@@ -236,7 +235,7 @@ namespace WoTB_Voice_Mod_Creater
                     {
                         try
                         {
-                            Voice_Set.FTP_Server.DownloadFile(Special_Path + "/Server/" + Directory_Name + File_Name, "/WoTB_Voice_Mod/" + Directory_Name + File_Name);
+                            Voice_Set.FTP_Server.DownloadFile(Voice_Set.Special_Path + "/Server/" + Directory_Name + File_Name, "/WoTB_Voice_Mod/" + Directory_Name + File_Name);
                             await Task.Delay(1);
                             Download_Progress_P.Value = Now_Count;
                             Download_Progress_T.Text = Now_Count + "/" + Max_Count;
@@ -250,17 +249,17 @@ namespace WoTB_Voice_Mod_Creater
                     //Server_Directory_Download("/WoTB_Voice_Mod/" + Server_Lists.Items[Server_Lists.SelectedIndex].ToString() + "/Voices", Special_Path + "/Server/Voices");
                     Message_T.Text = "音声のダウンロードが完了しました。適応します。";
                 }
-                if (Directory.Exists(Special_Path + "/Server/" + Voice_Set.SRTTbacon_Server_Name + "/Voices/SE"))
+                if (Directory.Exists(Voice_Set.Special_Path + "/Server/" + Voice_Set.SRTTbacon_Server_Name + "/Voices/SE"))
                 {
-                    string[] Files = Directory.GetFiles(Special_Path + "/Server/" + Directory_Name + "SE", "*", SearchOption.TopDirectoryOnly);
+                    string[] Files = Directory.GetFiles(Voice_Set.Special_Path + "/Server/" + Directory_Name + "SE", "*", SearchOption.TopDirectoryOnly);
                     if (Files.Length == 0)
                     {
-                        Voice_Set.FTP_Server.DownloadDirectory(Special_Path + "/Server/" + Directory_Name + "SE", "/WoTB_Voice_Mod/SE");
+                        Voice_Set.FTP_Server.DownloadDirectory(Voice_Set.Special_Path + "/Server/" + Directory_Name + "SE", "/WoTB_Voice_Mod/SE");
                     }
                 }
                 else
                 {
-                    Voice_Set.FTP_Server.DownloadDirectory(Special_Path + "/Server/" + Directory_Name + "SE", "/WoTB_Voice_Mod/SE");
+                    Voice_Set.FTP_Server.DownloadDirectory(Voice_Set.Special_Path + "/Server/" + Directory_Name + "SE", "/WoTB_Voice_Mod/SE");
                 }
                 Server_Connect_B.Margin = new Thickness(-600, 375, 0, 0);
                 Server_Create_B.Margin = new Thickness(-600, 550, 0, 0);
@@ -273,7 +272,7 @@ namespace WoTB_Voice_Mod_Creater
                 Explanation_Text.Visibility = Visibility.Hidden;
                 Explanation_Border.Visibility = Visibility.Hidden;
                 await Task.Delay(50);
-                string[] Temp = Directory.GetFiles(Special_Path + "/Server/" + Directory_Name);
+                string[] Temp = Directory.GetFiles(Voice_Set.Special_Path + "/Server/" + Directory_Name);
                 Voice_S.Visibility = Visibility.Visible;
                 Voice_Back_B.Visibility = Visibility.Visible;
                 Voice_Front_B.Visibility = Visibility.Visible;
@@ -473,6 +472,7 @@ namespace WoTB_Voice_Mod_Creater
                 Voice_Mod_Free_B.Visibility = Visibility.Visible;
                 Message_B.Visibility = Visibility.Visible;
                 Update_B.Visibility = Visibility.Visible;
+                Chat_Show();
             }
             else
             {
@@ -517,6 +517,24 @@ namespace WoTB_Voice_Mod_Creater
         }
         void Chat_Show()
         {
+            //個別サーバーに参加していない場合の配置
+            /*Chat_Border.Margin = new Thickness(-750, 365, 0, 0);
+            Chat_Scrool.Margin = new Thickness(-750, 370, 0, 0);
+            Chat_Send_T.Margin = new Thickness(-870, 890, 0, 0);
+            Chat_Send_B.Margin = new Thickness(-250, 890, 0, 0);
+            Chat_Mode_Public_B.Margin = new Thickness(-1167, 310, 0, 0);
+            Chat_Mode_Server_B.Margin = new Thickness(-757, 310, 0, 0);
+            Chat_Mode_Private_B.Margin = new Thickness(-747, 310, 0, 0);*/
+
+            //個別サーバーに参加していない場合の配置(まだ個別サーバー機能を解放していないため基本こちらを使用)
+            Chat_Border.Margin = new Thickness(-1920, 320, 0, 0);
+            Chat_Scrool.Margin = new Thickness(-1920, 325, 0, 0);
+            Chat_Send_T.Margin = new Thickness(-2040, 845, 0, 0);
+            Chat_Send_B.Margin = new Thickness(-1418, 845, 0, 0);
+            Chat_Mode_Public_B.Margin = new Thickness(-2344, 270, 0, 0);
+            Chat_Mode_Server_B.Margin = new Thickness(-1920, 270, 0, 0);
+            Chat_Mode_Private_B.Margin = new Thickness(-1496, 270, 0, 0);
+
             Chat_Border.Visibility = Visibility.Visible;
             Chat_Scrool.Visibility = Visibility.Visible;
             Chat_Send_B.Visibility = Visibility.Visible;

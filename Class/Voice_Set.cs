@@ -12,7 +12,7 @@ namespace WoTB_Voice_Mod_Creater
     {
         static List<string> Voice_Lists = new List<string>();
         static List<bool> SE_Enable_Disable = new List<bool>();
-        readonly static string Special_Path = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "/WoTB_Voice_Mod_Creater";
+        static string Special_Path_Dir = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "/WoTB_Voice_Mod_Creater";
         static string Server_Name = "";
         static string User_Name = "";
         static string WoTB_Location = "";
@@ -64,6 +64,11 @@ namespace WoTB_Voice_Mod_Creater
         {
             get { return WoTB_Location; }
             set { WoTB_Location = value; }
+        }
+        public static string Special_Path
+        {
+            get { return Special_Path_Dir; }
+            set { Special_Path_Dir = value; }
         }
         //ファイル名が既に変更されたものか
         public static bool Voice_Name_Hide(string File)

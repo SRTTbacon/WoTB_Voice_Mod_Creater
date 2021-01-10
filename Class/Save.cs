@@ -26,7 +26,7 @@ namespace WoTB_Voice_Mod_Creater
             if (Sub_Code.CreatingProject)
             {
                 Sub_Code.CreatingProject = false;
-                Voice_Mod_Create.Project_Create(Message_T, Voice_Set.SRTTbacon_Server_Name, Special_Path + "/Server/" + Voice_Set.SRTTbacon_Server_Name + "/Voices", Special_Path + "/Server/" + Voice_Set.SRTTbacon_Server_Name + "/Voices/SE");
+                Voice_Mod_Create.Project_Create(Message_T, Voice_Set.SRTTbacon_Server_Name, Voice_Set.Special_Path + "/Server/" + Voice_Set.SRTTbacon_Server_Name + "/Voices", Voice_Set.Special_Path + "/Server/" + Voice_Set.SRTTbacon_Server_Name + "/Voices/SE");
             }
         }
     }
@@ -34,7 +34,6 @@ namespace WoTB_Voice_Mod_Creater
 public class Voice_Mod_Create
 {
     readonly static string Path = Directory.GetCurrentDirectory();
-    readonly static string Special_Path = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "/WoTB_Voice_Mod_Creater";
     public static void Project_Create(System.Windows.Controls.TextBlock Message_T, string Project_Name, string Voice_Dir, string SE_Dir)
     {
         string Voice_Now = "";
@@ -55,22 +54,22 @@ public class Voice_Mod_Create
             DateTime dt = DateTime.Now;
             if (File.Exists(Voice_Set.WoTB_Path + "/Data/sounds.yaml.dvpl"))
             {
-                StreamWriter DVPL_Unpack = File.CreateText(Special_Path + "/DVPL/UnPack.bat");
-                DVPL_Unpack.Write("\"" + Special_Path + "/DVPL/Python/python.exe\" \"" + Special_Path + "/DVPL/UnPack.py\" \"" + Voice_Set.WoTB_Path + "/Data/sounds.yaml.dvpl\" \"" + Special_Path + "/Temp_Sounds.yaml\"");
+                StreamWriter DVPL_Unpack = File.CreateText(Voice_Set.Special_Path + "/DVPL/UnPack.bat");
+                DVPL_Unpack.Write("\"" + Voice_Set.Special_Path + "/DVPL/Python/python.exe\" \"" + Voice_Set.Special_Path + "/DVPL/UnPack.py\" \"" + Voice_Set.WoTB_Path + "/Data/sounds.yaml.dvpl\" \"" + Voice_Set.Special_Path + "/Temp_Sounds.yaml\"");
                 DVPL_Unpack.Close();
                 ProcessStartInfo processStartInfo = new ProcessStartInfo
                 {
-                    FileName = Special_Path + "/DVPL/UnPack.bat",
+                    FileName = Voice_Set.Special_Path + "/DVPL/UnPack.bat",
                     CreateNoWindow = true,
                     UseShellExecute = false
                 };
                 Process p = Process.Start(processStartInfo);
                 p.WaitForExit();
-                File.Delete(Special_Path + "/DVPL/UnPack.bat");
+                File.Delete(Voice_Set.Special_Path + "/DVPL/UnPack.bat");
             }
             else
             {
-                File.Copy(Voice_Set.WoTB_Path + "/Data/sounds.yaml", Special_Path + "/Temp_Sounds.yaml", true);
+                File.Copy(Voice_Set.WoTB_Path + "/Data/sounds.yaml", Voice_Set.Special_Path + "/Temp_Sounds.yaml", true);
             }
             Change_Sounds_yaml(Voice_Dir, Server_Name_Rename);
             StreamWriter stw = File.CreateText(Path + "/Projects/" + Project_Name + "/" + Server_Name_Rename + ".fdp");
@@ -1219,7 +1218,7 @@ public class Voice_Mod_Create
     {
         try
         {
-            Read = File.ReadAllText(Special_Path + "/Temp_Sounds.yaml", System.Text.Encoding.UTF8);
+            Read = File.ReadAllText(Voice_Set.Special_Path + "/Temp_Sounds.yaml", System.Text.Encoding.UTF8);
             if (Voice_Set.SE_Enable_List[9] || Sub_Code.File_Exist_Voice_Type(Voice_Dir, "reload"))
             {
                 Replace_Voice_Line(Project_Name, "GUN_RELOAD", "reload");
@@ -1423,7 +1422,7 @@ public class Voice_Mod_Create
                 Replace_Voice_Line(Project_Name, "VOICE_ENEMY_KILLED", "gekiha");
             }
             Replace_Voice_Line(Project_Name, "VOICE_START_BATTLE", "Music");
-            File.WriteAllText(Special_Path + "/Temp_Sounds.yaml", Read);
+            File.WriteAllText(Voice_Set.Special_Path + "/Temp_Sounds.yaml", Read);
         }
         catch (Exception e)
         {

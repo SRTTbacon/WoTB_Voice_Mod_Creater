@@ -9,7 +9,6 @@ namespace WoTB_Voice_Mod_Creater.Class
 {
     public partial class Load_Data : UserControl
     {
-        readonly string Special_Path = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "/WoTB_Voice_Mod_Creater";
         bool IsLoading = false;
         public Load_Data()
         {
@@ -18,8 +17,34 @@ namespace WoTB_Voice_Mod_Creater.Class
         public async void Window_Start()
         {
             IsLoading = true;
+            //一時ファイルの保存先を変更している場合それを適応
+            if (File.Exists(Directory.GetCurrentDirectory() + "/TempDirPath.dat"))
+            {
+                try
+                {
+                    using (var eifs = new FileStream(Directory.GetCurrentDirectory() + "/TempDirPath.dat", FileMode.Open, FileAccess.Read))
+                    {
+                        using (var eofs = new FileStream(Directory.GetCurrentDirectory() + "/Temp.dat", FileMode.Create, FileAccess.Write))
+                        {
+                            FileEncode.FileEncryptor.Decrypt(eifs, eofs, "Temp_Directory_Path_Pass");
+                        }
+                    }
+                    StreamReader str = new StreamReader(Directory.GetCurrentDirectory() + "/Temp.dat");
+                    string Read = str.ReadLine();
+                    str.Close();
+                    File.Delete(Directory.GetCurrentDirectory() + "/Temp.dat");
+                    if (Read != "")
+                    {
+                        Voice_Set.Special_Path = Read;
+                    }
+                }
+                catch
+                {
+
+                }
+            }
             Visibility = Visibility.Visible;
-            if (!File.Exists(Special_Path + "/Loading/1.png"))
+            if (!File.Exists(Voice_Set.Special_Path + "/Loading/1.png"))
             {
                 DVPL.Loading_Extract();
             }
@@ -30,11 +55,17 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 if (Number_01 < 148)
                 {
-                    Load_Image.Source = new BitmapImage(new Uri(Special_Path + "/Loading/" + Number_01 + ".png"));
+                    MemoryStream data = new MemoryStream(File.ReadAllBytes(Voice_Set.Special_Path + "/Loading/" + Number_01 + ".png"));
+                    WriteableBitmap wbmp = new WriteableBitmap(BitmapFrame.Create(data));
+                    data.Close();
+                    Load_Image.Source = wbmp;
                 }
                 else
                 {
-                    Load_Image.Source = new BitmapImage(new Uri(Special_Path + "/Loading/148.png"));
+                    MemoryStream data = new MemoryStream(File.ReadAllBytes(Voice_Set.Special_Path + "/Loading/148.png"));
+                    WriteableBitmap wbmp = new WriteableBitmap(BitmapFrame.Create(data));
+                    data.Close();
+                    Load_Image.Source = wbmp;
                     Number_01 = 0;
                 }
                 if (Number_02 % 30 == 1)

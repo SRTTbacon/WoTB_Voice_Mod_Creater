@@ -12,7 +12,7 @@ namespace WoTB_Voice_Mod_Creater.Class
     public partial class Mod_Uploads : System.Windows.Controls.UserControl
     {
         bool IsBusy = false;
-        readonly string Special_Path = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "/WoTB_Voice_Mod_Creater";
+        bool IsMessageShowing = false;
         readonly List<string> Mod_Name_Full = new List<string>();
         Cauldron.FMOD.EVENT_LOADINFO ELI = new Cauldron.FMOD.EVENT_LOADINFO();
         Cauldron.FMOD.EventProject EP = new Cauldron.FMOD.EventProject();
@@ -24,6 +24,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         }
         async public void Window_Show()
         {
+            //画面を表示
             Opacity = 0;
             Visibility = Visibility.Visible;
             while (Opacity < 1 && !IsBusy)
@@ -38,6 +39,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         }
         async void Window_Close()
         {
+            //閉じる
             if (!IsBusy)
             {
                 IsBusy = true;
@@ -65,6 +67,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 return;
             }
+            //リストに追加したファイルを削除
             if (Mod_File_List.SelectedIndex != -1)
             {
                 int Number = Mod_File_List.SelectedIndex;
@@ -79,6 +82,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 return;
             }
+            //リストにアップロードするModファイルを追加
             OpenFileDialog ofd = new OpenFileDialog
             {
                 Title = "Modファイルを選択してください。",
@@ -102,7 +106,15 @@ namespace WoTB_Voice_Mod_Creater.Class
                     {
                         if (Mod_File_List.Items[Number].ToString() == Name)
                         {
-                            return;
+                            System.Windows.MessageBox.Show("同名のファイルが存在します。\n現在のファイル名:" + Name);
+                        }
+                        else if (Name.Replace(".dvpl","") == Mod_File_List.Items[Number].ToString())
+                        {
+                            System.Windows.MessageBox.Show("同名の非dvplファイルが存在します。\n現在のファイル名:" + Name);
+                        }
+                        else if (Name + ".dvpl" == Mod_File_List.Items[Number].ToString())
+                        {
+                            System.Windows.MessageBox.Show("同名のdvplファイルが存在します。\n現在のファイル名:" + Name);
                         }
                     }
                     Mod_Name_Full.Add(Mod_File);
@@ -116,9 +128,10 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 return;
             }
+            //注意事項の画面
             string Message_01 = "・Mod名は、配布する際のタイトルになります。\n・ingame_voice以外の音声Modを指定するときは、sounds.yamlもリストに入れる必要があります。\n";
             string Message_02 = "・sfx_high(sfx_low).yamlは追加しなくてもソフト側で自動的にダウンロードしたユーザーに設定します。\n";
-            string Message_03 = "・ModファイルがBGMModのみの場合は必ず\"BGMModに設定\"にチェックを入れるようにしてください。(sounds.yamlが指定されている場合はチェックしないでください。)\n";
+            string Message_03 = "・Modファイルに戦闘BGMが含まれる場合は\"BGMModに設定\"にチェックを入れるようにしてください。(Music.fevの構成はMusic/Music/Musicのみ)\n";
             string Message_04 = "・管理者が不必要なModファイルと判断した場合は本人の意思に関係なく削除する可能性があります。";
             System.Windows.MessageBox.Show(Message_01 + Message_02 + Message_03 + Message_04);
         }
@@ -140,8 +153,8 @@ namespace WoTB_Voice_Mod_Creater.Class
             }
             try
             {
-                Directory.CreateDirectory(Special_Path + "/" + Mod_Create_Name_T.Text);
-                Directory.Delete(Special_Path + "/" + Mod_Create_Name_T.Text);
+                Directory.CreateDirectory(Voice_Set.Special_Path + "/" + Mod_Create_Name_T.Text);
+                Directory.Delete(Voice_Set.Special_Path + "/" + Mod_Create_Name_T.Text);
                 if (Mod_Create_Name_T.Text.Contains("/"))
                 {
                     Message_T.Text = "Mod名に不適切な文字が含まれています。";
@@ -167,14 +180,16 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Message_T.Text = "同名のModが既に存在します。";
                 return;
             }
+            //Modを配布
             if (BGM_Mode_C.IsChecked.Value)
             {
+                //BGMModも一緒に配布する場合は実行
                 try
                 {
                     int Number = -1;
                     for (int Number_01 = 0; Number_01 <= Mod_Name_Full.Count - 1; Number_01++)
                     {
-                        if (Path.GetFileName(Mod_Name_Full[Number_01]).Contains("Music.fev"))
+                        if (Path.GetFileName(Mod_Name_Full[Number_01]) == "Music.fev" || Path.GetFileName(Mod_Name_Full[Number_01]) == "Music.fev.dvpl")
                         {
                             Number = Number_01;
                             break;
@@ -186,7 +201,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                         return;
                     }
                     Message_T.Text = "BGMファイルを確認しています...";
-                    await Task.Delay(100);
+                    await Task.Delay(50);
                     Fmod_Player.ESystem.Load(Mod_Name_Full[Number], ref ELI, ref EP);
                     Cauldron.FMOD.RESULT result = Fmod_Player.ESystem.GetEvent("Music/Music/Music", Cauldron.FMOD.EVENT_MODE.DEFAULT, ref FE);
                     EP.Release();
@@ -198,7 +213,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 }
                 catch
                 {
-                    Message_T.Text = "BGMを付ける場合はファイル構成を\"Music/Music/Music\"にしてください。";
+                    Message_Feed_Out("BGMを付ける場合はファイル構成を\"Music/Music/Music\"にしてください。");
                     return;
                 }
             }
@@ -215,7 +230,8 @@ namespace WoTB_Voice_Mod_Creater.Class
             try
             {
                 Message_T.Text = "Modを公開しています...";
-                await Task.Delay(100);
+                await Task.Delay(50);
+                //Modの情報をファイルに書き込む
                 Mod_Upload_Config Configs = new Mod_Upload_Config()
                 {
                     IsBGMMode = BGM_Mode_C.IsChecked.Value,
@@ -224,28 +240,29 @@ namespace WoTB_Voice_Mod_Creater.Class
                     UserName = Voice_Set.UserName,
                     Explanation = Mod_Explanation_T.Text
                 };
+                //パスワードが有効だった場合
                 if (Password_C.IsChecked.Value)
                 {
                     Configs.Password = Password_T.Text;
                 }
-                StreamWriter stw = new StreamWriter(Special_Path + "/Test.dat");
-                stw.Write("テスト");
-                stw.Close();
+                //サーバーにフォルダを作成
                 Voice_Set.FTP_Server.CreateDirectory("/WoTB_Voice_Mod/Mods/" + Mod_Create_Name_T.Text + "/Files", true);
                 XmlSerializer xmlSerializer = new XmlSerializer(typeof(Mod_Upload_Config));
-                StreamWriter streamWriter = new StreamWriter(Special_Path + "/Temp_Create_Mod.dat", false, new UTF8Encoding(false));
+                StreamWriter streamWriter = new StreamWriter(Voice_Set.Special_Path + "/Temp_Create_Mod.dat", false, new UTF8Encoding(false));
                 xmlSerializer.Serialize(streamWriter, Configs);
                 streamWriter.Close();
-                Voice_Set.FTP_Server.UploadFile(Special_Path + "/Temp_Create_Mod.dat", "/WoTB_Voice_Mod/Mods/" + Mod_Create_Name_T.Text + "/Configs.dat");
-                File.Delete(Special_Path + "/Temp_Create_Mod.dat");
+                //Mod情報をアップロード
+                Voice_Set.FTP_Server.UploadFile(Voice_Set.Special_Path + "/Temp_Create_Mod.dat", "/WoTB_Voice_Mod/Mods/" + Mod_Create_Name_T.Text + "/Configs.dat");
+                File.Delete(Voice_Set.Special_Path + "/Temp_Create_Mod.dat");
                 await Task.Delay(50);
+                //Mod本体をアップロード
                 foreach (string Upload_File in Mod_Name_Full)
                 {
                     Voice_Set.FTP_Server.UploadFile(Upload_File, "/WoTB_Voice_Mod/Mods/" + Mod_Create_Name_T.Text + "/Files/" + Path.GetFileName(Upload_File));
                 }
                 Voice_Set.AppendString("/WoTB_Voice_Mod/Mods/Mod_Names.dat", Encoding.UTF8.GetBytes(Mod_Create_Name_T.Text + "\n"));
                 IsBusy = false;
-                Message_T.Text = "Modを公開しました。";
+                Message_Feed_Out("Modを公開しました。");
                 Window_Close();
             }
             catch (Exception e1)
@@ -256,6 +273,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         }
         private void Password_C_Click(object sender, RoutedEventArgs e)
         {
+            //パスワードにチェックを入れると入力するテキストボックスを表示させる
             if (Password_C.IsChecked.Value)
             {
                 Password_T.Visibility = Visibility.Visible;
@@ -265,10 +283,34 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Password_T.Visibility = Visibility.Hidden;
             }
         }
+        async void Message_Feed_Out(string Message)
+        {
+            //テキストが一定期間経ったらフェードアウト
+            if (IsMessageShowing)
+            {
+                IsMessageShowing = false;
+                await Task.Delay(1000 / 59);
+            }
+            Message_T.Text = Message;
+            IsMessageShowing = true;
+            Message_T.Opacity = 1;
+            int Number = 0;
+            while (Message_T.Opacity > 0 && IsMessageShowing)
+            {
+                Number++;
+                if (Number >= 120)
+                {
+                    Message_T.Opacity -= 0.025;
+                }
+                await Task.Delay(1000 / 60);
+            }
+            IsMessageShowing = false;
+        }
     }
 }
 public class Mod_Upload_Config
 {
+    //Mod情報を保存する用
     public bool IsBGMMode;
     public bool IsPassword;
     public bool IsEnableR18;
