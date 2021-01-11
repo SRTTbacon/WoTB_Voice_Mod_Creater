@@ -11,18 +11,17 @@ namespace WoTB_Voice_Mod_Creater
 {
     public class DVPL
     {
-        readonly static string Special_Path = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "/WoTB_Voice_Mod_Creater";
         public static void DVPL_Unpack_Extract()
         {
             try
             {
-                if (Directory.Exists(Special_Path + "/DVPL"))
+                if (Directory.Exists(Voice_Set.Special_Path + "/DVPL"))
                 {
-                    Directory.Delete(Special_Path + "/DVPL", true);
+                    Directory.Delete(Voice_Set.Special_Path + "/DVPL", true);
                 }
                 using (Stream stream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("WoTB_Voice_Mod_Creater.Resources.DVPL.zip"))
                 {
-                    using (FileStream bw = new FileStream(Special_Path + "/Temp_DVPL.zip", FileMode.Create))
+                    using (FileStream bw = new FileStream(Voice_Set.Special_Path + "/Temp_DVPL.zip", FileMode.Create))
                     {
                         while (stream.Position < stream.Length)
                         {
@@ -33,8 +32,8 @@ namespace WoTB_Voice_Mod_Creater
                     }
                     stream.Close();
                 }
-                ZipFile.ExtractToDirectory(Special_Path + "/Temp_DVPL.zip", Special_Path + "/DVPL");
-                File.Delete(Special_Path + "/Temp_DVPL.zip");
+                ZipFile.ExtractToDirectory(Voice_Set.Special_Path + "/Temp_DVPL.zip", Voice_Set.Special_Path + "/DVPL");
+                File.Delete(Voice_Set.Special_Path + "/Temp_DVPL.zip");
             }
             catch (Exception e)
             {
@@ -45,13 +44,13 @@ namespace WoTB_Voice_Mod_Creater
         {
             try
             {
-                if (Directory.Exists(Special_Path + "/Loading"))
+                if (Directory.Exists(Voice_Set.Special_Path + "/Loading"))
                 {
-                    Directory.Delete(Special_Path + "/Loading", true);
+                    Directory.Delete(Voice_Set.Special_Path + "/Loading", true);
                 }
                 using (Stream stream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("WoTB_Voice_Mod_Creater.Resources.Loading.zip"))
                 {
-                    using (FileStream bw = new FileStream(Special_Path + "/Temp_Loading.zip", FileMode.Create))
+                    using (FileStream bw = new FileStream(Voice_Set.Special_Path + "/Temp_Loading.zip", FileMode.Create))
                     {
                         while (stream.Position < stream.Length)
                         {
@@ -62,8 +61,8 @@ namespace WoTB_Voice_Mod_Creater
                     }
                     stream.Close();
                 }
-                ZipFile.ExtractToDirectory(Special_Path + "/Temp_Loading.zip", Special_Path + "/Loading");
-                File.Delete(Special_Path + "/Temp_Loading.zip");
+                ZipFile.ExtractToDirectory(Voice_Set.Special_Path + "/Temp_Loading.zip", Voice_Set.Special_Path + "/Loading");
+                File.Delete(Voice_Set.Special_Path + "/Temp_Loading.zip");
             }
             catch (Exception e)
             {
@@ -74,13 +73,13 @@ namespace WoTB_Voice_Mod_Creater
         {
             try
             {
-                if (Directory.Exists(Special_Path + "/Encode_Mp3"))
+                if (Directory.Exists(Voice_Set.Special_Path + "/Encode_Mp3"))
                 {
-                    Directory.Delete(Special_Path + "/Encode_Mp3", true);
+                    Directory.Delete(Voice_Set.Special_Path + "/Encode_Mp3", true);
                 }
                 using (Stream stream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("WoTB_Voice_Mod_Creater.Resources.Encode_Mp3.zip"))
                 {
-                    using (FileStream bw = new FileStream(Special_Path + "/Temp_Encode_Mp3.zip", FileMode.Create))
+                    using (FileStream bw = new FileStream(Voice_Set.Special_Path + "/Temp_Encode_Mp3.zip", FileMode.Create))
                     {
                         while (stream.Position < stream.Length)
                         {
@@ -91,8 +90,8 @@ namespace WoTB_Voice_Mod_Creater
                     }
                     stream.Close();
                 }
-                ZipFile.ExtractToDirectory(Special_Path + "/Temp_Encode_Mp3.zip", Special_Path + "/Encode_Mp3");
-                File.Delete(Special_Path + "/Temp_Encode_Mp3.zip");
+                ZipFile.ExtractToDirectory(Voice_Set.Special_Path + "/Temp_Encode_Mp3.zip", Voice_Set.Special_Path + "/Encode_Mp3");
+                File.Delete(Voice_Set.Special_Path + "/Temp_Encode_Mp3.zip");
             }
             catch (Exception e)
             {
@@ -103,13 +102,13 @@ namespace WoTB_Voice_Mod_Creater
         {
             try
             {
-                if (Directory.Exists(Special_Path + "/Fmod_Designer"))
+                if (Directory.Exists(Voice_Set.Special_Path + "/Fmod_Designer"))
                 {
-                    Directory.Delete(Special_Path + "/Fmod_Designer", true);
+                    Directory.Delete(Voice_Set.Special_Path + "/Fmod_Designer", true);
                 }
                 using (Stream stream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("WoTB_Voice_Mod_Creater.Resources.Fmod_Designer.zip"))
                 {
-                    using (FileStream bw = new FileStream(Special_Path + "/Temp_Fmod_Designer.zip", FileMode.Create))
+                    using (FileStream bw = new FileStream(Voice_Set.Special_Path + "/Temp_Fmod_Designer.zip", FileMode.Create))
                     {
                         while (stream.Position < stream.Length)
                         {
@@ -120,8 +119,8 @@ namespace WoTB_Voice_Mod_Creater
                     }
                     stream.Close();
                 }
-                ZipFile.ExtractToDirectory(Special_Path + "/Temp_Fmod_Designer.zip", Special_Path + "/Fmod_Designer");
-                File.Delete(Special_Path + "/Temp_Fmod_Designer.zip");
+                ZipFile.ExtractToDirectory(Voice_Set.Special_Path + "/Temp_Fmod_Designer.zip", Voice_Set.Special_Path + "/Fmod_Designer");
+                File.Delete(Voice_Set.Special_Path + "/Temp_Fmod_Designer.zip");
             }
             catch (Exception e)
             {
@@ -132,13 +131,13 @@ namespace WoTB_Voice_Mod_Creater
         {
             try
             {
-                if (Directory.Exists(Special_Path + "/SE"))
+                if (Directory.Exists(Voice_Set.Special_Path + "/SE"))
                 {
-                    Directory.Delete(Special_Path + "/SE", true);
+                    Directory.Delete(Voice_Set.Special_Path + "/SE", true);
                 }
                 using (Stream stream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("WoTB_Voice_Mod_Creater.Resources.SE.zip"))
                 {
-                    using (FileStream bw = new FileStream(Special_Path + "/Temp_SE.zip", FileMode.Create))
+                    using (FileStream bw = new FileStream(Voice_Set.Special_Path + "/Temp_SE.zip", FileMode.Create))
                     {
                         while (stream.Position < stream.Length)
                         {
@@ -149,8 +148,8 @@ namespace WoTB_Voice_Mod_Creater
                     }
                     stream.Close();
                 }
-                ZipFile.ExtractToDirectory(Special_Path + "/Temp_SE.zip", Special_Path + "/SE");
-                File.Delete(Special_Path + "/Temp_SE.zip");
+                ZipFile.ExtractToDirectory(Voice_Set.Special_Path + "/Temp_SE.zip", Voice_Set.Special_Path + "/SE");
+                File.Delete(Voice_Set.Special_Path + "/Temp_SE.zip");
             }
             catch (Exception e)
             {
@@ -165,13 +164,13 @@ namespace WoTB_Voice_Mod_Creater
             {
                 return;
             }
-            File.Copy(From_File, Special_Path + "/DVPL/Temp_Unpack.dvpl", true);
-            StreamWriter DVPL_Unpack = File.CreateText(Special_Path + "/DVPL/UnPack.bat");
-            DVPL_Unpack.Write("chcp 65001 \n\"" + Special_Path + "/DVPL/Python/python.exe\" \"" + Special_Path + "/DVPL/UnPack.py\" \"" + Special_Path + "/DVPL/Temp_Unpack.dvpl\" \"" + Special_Path + "/DVPL/Temp_Unpacked.tmp\"");
+            File.Copy(From_File, Voice_Set.Special_Path + "/DVPL/Temp_Unpack.dvpl", true);
+            StreamWriter DVPL_Unpack = File.CreateText(Voice_Set.Special_Path + "/DVPL/UnPack.bat");
+            DVPL_Unpack.Write("chcp 65001 \n\"" + Voice_Set.Special_Path + "/DVPL/Python/python.exe\" \"" + Voice_Set.Special_Path + "/DVPL/UnPack.py\" \"" + Voice_Set.Special_Path + "/DVPL/Temp_Unpack.dvpl\" \"" + Voice_Set.Special_Path + "/DVPL/Temp_Unpacked.tmp\"");
             DVPL_Unpack.Close();
             ProcessStartInfo processStartInfo = new ProcessStartInfo
             {
-                FileName = Special_Path + "/DVPL/UnPack.bat",
+                FileName = Voice_Set.Special_Path + "/DVPL/UnPack.bat",
                 CreateNoWindow = true,
                 UseShellExecute = false
             };
@@ -179,8 +178,8 @@ namespace WoTB_Voice_Mod_Creater
             p.WaitForExit();
             try
             {
-                File.Copy(Special_Path + "/DVPL/Temp_Unpacked.tmp", To_File, true);
-                File.Delete(Special_Path + "/DVPL/Temp_Unpacked.tmp");
+                File.Copy(Voice_Set.Special_Path + "/DVPL/Temp_Unpacked.tmp", To_File, true);
+                File.Delete(Voice_Set.Special_Path + "/DVPL/Temp_Unpacked.tmp");
                 if (IsFromFileDelete)
                 {
                     File.Delete(From_File);
@@ -190,8 +189,8 @@ namespace WoTB_Voice_Mod_Creater
             {
                 //dvplが解除されなかった場合
             }
-            File.Delete(Special_Path + "/DVPL/Temp_Unpack.dvpl");
-            File.Delete(Special_Path + "/DVPL/UnPack.bat");
+            File.Delete(Voice_Set.Special_Path + "/DVPL/Temp_Unpack.dvpl");
+            File.Delete(Voice_Set.Special_Path + "/DVPL/UnPack.bat");
         }
         public static bool DVPL_Pack(string From_File, string To_File, bool IsFromFileDelete)
         {

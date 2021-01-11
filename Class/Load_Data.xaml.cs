@@ -17,32 +17,6 @@ namespace WoTB_Voice_Mod_Creater.Class
         public async void Window_Start()
         {
             IsLoading = true;
-            //一時ファイルの保存先を変更している場合それを適応
-            if (File.Exists(Directory.GetCurrentDirectory() + "/TempDirPath.dat"))
-            {
-                try
-                {
-                    using (var eifs = new FileStream(Directory.GetCurrentDirectory() + "/TempDirPath.dat", FileMode.Open, FileAccess.Read))
-                    {
-                        using (var eofs = new FileStream(Directory.GetCurrentDirectory() + "/Temp.dat", FileMode.Create, FileAccess.Write))
-                        {
-                            FileEncode.FileEncryptor.Decrypt(eifs, eofs, "Temp_Directory_Path_Pass");
-                        }
-                    }
-                    StreamReader str = new StreamReader(Directory.GetCurrentDirectory() + "/Temp.dat");
-                    string Read = str.ReadLine();
-                    str.Close();
-                    File.Delete(Directory.GetCurrentDirectory() + "/Temp.dat");
-                    if (Read != "")
-                    {
-                        Voice_Set.Special_Path = Read;
-                    }
-                }
-                catch
-                {
-
-                }
-            }
             Visibility = Visibility.Visible;
             if (!File.Exists(Voice_Set.Special_Path + "/Loading/1.png"))
             {
