@@ -57,6 +57,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             Create_Name_T.Visibility = Visibility.Hidden;
             Mod_Config_T.Visibility = Visibility.Hidden;
             Mod_Select_B.Visibility = Visibility.Hidden;
+            Mod_Change_B.Visibility = Visibility.Hidden;
             Mod_Control_Change_Visible(false);
             Opacity = 0;
             Fmod_Player.ESystem.Init(128, Cauldron.FMOD.INITFLAGS.NORMAL, IntPtr.Zero);
@@ -242,6 +243,10 @@ namespace WoTB_Voice_Mod_Creater.Class
                     Explanation_Scrool.Visibility = Visibility.Visible;
                     Explanation_Border.Visibility = Visibility.Visible;
                     Explanation_Text.Visibility = Visibility.Visible;
+                    if (Voice_Set.UserName == item2.Element("UserName").Value)
+                    {
+                        Mod_Change_B.Visibility = Visibility.Visible;
+                    }
                     if (Explanation_T.Text == "")
                     {
                         Explanation_T.Text = "説明なし";
@@ -274,6 +279,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                     Explanation_Text.Visibility = Visibility.Hidden;
                     Create_Name_T.Visibility = Visibility.Hidden;
                     Mod_Config_T.Visibility = Visibility.Hidden;
+                    Mod_Change_B.Visibility = Visibility.Hidden;
                 }
                 Message_T.Text = "";
                 Fmod_Bank_List.SelectedIndex = -1;
@@ -353,6 +359,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Explanation_Text.Visibility = Visibility.Hidden;
                 Create_Name_T.Visibility = Visibility.Hidden;
                 Mod_Config_T.Visibility = Visibility.Hidden;
+                Mod_Change_B.Visibility = Visibility.Hidden;
                 Message_T.Text = "";
                 Mod_Select_Name = "";
                 IsBusy = false;
@@ -397,6 +404,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             Explanation_Text.Visibility = Visibility.Hidden;
             Create_Name_T.Visibility = Visibility.Hidden;
             Mod_Config_T.Visibility = Visibility.Hidden;
+            Mod_Change_B.Visibility = Visibility.Hidden;
             Mod_Select_Name = "";
             Message_T.Text = "";
             Mod_List_Update();
@@ -689,6 +697,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Mod_Password_B.Visibility = Visibility.Hidden;
                 Mod_Password_T.Visibility = Visibility.Hidden;
                 Mod_Password_Text.Visibility = Visibility.Hidden;
+                Mod_Change_B.Visibility = Visibility.Hidden;
                 Sample_Download();
                 Explanation_Scrool.Visibility = Visibility.Visible;
                 Explanation_Border.Visibility = Visibility.Visible;
@@ -718,6 +727,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             //Modを選択した状態かつパスワードがかかっていない場合実行
             Sample_Download();
             Mod_Select_B.Visibility = Visibility.Hidden;
+            Mod_Change_B.Visibility = Visibility.Hidden;
         }
         async void Message_Feed_Out(string Message)
         {
@@ -741,6 +751,51 @@ namespace WoTB_Voice_Mod_Creater.Class
                 await Task.Delay(1000 / 60);
             }
             IsMessageShowing = false;
+        }
+        private async void Mod_Change_B_Click(object sender, RoutedEventArgs e)
+        {
+            if (Mod_Select_Name != "")
+            {
+                Mod_Change_Window.Window_Show(Mod_Select_Name);
+            }
+            else
+            {
+                Mod_Change_Window.Window_Show(Fmod_Bank_List.Items[Fmod_Bank_List.SelectedIndex].ToString());
+            }
+            await Task.Delay(100);
+            while (Mod_Change_Window.Visibility == Visibility.Visible)
+            {
+                if (Sub_Code.ModChange)
+                {
+                    if (Fmod_Bank_List.SelectedIndex != -1)
+                    {
+                        if (Mod_Select_Name != "")
+                        {
+                            Mod_Control_Change_Visible(false);
+                            Mod_Install_B.Margin = new Thickness(-1245, 125, 0, 0);
+                            Mod_Install_B.Visibility = Visibility.Visible;
+                        }
+                        else
+                        {
+                            Mod_Password_B.Visibility = Visibility.Hidden;
+                            Mod_Password_T.Visibility = Visibility.Hidden;
+                            Mod_Password_Text.Visibility = Visibility.Hidden;
+                            Explanation_Scrool.Visibility = Visibility.Hidden;
+                            Explanation_Border.Visibility = Visibility.Hidden;
+                            Explanation_Text.Visibility = Visibility.Hidden;
+                            Create_Name_T.Visibility = Visibility.Hidden;
+                            Mod_Config_T.Visibility = Visibility.Hidden;
+                            Mod_Change_B.Visibility = Visibility.Hidden;
+                        }
+                        Message_T.Text = "";
+                        Fmod_Bank_List.SelectedIndex = -1;
+                    }
+                    Mod_List_Update();
+                    Sub_Code.ModChange = false;
+                    break;
+                }
+                await Task.Delay(500);
+            }
         }
     }
 }

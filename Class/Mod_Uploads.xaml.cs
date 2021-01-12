@@ -143,12 +143,12 @@ namespace WoTB_Voice_Mod_Creater.Class
             }
             if (Mod_File_List.Items.Count == 0)
             {
-                Message_T.Text = "最低1つはファイルが必要です。";
+                Message_Feed_Out("最低1つはファイルが必要です。");
                 return;
             }
             if (Mod_Create_Name_T.Text == "")
             {
-                Message_T.Text = "Mod名が指定されていません。";
+                Message_Feed_Out("Mod名が指定されていません。");
                 return;
             }
             try
@@ -157,27 +157,41 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Directory.Delete(Voice_Set.Special_Path + "/" + Mod_Create_Name_T.Text);
                 if (Mod_Create_Name_T.Text.Contains("/"))
                 {
-                    Message_T.Text = "Mod名に不適切な文字が含まれています。";
+                    Message_Feed_Out("Mod名に不適切な文字が含まれています。");
                     return;
                 }
             }
             catch
             {
-                Message_T.Text = "Mod名に不適切な文字が含まれています。";
+                Message_Feed_Out("Mod名に不適切な文字が含まれています。");
                 return;
             }
             if (Mod_Create_Name_T.Text.CountOf("  ") > 0)
             {
-                Message_T.Text = "Mod名に空白を2つ続けて付けることはできません。";
+                Message_Feed_Out("Mod名に空白を2つ続けて付けることはできません。");
                 return;
             }
             if (Mod_Create_Name_T.Text == "Backup")
             {
-                Message_T.Text = "そのMod名は別の目的に使用されています。";
+                Message_Feed_Out("そのMod名は別の目的に使用されています。");
+                return;
             }
             if (Voice_Set.FTP_Server.DirectoryExists("/WoTB_Voice_Mod/Mods/" + Mod_Create_Name_T.Text))
             {
-                Message_T.Text = "同名のModが既に存在します。";
+                Message_Feed_Out("同名のModが既に存在します。");
+                return;
+            }
+            bool IsError = false;
+            foreach (string File_Now in Mod_Name_Full)
+            {
+                if (!File.Exists(File_Now))
+                {
+                    System.Windows.MessageBox.Show("次のファイルが見つかりませんでした。削除したか移動している可能性があります。\n" + File_Now);
+                }
+            }
+            if (IsError)
+            {
+                Message_Feed_Out("エラー:指定されたファイルが存在しません。");
                 return;
             }
             //Modを配布
@@ -186,26 +200,47 @@ namespace WoTB_Voice_Mod_Creater.Class
                 //BGMModも一緒に配布する場合は実行
                 try
                 {
+                    string BGMDir = "";
                     int Number = -1;
                     for (int Number_01 = 0; Number_01 <= Mod_Name_Full.Count - 1; Number_01++)
                     {
                         if (Path.GetFileName(Mod_Name_Full[Number_01]) == "Music.fev" || Path.GetFileName(Mod_Name_Full[Number_01]) == "Music.fev.dvpl")
                         {
+                            if (Path.GetExtension(Mod_Name_Full[Number_01]) == ".dvpl")
+                            {
+                                BGMDir = Path.GetDirectoryName(Mod_Name_Full[Number_01]);
+                            }
                             Number = Number_01;
                             break;
                         }
                     }
                     if (Number == -1)
                     {
-                        Message_T.Text = "BGMModにチェックが入っていますが、BGMファイルが見つかりません。";
+                        Message_T.Text = "BGMModのファイル名はMusic.fev(fsb)でなければいけません。";
                         return;
                     }
                     Message_T.Text = "BGMファイルを確認しています...";
                     await Task.Delay(50);
-                    Fmod_Player.ESystem.Load(Mod_Name_Full[Number], ref ELI, ref EP);
+                    if (BGMDir != "")
+                    {
+                        File.Copy(BGMDir + "/Music.fev.dvpl", Voice_Set.Special_Path + "/Music.fev.dvpl", true);
+                        File.Copy(BGMDir + "/Music.fsb.dvpl", Voice_Set.Special_Path + "/Music.fsb.dvpl", true);
+                        DVPL.DVPL_UnPack(Voice_Set.Special_Path + "/Music.fev.dvpl", Voice_Set.Special_Path + "/Music.fev", true);
+                        DVPL.DVPL_UnPack(Voice_Set.Special_Path + "/Music.fsb.dvpl", Voice_Set.Special_Path + "/Music.fsb", true);
+                        Fmod_Player.ESystem.Load(Voice_Set.Special_Path + "/Music.fev", ref ELI, ref EP);
+                    }
+                    else
+                    {
+                        Fmod_Player.ESystem.Load(Mod_Name_Full[Number], ref ELI, ref EP);
+                    }
                     Cauldron.FMOD.RESULT result = Fmod_Player.ESystem.GetEvent("Music/Music/Music", Cauldron.FMOD.EVENT_MODE.DEFAULT, ref FE);
                     EP.Release();
                     FE.Release();
+                    if (BGMDir != "")
+                    {
+                        File.Delete(Voice_Set.Special_Path + "/Music.fev");
+                        File.Delete(Voice_Set.Special_Path + "/Music.fsb");
+                    }
                     if (result != Cauldron.FMOD.RESULT.OK)
                     {
                         throw new Exception("Music/Music/Musicが存在しません。");

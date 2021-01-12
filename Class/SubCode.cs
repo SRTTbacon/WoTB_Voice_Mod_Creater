@@ -15,6 +15,7 @@ namespace WoTB_Voice_Mod_Creater
         static bool IsCreatingProject = false;
         static bool IsVolumeSet = false;
         static bool IsDVPLEncode = false;
+        static bool IsModChange = false;
         public static bool ServerCreate
         {
             get { return IsServerCreating; }
@@ -34,6 +35,11 @@ namespace WoTB_Voice_Mod_Creater
         {
             get { return IsDVPLEncode; }
             set { IsDVPLEncode = value; }
+        }
+        public static bool ModChange
+        {
+            get { return IsModChange; }
+            set { IsModChange = value; }
         }
         //.dvplを抜いたファイルパスからファイルが存在するか
         //例:sounds.yaml.dvpl -> DVPL_File_Exists(sounds.yaml) -> true,false
