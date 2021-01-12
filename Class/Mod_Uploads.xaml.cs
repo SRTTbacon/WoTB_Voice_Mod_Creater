@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Forms;
+using System.Xml.Linq;
 using System.Xml.Serialization;
 
 namespace WoTB_Voice_Mod_Creater.Class
@@ -194,6 +195,14 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Message_Feed_Out("エラー:指定されたファイルが存在しません。");
                 return;
             }
+            if (Mod_Explanation_T.Text == "")
+            {
+                MessageBoxResult result = System.Windows.MessageBox.Show("Modの説明が入力されていません。実行しますか？", "確認", MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.No);
+                if (result == MessageBoxResult.No)
+                {
+                    return;
+                }
+            }
             //Modを配布
             if (BGM_Mode_C.IsChecked.Value)
             {
@@ -253,39 +262,24 @@ namespace WoTB_Voice_Mod_Creater.Class
                 }
             }
             Message_T.Text = "";
-            if (Mod_Explanation_T.Text == "")
-            {
-                MessageBoxResult result = System.Windows.MessageBox.Show("Modの説明が入力されていません。実行しますか？", "確認", MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.No);
-                if (result == MessageBoxResult.No)
-                {
-                    return;
-                }
-            }
             IsBusy = true;
             try
             {
                 Message_T.Text = "Modを公開しています...";
                 await Task.Delay(50);
-                //Modの情報をファイルに書き込む
-                Mod_Upload_Config Configs = new Mod_Upload_Config()
-                {
-                    IsBGMMode = BGM_Mode_C.IsChecked.Value,
-                    IsPassword = Password_C.IsChecked.Value,
-                    IsEnableR18 = R_18_C.IsChecked.Value,
-                    UserName = Voice_Set.UserName,
-                    Explanation = Mod_Explanation_T.Text
-                };
-                //パスワードが有効だった場合
-                if (Password_C.IsChecked.Value)
-                {
-                    Configs.Password = Password_T.Text;
-                }
                 //サーバーにフォルダを作成
                 Voice_Set.FTP_Server.CreateDirectory("/WoTB_Voice_Mod/Mods/" + Mod_Create_Name_T.Text + "/Files", true);
-                XmlSerializer xmlSerializer = new XmlSerializer(typeof(Mod_Upload_Config));
-                StreamWriter streamWriter = new StreamWriter(Voice_Set.Special_Path + "/Temp_Create_Mod.dat", false, new UTF8Encoding(false));
-                xmlSerializer.Serialize(streamWriter, Configs);
-                streamWriter.Close();
+                //Modの情報をXMLファイルに書き込む
+                XDocument xml = new XDocument();
+                XElement datas = new XElement("Mod_Upload_Config",
+                new XElement("IsBGMMode", BGM_Mode_C.IsChecked.Value),
+                new XElement("IsPassword", Password_C.IsChecked.Value),
+                new XElement("IsEnableR18", R_18_C.IsChecked.Value),
+                new XElement("UserName", Voice_Set.UserName),
+                new XElement("Explanation", Mod_Explanation_T.Text),
+                new XElement("Password", Password_T.Text));
+                xml.Add(datas);
+                xml.Save(Voice_Set.Special_Path + "/Temp_Create_Mod.dat");
                 //Mod情報をアップロード
                 Voice_Set.FTP_Server.UploadFile(Voice_Set.Special_Path + "/Temp_Create_Mod.dat", "/WoTB_Voice_Mod/Mods/" + Mod_Create_Name_T.Text + "/Configs.dat");
                 File.Delete(Voice_Set.Special_Path + "/Temp_Create_Mod.dat");
@@ -303,6 +297,8 @@ namespace WoTB_Voice_Mod_Creater.Class
             catch (Exception e1)
             {
                 System.Windows.MessageBox.Show("エラー:" + e1.Message);
+                Message_Feed_Out("エラーが発生しました。");
+                Window_Close();
                 IsBusy = false;
             }
         }
@@ -342,14 +338,4 @@ namespace WoTB_Voice_Mod_Creater.Class
             IsMessageShowing = false;
         }
     }
-}
-public class Mod_Upload_Config
-{
-    //Mod情報を保存する用
-    public bool IsBGMMode;
-    public bool IsPassword;
-    public bool IsEnableR18;
-    public string UserName;
-    public string Password;
-    public string Explanation;
 }
