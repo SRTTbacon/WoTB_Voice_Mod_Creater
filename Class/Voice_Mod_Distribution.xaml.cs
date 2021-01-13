@@ -247,6 +247,10 @@ namespace WoTB_Voice_Mod_Creater.Class
                     {
                         Mod_Change_B.Visibility = Visibility.Visible;
                     }
+                    else
+                    {
+                        Mod_Change_B.Visibility = Visibility.Hidden;
+                    }
                     if (Explanation_T.Text == "")
                     {
                         Explanation_T.Text = "説明なし";
