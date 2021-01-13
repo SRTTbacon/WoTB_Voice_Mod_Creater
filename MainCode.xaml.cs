@@ -29,7 +29,7 @@ namespace WoTB_Voice_Mod_Creater
 {
     public partial class MainCode : Window
     {
-        readonly string Version = "1.2.2";
+        readonly string Version = "1.2.3.2";
         readonly string Path = Directory.GetCurrentDirectory();
         bool IsClosing = false;
         bool IsMessageShowing = false;
@@ -190,7 +190,7 @@ namespace WoTB_Voice_Mod_Creater
                 MaxWidth = MaxSize.Width;
                 MaxHeight = MaxSize.Height;
                 Player.settings.volume = 100;
-                Version_T.Text = "バージョン:" + Version;
+                Version_T.Text = "V" + Version;
             }
             catch (Exception e)
             {
@@ -1026,7 +1026,7 @@ namespace WoTB_Voice_Mod_Creater
                 }
                 catch
                 {
-                    // swallow, log, whatever
+                    
                 }
             }
         }
