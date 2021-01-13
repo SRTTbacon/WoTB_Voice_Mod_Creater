@@ -73,7 +73,7 @@ namespace WoTB_Voice_Mod_Creater
                 //自分はサーバーに参加できないためIPを分ける
                 if (Environment.UserName == "SRTTbacon" || Environment.UserName == "SRTTbacon_V1")
                 {
-                    IP = "192.168.3.12";
+                    IP = "非公開";
                     ConnectType = FtpDataConnectionType.PASV;
                     IsPassiveMode = true;
                     if (Environment.UserName == "SRTTbacon_V1")
@@ -83,7 +83,7 @@ namespace WoTB_Voice_Mod_Creater
                 }
                 else
                 {
-                    IP = "60.151.34.219";
+                    IP = "非公開";
                     ConnectType = FtpDataConnectionType.PASV;
                     IsPassiveMode = true;
                 }
