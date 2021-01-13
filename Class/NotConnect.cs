@@ -29,7 +29,7 @@ namespace WoTB_Voice_Mod_Creater
                 Voice_Set.TCP_Server.Delimiter = 0x00;
                 Voice_Set.FTP_Server = new FtpClient(IP)
                 {
-                    Credentials = new NetworkCredential("SRTTbacon_Server", "SRTTbacon"),
+                    Credentials = new NetworkCredential("非公開", "非公開"),
                     SocketKeepAlive = false,
                     DataConnectionType = ConnectType,
                     SslProtocols = SslProtocols.Tls,
