@@ -140,8 +140,11 @@
             <CheckBox x:Name="Random_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-2975,1020,0,0" Click="Random_C_Click"/>
             <TextBlock x:Name="Background_T" FontSize="37" Height="50" Width="300" TextWrapping="Wrap" Text="バックグラウンド再生" VerticalAlignment="Top" Margin="-2000,1005,0,0" Foreground="Aqua"/>
             <CheckBox x:Name="Background_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-2350,1020,0,0"/>
-            <Button x:Name="Video_Change_B" Content="動画として再生" Height="85" VerticalAlignment="Top" Width="325" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Margin="-2000,910,0,0" Click="Video_Change_B_Click"/>
+            <TextBlock x:Name="Device_T" FontSize="35" Height="50" Width="180" TextWrapping="Wrap" Text="出力デバイス" VerticalAlignment="Top" Margin="-2100,640,0,0" Foreground="Aqua"/>
+            <ListBox x:Name="Device_L" Height="250" VerticalAlignment="Top" Width="300" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="35" Margin="-2100,700,0,0" SelectionChanged="Device_L_SelectionChanged"/>
+            <Button x:Name="Video_Change_B" Content="動画として再生" Height="85" VerticalAlignment="Top" Width="325" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Margin="-2100,615,0,0" Click="Video_Change_B_Click"/>
             <Button x:Name="Music_Fix_B" Content="音ズレを修正" Height="70" VerticalAlignment="Top" Width="325" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Margin="-3513,900,0,0" Click="Music_Fix_B_Click"/>
+            <Button x:Name="Message_B" Content="注意事項" Height="70" VerticalAlignment="Top" Width="250" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Margin="-250,0,0,0" Click="Message_B_Click"/>
             <Button x:Name="Exit_B" Content="戻る" Height="85" VerticalAlignment="Top" Width="325" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Margin="-3513,995,0,0" Click="Exit_B_Click"/>
         </DockPanel>
     </Viewbox>

@@ -714,10 +714,6 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Message_Feed_Out("パスワードが違います。");
             }
         }
-        private void Voice_Volume_S_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
-        {
-            Voice_Volume_S.Value = 75;
-        }
         private void Voice_Pitch_S_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             Voice_Pitch_S.Value = 0;

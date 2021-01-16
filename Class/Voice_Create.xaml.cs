@@ -16,7 +16,6 @@ namespace WoTB_Voice_Mod_Creater.Class
         bool IsCreating = false;
         List<List<string>> Voice_List_Full_File_Name = new List<List<string>>();
         List<List<string>> Voice_Sub_List_Full_File_Name = new List<List<string>>();
-        readonly string Special_Path = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "/WoTB_Voice_Mod_Creater";
         readonly WindowsMediaPlayer Player = new WindowsMediaPlayer();
         public Voice_Create()
         {
@@ -401,7 +400,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 try
                 {
-                    StreamWriter stw = File.CreateText(Special_Path + "/Temp_Voice_Save.dat");
+                    StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Temp_Voice_Save.dat");
                     stw.WriteLine(Project_Name_T.Text);
                     int Number = 0;
                     foreach (List<string> Lists in Voice_List_Full_File_Name)
@@ -421,14 +420,14 @@ namespace WoTB_Voice_Mod_Creater.Class
                         Number++;
                     }
                     stw.Close();
-                    using (var eifs = new FileStream(Special_Path + "/Temp_Voice_Save.dat", FileMode.Open, FileAccess.Read))
+                    using (var eifs = new FileStream(Voice_Set.Special_Path + "/Temp_Voice_Save.dat", FileMode.Open, FileAccess.Read))
                     {
                         using (var eofs = new FileStream(sfd.FileName, FileMode.Create, FileAccess.Write))
                         {
                             FileEncode.FileEncryptor.Encrypt(eifs, eofs, "SRTTbacon_Create_Voice_Save");
                         }
                     }
-                    File.Delete(Special_Path + "/Temp_Voice_Save.dat");
+                    File.Delete(Voice_Set.Special_Path + "/Temp_Voice_Save.dat");
                     Message_Feed_Out("セーブしました。");
                 }
                 catch
@@ -457,14 +456,14 @@ namespace WoTB_Voice_Mod_Creater.Class
                 {
                     using (var eifs = new FileStream(ofd.FileName, FileMode.Open, FileAccess.Read))
                     {
-                        using (var eofs = new FileStream(Special_Path + "/Temp_Load_Voice.dat", FileMode.Create, FileAccess.Write))
+                        using (var eofs = new FileStream(Voice_Set.Special_Path + "/Temp_Load_Voice.dat", FileMode.Create, FileAccess.Write))
                         {
                             FileEncode.FileEncryptor.Decrypt(eifs, eofs, "SRTTbacon_Create_Voice_Save");
                         }
                     }
                     //音声を配置
                     string line;
-                    StreamReader file = new StreamReader(Special_Path + "/Temp_Load_Voice.dat");
+                    StreamReader file = new StreamReader(Voice_Set.Special_Path + "/Temp_Load_Voice.dat");
                     Project_Name_T.Text = file.ReadLine();
                     List_Text_Reset();
                     while ((line = file.ReadLine()) != null)
@@ -487,7 +486,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                         }
                     }
                     file.Close();
-                    File.Delete(Special_Path + "/Temp_Load_Voice.dat");
+                    File.Delete(Voice_Set.Special_Path + "/Temp_Load_Voice.dat");
                     if (Voice_List.Visibility == Visibility.Visible && Voice_List.SelectedIndex != -1)
                     {
                         Voice_File_Reset(Voice_List_Full_File_Name, Voice_List.SelectedIndex);
@@ -498,8 +497,9 @@ namespace WoTB_Voice_Mod_Creater.Class
                     }
                     Message_Feed_Out("ロードしました。");
                 }
-                catch
+                catch (Exception e1)
                 {
+                    System.Windows.MessageBox.Show(e1.Message);
                     Message_Feed_Out("指定したセーブデータが破損しています。");
                 }
             }
@@ -527,8 +527,8 @@ namespace WoTB_Voice_Mod_Creater.Class
             }
             try
             {
-                Directory.CreateDirectory(Special_Path + "/Temp/" + Project_Name_T.Text);
-                Directory.Delete(Special_Path + "/Temp", true);
+                Directory.CreateDirectory(Voice_Set.Special_Path + "/Temp/" + Project_Name_T.Text);
+                Directory.Delete(Voice_Set.Special_Path + "/Temp", true);
                 if (Project_Name_T.Text.Contains("/"))
                 {
                     Message_Feed_Out("プロジェクト名に不適切な文字が含まれています。");
@@ -604,7 +604,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 }
                 string File_Name = Project_Name_T.Text.Replace(" ", "_");
                 //fdpプロジェクトを作成
-                Voice_Mod_Create.Project_Create(Message_T, Project_Name_T.Text, Dir_Name + "/Voices", Special_Path + "/SE");
+                Voice_Mod_Create.Project_Create(Message_T, Project_Name_T.Text, Dir_Name + "/Voices", Voice_Set.Special_Path + "/SE");
                 //fdpプロジェクトをビルド
                 await Sub_Code.Project_Build(Dir_Name + "/" + Project_Name_T.Text.Replace(" ", "_") + ".fdp", Message_T);
                 DateTime dt = DateTime.Now;
@@ -678,8 +678,8 @@ namespace WoTB_Voice_Mod_Creater.Class
                     }
                     stw4.Close();
                 }
-                File.Copy(Special_Path + "/Temp_Sounds.yaml", Dir_Name + "/" + Project_Name_T.Text + "_Mod/sounds.yaml", true);
-                File.Delete(Special_Path + "/Temp_Sounds.yaml");
+                File.Copy(Voice_Set.Special_Path + "/Temp_Sounds.yaml", Dir_Name + "/" + Project_Name_T.Text + "_Mod/sounds.yaml", true);
+                File.Delete(Voice_Set.Special_Path + "/Temp_Sounds.yaml");
                 if (Sub_Code.DVPL_Encode)
                 {
                     Message_T.Text = "DVPL化しています...";

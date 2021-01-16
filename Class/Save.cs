@@ -145,6 +145,14 @@ public class Voice_Mod_Create
                     {
                         Voice_Name_Number++;
                     }
+                    int Spawn_Time_Delay = 0;
+                    if (Voice_Type_Now == "kantuu" || Voice_Type_Now == "gekiha")
+                    {
+                        if (Voice_Set.SE_Enable_List[4])
+                        {
+                            Spawn_Time_Delay = 400;
+                        }
+                    }
                     stw.Write("<sounddef>\n" +
                               "<name>/" + Voice_Type_Now + "</name>\n" +
                               "<guid>{c0e47b61-0077-4604-8b3c-a8017bfaf532}</guid>\n" +
@@ -172,8 +180,8 @@ public class Voice_Mod_Create
                               "<volume_randomization>0</volume_randomization>\n" +
                               "<position_randomization_min>0</position_randomization_min>\n" +
                               "<position_randomization>0</position_randomization>\n" +
-                              "<trigger_delay_min>0</trigger_delay_min>\n" +
-                              "<trigger_delay_max>0</trigger_delay_max>\n" +
+                              "<trigger_delay_min>" + Spawn_Time_Delay + "</trigger_delay_min>\n" +
+                              "<trigger_delay_max>" + Spawn_Time_Delay + "</trigger_delay_max>\n" +
                               "<spawncount>0</spawncount>\n" +
                               "<notes></notes>\n" +
                               "<entrylistmode>1</entrylistmode>\n");
