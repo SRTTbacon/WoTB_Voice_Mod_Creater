@@ -119,7 +119,7 @@
             <Border BorderBrush="Black" BorderThickness="1" Background="#0E0E1C" Height="1080" VerticalAlignment="Top" Width="1920"/>
             <Button x:Name="Connect_B" Content="再接続" HorizontalAlignment="Left" Margin="-1200,450,0,0" VerticalAlignment="Top" Width="480" Height="120" Background="Transparent" BorderBrush="Aqua" Foreground="Aqua" FontSize="30" Click="Connect_B_Click"/>
             <TextBlock x:Name="Message_T" Height="55" Width="1200" TextWrapping="Wrap" Text="" Foreground="Aqua" FontSize="40" Margin="-1920,940,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
-            <TextBlock x:Name="Version_T" Height="55" Width="250" TextWrapping="Wrap" Text="V1.1.1" Foreground="Aqua" FontSize="40" Margin="-350,930,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
+            <TextBlock x:Name="Version_T" Height="55" Width="250" TextWrapping="Wrap" Text="V1.2.3.1" Foreground="Aqua" FontSize="40" Margin="-350,930,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
             <Button x:Name="Exit_B" Content="終了" HorizontalAlignment="Left" Margin="-1917,995,0,0" VerticalAlignment="Top" Width="291" Height="82" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="30" Click="Exit_B_Click"/>
             <Button x:Name="Back_B" Content="メニュー画面に戻る" HorizontalAlignment="Left" Margin="-1617,995,0,0" VerticalAlignment="Top" Width="291" Height="82" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="30" Click="Back_B_Click"/>
             <ListBox x:Name="Server_Lists" Height="750" VerticalAlignment="Top" Width="700" Margin="-1920,150,0,0" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" SelectionChanged="Server_Lists_SelectionChanged" MouseDown="Server_Lists_MouseDown"/>

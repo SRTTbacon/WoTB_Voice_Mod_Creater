@@ -29,7 +29,7 @@ namespace WoTB_Voice_Mod_Creater
 {
     public partial class MainCode : Window
     {
-        readonly string Version = "1.2.3.2";
+        const string Version = "1.2.4";
         readonly string Path = Directory.GetCurrentDirectory();
         bool IsClosing = false;
         bool IsMessageShowing = false;
@@ -197,6 +197,8 @@ namespace WoTB_Voice_Mod_Creater
                 StreamWriter stw = File.CreateText(Path + "/Log.txt");
                 stw.Write(e.Message);
                 stw.Close();
+                MessageBox.Show("エラーが発生しました。作者にLog.txtを送ってください。\nソフトは強制終了されます。");
+                Close();
             }
         }
         //アップデートしたとき用
