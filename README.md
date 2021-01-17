@@ -6,6 +6,12 @@ FMod Designerの使い方がわからなくても自動でプロジェクトを�
 操作方法はYoutubeの動画を参照してください<br>
 バグや不具合、わからないことがあればSRTTbacon#2395までご連絡を！<br>
 <br>
+V1.2.5変更点<br>
+・配布されている音声Modのsounds.yamlがdvpl化されていなかった場合正しくインストールできない問題を修正(Thanks to meniya)<br>
+・Android用にFSB単体を作成できるソフトを追加(一時フォルダのFmod_Android_Createにあります。)<br>
+↑の使用方法はGithubのFmod_Android_Createを参照してください。<br>
+・細かなバグを修正<br>
+・一部仕様を変更<br>
 V1.2.4変更点<br>
 ・音楽プレイヤーで出力デバイスを指定できるように操作を追加<br>
 ・一時フォルダの位置を変更していた場合音声をロード、セーブ、作成ができなかった問題を修正<br>
@@ -44,9 +50,9 @@ FluentFTP.33.0.3<br>
 Fody.6.3.0<br>
 Obfuscar.2.2.28<br>
 SimpleTCP.1.0.24<br>
-Cauldron.FMOD(V1.1から導入)<br>
-K4os.Compression.LZ4.1.2.6(V1.3から廃止)<br>
-Crc32.NET.1.2.0(V1.3から廃止)<br>
-System.Buffers.4.5.1(V1.3から廃止)<br>
-System.Memory.4.5.4(V1.3から廃止)<br>
-System.Runtime.CompilerServices.Unsafe.5.0.0(V1.3から廃止)
+K4os.Compression.LZ4.1.2.6<br>
+Crc32.NET.1.2.0<br>
+System.Buffers.4.5.1<br>
+System.Memory.4.5.4<br>
+System.Runtime.CompilerServices.Unsafe.5.0.0<br>
+Cauldron.FMOD(V1.1から導入)
