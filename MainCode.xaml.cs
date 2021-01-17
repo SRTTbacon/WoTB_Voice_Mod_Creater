@@ -29,7 +29,7 @@ namespace WoTB_Voice_Mod_Creater
 {
     public partial class MainCode : Window
     {
-        const string Version = "1.2.4";
+        const string Version = "1.2.5";
         readonly string Path = Directory.GetCurrentDirectory();
         bool IsClosing = false;
         bool IsMessageShowing = false;
@@ -191,6 +191,10 @@ namespace WoTB_Voice_Mod_Creater
                 MaxHeight = MaxSize.Height;
                 Player.settings.volume = 100;
                 Version_T.Text = "V" + Version;
+                if (Sub_Code.IsTextIncludeJapanese(Voice_Set.Special_Path))
+                {
+                    Message_T.Text = "一時フォルダに日本語が含まれています。Shift+Dで変更してください。";
+                }
             }
             catch (Exception e)
             {
@@ -237,6 +241,7 @@ namespace WoTB_Voice_Mod_Creater
             bool IsOK_02 = true;
             bool IsOK_03 = true;
             bool IsOK_04 = true;
+            bool IsOK_05 = true;
             Task task = Task.Run(() =>
             {
                 if (!File.Exists(Voice_Set.Special_Path + "/DVPL/UnPack.py"))
@@ -279,11 +284,21 @@ namespace WoTB_Voice_Mod_Creater
                     task_01.Wait();
                     IsOK_04 = true;
                 }
+                if (!File.Exists(Voice_Set.Special_Path + "/Fmod_Android_Create/Fmod_Android_Create.exe"))
+                {
+                    IsOK_05 = false;
+                    Task task_01 = Task.Run(() =>
+                    {
+                        DVPL.Fmod_Android_Create_Extract();
+                    });
+                    task_01.Wait();
+                    IsOK_05 = true;
+                }
             });
             await Task.Delay(100);
             while (true)
             {
-                if (IsOK_01 && IsOK_02 && IsOK_03 && IsOK_04)
+                if (IsOK_01 && IsOK_02 && IsOK_03 && IsOK_04 && IsOK_05)
                 {
                     break;
                 }
