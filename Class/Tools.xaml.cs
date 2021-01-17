@@ -737,6 +737,12 @@ namespace WoTB_Voice_Mod_Creater.Class
             Message_T.Opacity = 1;
             IsMessageShowing = false;
         }
+        private void DVPL_Extract_Help_B_Click(object sender, RoutedEventArgs e)
+        {
+            string Message_01 = "このバージョンではWoTB内のData/Sfxに入っている*.fev.dvplと*.fsb.dvplを解除できない可能性があります。\n";
+            string Message_02 = "また、WoTB内の他のファイルも解除できないかもしれません。(sounds.yaml.dvplやマップファイルは解除できました。)";
+            System.Windows.MessageBox.Show(Message_01 + Message_02);
+        }
     }
 }
 public class BGM_Create

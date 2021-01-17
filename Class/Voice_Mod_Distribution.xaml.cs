@@ -469,6 +469,8 @@ namespace WoTB_Voice_Mod_Creater.Class
                     File.Delete(Voice_Set.WoTB_Path + "/Data/sounds.yaml.dvpl");
                     Sub_Code.DVPL_File_Copy(Voice_Set.Special_Path + "/Temp_Change_Sounds.yaml", Voice_Set.WoTB_Path + "/Data/sounds.yaml", true);
                     File.Delete(Voice_Set.Special_Path + "/Temp_Change_Sounds.yaml");
+                    File.Delete(Voice_Set.Special_Path + "/Temp_DVPL.yaml");
+                    File.Delete(Voice_Set.Special_Path + "/Temp_Download_Sounds.yaml.dvpl");
                 }
                 if (Name_Only.Contains(".fev") || Name_Only.Contains(".fsb"))
                 {
@@ -786,6 +788,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                             Create_Name_T.Visibility = Visibility.Hidden;
                             Mod_Config_T.Visibility = Visibility.Hidden;
                             Mod_Change_B.Visibility = Visibility.Hidden;
+                            Mod_Select_B.Visibility = Visibility.Hidden;
                         }
                         Message_T.Text = "";
                         Fmod_Bank_List.SelectedIndex = -1;

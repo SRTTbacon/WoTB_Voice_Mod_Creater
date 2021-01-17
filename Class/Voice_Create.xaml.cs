@@ -497,9 +497,8 @@ namespace WoTB_Voice_Mod_Creater.Class
                     }
                     Message_Feed_Out("ロードしました。");
                 }
-                catch (Exception e1)
+                catch
                 {
-                    System.Windows.MessageBox.Show(e1.Message);
                     Message_Feed_Out("指定したセーブデータが破損しています。");
                 }
             }
@@ -596,6 +595,8 @@ namespace WoTB_Voice_Mod_Creater.Class
                     Directory.Delete(Dir_Name);
                     return;
                 }
+                //await Sub_Code.Android_Project_Create(Message_T, Project_Name_T.Text, Dir_Name + "/Voices", Voice_Set.Special_Path + "/SE");
+                //return;
                 if (Sub_Code.VolumeSet)
                 {
                     Message_T.Text = "音量を均一にしています...";

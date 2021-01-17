@@ -234,6 +234,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         {
             Window_Close();
         }
+        //閉じる
         async void Window_Close()
         {
             if (!IsBusy)
@@ -387,25 +388,19 @@ namespace WoTB_Voice_Mod_Creater.Class
             }
             Message_T.Text = "情報を保存しています...";
             await Task.Delay(50);
-            //一時的にMod情報をクラスに保存
-            Mod_Upload_Config Configs = new Mod_Upload_Config()
-            {
-                IsBGMMode = BGM_Mode_C.IsChecked.Value,
-                IsPassword = Password_C.IsChecked.Value,
-                IsEnableR18 = R_18_C.IsChecked.Value,
-                UserName = Voice_Set.UserName,
-                Explanation = Mod_Explanation_T.Text
-            };
-            if (Password_C.IsChecked.Value)
-            {
-                Configs.Password = Password_T.Text;
-            }
             try
             {
-                XmlSerializer xmlSerializer = new XmlSerializer(typeof(Mod_Upload_Config));
-                StreamWriter streamWriter = new StreamWriter(Voice_Set.Special_Path + "/Temp_Create_Mod.dat", false, new UTF8Encoding(false));
-                xmlSerializer.Serialize(streamWriter, Configs);
-                streamWriter.Close();
+                //Modの情報をXMLファイルに書き込む
+                XDocument xml = new XDocument();
+                XElement datas = new XElement("Mod_Upload_Config",
+                new XElement("IsBGMMode", BGM_Mode_C.IsChecked.Value),
+                new XElement("IsPassword", Password_C.IsChecked.Value),
+                new XElement("IsEnableR18", R_18_C.IsChecked.Value),
+                new XElement("UserName", Voice_Set.UserName),
+                new XElement("Explanation", Mod_Explanation_T.Text),
+                new XElement("Password", Password_T.Text));
+                xml.Add(datas);
+                xml.Save(Voice_Set.Special_Path + "/Temp_Create_Mod.dat");
                 //Mod情報をアップロード
                 Voice_Set.FTP_Server.UploadFile(Voice_Set.Special_Path + "/Temp_Create_Mod.dat", "/WoTB_Voice_Mod/Mods/" + Mod_Name + "/Configs.dat");
                 File.Delete(Voice_Set.Special_Path + "/Temp_Create_Mod.dat");
@@ -443,11 +438,17 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 Message_Feed_Out("正常に保存できませんでした。");
             }
+            IsBusy = false;
             Sub_Code.ModChange = true;
             Window_Close();
         }
+        //プロジェクトを削除(サーバーから削除)
         private void Delete_B_Click(object sender, RoutedEventArgs e)
         {
+            if (IsBusy)
+            {
+                return;
+            }
             MessageBoxResult result = MessageBox.Show("このプロジェクトを削除しますか？この操作は取り消せません。", "確認", MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.No);
             if (result == MessageBoxResult.Yes)
             {

@@ -280,6 +280,10 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Bass.BASS_ChannelSetAttribute(Stream, BASSAttribute.BASS_ATTRIB_VOL, (float)Volume_S.Value / 100);
                 Bass.BASS_ChannelSetAttribute(Stream, BASSAttribute.BASS_ATTRIB_TEMPO_PITCH, (float)Pitch_S.Value);
                 Bass.BASS_ChannelSetAttribute(Stream, BASSAttribute.BASS_ATTRIB_TEMPO, (float)Speed_S.Value);
+                if (Device_L.SelectedIndex != -1)
+                {
+                    Bass.BASS_ChannelSetDevice(Stream, Device_L.SelectedIndex + 1);
+                }
                 if (Path.GetExtension(File_Full_Path[Music_List.SelectedIndex]) == ".mp4" && Video_Mode_C.IsChecked.Value)
                 {
                     Video_Mode_Change(true);
@@ -421,7 +425,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         }
         private async void Music_Play_B_Click(object sender, RoutedEventArgs e)
         {
-            if (IsBusy || Bass.BASS_ChannelIsActive(Stream) == BASSActive.BASS_ACTIVE_PLAYING)
+            if (IsBusy)
             {
                 return;
             }

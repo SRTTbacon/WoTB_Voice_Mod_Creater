@@ -47,11 +47,6 @@ public class Voice_Mod_Create
             {
                 Directory.CreateDirectory(Path + "/Projects/" + Project_Name);
             }
-            if (!Directory.Exists(Path + "/Backup"))
-            {
-                Directory.CreateDirectory(Path + "/Backup");
-            }
-            DateTime dt = DateTime.Now;
             if (File.Exists(Voice_Set.WoTB_Path + "/Data/sounds.yaml.dvpl"))
             {
                 StreamWriter DVPL_Unpack = File.CreateText(Voice_Set.Special_Path + "/DVPL/UnPack.bat");
@@ -200,15 +195,6 @@ public class Voice_Mod_Create
                 string SE_Type_Now = Get_Voice_Type(Name_Now);
                 if (SE_Type_Now != SE_Now)
                 {
-                    int Delay = 0;
-                    if (SE_Type_Now == "danyaku" && Voice_Set.SE_Enable_List[2])
-                    {
-                        Delay = 1000;
-                    }
-                    else if (SE_Type_Now == "nenryou" && Voice_Set.SE_Enable_List[7])
-                    {
-                        Delay = 1000;
-                    }
                     SE_Now = SE_Type_Now;
                     stw.Write("</sounddef>\n" +
                               "<sounddef>\n" +
@@ -238,8 +224,8 @@ public class Voice_Mod_Create
                               "<volume_randomization>0</volume_randomization>\n" +
                               "<position_randomization_min>0</position_randomization_min>\n" +
                               "<position_randomization>0</position_randomization>\n" +
-                              "<trigger_delay_min>" + Delay + "</trigger_delay_min>\n" +
-                              "<trigger_delay_max>" + Delay + "</trigger_delay_max>\n" +
+                              "<trigger_delay_min>0</trigger_delay_min>\n" +
+                              "<trigger_delay_max>0</trigger_delay_max>\n" +
                               "<spawncount>0</spawncount>\n" +
                               "<notes></notes>\n" +
                               "<entrylistmode>1</entrylistmode>\n");
@@ -885,22 +871,25 @@ public class Voice_Mod_Create
             stw.Close();
             Message_T.Text = "プロジェクトを作成しました。";
         }
-        catch (Exception e)
+        catch
         {
-            MessageBox.Show(e.Message);
             Message_T.Text = "エラー:正常に作成できませんでした。";
         }
     }
     //どの音声かを取得
     //例:"battle_01.mp3"->"battle"
-    static string Get_Voice_Type(string FilePath)
+    public static string Get_Voice_Type(string FilePath)
     {
         string NameOnly = System.IO.Path.GetFileName(FilePath);
+        if (NameOnly.Contains("_"))
+        {
+            return NameOnly;
+        }
         return NameOnly.Substring(0, NameOnly.LastIndexOf('_'));
     }
     //音声の種類のみを抽出
     //種類が被っていたらスキップ
-    static string[] Get_Voice_Type_Only(string[] Voices)
+    public static string[] Get_Voice_Type_Only(string[] Voices)
     {
         List<string> Type_List = new List<string>();
         foreach (string Type in Voices)
