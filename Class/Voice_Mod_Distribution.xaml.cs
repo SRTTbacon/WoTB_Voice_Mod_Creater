@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -58,6 +59,9 @@ namespace WoTB_Voice_Mod_Creater.Class
             Mod_Config_T.Visibility = Visibility.Hidden;
             Mod_Select_B.Visibility = Visibility.Hidden;
             Mod_Change_B.Visibility = Visibility.Hidden;
+            Download_P.Visibility = Visibility.Hidden;
+            Download_T.Visibility = Visibility.Hidden;
+            Download_Border.Visibility = Visibility.Hidden;
             Mod_Control_Change_Visible(false);
             Opacity = 0;
             Fmod_Player.ESystem.Init(128, Cauldron.FMOD.INITFLAGS.NORMAL, IntPtr.Zero);
@@ -137,7 +141,73 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Directory.CreateDirectory(Voice_Set.Special_Path + "/Server/Download_Mods/" + Bank_Name);
                 Message_T.Text = "サンプルをダウンロードしています...";
                 await Task.Delay(50);
-                Voice_Set.FTP_Server.DownloadDirectory(Voice_Set.Special_Path + "/Server/Download_Mods/" + Bank_Name, "/WoTB_Voice_Mod/Mods/" + Bank_Name + "/Files");
+                Download_P.Value = 0;
+                Download_T.Text = "進捗:0%";
+                Download_P.Visibility = Visibility.Visible;
+                Download_T.Visibility = Visibility.Visible;
+                Download_Border.Visibility = Visibility.Visible;
+                List<string> strList = new List<string>();
+                string IP;
+                if (Environment.UserName == "SRTTbacon" || Environment.UserName == "SRTTbacon_V1")
+                {
+                    IP = SRTTbacon_Server.IP_Local;
+                }
+                else
+                {
+                    IP = SRTTbacon_Server.IP_Global;
+                }
+                FtpWebRequest fwr = (FtpWebRequest)WebRequest.Create(new Uri("ftp://" + IP + "/WoTB_Voice_Mod/Mods/" + Bank_Name + "/Files/"));
+                fwr.UsePassive = true;
+                fwr.KeepAlive = false;
+                fwr.Timeout = 3000;
+                fwr.Credentials = new NetworkCredential(SRTTbacon_Server.Name, SRTTbacon_Server.Password);
+                fwr.Method = WebRequestMethods.Ftp.ListDirectory;
+                StreamReader sr = new StreamReader(fwr.GetResponse().GetResponseStream());
+                string str = sr.ReadLine();
+                while (str != null)
+                {
+                    strList.Add(str);
+                    str = sr.ReadLine();
+                }
+                sr.Close();
+                fwr.Abort();
+                foreach (string File_Name in strList)
+                {
+                    try
+                    {
+                        Message_T.Text = File_Name + "をダウンロードしています...";
+                        long File_Size_Full = Voice_Set.FTP_Server.GetFileSize("/WoTB_Voice_Mod/Mods/" + Bank_Name + "/Files/" + File_Name);
+                        Task task = Task.Run(()=>
+                        {
+                            Voice_Set.FTP_Server.DownloadFile(Voice_Set.Special_Path + "/Server/Download_Mods/" + Bank_Name + "/" + File_Name, "/WoTB_Voice_Mod/Mods/" + Bank_Name + "/Files/" + File_Name);
+                        });
+                        while (true)
+                        {
+                            long File_Size_Now = 0;
+                            if (File.Exists(Voice_Set.Special_Path + "/Server/Download_Mods/" + Bank_Name + "/" + File_Name))
+                            {
+                                FileInfo fi = new FileInfo(Voice_Set.Special_Path + "/Server/Download_Mods/" + Bank_Name + "/" + File_Name);
+                                File_Size_Now = fi.Length;
+                            }
+                            double Download_Percent = (double)File_Size_Now / File_Size_Full * 100;
+                            int Percent_INT = (int)Math.Round(Download_Percent, MidpointRounding.AwayFromZero);
+                            Download_P.Value = Percent_INT;
+                            Download_T.Text = "進捗:" + Percent_INT + "%";
+                            if (File_Size_Now >= File_Size_Full)
+                            {
+                                Download_P.Value = 0;
+                                Download_T.Text = "進捗:0%";
+                                break;
+                            }
+                            await Task.Delay(100);
+                        }
+                    }
+                    catch
+                    {
+
+                    }
+                }
+                //Voice_Set.FTP_Server.DownloadDirectory(Voice_Set.Special_Path + "/Server/Download_Mods/" + Bank_Name, "/WoTB_Voice_Mod/Mods/" + Bank_Name + "/Files");
                 string Dir = Voice_Set.Special_Path + "/Server/Download_Mods/" + Bank_Name;
                 string[] Dir_Files = Directory.GetFiles(Dir, "*.dvpl", SearchOption.TopDirectoryOnly);
                 foreach (string Files in Dir_Files)
@@ -145,7 +215,10 @@ namespace WoTB_Voice_Mod_Creater.Class
                     Directory.CreateDirectory(Dir + "/Temp");
                     DVPL.DVPL_UnPack(Files, Dir + "/Temp/" + Path.GetFileName(Files).Replace(".dvpl", ""), false);
                 }
-                Message_T.Text = "";
+                Download_P.Visibility = Visibility.Hidden;
+                Download_T.Visibility = Visibility.Hidden;
+                Download_Border.Visibility = Visibility.Hidden;
+                Message_Feed_Out(Bank_Name + "をダウンロードしました。");
             }
             Mod_Select_Name = Bank_Name;
             Fmod_Bank_List.Items.Clear();
@@ -200,6 +273,12 @@ namespace WoTB_Voice_Mod_Creater.Class
                 else
                 {
                     //Modが選択されたら詳細を表示
+                    if (!Voice_Set.FTP_Server.FileExists("/WoTB_Voice_Mod/Mods/" + Bank_Name + "/Configs.dat"))
+                    {
+                        Fmod_Bank_List.SelectedIndex = -1;
+                        Message_Feed_Out("選択したModは現在利用できません。");
+                        return;
+                    }
                     XDocument xml2 = XDocument.Load(Voice_Set.FTP_Server.OpenRead("/WoTB_Voice_Mod/Mods/" + Bank_Name + "/Configs.dat"));
                     XElement item2 = xml2.Element("Mod_Upload_Config");
                     if (bool.Parse(item2.Element("IsPassword").Value))
@@ -444,6 +523,10 @@ namespace WoTB_Voice_Mod_Creater.Class
             //選択したModをWoTBに導入
             IsBusy = true;
             bool IsDVPL = false;
+            if (!Directory.Exists(Voice_Set.WoTB_Path + "/Data/Mods"))
+            {
+                Directory.CreateDirectory(Voice_Set.WoTB_Path + "/Data/Mods");
+            }
             string[] Dir = Directory.GetFiles(Voice_Set.Special_Path + "/Server/Download_Mods/" + Mod_Select_Name, "*", SearchOption.TopDirectoryOnly);
             List<string> FEV_List = new List<string>();
             foreach (string Name in Dir)
@@ -659,6 +742,10 @@ namespace WoTB_Voice_Mod_Creater.Class
                     FluentFTP.FtpStatus result2 = Voice_Set.FTP_Server.DownloadFile(Voice_Set.WoTB_Path + "/Data/sounds.yaml.dvpl", "/WoTB_Voice_Mod/Mods/Backup/sounds.yaml.dvpl", FluentFTP.FtpLocalExists.Overwrite);
                     Voice_Set.FTP_Server.DownloadFile(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_high.yaml.dvpl", "/WoTB_Voice_Mod/Mods/Backup/sfx_high.yaml.dvpl", FluentFTP.FtpLocalExists.Overwrite);
                     Voice_Set.FTP_Server.DownloadFile(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_low.yaml.dvpl", "/WoTB_Voice_Mod/Mods/Backup/sfx_low.yaml.dvpl", FluentFTP.FtpLocalExists.Overwrite);
+                    Voice_Set.FTP_Server.DownloadFile(Voice_Set.WoTB_Path + "/Data/Sfx/GUI_battle_streamed.fsb.dvpl", "/WoTB_Voice_Mod/Mods/Backup/GUI_battle_streamed.fsb.dvpl", FluentFTP.FtpLocalExists.Overwrite);
+                    Voice_Set.FTP_Server.DownloadFile(Voice_Set.WoTB_Path + "/Data/Sfx/GUI_notifications_FX_howitzer_load.fsb.dvpl", "/WoTB_Voice_Mod/Mods/Backup/GUI_notifications_FX_howitzer_load.fsb.dvpl", FluentFTP.FtpLocalExists.Overwrite);
+                    Voice_Set.FTP_Server.DownloadFile(Voice_Set.WoTB_Path + "/Data/Sfx/GUI_quick_commands.fsb.dvpl", "/WoTB_Voice_Mod/Mods/Backup/GUI_quick_commands.fsb.dvpl", FluentFTP.FtpLocalExists.Overwrite);
+                    Voice_Set.FTP_Server.DownloadFile(Voice_Set.WoTB_Path + "/Data/Sfx/GUI_sirene.fsb.dvpl", "/WoTB_Voice_Mod/Mods/Backup/GUI_sirene.fsb.dvpl", FluentFTP.FtpLocalExists.Overwrite);
                     if (result2 == FluentFTP.FtpStatus.Success)
                     {
                         File.Delete(Voice_Set.WoTB_Path + "/Data/sounds.yaml");
@@ -753,6 +840,8 @@ namespace WoTB_Voice_Mod_Creater.Class
                 await Task.Delay(1000 / 60);
             }
             IsMessageShowing = false;
+            Message_T.Text = "";
+            Message_T.Opacity = 1;
         }
         private async void Mod_Change_B_Click(object sender, RoutedEventArgs e)
         {

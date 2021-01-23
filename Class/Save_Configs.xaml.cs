@@ -10,7 +10,6 @@ namespace WoTB_Voice_Mod_Creater.Class
 {
     public partial class Save_Configs : UserControl
     {
-        readonly string Special_Path = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "/WoTB_Voice_Mod_Creater";
         readonly WindowsMediaPlayer Player = new WindowsMediaPlayer();
         readonly BrushConverter bc = new BrushConverter();
         List<string> Voice_Type = new List<string>();
@@ -47,9 +46,10 @@ namespace WoTB_Voice_Mod_Creater.Class
         }
         public void Window_Show()
         {
-            SE_Dir = Special_Path + "/Server/" + Voice_Set.SRTTbacon_Server_Name + "/Voices/SE";
+            //画面を表示(マルチで行った場合)
+            SE_Dir = Voice_Set.Special_Path + "/Server/" + Voice_Set.SRTTbacon_Server_Name + "/Voices/SE";
             Project_T.Text = "プロジェクト名:" + Voice_Set.SRTTbacon_Server_Name;
-            Sub_Code.Get_Voice_Type_And_Index(Special_Path + "/Server/" + Voice_Set.SRTTbacon_Server_Name + "/Voices", ref Voice_Type, ref Voice_Type_Number);
+            Sub_Code.Get_Voice_Type_And_Index(Voice_Set.Special_Path + "/Server/" + Voice_Set.SRTTbacon_Server_Name + "/Voices", ref Voice_Type, ref Voice_Type_Number);
             for (int Number = 0; Number <= Voice_Type.Count - 1; Number++)
             {
                 Voice_Lists.Items.Add(Voice_Type[Number] + ":" + Voice_Type_Number[Number] + "個");
@@ -57,7 +57,8 @@ namespace WoTB_Voice_Mod_Creater.Class
         }
         public void Window_Show_V2(string Project_Name, List<List<string>> Lists)
         {
-            SE_Dir = Special_Path + "/SE";
+            //画面を表示(オフラインモードで行った場合)
+            SE_Dir = Voice_Set.Special_Path + "/SE";
             Project_T.Text = "プロジェクト名:" + Project_Name;
             for (int Number = 0; Number <= Lists.Count - 1; Number++)
             {
@@ -75,6 +76,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 return;
             }
             SE_Play_Index = 1;
+            //選択したSEの状態によって色を変更
             if (Voice_Set.SE_Enable_List[SE_Lists.SelectedIndex])
             {
                 SE_Disable_B.Background = Brushes.Transparent;
@@ -89,6 +91,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 SE_Enable_B.Background = Brushes.Transparent;
                 SE_Enable_B.BorderBrush = Brushes.Aqua;
             }
+            //選択したSEのファイルが何個あるか取得して表示
             if (SE_Lists.SelectedIndex == 0)
             {
                 Select_SE_File_Count = SE_Get_File_Count("Capture_End");
@@ -155,6 +158,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         {
             if (SE_Lists.SelectedIndex != -1)
             {
+                //選択しているSEを再生
                 SE_Play();
             }
         }
@@ -162,11 +166,13 @@ namespace WoTB_Voice_Mod_Creater.Class
         {
             if (Player.playState != WMPPlayState.wmppsPlaying)
             {
+                //選択しているSEを再生
                 if (IsBusy)
                 {
                     return;
                 }
                 IsSEStop = false;
+                //SEの拡張子がわからないためFile_Get_FileName_No_Extension()で取得して指定
                 if (SE_Play_Index < 10)
                 {
                     Player.URL = Sub_Code.File_Get_FileName_No_Extension(SE_Dir + "/" + Select_SE_Name + "_0" + SE_Play_Index);
@@ -184,6 +190,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                         break;
                     }
                 }
+                //再生が止まったかつそのSEが複数個ある場合SEのインデックスを進める
                 Player.controls.stop();
                 if (SE_Play_Index < Select_SE_File_Count)
                 {
@@ -232,6 +239,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         }
         private async void Exit_B_Click(object sender, RoutedEventArgs e)
         {
+            //閉じる
             if (Opacity >= 1)
             {
                 IsBusy = true;
@@ -251,36 +259,43 @@ namespace WoTB_Voice_Mod_Creater.Class
         }
         private void SE_Disable_B_Click(object sender, RoutedEventArgs e)
         {
+            //選択しているSEを無効化
             if (SE_Lists.SelectedIndex != -1)
             {
                 if (Voice_Set.SE_Enable_List[SE_Lists.SelectedIndex])
                 {
+                    int Number = SE_Lists.SelectedIndex;
                     Voice_Set.SE_Enable_List[SE_Lists.SelectedIndex] = false;
                     SE_Disable_B.Background = (Brush)bc.ConvertFrom("#59999999");
                     SE_Disable_B.BorderBrush = Brushes.Red;
                     SE_Enable_B.Background = Brushes.Transparent;
                     SE_Enable_B.BorderBrush = Brushes.Aqua;
                     SE_Lists.Items[SE_Lists.SelectedIndex] = SE_Lists.Items[SE_Lists.SelectedIndex].ToString().Replace("| 有効", "| 無効");
+                    SE_Lists.SelectedIndex = Number;
                 }
             }
         }
         private void SE_Enable_B_Click(object sender, RoutedEventArgs e)
         {
+            //選択しているSEを有効化
             if (SE_Lists.SelectedIndex != -1)
             {
                 if (!Voice_Set.SE_Enable_List[SE_Lists.SelectedIndex])
                 {
+                    int Number = SE_Lists.SelectedIndex;
                     Voice_Set.SE_Enable_List[SE_Lists.SelectedIndex] = true;
                     SE_Disable_B.Background = Brushes.Transparent;
                     SE_Disable_B.BorderBrush = Brushes.Aqua;
                     SE_Enable_B.Background = (Brush)bc.ConvertFrom("#59999999");
                     SE_Enable_B.BorderBrush = Brushes.Red;
                     SE_Lists.Items[SE_Lists.SelectedIndex] = SE_Lists.Items[SE_Lists.SelectedIndex].ToString().Replace("| 無効", "| 有効");
+                    SE_Lists.SelectedIndex = Number;
                 }
             }
         }
         private void Voice_Lists_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            //選択している音声の種類が変更されたら音声の名前とファイル数を表示
             if (Voice_Lists.SelectedIndex != -1)
             {
                 Voice_Select_T.Text = "音声名:" + Voice_Type[Voice_Lists.SelectedIndex] + "|ファイル数:" + Voice_Type_Number[Voice_Lists.SelectedIndex] + "個";
@@ -288,6 +303,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         }
         private void Voice_Lists_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
+            //音声の選択を解除
             Voice_Lists.SelectedIndex = -1;
             Voice_Select_T.Text = "";
         }
@@ -295,6 +311,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         {
             if (!IsBusy && Opacity >= 1)
             {
+                //作成ボタンが押されたら別クラスに情報を送り画面を閉じる
                 IsBusy = true;
                 while (Opacity > 0)
                 {
@@ -304,12 +321,14 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Sub_Code.CreatingProject = true;
                 Sub_Code.VolumeSet = Volume_Set_C.IsChecked.Value;
                 Sub_Code.DVPL_Encode = DVPL_C.IsChecked.Value;
+                Sub_Code.AndroidMode = Android_C.IsChecked.Value;
                 IsBusy = false;
                 Visibility = Visibility.Hidden;
             }
         }
         private void SE_Lists_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
+            //SEの選択を解除
             SE_Play_Number_T.Text = "0/0";
             SE_Disable_B.Background = Brushes.Transparent;
             SE_Disable_B.BorderBrush = Brushes.Aqua;
@@ -317,17 +336,26 @@ namespace WoTB_Voice_Mod_Creater.Class
             SE_Enable_B.BorderBrush = Brushes.Aqua;
             SE_Lists.SelectedIndex = -1;
         }
-        private void Border_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        private void DVPL_C_Click(object sender, RoutedEventArgs e)
         {
-            SE_Play_Number_T.Text = "0/0";
-            SE_Disable_B.Background = Brushes.Transparent;
-            SE_Disable_B.BorderBrush = Brushes.Aqua;
-            SE_Enable_B.Background = Brushes.Transparent;
-            SE_Enable_B.BorderBrush = Brushes.Aqua;
-            SE_Lists.SelectedIndex = -1;
-            Voice_Lists.SelectedIndex = -1;
-            Voice_Select_T.Text = "";
-
+            if (!DVPL_C.IsChecked.Value)
+            {
+                Android_C.IsChecked = false;
+            }
+        }
+        private void Android_C_Click(object sender, RoutedEventArgs e)
+        {
+            if (Android_C.IsChecked.Value)
+            {
+                DVPL_C.IsChecked = true;
+            }
+        }
+        private void Android_Help_B_Click(object sender, RoutedEventArgs e)
+        {
+            string Message_01 = "ingame_voice_ja.fsb,GUI_battle_streamed.fsb,GUI_notifications_FX_howitzer_load.fsb,GUI_quick_commands.fsb,GUI_sirene.fsbを作成します。\n";
+            string Message_02 = "所々音量が小さく聞こえる場合がありますが、WoTBの標準のfevファイルの仕様上調整できませんのでご了承ください。\n";
+            string Message_03 = "まれに↑のfsbファイルが作成されない時がありますのでその場合はもう一度作成しなおすと改善されるかと思います。";
+            MessageBox.Show(Message_01 + Message_02 + Message_03);
         }
     }
 }

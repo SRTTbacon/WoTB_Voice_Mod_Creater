@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Forms;
 using System.Xml.Linq;
-using System.Xml.Serialization;
 
 namespace WoTB_Voice_Mod_Creater.Class
 {
@@ -336,6 +335,8 @@ namespace WoTB_Voice_Mod_Creater.Class
                 await Task.Delay(1000 / 60);
             }
             IsMessageShowing = false;
+            Message_T.Text = "";
+            Message_T.Opacity = 1;
         }
     }
 }

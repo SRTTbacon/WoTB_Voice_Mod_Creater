@@ -18,7 +18,6 @@ namespace WoTB_Voice_Mod_Creater
         bool IsProcessing = false;
         bool Server_OK = false;
         readonly FtpDataConnectionType ConnectType;
-        readonly bool IsPassiveMode = false;
         //サーバーに接続(参加ではない)
         void Server_Connect()
         {
@@ -29,7 +28,7 @@ namespace WoTB_Voice_Mod_Creater
                 Voice_Set.TCP_Server.Delimiter = 0x00;
                 Voice_Set.FTP_Server = new FtpClient(IP)
                 {
-                    Credentials = new NetworkCredential("非公開", "非公開"),
+                    Credentials = new NetworkCredential(SRTTbacon_Server.Name, SRTTbacon_Server.Password),
                     SocketKeepAlive = false,
                     DataConnectionType = ConnectType,
                     SslProtocols = SslProtocols.Tls,
@@ -38,7 +37,6 @@ namespace WoTB_Voice_Mod_Creater
                 Voice_Set.FTP_Server.ValidateCertificate += new FtpSslValidation(OnValidateCertificate);
                 Voice_Set.FTP_Server.Connect();
                 Server_OK = true;
-                Message_T.Text = "";
                 if (Login())
                 {
                     Connectiong = true;
@@ -47,6 +45,7 @@ namespace WoTB_Voice_Mod_Creater
                 }
                 else
                 {
+                    Message_T.Text = "ログイン(アカウント登録)をすると追加機能が利用できます。";
                     Connect_B.Visibility = Visibility.Hidden;
                     User_Name_Text.Visibility = Visibility.Visible;
                     User_Name_T.Visibility = Visibility.Visible;
@@ -108,6 +107,10 @@ namespace WoTB_Voice_Mod_Creater
         //参加ボタン
         private async void Server_Connect_B_Click(object sender, RoutedEventArgs e)
         {
+            if (IsProcessing)
+            {
+                return;
+            }
             Message_T.Visibility = Visibility.Visible;
             if (IsProcessing)
             {
@@ -205,17 +208,18 @@ namespace WoTB_Voice_Mod_Creater
                 else
                 {
                     Voice_S.Value = 0;
-                    Download_Progress_P.Visibility = Visibility.Visible;
-                    Download_Progress_T.Visibility = Visibility.Visible;
+                    Download_P.Visibility = Visibility.Visible;
+                    Download_T.Visibility = Visibility.Visible;
                     Message_T.Opacity = 1;
                     Message_T.Text = "サーバーから音声をダウンロードしています...";
-                    Download_Progress_T.Text = "計算しています...";
+                    Download_T.Text = "計算しています...";
                     IsProcessing = true;
                     Directory.CreateDirectory(Voice_Set.Special_Path + "/Server/" + Directory_Name);
                     await Task.Delay(50);
                     List<string> strList = new List<string>();
                     FtpWebRequest fwr = (FtpWebRequest)WebRequest.Create(new Uri("ftp://" + IP + "/WoTB_Voice_Mod/" + Directory_Name));
-                    fwr.UsePassive = IsPassiveMode;
+                    fwr.UsePassive = true;
+                    fwr.KeepAlive = false;
                     fwr.Credentials = new NetworkCredential("SRTTbacon_Server", "SRTTbacon");
                     fwr.Method = WebRequestMethods.Ftp.ListDirectory;
                     StreamReader sr = new StreamReader(fwr.GetResponse().GetResponseStream());
@@ -229,16 +233,16 @@ namespace WoTB_Voice_Mod_Creater
                     fwr.Abort();
                     int Max_Count = strList.Count;
                     int Now_Count = 0;
-                    Download_Progress_P.Value = 0;
-                    Download_Progress_P.Maximum = Max_Count;
+                    Download_P.Value = 0;
+                    Download_P.Maximum = Max_Count;
                     foreach (string File_Name in strList)
                     {
                         try
                         {
                             Voice_Set.FTP_Server.DownloadFile(Voice_Set.Special_Path + "/Server/" + Directory_Name + File_Name, "/WoTB_Voice_Mod/" + Directory_Name + File_Name);
                             await Task.Delay(1);
-                            Download_Progress_P.Value = Now_Count;
-                            Download_Progress_T.Text = Now_Count + "/" + Max_Count;
+                            Download_P.Value = Now_Count;
+                            Download_T.Text = Now_Count + "/" + Max_Count;
                             Now_Count++;
                         }
                         catch
@@ -266,8 +270,8 @@ namespace WoTB_Voice_Mod_Creater
                 await Loading_Show();
                 Server_Lists.Visibility = Visibility.Hidden;
                 Server_Create_Name_T.Visibility = Visibility.Hidden;
-                Download_Progress_P.Visibility = Visibility.Hidden;
-                Download_Progress_T.Visibility = Visibility.Hidden;
+                Download_P.Visibility = Visibility.Hidden;
+                Download_T.Visibility = Visibility.Hidden;
                 Explanation_Scrool.Visibility = Visibility.Hidden;
                 Explanation_Text.Visibility = Visibility.Hidden;
                 Explanation_Border.Visibility = Visibility.Hidden;

@@ -140,6 +140,8 @@ namespace WoTB_Voice_Mod_Creater.Class
                 await Task.Delay(1000 / 60);
             }
             IsMessageShowing = false;
+            Message_T.Text = "";
+            Message_T.Opacity = 1;
         }
         private void Voice_Back_B_Click(object sender, RoutedEventArgs e)
         {
@@ -595,111 +597,139 @@ namespace WoTB_Voice_Mod_Creater.Class
                     Directory.Delete(Dir_Name);
                     return;
                 }
-                //await Sub_Code.Android_Project_Create(Message_T, Project_Name_T.Text, Dir_Name + "/Voices", Voice_Set.Special_Path + "/SE");
-                //return;
                 if (Sub_Code.VolumeSet)
                 {
                     Message_T.Text = "音量を均一にしています...";
-                    await Task.Delay(10);
+                    await Task.Delay(50);
                     await Sub_Code.Change_MP3_Encode(Dir_Name + "/Voices");
+                    await Task.Delay(1000);
                 }
                 string File_Name = Project_Name_T.Text.Replace(" ", "_");
-                //fdpプロジェクトを作成
-                Voice_Mod_Create.Project_Create(Message_T, Project_Name_T.Text, Dir_Name + "/Voices", Voice_Set.Special_Path + "/SE");
-                //fdpプロジェクトをビルド
-                await Sub_Code.Project_Build(Dir_Name + "/" + Project_Name_T.Text.Replace(" ", "_") + ".fdp", Message_T);
-                DateTime dt = DateTime.Now;
-                string Time = Sub_Code.Get_Time_Now(dt, ".", 1, 6);
-                //配布用のフォルダを作成
-                Directory.CreateDirectory(Dir_Name + "/" + Project_Name_T.Text + "_Mod/Mods");
-                Directory.CreateDirectory(Dir_Name + "/" + Project_Name_T.Text + "_Mod/Configs/Sfx");
-                Directory.CreateDirectory(Directory.GetCurrentDirectory() + "/Backup/" + Time);
-                try
+                if (Sub_Code.AndroidMode)
                 {
-                    //ビルドされたファイルをコピー
-                    File.Copy(Dir_Name + "/" + File_Name + ".fev", Dir_Name + "/" + File_Name + "_Mod/Mods/" + File_Name + ".fev", true);
-                    File.Copy(Dir_Name + "/" + File_Name + ".fsb", Dir_Name + "/" + File_Name + "_Mod/Mods/" + File_Name + ".fsb", true);
-                    File.Delete(Dir_Name + "/" + File_Name + ".fev");
-                    File.Delete(Dir_Name + "/" + File_Name + ".fsb");
-                    File.Delete(Dir_Name + "/fmod_designer.log");
-                    File.Delete(Dir_Name + "/undo-log.txt");
-                }
-                catch
-                {
-
-                }
-                //WoTBのフォルダから各ファイルをコピー
-                Sub_Code.DVPL_File_Copy(Voice_Set.WoTB_Path + "/Data/sounds.yaml", Directory.GetCurrentDirectory() + "/Backup/" + Time + "/sounds.yaml", false);
-                Sub_Code.DVPL_File_Copy(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_high.yaml", Directory.GetCurrentDirectory() + "/Backup/" + Time + "/sfx_high.yaml", false);
-                Sub_Code.DVPL_File_Copy(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_low.yaml", Directory.GetCurrentDirectory() + "/Backup/" + Time + "/sfx_low.yaml", false);
-                if (File.Exists(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_high.yaml.dvpl"))
-                {
-                    DVPL.DVPL_UnPack(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_high.yaml.dvpl", Dir_Name + "/" + Project_Name_T.Text + "_Mod/Configs/Sfx/sfx_high.yaml", false);
-                }
-                else if (File.Exists(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_high.yaml"))
-                {
-                    File.Copy(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_high.yaml", Dir_Name + "/" + Project_Name_T.Text + "_Mod/Configs/Sfx/sfx_high.yaml");
-                }
-                if (File.Exists(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_low.yaml.dvpl"))
-                {
-                    DVPL.DVPL_UnPack(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_low.yaml.dvpl", Dir_Name + "/" + Project_Name_T.Text + "_Mod/Configs/Sfx/sfx_low.yaml", false);
-                }
-                else if (File.Exists(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_low.yaml"))
-                {
-                    File.Copy(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_low.yaml", Dir_Name + "/" + Project_Name_T.Text + "_Mod/Configs/Sfx/sfx_low.yaml");
-                }
-                string[] Configs = { "sfx_high.yaml", "sfx_low.yaml" };
-                //使用するfevファイルを追加
-                foreach (string File_Now in Configs)
-                {
-                    StreamReader str2 = new StreamReader(Dir_Name + "/" + Project_Name_T.Text + "_Mod/Configs/Sfx/" + File_Now);
-                    string[] Read = str2.ReadToEnd().Split('\n');
-                    str2.Close();
-                    bool IsExist_Voice = false;
-                    bool IsExist_Music = false;
-                    foreach (string Line in Read)
-                    {
-                        if (Line.Contains(File_Name + ".fev"))
-                        {
-                            IsExist_Voice = true;
-                        }
-                        if (Line.Contains("Music.fev"))
-                        {
-                            IsExist_Music = true;
-                        }
-                    }
-                    StreamWriter stw4 = new StreamWriter(Dir_Name + "/" + Project_Name_T.Text + "_Mod/Configs/Sfx/" + File_Now, true);
-                    if (!IsExist_Voice)
-                    {
-                        stw4.Write("\n -\n  \"~res:/Mods/" + File_Name + ".fev\"");
-                    }
-                    if (!IsExist_Music)
-                    {
-                        stw4.Write("\n -\n  \"~res:/Mods/Music.fev\"");
-                    }
-                    stw4.Close();
-                }
-                File.Copy(Voice_Set.Special_Path + "/Temp_Sounds.yaml", Dir_Name + "/" + Project_Name_T.Text + "_Mod/sounds.yaml", true);
-                File.Delete(Voice_Set.Special_Path + "/Temp_Sounds.yaml");
-                if (Sub_Code.DVPL_Encode)
-                {
+                    await Android_Create.Android_Project_Create(Message_T, Project_Name_T.Text, Dir_Name + "/Voices", Voice_Set.Special_Path + "/SE");
                     Message_T.Text = "DVPL化しています...";
-                    await Task.Delay(10);
+                    await Task.Delay(50);
                     try
                     {
-                        //DVPL化にチェックが入っている場合使用するファイルすべてdvpl化する
-                        DVPL.DVPL_Pack(Dir_Name + "/" + Project_Name_T.Text + "_Mod/Mods/" + File_Name + ".fev", Dir_Name + "/" + Project_Name_T.Text + "_Mod/Mods/" + File_Name + ".fev.dvpl", true);
-                        DVPL.DVPL_Pack(Dir_Name + "/" + Project_Name_T.Text + "_Mod/Mods/" + File_Name + ".fsb", Dir_Name + "/" + Project_Name_T.Text + "_Mod/Mods/" + File_Name + ".fsb.dvpl", true);
-                        DVPL.DVPL_Pack(Dir_Name + "/" + Project_Name_T.Text + "_Mod/Configs/Sfx/sfx_high.yaml", Dir_Name + "/" + Project_Name_T.Text + "_Mod/Configs/Sfx/sfx_high.yaml.dvpl", true);
-                        DVPL.DVPL_Pack(Dir_Name + "/" + Project_Name_T.Text + "_Mod/Configs/Sfx/sfx_low.yaml", Dir_Name + "/" + Project_Name_T.Text + "_Mod/Configs/Sfx/sfx_low.yaml.dvpl", true);
-                        DVPL.DVPL_Pack(Dir_Name + "/" + Project_Name_T.Text + "_Mod/sounds.yaml", Dir_Name + "/" + Project_Name_T.Text + "_Mod/sounds.yaml.dvpl", true);
+                        DVPL.DVPL_Pack(Dir_Name + "/ingame_voice_ja.fsb", Dir_Name + "/ingame_voice_ja.fsb.dvpl", true);
+                        DVPL.DVPL_Pack(Dir_Name + "/GUI_battle_streamed.fsb", Dir_Name + "/GUI_battle_streamed.fsb.dvpl", true);
+                        DVPL.DVPL_Pack(Dir_Name + "/GUI_notifications_FX_howitzer_load.fsb", Dir_Name + "/GUI_notifications_FX_howitzer_load.fsb.dvpl", true);
+                        DVPL.DVPL_Pack(Dir_Name + "/GUI_quick_commands.fsb", Dir_Name + "/GUI_quick_commands.fsb.dvpl", true);
+                        DVPL.DVPL_Pack(Dir_Name + "/GUI_sirene.fsb", Dir_Name + "/GUI_sirene.fsb.dvpl", true);
                     }
                     catch
                     {
-                        Message_Feed_Out("エラー:DVPL化できませんでした。");
+                        Message_Feed_Out("DVPL化できませんでした。");
+                        return;
+                    }
+                    if (!File.Exists(Dir_Name + "/ingame_voice_ja.fsb.dvpl"))
+                    {
+                        Message_Feed_Out("正常に作成できませんでした。");
                         return;
                     }
                 }
+                else
+                {
+                    //fdpプロジェクトを作成
+                    Voice_Mod_Create.Project_Create(ref Message_T, Project_Name_T.Text, Dir_Name + "/Voices", Voice_Set.Special_Path + "/SE");
+                    //fdpプロジェクトをビルド
+                    await Sub_Code.Project_Build(Dir_Name + "/" + File_Name + ".fdp", Message_T);
+                    DateTime dt = DateTime.Now;
+                    string Time = Sub_Code.Get_Time_Now(dt, ".", 1, 6);
+                    //配布用のフォルダを作成
+                    Directory.CreateDirectory(Dir_Name + "/" + Project_Name_T.Text + "_Mod/Mods");
+                    Directory.CreateDirectory(Dir_Name + "/" + Project_Name_T.Text + "_Mod/Configs/Sfx");
+                    Directory.CreateDirectory(Directory.GetCurrentDirectory() + "/Backup/" + Time);
+                    try
+                    {
+                        //ビルドされたファイルをコピー
+                        File.Copy(Dir_Name + "/" + File_Name + ".fev", Dir_Name + "/" + File_Name + "_Mod/Mods/" + File_Name + ".fev", true);
+                        File.Copy(Dir_Name + "/" + File_Name + ".fsb", Dir_Name + "/" + File_Name + "_Mod/Mods/" + File_Name + ".fsb", true);
+                        File.Delete(Dir_Name + "/" + File_Name + ".fev");
+                        File.Delete(Dir_Name + "/" + File_Name + ".fsb");
+                        File.Delete(Dir_Name + "/fmod_designer.log");
+                        File.Delete(Dir_Name + "/undo-log.txt");
+                    }
+                    catch
+                    {
+
+                    }
+                    //WoTBのフォルダから各ファイルをコピー
+                    Sub_Code.DVPL_File_Copy(Voice_Set.WoTB_Path + "/Data/sounds.yaml", Directory.GetCurrentDirectory() + "/Backup/" + Time + "/sounds.yaml", false);
+                    Sub_Code.DVPL_File_Copy(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_high.yaml", Directory.GetCurrentDirectory() + "/Backup/" + Time + "/sfx_high.yaml", false);
+                    Sub_Code.DVPL_File_Copy(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_low.yaml", Directory.GetCurrentDirectory() + "/Backup/" + Time + "/sfx_low.yaml", false);
+                    if (File.Exists(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_high.yaml.dvpl"))
+                    {
+                        DVPL.DVPL_UnPack(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_high.yaml.dvpl", Dir_Name + "/" + Project_Name_T.Text + "_Mod/Configs/Sfx/sfx_high.yaml", false);
+                    }
+                    else if (File.Exists(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_high.yaml"))
+                    {
+                        File.Copy(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_high.yaml", Dir_Name + "/" + Project_Name_T.Text + "_Mod/Configs/Sfx/sfx_high.yaml");
+                    }
+                    if (File.Exists(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_low.yaml.dvpl"))
+                    {
+                        DVPL.DVPL_UnPack(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_low.yaml.dvpl", Dir_Name + "/" + Project_Name_T.Text + "_Mod/Configs/Sfx/sfx_low.yaml", false);
+                    }
+                    else if (File.Exists(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_low.yaml"))
+                    {
+                        File.Copy(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_low.yaml", Dir_Name + "/" + Project_Name_T.Text + "_Mod/Configs/Sfx/sfx_low.yaml");
+                    }
+                    string[] Configs = { "sfx_high.yaml", "sfx_low.yaml" };
+                    //使用するfevファイルを追加
+                    foreach (string File_Now in Configs)
+                    {
+                        StreamReader str2 = new StreamReader(Dir_Name + "/" + Project_Name_T.Text + "_Mod/Configs/Sfx/" + File_Now);
+                        string[] Read = str2.ReadToEnd().Split('\n');
+                        str2.Close();
+                        bool IsExist_Voice = false;
+                        bool IsExist_Music = false;
+                        foreach (string Line in Read)
+                        {
+                            if (Line.Contains(File_Name + ".fev"))
+                            {
+                                IsExist_Voice = true;
+                            }
+                            if (Line.Contains("Music.fev"))
+                            {
+                                IsExist_Music = true;
+                            }
+                        }
+                        StreamWriter stw4 = new StreamWriter(Dir_Name + "/" + Project_Name_T.Text + "_Mod/Configs/Sfx/" + File_Now, true);
+                        if (!IsExist_Voice)
+                        {
+                            stw4.Write("\n -\n  \"~res:/Mods/" + File_Name + ".fev\"");
+                        }
+                        if (!IsExist_Music)
+                        {
+                            stw4.Write("\n -\n  \"~res:/Mods/Music.fev\"");
+                        }
+                        stw4.Close();
+                    }
+                    File.Copy(Voice_Set.Special_Path + "/Temp_Sounds.yaml", Dir_Name + "/" + Project_Name_T.Text + "_Mod/sounds.yaml", true);
+                    File.Delete(Voice_Set.Special_Path + "/Temp_Sounds.yaml");
+                    if (Sub_Code.DVPL_Encode)
+                    {
+                        Message_T.Text = "DVPL化しています...";
+                        await Task.Delay(10);
+                        try
+                        {
+                            //DVPL化にチェックが入っている場合使用するファイルすべてdvpl化する
+                            DVPL.DVPL_Pack(Dir_Name + "/" + Project_Name_T.Text + "_Mod/Mods/" + File_Name + ".fev", Dir_Name + "/" + Project_Name_T.Text + "_Mod/Mods/" + File_Name + ".fev.dvpl", true);
+                            DVPL.DVPL_Pack(Dir_Name + "/" + Project_Name_T.Text + "_Mod/Mods/" + File_Name + ".fsb", Dir_Name + "/" + Project_Name_T.Text + "_Mod/Mods/" + File_Name + ".fsb.dvpl", true);
+                            DVPL.DVPL_Pack(Dir_Name + "/" + Project_Name_T.Text + "_Mod/Configs/Sfx/sfx_high.yaml", Dir_Name + "/" + Project_Name_T.Text + "_Mod/Configs/Sfx/sfx_high.yaml.dvpl", true);
+                            DVPL.DVPL_Pack(Dir_Name + "/" + Project_Name_T.Text + "_Mod/Configs/Sfx/sfx_low.yaml", Dir_Name + "/" + Project_Name_T.Text + "_Mod/Configs/Sfx/sfx_low.yaml.dvpl", true);
+                            DVPL.DVPL_Pack(Dir_Name + "/" + Project_Name_T.Text + "_Mod/sounds.yaml", Dir_Name + "/" + Project_Name_T.Text + "_Mod/sounds.yaml.dvpl", true);
+                        }
+                        catch
+                        {
+                            Message_Feed_Out("エラー:DVPL化できませんでした。");
+                            return;
+                        }
+                    }
+                }
+                Message_T.Text = "ダイアログを表示しています...";
+                await Task.Delay(50);
                 MessageBoxResult result = System.Windows.MessageBox.Show("完了しました。WoTBに適応しますか？", "確認", MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.Yes);
                 if (result == MessageBoxResult.Yes)
                 {
@@ -711,17 +741,28 @@ namespace WoTB_Voice_Mod_Creater.Class
                     try
                     {
                         //WoTBのフォルダに作成したファイルをコピー
-                        Directory.CreateDirectory(Voice_Set.WoTB_Path + "/Data/Mods");
-                        Sub_Code.DVPL_File_Delete(Voice_Set.WoTB_Path + "/Data/sounds.yaml");
-                        Sub_Code.DVPL_File_Delete(Voice_Set.WoTB_Path + "/Data/Mods/" + File_Name + ".fev");
-                        Sub_Code.DVPL_File_Delete(Voice_Set.WoTB_Path + "/Data/Mods/" + File_Name + ".fsb");
-                        Sub_Code.DVPL_File_Delete(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_high.yaml");
-                        Sub_Code.DVPL_File_Delete(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_low.yaml");
-                        Sub_Code.DVPL_File_Copy(Dir_Name + "/" + Project_Name_T.Text + "_Mod/sounds.yaml", Voice_Set.WoTB_Path + "/Data/sounds.yaml", true);
-                        Sub_Code.DVPL_File_Copy(Dir_Name + "/" + Project_Name_T.Text + "_Mod/Mods/" + File_Name + ".fev", Voice_Set.WoTB_Path + "/Data/Mods/" + File_Name + ".fev", true);
-                        Sub_Code.DVPL_File_Copy(Dir_Name + "/" + Project_Name_T.Text + "_Mod/Mods/" + File_Name + ".fsb", Voice_Set.WoTB_Path + "/Data/Mods/" + File_Name + ".fsb", true);
-                        Sub_Code.DVPL_File_Copy(Dir_Name + "/" + Project_Name_T.Text + "_Mod/Configs/Sfx/sfx_high.yaml", Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_high.yaml", true);
-                        Sub_Code.DVPL_File_Copy(Dir_Name + "/" + Project_Name_T.Text + "_Mod/Configs/Sfx/sfx_low.yaml", Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_low.yaml", true);
+                        if (Sub_Code.AndroidMode)
+                        {
+                            File.Copy(Dir_Name + "/ingame_voice_ja.fsb.dvpl", Voice_Set.WoTB_Path + "/Data/Sfx/ingame_voice_ja.fsb.dvpl", true);
+                            File.Copy(Dir_Name + "/GUI_battle_streamed.fsb.dvpl", Voice_Set.WoTB_Path + "/Data/Sfx/GUI_battle_streamed.fsb.dvpl", true);
+                            File.Copy(Dir_Name + "/GUI_notifications_FX_howitzer_load.fsb.dvpl", Voice_Set.WoTB_Path + "/Data/Sfx/GUI_notifications_FX_howitzer_load.fsb.dvpl", true);
+                            File.Copy(Dir_Name + "/GUI_quick_commands.fsb.dvpl", Voice_Set.WoTB_Path + "/Data/Sfx/GUI_quick_commands.fsb.dvpl", true);
+                            File.Copy(Dir_Name + "/GUI_sirene.fsb.dvpl", Voice_Set.WoTB_Path + "/Data/Sfx/GUI_sirene.fsb.dvpl", true);
+                        }
+                        else
+                        {
+                            Directory.CreateDirectory(Voice_Set.WoTB_Path + "/Data/Mods");
+                            Sub_Code.DVPL_File_Delete(Voice_Set.WoTB_Path + "/Data/sounds.yaml");
+                            Sub_Code.DVPL_File_Delete(Voice_Set.WoTB_Path + "/Data/Mods/" + File_Name + ".fev");
+                            Sub_Code.DVPL_File_Delete(Voice_Set.WoTB_Path + "/Data/Mods/" + File_Name + ".fsb");
+                            Sub_Code.DVPL_File_Delete(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_high.yaml");
+                            Sub_Code.DVPL_File_Delete(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_low.yaml");
+                            Sub_Code.DVPL_File_Copy(Dir_Name + "/" + Project_Name_T.Text + "_Mod/sounds.yaml", Voice_Set.WoTB_Path + "/Data/sounds.yaml", true);
+                            Sub_Code.DVPL_File_Copy(Dir_Name + "/" + Project_Name_T.Text + "_Mod/Mods/" + File_Name + ".fev", Voice_Set.WoTB_Path + "/Data/Mods/" + File_Name + ".fev", true);
+                            Sub_Code.DVPL_File_Copy(Dir_Name + "/" + Project_Name_T.Text + "_Mod/Mods/" + File_Name + ".fsb", Voice_Set.WoTB_Path + "/Data/Mods/" + File_Name + ".fsb", true);
+                            Sub_Code.DVPL_File_Copy(Dir_Name + "/" + Project_Name_T.Text + "_Mod/Configs/Sfx/sfx_high.yaml", Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_high.yaml", true);
+                            Sub_Code.DVPL_File_Copy(Dir_Name + "/" + Project_Name_T.Text + "_Mod/Configs/Sfx/sfx_low.yaml", Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_low.yaml", true);
+                        }
                     }
                     catch
                     {

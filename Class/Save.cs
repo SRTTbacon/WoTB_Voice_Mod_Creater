@@ -26,7 +26,7 @@ namespace WoTB_Voice_Mod_Creater
             if (Sub_Code.CreatingProject)
             {
                 Sub_Code.CreatingProject = false;
-                Voice_Mod_Create.Project_Create(Message_T, Voice_Set.SRTTbacon_Server_Name, Voice_Set.Special_Path + "/Server/" + Voice_Set.SRTTbacon_Server_Name + "/Voices", Voice_Set.Special_Path + "/Server/" + Voice_Set.SRTTbacon_Server_Name + "/Voices/SE");
+                Voice_Mod_Create.Project_Create(ref Message_T, Voice_Set.SRTTbacon_Server_Name, Voice_Set.Special_Path + "/Server/" + Voice_Set.SRTTbacon_Server_Name + "/Voices", Voice_Set.Special_Path + "/Server/" + Voice_Set.SRTTbacon_Server_Name + "/Voices/SE");
             }
         }
     }
@@ -34,7 +34,7 @@ namespace WoTB_Voice_Mod_Creater
 public class Voice_Mod_Create
 {
     readonly static string Path = Directory.GetCurrentDirectory();
-    public static void Project_Create(System.Windows.Controls.TextBlock Message_T, string Project_Name, string Voice_Dir, string SE_Dir)
+    public static void Project_Create(ref System.Windows.Controls.TextBlock Message_T, string Project_Name, string Voice_Dir, string SE_Dir)
     {
         string Voice_Now = "";
         string SE_Now = "";
@@ -881,7 +881,7 @@ public class Voice_Mod_Create
     public static string Get_Voice_Type(string FilePath)
     {
         string NameOnly = System.IO.Path.GetFileName(FilePath);
-        if (NameOnly.Contains("_"))
+        if (!NameOnly.Contains("_"))
         {
             return NameOnly;
         }

@@ -83,7 +83,7 @@
             <Button x:Name="Mod_Server_Backup_B" Content="サーバーから復元" Height="90" VerticalAlignment="Top" Width="375" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Margin="-375,770,0,0" Click="Mod_Server_Backup_B_Click"/>
             <Button x:Name="Mod_Change_B" Content="Modを編集" Height="90" VerticalAlignment="Top" Width="375" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Margin="-375,660,0,0" Click="Mod_Change_B_Click"/>
             <Button x:Name="Mod_Backup_Help_B" Content="?" Height="75" VerticalAlignment="Top" Width="75" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Margin="-850,830,0,0" Click="Mod_Backup_Help_B_Click"/>
-            <TextBlock x:Name="Message_T" Height="50" Width="1075" Foreground="Aqua" FontSize="40" Margin="-1920,1000,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" TextAlignment="Center"/>
+            <TextBlock x:Name="Message_T" Height="95" Width="1076" Foreground="Aqua" FontSize="37" Margin="-1920,985,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" TextAlignment="Center"/>
             <Button x:Name="Mod_Back_B" Content="←" Height="75" VerticalAlignment="Top" Width="142" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Margin="-3657,700,0,0" Click="Mod_Back_B_Click"/>
             <Button x:Name="Mod_Install_B" Content="Modをインストール" Height="90" VerticalAlignment="Top" Width="375" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Margin="-1250,475,0,0" Click="Mod_Install_B_Click"/>
             <Button x:Name="Mod_Select_B" Content="サンプルを聞く" Height="85" VerticalAlignment="Top" Width="375" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Margin="-1550,500,0,0" Click="Mod_Select_B_Click"/>
@@ -97,6 +97,9 @@
             <TextBlock x:Name="Explanation_Text" Height="50" Width="300" Foreground="Aqua" FontSize="40" Margin="-1525,650,0,0" TextWrapping="Wrap" Text="内容(説明)" VerticalAlignment="Top" TextAlignment="Center"/>
             <TextBlock x:Name="Create_Name_T" Height="50" Width="1000" Foreground="Aqua" FontSize="40" Margin="-1000,50,0,0" TextWrapping="Wrap" Text="配布者:SRTTbacon" VerticalAlignment="Top" TextAlignment="Center"/>
             <TextBlock x:Name="Mod_Config_T" Height="100" Width="400" Foreground="Aqua" FontSize="40" Margin="-2525,885,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" TextAlignment="Center"/>
+            <ProgressBar x:Name="Download_P" Height="30" VerticalAlignment="Top" Width="375" Margin="-1200,400,0,0" Value="50" Foreground="#FF58F0E2" Background="#FFC3C3C3" BorderBrush="#FF6643FF"/>
+            <TextBlock x:Name="Download_T" Height="50" Width="300" Foreground="Aqua" FontSize="40" Margin="-1200,340,0,0" TextWrapping="Wrap" Text="進捗:50%" VerticalAlignment="Top" TextAlignment="Center"/>
+            <Border x:Name="Download_Border" BorderBrush="Transparent" Background="Transparent" BorderThickness="1" Height="1080" VerticalAlignment="Top" Width="1920" Margin="-1920,0,0,0" Visibility="Hidden"/>
             <Class1:Mod_Uploads x:Name="Mod_Uploads_Window" Width="1920" Height="1080" Margin="-1920,0,0,0" Visibility="Hidden"/>
             <Class1:Voice_Mod_Change x:Name="Mod_Change_Window" Height="1080" VerticalAlignment="Top" Width="1920" Margin="-1920,0,0,0" Visibility="Hidden"/>
         </DockPanel>
