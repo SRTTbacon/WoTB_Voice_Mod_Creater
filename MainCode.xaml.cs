@@ -10,6 +10,7 @@ using System.Text;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Diagnostics;
+using System.Net;
 
 public static partial class StringExtensions
 {
@@ -25,11 +26,18 @@ public static partial class StringExtensions
         return count;
     }
 }
+public class SRTTbacon_Server
+{
+    public static string IP_Local = "非公開";
+    public static string IP_Global = "非公開";
+    public static string Name = "非公開";
+    public static string Password = "非公開";
+}
 namespace WoTB_Voice_Mod_Creater
 {
     public partial class MainCode : Window
     {
-        const string Version = "1.2.5";
+        const string Version = "1.2.6";
         readonly string Path = Directory.GetCurrentDirectory();
         bool IsClosing = false;
         bool IsMessageShowing = false;
@@ -47,8 +55,8 @@ namespace WoTB_Voice_Mod_Creater
             try
             {
 
-                Download_Progress_P.Visibility = Visibility.Hidden;
-                Download_Progress_T.Visibility = Visibility.Hidden;
+                Download_P.Visibility = Visibility.Hidden;
+                Download_T.Visibility = Visibility.Hidden;
                 Load_Image.Visibility = Visibility.Hidden;
                 Server_Create_Window.Visibility = Visibility.Hidden;
                 Password_Text.Visibility = Visibility.Hidden;
@@ -73,9 +81,8 @@ namespace WoTB_Voice_Mod_Creater
                 //自分はサーバーに参加できないためIPを分ける
                 if (Environment.UserName == "SRTTbacon" || Environment.UserName == "SRTTbacon_V1")
                 {
-                    IP = "非公開";
+                    IP = SRTTbacon_Server.IP_Local;
                     ConnectType = FtpDataConnectionType.PASV;
-                    IsPassiveMode = true;
                     if (Environment.UserName == "SRTTbacon_V1")
                     {
                         IsSRTTbacon_V1 = true;
@@ -83,9 +90,8 @@ namespace WoTB_Voice_Mod_Creater
                 }
                 else
                 {
-                    IP = "非公開";
+                    IP = SRTTbacon_Server.IP_Global;
                     ConnectType = FtpDataConnectionType.PASV;
-                    IsPassiveMode = true;
                 }
                 //一時ファイルの保存先を変更している場合それを適応
                 if (File.Exists(Directory.GetCurrentDirectory() + "/TempDirPath.dat"))
@@ -294,6 +300,20 @@ namespace WoTB_Voice_Mod_Creater
                     task_01.Wait();
                     IsOK_05 = true;
                 }
+                else
+                {
+                    FileInfo f = new FileInfo(Voice_Set.Special_Path + "/Fmod_Android_Create/Fmod_Android_Create.exe");
+                    if (f.Length != 202240)
+                    {
+                        IsOK_05 = false;
+                        Task task_01 = Task.Run(() =>
+                        {
+                            DVPL.Fmod_Android_Create_Extract();
+                        });
+                        task_01.Wait();
+                        IsOK_05 = true;
+                    }
+                }
             });
             await Task.Delay(100);
             while (true)
@@ -395,6 +415,7 @@ namespace WoTB_Voice_Mod_Creater
                                 Dispatcher.Invoke(() =>
                                 {
                                     Chat_T.Text = Server_Open_File("/WoTB_Voice_Mod/" + Voice_Set.SRTTbacon_Server_Name + "/Chat.dat");
+                                    Chat_Scrool.ScrollToEnd();
                                 });
                             }
                             else if (Message_Temp[1] == "Change_Configs")
@@ -409,6 +430,7 @@ namespace WoTB_Voice_Mod_Creater
                                 Dispatcher.Invoke(() =>
                                 {
                                     Chat_T.Text = Server_Open_File("/WoTB_Voice_Mod/Chat.dat");
+                                    Chat_Scrool.ScrollToEnd();
                                 });
                             }
                         }
@@ -419,6 +441,7 @@ namespace WoTB_Voice_Mod_Creater
                                 Dispatcher.Invoke(() =>
                                 {
                                     Chat_T.Text = Server_Open_File("/WoTB_Voice_Mod/Users/" + Voice_Set.UserName + "_Chat.dat");
+                                    Chat_Scrool.ScrollToEnd();
                                 });
                             }
                         }
@@ -691,6 +714,10 @@ namespace WoTB_Voice_Mod_Creater
         //管理者画面に移動
         private void Administrator_B_Click(object sender, RoutedEventArgs e)
         {
+            if (IsProcessing)
+            {
+                return;
+            }
             Administrator_Window.Window_Show();
         }
         //音声のタイプを変更
@@ -726,9 +753,9 @@ namespace WoTB_Voice_Mod_Creater
                 MessageBox.Show("スパム防止のため空白を2回連続で使用できません。");
                 return;
             }
-            if (Chat_Send_T.Text.Length >= 50)
+            if (Chat_Send_T.Text.Length >= 100)
             {
-                MessageBox.Show("文字数が多すぎます。50文字以下にしてください。");
+                MessageBox.Show("文字数が多すぎます。100文字以下にしてください。");
                 return;
             }
             if (Chat_Mode == 0)
@@ -746,7 +773,6 @@ namespace WoTB_Voice_Mod_Creater
                 Voice_Set.AppendString("/WoTB_Voice_Mod/Users/" + Voice_Set.UserName + "_Chat.dat", Encoding.UTF8.GetBytes(Voice_Set.UserName + ":" + Chat_Send_T.Text + "\n"));
                 Voice_Set.TCP_Server.WriteLine(Voice_Set.UserName + "_Private|Chat|" + Voice_Set.UserName + ":" + Chat_Send_T.Text + '\0');
             }
-            Chat_Scrool.ScrollToEnd();
             Chat_Send_T.Text = "";
         }
         private void Voice_Delete_B_Click(object sender, RoutedEventArgs e)
@@ -811,6 +837,7 @@ namespace WoTB_Voice_Mod_Creater
                     Chat_Mode_Private_B.BorderBrush = Brushes.Red;
                     Chat_T.Text = Server_Open_File("/WoTB_Voice_Mod/Users/" + Voice_Set.UserName + "_Chat.dat");
                 }
+                Chat_Scrool.ScrollToEnd();
             }
         }
         async Task Loading_Show()
@@ -881,14 +908,26 @@ namespace WoTB_Voice_Mod_Creater
         }
         private void Voice_Mod_Free_B_Click(object sender, RoutedEventArgs e)
         {
+            if (IsProcessing)
+            {
+                return;
+            }
             Voice_Mods_Window.Window_Show();
         }
         private void Tool_B_Click(object sender, RoutedEventArgs e)
         {
+            if (IsProcessing)
+            {
+                return;
+            }
             Tools_Window.Window_Show();
         }
         private async void Update_B_Click(object sender, RoutedEventArgs e)
         {
+            if (IsProcessing)
+            {
+                return;
+            }
             try
             {
                 StreamReader str = new StreamReader(Voice_Set.FTP_Server.OpenRead("/WoTB_Voice_Mod/Update/Configs.dat"));
@@ -904,15 +943,70 @@ namespace WoTB_Voice_Mod_Creater
                     if (result == MessageBoxResult.Yes)
                     {
                         Voice_Set.App_Busy = true;
-                        Message_T.Text = "ダウンロード中です。処理が完了したらソフトを再起動します。";
+                        Download_P.Visibility = Visibility.Visible;
+                        Download_T.Visibility = Visibility.Visible;
+                        Download_Border.Visibility = Visibility.Visible;
+                        Message_T.Text = "ダウンロード中です。処理が完了したらソフトを再起動します...";
                         await Task.Delay(50);
                         if (Directory.Exists(Path + "/Backup/Update"))
                         {
                             Directory.Delete(Path + "/Backup/Update", true);
                         }
                         Directory.CreateDirectory(Path + "/Backup/Update");
+                        Directory.CreateDirectory(Voice_Set.Special_Path + "/Update");
                         IsProcessing = true;
-                        Voice_Set.FTP_Server.DownloadDirectory(Voice_Set.Special_Path + "/Update", "/WoTB_Voice_Mod/Update/" + Line, FtpFolderSyncMode.Update, FtpLocalExists.Overwrite);
+                        List<string> strList = new List<string>();
+                        FtpWebRequest fwr = (FtpWebRequest)WebRequest.Create(new Uri("ftp://" + IP + "/WoTB_Voice_Mod/Update/" + Line + "/"));
+                        fwr.UsePassive = true;
+                        fwr.KeepAlive = false;
+                        fwr.Timeout = 3000;
+                        fwr.Credentials = new NetworkCredential(SRTTbacon_Server.Name, SRTTbacon_Server.Password);
+                        fwr.Method = WebRequestMethods.Ftp.ListDirectory;
+                        StreamReader sr = new StreamReader(fwr.GetResponse().GetResponseStream());
+                        string str2 = sr.ReadLine();
+                        while (str2 != null)
+                        {
+                            strList.Add(str2);
+                            str2 = sr.ReadLine();
+                        }
+                        sr.Close();
+                        fwr.Abort();
+                        foreach (string File_Name in strList)
+                        {
+                            try
+                            {
+                                long File_Size_Full = Voice_Set.FTP_Server.GetFileSize("/WoTB_Voice_Mod/Update/" + Line + "/" + File_Name);
+                                Task task = Task.Run(() =>
+                                {
+                                    Voice_Set.FTP_Server.DownloadFile(Voice_Set.Special_Path + "/Update/" + File_Name, "/WoTB_Voice_Mod/Update/" + Line + "/" + File_Name);
+                                });
+                                while (true)
+                                {
+                                    long File_Size_Now = 0;
+                                    if (File.Exists(Voice_Set.Special_Path + "/Update/" + File_Name))
+                                    {
+                                        FileInfo fi = new FileInfo(Voice_Set.Special_Path + "/Update/" + File_Name);
+                                        File_Size_Now = fi.Length;
+                                    }
+                                    double Download_Percent = (double)File_Size_Now / File_Size_Full * 100;
+                                    int Percent_INT = (int)Math.Round(Download_Percent, MidpointRounding.AwayFromZero);
+                                    Download_P.Value = Percent_INT;
+                                    Download_T.Text = "進捗:" + Percent_INT + "%";
+                                    if (File_Size_Now >= File_Size_Full)
+                                    {
+                                        Download_P.Value = 0;
+                                        Download_T.Text = "進捗:0%";
+                                        break;
+                                    }
+                                    await Task.Delay(100);
+                                }
+                            }
+                            catch
+                            {
+
+                            }
+                        }
+                        //Voice_Set.FTP_Server.DownloadDirectory(Voice_Set.Special_Path + "/Update", "/WoTB_Voice_Mod/Update/" + Line, FtpFolderSyncMode.Update, FtpLocalExists.Overwrite);
                         bool IsReboot = false;
                         string[] Dir_Update = Directory.GetFiles(Voice_Set.Special_Path + "/Update", "*", SearchOption.AllDirectories);
                         foreach (string File_Now in Dir_Update)
@@ -954,8 +1048,12 @@ namespace WoTB_Voice_Mod_Creater
                             Process.Start(Path + "/WoTB_Voice_Mod_Creater.exe", "/up " + Process.GetCurrentProcess().Id);
                             Close();
                         }
+                        Download_P.Visibility = Visibility.Hidden;
+                        Download_T.Visibility = Visibility.Hidden;
+                        Download_Border.Visibility = Visibility.Hidden;
                         Voice_Set.App_Busy = false;
                         IsProcessing = false;
+                        Message_Feed_Out("アップデートが完了しました。");
                     }
                 }
             }
@@ -968,18 +1066,34 @@ namespace WoTB_Voice_Mod_Creater
         }
         private void Other_B_Click(object sender, RoutedEventArgs e)
         {
+            if (IsProcessing)
+            {
+                return;
+            }
             Other_Window.Window_Show();
         }
         private void Message_B_Click(object sender, RoutedEventArgs e)
         {
+            if (IsProcessing)
+            {
+                return;
+            }
             Message_Window.Window_Show();
         }
         private void Voice_Create_Tool_B_Click(object sender, RoutedEventArgs e)
         {
+            if (IsProcessing)
+            {
+                return;
+            }
             Voice_Create_Window.Window_Show();
         }
         private void WoTB_Select_B_Click(object sender, RoutedEventArgs e)
         {
+            if (IsProcessing)
+            {
+                return;
+            }
             System.Windows.Forms.OpenFileDialog openFileDialog = new System.Windows.Forms.OpenFileDialog
             {
                 Title = "WoTBのフォルダを選択してください。",
@@ -1068,9 +1182,15 @@ namespace WoTB_Voice_Mod_Creater
                 await Task.Delay(1000 / 60);
             }
             IsMessageShowing = false;
+            Message_T.Text = "";
+            Message_T.Opacity = 1;
         }
         private async void DockPanel_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
+            if (IsProcessing)
+            {
+                return;
+            }
             //アンインストール
             if ((System.Windows.Forms.Control.ModifierKeys & System.Windows.Forms.Keys.Shift) == System.Windows.Forms.Keys.Shift && e.Key == System.Windows.Input.Key.Escape)
             {
