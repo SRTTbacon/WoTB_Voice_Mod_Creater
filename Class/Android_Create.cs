@@ -38,6 +38,23 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Sub_Code.DVPL_File_Copy(Voice_Set.WoTB_Path + "/Data/Sfx/GUI_notifications_FX_howitzer_load.fsb", Dir_Path + "/Backup/" + Time_Now + "/GUI_notifications_FX_howitzer_load.fsb", true);
                 Sub_Code.DVPL_File_Copy(Voice_Set.WoTB_Path + "/Data/Sfx/GUI_quick_commands.fsb", Dir_Path + "/Backup/" + Time_Now + "/GUI_quick_commands.fsb", true);
                 Sub_Code.DVPL_File_Copy(Voice_Set.WoTB_Path + "/Data/Sfx/GUI_sirene.fsb", Dir_Path + "/Backup/" + Time_Now + "/GUI_sirene.fsb", true);
+                string[] Dirs = Directory.GetDirectories(Dir_Path + "/Backup");
+                foreach (string Dir in Dirs)
+                {
+                    string Dir_Name_Only = Path.GetFileName(Dir);
+                    if (Dir_Name_Only == Time_Now || Dir_Name_Only == "Main")
+                    {
+                        continue;
+                    }
+                    try
+                    {
+                        Directory.Delete(Dir, true);
+                    }
+                    catch (Exception e1)
+                    {
+                        Sub_Code.Error_Log_Write(e1.Message);
+                    }
+                }
                 Message_T.Text = "音声のファイル名を変換しています...";
                 await Task.Delay(50);
                 Voice_Name_To_Ingame_Voice(Voice_Dir);
@@ -76,6 +93,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 Message_T.Text = "エラー:正常に作成できませんでした。";
                 MessageBox.Show(e.Message);
+                Sub_Code.Error_Log_Write(e.Message);
             }
         }
         //*_01から計算してファイルがない番号にファイル名を変更する
@@ -510,7 +528,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                     }
                     catch
                     {
-
+                        
                     }
                 }
                 return;
@@ -714,6 +732,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             catch (Exception e)
             {
                 MessageBox.Show("エラーが発生しました。\n" + e.Message);
+                Sub_Code.Error_Log_Write(e.Message);
                 return;
             }
             if (Sub_Code.File_Exists(Voice_Dir + "/howitzer_load_01"))
@@ -960,7 +979,14 @@ namespace WoTB_Voice_Mod_Creater.Class
             await Sub_Code.Change_MP3_Encode(To_Dir);
             foreach (string Copy_File in Normal_Copy)
             {
-                File.Copy(Copy_File, To_Dir + "/" + Path.GetFileName(Copy_File), true);
+                try
+                {
+                                    File.Copy(Copy_File, To_Dir + "/" + Path.GetFileName(Copy_File), true);
+                }
+                catch (Exception e)
+                {
+                    Sub_Code.Error_Log_Write(e.Message);
+                }
             }
             if (Sub_Code.File_Exists(To_Dir + "/howitzer_load_01"))
             {
@@ -990,6 +1016,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 catch (Exception e)
                 {
                     MessageBox.Show("エラー:" + e.Message);
+                    Sub_Code.Error_Log_Write(e.Message);
                 }
             }
         }
@@ -1032,12 +1059,18 @@ namespace WoTB_Voice_Mod_Creater.Class
             File.Delete(Voice_Set.Special_Path + "/Fmod_Android_Create/" + Name_Only + ".bat");
             try
             {
-                Directory.Delete(Voice_Set.Special_Path + "/Fmod_Android_Create/.fsbcache", true);
-                Directory.Delete(Directory.GetCurrentDirectory() + "/.fsbcache", true);
+                if (Directory.Exists(Voice_Set.Special_Path + "/Fmod_Android_Create/.fsbcache"))
+                {
+                    Directory.Delete(Voice_Set.Special_Path + "/Fmod_Android_Create/.fsbcache", true);
+                }
+                else
+                {
+                    Directory.Delete(Directory.GetCurrentDirectory() + "/.fsbcache", true);
+                }
             }
-            catch
+            catch (Exception e)
             {
-
+                Sub_Code.Error_Log_Write(e.Message);
             }
             if (!File.Exists(Save_File))
             {

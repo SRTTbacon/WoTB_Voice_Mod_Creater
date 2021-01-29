@@ -38,6 +38,7 @@ namespace WoTB_Voice_Mod_Creater
             catch (Exception e)
             {
                 MessageBox.Show(e.Message);
+                Sub_Code.Error_Log_Write(e.Message);
             }
         }
         public static void Loading_Extract()
@@ -67,6 +68,7 @@ namespace WoTB_Voice_Mod_Creater
             catch (Exception e)
             {
                 MessageBox.Show(e.Message);
+                Sub_Code.Error_Log_Write(e.Message);
             }
         }
         public static void Encode_Mp3_Extract()
@@ -96,6 +98,7 @@ namespace WoTB_Voice_Mod_Creater
             catch (Exception e)
             {
                 MessageBox.Show(e.Message);
+                Sub_Code.Error_Log_Write(e.Message);
             }
         }
         public static void Fmod_Designer_Extract()
@@ -125,6 +128,7 @@ namespace WoTB_Voice_Mod_Creater
             catch (Exception e)
             {
                 MessageBox.Show(e.Message);
+                Sub_Code.Error_Log_Write(e.Message);
             }
         }
         public static void SE_Extract()
@@ -154,6 +158,37 @@ namespace WoTB_Voice_Mod_Creater
             catch (Exception e)
             {
                 MessageBox.Show(e.Message);
+                Sub_Code.Error_Log_Write(e.Message);
+            }
+        }
+        public static void Fmod_Android_Create_Extract()
+        {
+            try
+            {
+                if (Directory.Exists(Voice_Set.Special_Path + "/Fmod_Android_Create"))
+                {
+                    Directory.Delete(Voice_Set.Special_Path + "/Fmod_Android_Create", true);
+                }
+                using (Stream stream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("WoTB_Voice_Mod_Creater.Resources.Fmod_Android_Create.zip"))
+                {
+                    using (FileStream bw = new FileStream(Voice_Set.Special_Path + "/Temp_Fmod_Android_Create.zip", FileMode.Create))
+                    {
+                        while (stream.Position < stream.Length)
+                        {
+                            byte[] bits = new byte[stream.Length];
+                            stream.Read(bits, 0, (int)stream.Length);
+                            bw.Write(bits, 0, (int)stream.Length);
+                        }
+                    }
+                    stream.Close();
+                }
+                ZipFile.ExtractToDirectory(Voice_Set.Special_Path + "/Temp_Fmod_Android_Create.zip", Voice_Set.Special_Path + "/Fmod_Android_Create");
+                File.Delete(Voice_Set.Special_Path + "/Temp_Fmod_Android_Create.zip");
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message);
+                Sub_Code.Error_Log_Write(e.Message);
             }
         }
         //.dvplを解除する
@@ -166,7 +201,8 @@ namespace WoTB_Voice_Mod_Creater
             }
             File.Copy(From_File, Voice_Set.Special_Path + "/DVPL/Temp_Unpack.dvpl", true);
             StreamWriter DVPL_Unpack = File.CreateText(Voice_Set.Special_Path + "/DVPL/UnPack.bat");
-            DVPL_Unpack.Write("chcp 65001 \n\"" + Voice_Set.Special_Path + "/DVPL/Python/python.exe\" \"" + Voice_Set.Special_Path + "/DVPL/UnPack.py\" \"" + Voice_Set.Special_Path + "/DVPL/Temp_Unpack.dvpl\" \"" + Voice_Set.Special_Path + "/DVPL/Temp_Unpacked.tmp\"");
+            DVPL_Unpack.WriteLine("chcp 65001");
+            DVPL_Unpack.Write("\"" + Voice_Set.Special_Path + "/DVPL/Python/python.exe\" \"" + Voice_Set.Special_Path + "/DVPL/UnPack.py\" \"" + From_File + "\" \"" + To_File + "\"");
             DVPL_Unpack.Close();
             ProcessStartInfo processStartInfo = new ProcessStartInfo
             {
@@ -185,9 +221,10 @@ namespace WoTB_Voice_Mod_Creater
                     File.Delete(From_File);
                 }
             }
-            catch
+            catch (Exception e)
             {
                 //dvplが解除されなかった場合
+                Sub_Code.Error_Log_Write(e.Message);
             }
             File.Delete(Voice_Set.Special_Path + "/DVPL/Temp_Unpack.dvpl");
             File.Delete(Voice_Set.Special_Path + "/DVPL/UnPack.bat");

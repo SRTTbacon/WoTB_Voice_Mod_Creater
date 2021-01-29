@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -97,13 +99,13 @@ namespace WoTB_Voice_Mod_Creater.Class
                     str.Close();
                     File.Delete(Voice_Set.Special_Path + "/Temp_Other_Music_List.dat");
                 }
-                catch
+                catch (Exception e)
                 {
                     System.Windows.MessageBox.Show("リストが破損しているためファイルを読み込めませんでした。\nエラー回避のためリストは削除されます。");
                     File.Delete(Voice_Set.Special_Path + "/Other_Music_List.dat");
                     File_Full_Path.Clear();
                     Music_List.Items.Clear();
-
+                    Sub_Code.Error_Log_Write(e.Message);
                 }
             }
             if (Video_V.Source != null && Music_Fix_B.Visibility == Visibility.Visible)
@@ -166,6 +168,8 @@ namespace WoTB_Voice_Mod_Creater.Class
                         Video_V.Source = null;
                         Video_Mode_Change(false);
                         Music_List.SelectedIndex = -1;
+                        Device_T.Margin = new Thickness(-2100, 640, 0, 0);
+                        Device_L.Margin = new Thickness(-2100, 700, 0, 0);
                     }
                     IsEnded = false;
                 }
@@ -235,6 +239,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 }
             }
             File.Delete(Voice_Set.Special_Path + "/Temp_Other_Music_List.dat");
+            Scroll.ToBottom(Music_List);
         }
         void List_Remove_Index()
         {
@@ -590,6 +595,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Video_Mode_C.Visibility = Visibility.Hidden;
                 Device_T.Visibility = Visibility.Hidden;
                 Device_L.Visibility = Visibility.Hidden;
+                Youtube_Link_B.Visibility = Visibility.Hidden;
                 Zoom_T.Visibility = Visibility.Visible;
                 Zoom_S.Visibility = Visibility.Visible;
                 Music_Fix_B.Visibility = Visibility.Visible;
@@ -624,6 +630,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Video_Mode_C.Visibility = Visibility.Visible;
                 Device_T.Visibility = Visibility.Visible;
                 Device_L.Visibility = Visibility.Visible;
+                Youtube_Link_B.Visibility = Visibility.Visible;
                 Music_Fix_B.Visibility = Visibility.Hidden;
                 Zoom_T.Visibility = Visibility.Hidden;
                 Zoom_S.Visibility = Visibility.Hidden;
@@ -640,12 +647,12 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Music_Pause_B.Margin = new Thickness(-1830, 525, 0, 0);
                 Music_Minus_B.Margin = new Thickness(-3475, 525, 0, 0);
                 Music_Plus_B.Margin = new Thickness(-2960, 525, 0, 0);
-                Loop_T.Margin = new Thickness(-3125, 680, 0, 0);
-                Loop_C.Margin = new Thickness(-3350, 700, 0, 0);
-                Random_T.Margin = new Thickness(-3100, 755, 0, 0);
-                Random_C.Margin = new Thickness(-3350, 775, 0, 0);
-                Background_T.Margin = new Thickness(-3005, 825, 0, 0);
-                Background_C.Margin = new Thickness(-3350, 840, 0, 0);
+                Loop_T.Margin = new Thickness(-3125, 630, 0, 0);
+                Loop_C.Margin = new Thickness(-3350, 650, 0, 0);
+                Random_T.Margin = new Thickness(-3100, 705, 0, 0);
+                Random_C.Margin = new Thickness(-3350, 725, 0, 0);
+                Background_T.Margin = new Thickness(-3005, 775, 0, 0);
+                Background_C.Margin = new Thickness(-3350, 790, 0, 0);
                 Video_Change_B.Margin = new Thickness(-2100, 615, 0, 0);
             }
         }
@@ -702,9 +709,9 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 Video_V.Margin = new Thickness(-1200 - Video_V.Width / 2 + (X_Move * Zoom_S.Value), (-(Video_V.Height - 810) / 3) + (Y_Move * Zoom_S.Value), 0, 0);
             }
-            catch
+            catch (Exception e1)
             {
-
+                Sub_Code.Error_Log_Write(e1.Message);
             }
         }
         async void Double_Click_Video_V()
@@ -809,6 +816,56 @@ namespace WoTB_Voice_Mod_Creater.Class
             string Message_02 = "・一時フォルダの\"Other_Music_List.dat\"を削除するとリストが初期化されます。(ソフトの再起動が必要)\n";
             string Message_03 = "・音楽ファイルが見つからない場合は再生されません。";
             System.Windows.MessageBox.Show(Message_01 + Message_02 + Message_03);
+        }
+        private async void Youtube_Link_B_Click(object sender, RoutedEventArgs e)
+        {
+            if (!File.Exists(Voice_Set.Special_Path + "/Encode_Mp3/youtube-dl.exe"))
+            {
+                bool IsDownloadOK = false;
+                Load_Window.Window_Start();
+                Task task = Task.Run(() =>
+                {
+                    Task task_01 = Task.Run(() =>
+                    {
+                        Voice_Set.FTP_Server.DownloadFile(Voice_Set.Special_Path + "/Encode_Mp3/youtube-dl.exe", "/WoTB_Voice_Mod/Update/Data/youtube-dl.exe");
+                    });
+                    task_01.Wait();
+                    IsDownloadOK = true;
+                });
+                while (!IsDownloadOK)
+                {
+                    await Task.Delay(100);
+                }
+                Load_Window.Window_Stop();
+            }
+            Youtube_Link_Window.Window_Show();
+            while (Youtube_Link_Window.Visibility == Visibility.Visible)
+            {
+                await Task.Delay(100);
+            }
+            if (Sub_Code.AutoListAdd.Count > 0)
+            {
+                foreach (string File_Now in Sub_Code.AutoListAdd)
+                {
+                    File_Full_Path.Add(File_Now);
+                    Music_List.Items.Add(Path.GetFileName(File_Now));
+                }
+                StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Temp_Other_Music_List.dat");
+                foreach (string Now in File_Full_Path)
+                {
+                    stw.WriteLine(Now);
+                }
+                stw.Close();
+                using (var eifs = new FileStream(Voice_Set.Special_Path + "/Temp_Other_Music_List.dat", FileMode.Open, FileAccess.Read))
+                {
+                    using (var eofs = new FileStream(Voice_Set.Special_Path + "/Other_Music_List.dat", FileMode.Create, FileAccess.Write))
+                    {
+                        FileEncode.FileEncryptor.Encrypt(eifs, eofs, "SRTTbacon_Music_List_Save");
+                    }
+                }
+                File.Delete(Voice_Set.Special_Path + "/Temp_Other_Music_List.dat");
+                Scroll.ToBottom(Music_List);
+            }
         }
     }
 }

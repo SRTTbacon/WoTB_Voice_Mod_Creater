@@ -11,7 +11,6 @@ namespace WoTB_Voice_Mod_Creater.Class
 {
     public partial class Server_Create : System.Windows.Controls.UserControl
     {
-        readonly string Special_Path = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "/WoTB_Voice_Mod_Creater";
         bool IsProcessing = false;
         public Server_Create()
         {
@@ -26,9 +25,9 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 return;
             }
-            if (Directory.Exists(Special_Path + "/Server/Voices"))
+            if (Directory.Exists(Voice_Set.Special_Path + "/Server/Voices"))
             {
-                Directory.Delete(Special_Path + "/Server/Voices", true);
+                Directory.Delete(Voice_Set.Special_Path + "/Server/Voices", true);
             }
             if (Opacity >= 1)
             {
@@ -56,7 +55,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             if (f.ShowDialog() == DialogResult.OK)
             {
                 Message_T.Text = "ファイルを確認しています...";
-                Directory.CreateDirectory(Special_Path + "/Server/Voices");
+                Directory.CreateDirectory(Voice_Set.Special_Path + "/Server/Voices");
                 Voice_Add_L.Items.Clear();
                 List<string> Voice_List_Add = new List<string>();
                 List<string> Voice_Not_Add = new List<string>();
@@ -78,7 +77,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                     {
                         Voice_Add_L.Items.Add(Path.GetFileName(File_Name));
                         Voice_List_Add.Add(File_Name);
-                        File.Copy(File_Name, Special_Path + "/Server/Voices/" + Path.GetFileName(File_Name), true);
+                        File.Copy(File_Name, Voice_Set.Special_Path + "/Server/Voices/" + Path.GetFileName(File_Name), true);
                     }
                     else
                     {
@@ -149,7 +148,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 string Not_Add_FileName = "";
                 foreach (string File_Path in ofd.FileNames)
                 {
-                    if (File.Exists(Special_Path + "/Server/Voices/" + Path.GetFileName(File_Path)))
+                    if (File.Exists(Voice_Set.Special_Path + "/Server/Voices/" + Path.GetFileName(File_Path)))
                     {
                         IsFileExists = true;
                         Not_Add_FileName += Path.GetFileName(File_Path) + "\n";
@@ -157,7 +156,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                     else
                     {
                         Voice_Add_L.Items.Add(Path.GetFileName(File_Path));
-                        File.Copy(File_Path, Special_Path + "/Server/Voices/" + Path.GetFileName(File_Path), true);
+                        File.Copy(File_Path, Voice_Set.Special_Path + "/Server/Voices/" + Path.GetFileName(File_Path), true);
                     }
                 }
                 if (IsFileExists)
@@ -205,8 +204,8 @@ namespace WoTB_Voice_Mod_Creater.Class
             }
             try
             {
-                Directory.CreateDirectory(Special_Path + "/Temp/" + Project_Name_T.Text);
-                Directory.Delete(Special_Path + "/Temp/" + Project_Name_T.Text);
+                Directory.CreateDirectory(Voice_Set.Special_Path + "/Temp/" + Project_Name_T.Text);
+                Directory.Delete(Voice_Set.Special_Path + "/Temp/" + Project_Name_T.Text);
                 if (Project_Name_T.Text.Contains("/"))
                 {
                     Message_T.Text = "プロジェクト名に不適切な文字が含まれています。";
@@ -230,7 +229,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             }
             if (Voice_Set.FTP_Server.DirectoryExists("/WoTB_Voice_Mod/" + Project_Name_T.Text))
             {
-                Message_T.Text = "同名のプロジェクトがするか、別の目的で使用されています。";
+                Message_T.Text = "同名のプロジェクトが存在するか、別の目的で使用されています。";
                 return;
             }
             Server_Create_Config Conf = new Server_Create_Config
@@ -245,25 +244,25 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Conf.Password = Set_Password_T.Text;
             }
             XmlSerializer xmlSerializer = new XmlSerializer(typeof(Server_Create_Config));
-            StreamWriter streamWriter = new StreamWriter(Special_Path + "/Temp_Create_Server.dat", false, new UTF8Encoding(false));
+            StreamWriter streamWriter = new StreamWriter(Voice_Set.Special_Path + "/Temp_Create_Server.dat", false, new UTF8Encoding(false));
             xmlSerializer.Serialize(streamWriter, Conf);
             streamWriter.Close();
             Voice_Set.FTP_Server.CreateDirectory("/WoTB_Voice_Mod/" + Project_Name_T.Text, true);
-            Voice_Set.FTP_Server.UploadFile(Special_Path + "/Temp_Create_Server.dat", "/WoTB_Voice_Mod/" + Project_Name_T.Text + "/Server_Config.dat");
-            File.Delete(Special_Path + "/Temp_Create_Server.dat");
-            StreamWriter stw = File.CreateText(Special_Path + "/Temp_Change_Names.dat");
+            Voice_Set.FTP_Server.UploadFile(Voice_Set.Special_Path + "/Temp_Create_Server.dat", "/WoTB_Voice_Mod/" + Project_Name_T.Text + "/Server_Config.dat");
+            File.Delete(Voice_Set.Special_Path + "/Temp_Create_Server.dat");
+            StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Temp_Change_Names.dat");
             stw.WriteLine("ここにファイルの変更を保存します。");
             stw.Close();
-            Voice_Set.FTP_Server.UploadFile(Special_Path + "/Temp_Change_Names.dat", "/WoTB_Voice_Mod/" + Project_Name_T.Text + "/Change_Names.dat");
-            File.Delete(Special_Path + "/Temp_Change_Names.dat");
-            StreamWriter Chat_Create = File.CreateText(Special_Path + "/Temp_Chat_Create.dat");
+            Voice_Set.FTP_Server.UploadFile(Voice_Set.Special_Path + "/Temp_Change_Names.dat", "/WoTB_Voice_Mod/" + Project_Name_T.Text + "/Change_Names.dat");
+            File.Delete(Voice_Set.Special_Path + "/Temp_Change_Names.dat");
+            StreamWriter Chat_Create = File.CreateText(Voice_Set.Special_Path + "/Temp_Chat_Create.dat");
             Chat_Create.WriteLine(Voice_Set.UserName + "がプロジェクトを作成しました。");
             Chat_Create.Close();
-            Voice_Set.FTP_Server.UploadFile(Special_Path + "/Temp_Chat_Create.dat", "/WoTB_Voice_Mod/" + Project_Name_T.Text + "/Chat.dat");
-            File.Delete(Special_Path + "/Temp_Chat_Create.dat");
+            Voice_Set.FTP_Server.UploadFile(Voice_Set.Special_Path + "/Temp_Chat_Create.dat", "/WoTB_Voice_Mod/" + Project_Name_T.Text + "/Chat.dat");
+            File.Delete(Voice_Set.Special_Path + "/Temp_Chat_Create.dat");
             Message_T.Text = "サーバー内にプロジェクトを作成しています...";
             await Task.Delay(50);
-            string[] Upload_Files = Directory.GetFiles(Special_Path + "/Server/Voices", "*", SearchOption.TopDirectoryOnly);
+            string[] Upload_Files = Directory.GetFiles(Voice_Set.Special_Path + "/Server/Voices", "*", SearchOption.TopDirectoryOnly);
             Process_P.Value = 0;
             Voice_Set.FTP_Server.CreateDirectory("/WoTB_Voice_Mod/" + Project_Name_T.Text + "/Voices");
             int Count_Max = Upload_Files.Length;
@@ -281,14 +280,14 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Process_T.Text = Count_Now + "/" + Count_Max;
             }
             //Voice_Set.FTP_Server.UploadDirectory(Special_Path + "/Server/Voices", "/WoTB_Voice_Mod/" + Project_Name_T.Text + "/Voices");
-            Voice_Set.FTP_Server.DownloadFile(Special_Path + "/Server_Names.dat", "/WoTB_Voice_Mod/Server_Names.dat");
-            StreamWriter stw2 = new StreamWriter(Special_Path + "/Server_Names.dat", true, Encoding.UTF8);
+            Voice_Set.FTP_Server.DownloadFile(Voice_Set.Special_Path + "/Server_Names.dat", "/WoTB_Voice_Mod/Server_Names.dat");
+            StreamWriter stw2 = new StreamWriter(Voice_Set.Special_Path + "/Server_Names.dat", true, Encoding.UTF8);
             stw2.WriteLine(Project_Name_T.Text);
             stw2.Close();
-            Directory.CreateDirectory(Special_Path + "/Server/" + Project_Name_T.Text);
-            Directory.Move(Special_Path + "/Server/Voices", Special_Path + "/Server/" + Project_Name_T.Text + "/Voices");
+            Directory.CreateDirectory(Voice_Set.Special_Path + "/Server/" + Project_Name_T.Text);
+            Directory.Move(Voice_Set.Special_Path + "/Server/Voices", Voice_Set.Special_Path + "/Server/" + Project_Name_T.Text + "/Voices");
             Message_T.Text = "プロジェクトを作成しました。適応します。";
-            Voice_Set.FTP_Server.UploadFile(Special_Path + "/Server_Names.dat", "/WoTB_Voice_Mod/Server_Names.dat");
+            Voice_Set.FTP_Server.UploadFile(Voice_Set.Special_Path + "/Server_Names.dat", "/WoTB_Voice_Mod/Server_Names.dat");
             Message_T.Text = "";
             Voice_Add_L.Items.Clear();
             R_18_C.IsChecked = false;

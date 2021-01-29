@@ -13,11 +13,24 @@ namespace WoTB_Voice_Mod_Creater.Class
         readonly List<string> File_Full_Path = new List<string>();
         string BGM_Dir = "";
         string BGM_Dir_Now = "";
+        int Voice_Max_Index = 0;
+        float Volume = 1f;
+        float Pitch = 0f;
         bool IsBusy = false;
         bool IsMessageShowing = false;
+        Cauldron.FMOD.EVENT_LOADINFO ELI = new Cauldron.FMOD.EVENT_LOADINFO();
+        Cauldron.FMOD.EventProject EP = new Cauldron.FMOD.EventProject();
+        Cauldron.FMOD.EventGroup EG = new Cauldron.FMOD.EventGroup();
+        Cauldron.FMOD.Event FE = new Cauldron.FMOD.Event();
         public Tools()
         {
             InitializeComponent();
+            Pitch_S.Minimum = -4;
+            Pitch_S.Maximum = 2;
+            Volume_S.Minimum = 0;
+            Volume_S.Maximum = 100;
+            Pitch_S.Value = 0;
+            Volume_S.Value = 75;
         }
         public async void Window_Show()
         {
@@ -96,9 +109,10 @@ namespace WoTB_Voice_Mod_Creater.Class
                             throw new Exception(".dvplファイルが作成できていません。");
                         }
                     }
-                    catch
+                    catch (Exception e1)
                     {
                         Error_Path += File_Path + "\n";
+                        Sub_Code.Error_Log_Write(e1.Message);
                     }
                 }
                 Message_Feed_Out("ファイルをDVPL化しました。");
@@ -256,9 +270,10 @@ namespace WoTB_Voice_Mod_Creater.Class
                             {
                                 File.Move(File_Path, Directory.GetCurrentDirectory() + "/Projects/BGM_Mod/BGM_" + Temp + "/Music/Music_0" + Number + Path.GetExtension(File_Path));
                             }
-                            catch
+                            catch (Exception e1)
                             {
                                 System.Windows.MessageBox.Show(Path.GetFileName(File_Path + "が存在しません。"));
+                                Sub_Code.Error_Log_Write(e1.Message);
                             }
                             break;
                         }
@@ -271,9 +286,10 @@ namespace WoTB_Voice_Mod_Creater.Class
                             {
                                 File.Move(File_Path, Directory.GetCurrentDirectory() + "/Projects/BGM_Mod/BGM_" + Temp + "/Music/Music_" + Number + Path.GetExtension(File_Path));
                             }
-                            catch
+                            catch (Exception e1)
                             {
                                 System.Windows.MessageBox.Show(Path.GetFileName(File_Path + "が存在しません。"));
+                                Sub_Code.Error_Log_Write(e1.Message);
                             }
                             break;
                         }
@@ -300,9 +316,9 @@ namespace WoTB_Voice_Mod_Creater.Class
                         {
                             File.Move(File_Now, Directory.GetCurrentDirectory() + "/Projects/BGM_Mod/BGM_" + Temp + "/Music/" + Path.GetFileNameWithoutExtension(File_Now) + ".raw");
                         }
-                        catch
+                        catch (Exception e1)
                         {
-
+                            Sub_Code.Error_Log_Write(e1.Message);
                         }
                     }
                     else if (Path.GetFileName(File_Now) != ".mp3")
@@ -311,9 +327,9 @@ namespace WoTB_Voice_Mod_Creater.Class
                         {
                             File.Move(File_Now, Directory.GetCurrentDirectory() + "/Projects/BGM_Mod/BGM_" + Temp + "/Music/" + Path.GetFileNameWithoutExtension(File_Now) + ".mp3");
                         }
-                        catch
+                        catch (Exception e1)
                         {
-
+                            Sub_Code.Error_Log_Write(e1.Message);
                         }
                     }
                 }
@@ -438,9 +454,10 @@ namespace WoTB_Voice_Mod_Creater.Class
                     BGM_Mod_Install(Temp);
                     BGM_Dir_Now = Temp;
                 }
-                catch
+                catch (Exception e1)
                 {
                     Message_Feed_Out("エラー:BGMをWoTBに適応できませんでした。");
+                    Sub_Code.Error_Log_Write(e1.Message);
                 }
             }
             else
@@ -504,9 +521,10 @@ namespace WoTB_Voice_Mod_Creater.Class
                     string Dir = Temp_Dir.Substring(Temp_Dir.LastIndexOf('\\'));
                     BGM_Dir = Dir.Substring(Dir.LastIndexOf('_') + 1);
                 }
-                catch
+                catch (Exception e1)
                 {
                     Message_Feed_Out("データをロードできませんでした。");
+                    Sub_Code.Error_Log_Write(e1.Message);
                 }
             }
         }
@@ -565,9 +583,10 @@ namespace WoTB_Voice_Mod_Creater.Class
                     throw new Exception("FEV + FSBファイルが存在しません。");
                 }
             }
-            catch
+            catch (Exception e1)
             {
                 Message_Feed_Out("エラー:正しく反映されませんでした。");
+                Sub_Code.Error_Log_Write(e1.Message);
                 return;
             }
             try
@@ -696,7 +715,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Sub_Code.DVPL_File_Delete(Voice_Set.WoTB_Path + "/back_Music.fsb");
                 Message_Feed_Out("WoTBに適応しました。起動して確認してください。");
             }
-            catch
+            catch (Exception e1)
             {
                 Message_Feed_Out("エラー:sounds.yamlかsfx_high(low).yamlに問題が発生しました。");
                 Sub_Code.DVPL_File_Delete(Voice_Set.WoTB_Path + "/Data/Mods/Music.fev");
@@ -706,6 +725,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Sub_Code.DVPL_File_Copy(Voice_Set.Special_Path + "/back_sfx_low.yaml", Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_low.yaml", true);
                 Sub_Code.DVPL_File_Copy(Voice_Set.Special_Path + "/back_Music.fev", Voice_Set.WoTB_Path + "/Data/Mods/Music.fev", true);
                 Sub_Code.DVPL_File_Copy(Voice_Set.Special_Path + "/back_Music.fsb", Voice_Set.WoTB_Path + "/Data/Mods/Music.fsb", true);
+                Sub_Code.Error_Log_Write(e1.Message);
             }
         }
         private void BGM_List_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
@@ -742,6 +762,93 @@ namespace WoTB_Voice_Mod_Creater.Class
             string Message_01 = "このバージョンではWoTB内のData/Sfxに入っている*.fev.dvplと*.fsb.dvplを解除できない可能性があります。\n";
             string Message_02 = "また、WoTB内の他のファイルも解除できないかもしれません。(sounds.yaml.dvplやマップファイルは解除できました。)";
             System.Windows.MessageBox.Show(Message_01 + Message_02);
+        }
+        private void FEV_Select_B_Click(object sender, RoutedEventArgs e)
+        {
+            if (IsBusy)
+            {
+                return;
+            }
+            OpenFileDialog ofd = new OpenFileDialog()
+            {
+                Title = "FEVファイルを選択してください。",
+                Filter = "FEVファイル(*.fev)|*.fev",
+                Multiselect = false,
+            };
+            if (ofd.ShowDialog() == DialogResult.OK)
+            {
+                try
+                {
+                    EP.Release();
+                    FE.Release();
+                    Fmod_Player.ESystem.Load(ofd.FileName, ref ELI, ref EP);
+                    Cauldron.FMOD.EventProject EC = new Cauldron.FMOD.EventProject();
+                    Fmod_Player.ESystem.GetProjectByIndex(0, ref EC);
+                    EC.GetGroupByIndex(0, true, ref EG);
+                    EG.GetNumEvents(ref Voice_Max_Index);
+                    FEV_Index_S.Value = 0;
+                    FEV_Index_S.Maximum = Voice_Max_Index - 1;
+                    FEV_Index_T.Text = "1/" + Voice_Max_Index;
+                    FEV_Name_T.Text = Path.GetFileName(ofd.FileName);
+                }
+                catch (Exception e1)
+                {
+                    FEV_Name_T.Text = "";
+                    Message_Feed_Out("FEVファイルを取得できませんでした。");
+                    Sub_Code.Error_Log_Write(e1.Message);
+                }
+            }
+        }
+        void Set_Fmod_Bank_Play(int Voice_Number)
+        {
+            //fevの中から指定した位置のサウンドを再生
+            if (IsBusy)
+            {
+                return;
+            }
+            if (FE != null)
+            {
+                FE.Stop();
+            }
+            EG.GetEventByIndex(Voice_Number, Cauldron.FMOD.EVENT_MODE.DEFAULT, ref FE);
+            FE.SetVolume(Volume);
+            FE.SetPitch(Pitch, Cauldron.FMOD.EVENT_PITCHUNITS.TONES);
+            FE.Start();
+        }
+        private void FEV_Stop_B_Click(object sender, RoutedEventArgs e)
+        {
+            FE.Stop();
+        }
+        private void FEV_Play_B_Click(object sender, RoutedEventArgs e)
+        {
+            Set_Fmod_Bank_Play((int)FEV_Index_S.Value);
+        }
+        private void FEV_Index_S_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            FEV_Index_T.Text = (int)(FEV_Index_S.Value + 1) + "/" + Voice_Max_Index;
+        }
+        private void Pitch_S_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            Pitch = (float)Pitch_S.Value;
+            Pitch_T.Text = "速度:" + Math.Round(Pitch_S.Value, 1, MidpointRounding.AwayFromZero);
+            if (FE != null)
+            {
+                FE.SetPitch(Pitch, Cauldron.FMOD.EVENT_PITCHUNITS.TONES);
+            }
+        }
+        private void Volume_S_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            //音量を変更(ダブルクリックで初期化)
+            Volume = (float)Volume_S.Value / 100;
+            Volume_T.Text = "音量:" + (int)Volume_S.Value;
+            if (FE != null)
+            {
+                FE.SetVolume(Volume);
+            }
+        }
+        private void Pitch_S_MouseRightButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            Pitch_S.Value = 0;
         }
     }
 }

@@ -78,7 +78,7 @@ namespace WoTB_Voice_Mod_Creater
                 string Server_Rename = Message_Temp[2].Replace("\0", "");
                 if (Voice_Set.SRTTbacon_Server_Name != Server_Rename)
                 {
-                    Directory.Move(Special_Path + "/Server/" + Voice_Set.SRTTbacon_Server_Name, Special_Path + "/Server/" + Server_Rename);
+                    Directory.Move(Voice_Set.Special_Path + "/Server/" + Voice_Set.SRTTbacon_Server_Name, Voice_Set.Special_Path + "/Server/" + Server_Rename);
                     Voice_Set.SRTTbacon_Server_Name = Server_Rename;
                 }
                 if (Voice_Set.FTP_Server.FileExists("/WoTB_Voice_Mod/" + Voice_Set.SRTTbacon_Server_Name + "/Remove_Files.dat"))
@@ -95,7 +95,7 @@ namespace WoTB_Voice_Mod_Creater
                         {
                             try
                             {
-                                File.Delete(Special_Path + "/Server/" + Voice_Set.SRTTbacon_Server_Name + "/Voices/" + Line);
+                                File.Delete(Voice_Set.Special_Path + "/Server/" + Voice_Set.SRTTbacon_Server_Name + "/Voices/" + Line);
                             }
                             catch
                             {
@@ -119,7 +119,7 @@ namespace WoTB_Voice_Mod_Creater
                         {
                             try
                             {
-                                Voice_Set.FTP_Server.DownloadFile(Special_Path + "/Server/" + Voice_Set.SRTTbacon_Server_Name + "/Voices/" + Line, "/WoTB_Voice_Mod/" + Voice_Set.SRTTbacon_Server_Name + "/Voices/" + Line);
+                                Voice_Set.FTP_Server.DownloadFile(Voice_Set.Special_Path + "/Server/" + Voice_Set.SRTTbacon_Server_Name + "/Voices/" + Line, "/WoTB_Voice_Mod/" + Voice_Set.SRTTbacon_Server_Name + "/Voices/" + Line);
                                 IsChanged = true;
                             }
                             catch
@@ -130,7 +130,7 @@ namespace WoTB_Voice_Mod_Creater
                     }
                     if (IsChanged)
                     {
-                        string[] Temp = Directory.GetFiles(Special_Path + "/Server/" + Voice_Set.SRTTbacon_Server_Name + "/Voices");
+                        string[] Temp = Directory.GetFiles(Voice_Set.Special_Path + "/Server/" + Voice_Set.SRTTbacon_Server_Name + "/Voices");
                         List<string> Temp_01 = new List<string>();
                         for (int Number = 0; Number <= Temp.Length - 1; Number++)
                         {
@@ -152,6 +152,7 @@ namespace WoTB_Voice_Mod_Creater
             catch (Exception e)
             {
                 MessageBox.Show("エラー:" + e.Message);
+                Sub_Code.Error_Log_Write(e.Message);
             }
         }
     }

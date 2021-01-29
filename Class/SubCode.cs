@@ -6,11 +6,40 @@ using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
 
+public partial class Scroll
+{
+    private static ScrollViewer FindViewer(DependencyObject root)
+    {
+        var queue = new Queue<DependencyObject>(new[] { root });
+        do
+        {
+            var item = queue.Dequeue();
+            if (item is ScrollViewer) { return (ScrollViewer)item; }
+            var count = VisualTreeHelper.GetChildrenCount(item);
+            for (var i = 0; i < count; i++) { queue.Enqueue(VisualTreeHelper.GetChild(item, i)); }
+        } while (queue.Count > 0);
+        return null;
+    }
+    public static void ToBottom(ListBox listBox)
+    {
+        var scrollViewer = FindViewer(listBox);
+        if (scrollViewer != null)
+        {
+            scrollViewer.ScrollChanged += (o, args) =>
+            {
+                if (args.ExtentHeightChange > 0) { scrollViewer.ScrollToBottom(); }
+            };
+        }
+    }
+}
 namespace WoTB_Voice_Mod_Creater
 {
     public class Sub_Code
     {
+        static List<string> IsAutoListAdd = new List<string>();
         static bool IsServerCreating = false;
         static bool IsCreatingProject = false;
         static bool IsVolumeSet = false;
@@ -46,6 +75,11 @@ namespace WoTB_Voice_Mod_Creater
         {
             get { return IsAndroidMode; }
             set { IsAndroidMode = value; }
+        }
+        public static List<string> AutoListAdd
+        {
+            get { return IsAutoListAdd; }
+            set { IsAutoListAdd = value; }
         }
         //.dvplを抜いたファイルパスからファイルが存在するか
         //例:sounds.yaml.dvpl -> DVPL_File_Exists(sounds.yaml) -> true,false
@@ -113,9 +147,10 @@ namespace WoTB_Voice_Mod_Creater
                 MessageBox.Show("WoTBのインストール先を取得できませんでした。SteamにWoTBがインストールされていないか、32BitOSを使用している可能性があります。");
                 return false;
             }
-            catch
+            catch (Exception e)
             {
                 MessageBox.Show("WoTBのインストール先を取得できませんでした。SteamにWoTBがインストールされていないか、32BitOSを使用している可能性があります。");
+                Sub_Code.Error_Log_Write(e.Message);
                 return false;
             }
         }
@@ -145,7 +180,7 @@ namespace WoTB_Voice_Mod_Creater
             }
             catch (Exception e)
             {
-                MessageBox.Show("フォルダをコピーできませんでした。\n内容:" + e.Message);
+                Sub_Code.Error_Log_Write(e.Message);
             }
         }
         //.dvplを抜いたファイルをコピーする
@@ -162,9 +197,9 @@ namespace WoTB_Voice_Mod_Creater
                         File.Copy(FromFilePath, ToFilePath, IsOverWrite);
                         return true;
                     }
-                    catch
+                    catch (Exception e)
                     {
-
+                        Sub_Code.Error_Log_Write(e.Message);
                     }
                 }
                 else if (File.Exists(FromFilePath + ".dvpl"))
@@ -174,9 +209,9 @@ namespace WoTB_Voice_Mod_Creater
                         File.Copy(FromFilePath + ".dvpl", ToFilePath + ".dvpl", IsOverWrite);
                         return true;
                     }
-                    catch
+                    catch (Exception e)
                     {
-
+                        Sub_Code.Error_Log_Write(e.Message);
                     }
                 }
             }
@@ -194,9 +229,9 @@ namespace WoTB_Voice_Mod_Creater
                     File.Delete(FilePath);
                     IsDelected = true;
                 }
-                catch
+                catch (Exception e)
                 {
-                    
+                    Sub_Code.Error_Log_Write(e.Message);
                 }
             }
             else if (File.Exists(FilePath + ".dvpl"))
@@ -206,9 +241,9 @@ namespace WoTB_Voice_Mod_Creater
                     File.Delete(FilePath + ".dvpl");
                     IsDelected = true;
                 }
-                catch
+                catch (Exception e)
                 {
-                    
+                    Sub_Code.Error_Log_Write(e.Message);
                 }
             }
             return IsDelected;
@@ -230,8 +265,9 @@ namespace WoTB_Voice_Mod_Creater
                 File.Delete(From_File_Path);
                 return true;
             }
-            catch
+            catch (Exception e)
             {
+                Sub_Code.Error_Log_Write(e.Message);
                 return false;
             }
         }
@@ -243,7 +279,7 @@ namespace WoTB_Voice_Mod_Creater
             return File_Move(From_Path, To_Path, IsOverWrite);
         }
         //ファイル拡張子を指定しないでファイルをコピーする
-        public static void File_Copy(string From_File_Path, string To_File_Path, bool IsOverWrite)
+        public static bool File_Copy(string From_File_Path, string To_File_Path, bool IsOverWrite)
         {
             string File_Path = "";
             string Dir = From_File_Path.Substring(0, From_File_Path.LastIndexOf('/'));
@@ -255,11 +291,11 @@ namespace WoTB_Voice_Mod_Creater
             }
             if (File_Path == "" || !File.Exists(From_File_Path))
             {
-                return;
+                return false;
             }
             if (File_Exists(To_File_Path) && !IsOverWrite)
             {
-                return;
+                return false;
             }
             try
             {
@@ -267,11 +303,13 @@ namespace WoTB_Voice_Mod_Creater
             }
             catch (Exception e)
             {
-                MessageBox.Show("エラー:ファイルをコピーできませんでした。\n内容:" + e.Message);
+                Sub_Code.Error_Log_Write(e.Message);
+                return false;
             }
+            return true;
         }
         //ファイル拡張子を指定しないでファイルを削除
-        public static void File_Delete(string File_Path)
+        public static bool File_Delete(string File_Path)
         {
             string Dir = File_Path.Substring(0, File_Path.LastIndexOf('/'));
             string Name = File_Path.Substring(File_Path.LastIndexOf('/') + 1);
@@ -279,8 +317,9 @@ namespace WoTB_Voice_Mod_Creater
             if (files.Length > 0)
             {
                 File.Delete(files[0]);
+                return true;
             }
-            return;
+            return false;
         }
         //ファイル拡張子なしでファイルが存在するか取得
         //戻り値:存在した場合true,それ以外はfalse
@@ -300,8 +339,9 @@ namespace WoTB_Voice_Mod_Creater
                     return false;
                 }
             }
-            catch
+            catch (Exception e)
             {
+                Sub_Code.Error_Log_Write(e.Message);
                 return false;
             }
         }
@@ -323,8 +363,9 @@ namespace WoTB_Voice_Mod_Creater
                     return false;
                 }
             }
-            catch
+            catch (Exception e)
             {
+                Sub_Code.Error_Log_Write(e.Message);
                 return false;
             }
         }
@@ -346,8 +387,9 @@ namespace WoTB_Voice_Mod_Creater
                     return "";
                 }
             }
-            catch
+            catch (Exception e)
             {
+                Sub_Code.Error_Log_Write(e.Message);
                 return "";
             }
         }
@@ -412,8 +454,9 @@ namespace WoTB_Voice_Mod_Creater
                         }
                         File_Number++;
                     }
-                    catch
+                    catch (Exception e)
                     {
+                        Sub_Code.Error_Log_Write(e.Message);
                         return "ファイルをコピーできませんでした。";
                     }
                 }
@@ -425,84 +468,92 @@ namespace WoTB_Voice_Mod_Creater
         //例:Test.wav->Test.mp3
         public static async Task Change_MP3_Encode(string Dir, int Gain = 10)
         {
-            string[] Files_01 = Directory.GetFiles(Dir, "*", SearchOption.TopDirectoryOnly);
-            foreach (string File_Now in Files_01)
+            try
             {
-                StreamReader str = new StreamReader(File_Now);
-                string Read_01 = str.ReadLine();
-                str.Close();
-                string Read = Read_01.Substring(0, 3);
-                //最初の3文字がID3だった場合.mp3形式
-                //Xrecordで変換した場合ヘッダがなくなるためXingが含まれていたら
-                if (Read != "ID3" && !Read_01.Contains("Xing") && !Read_01.Contains("LAME"))
+                string[] Files_01 = Directory.GetFiles(Dir, "*", SearchOption.TopDirectoryOnly);
+                foreach (string File_Now in Files_01)
                 {
-                    try
+                    StreamReader str = new StreamReader(File_Now);
+                    string Read_01 = str.ReadLine();
+                    str.Close();
+                    string Read = Read_01.Substring(0, 3);
+                    //最初の3文字がID3だった場合.mp3形式
+                    //Xrecordで変換した場合ヘッダがなくなるためXingが含まれていたら
+                    if (Read != "ID3" && !Read_01.Contains("Xing") && !Read_01.Contains("LAME"))
                     {
-                        File.Move(File_Now, Dir + "/" + Path.GetFileNameWithoutExtension(File_Now) + ".raw");
-                    }
-                    catch
-                    {
+                        try
+                        {
+                            File.Move(File_Now, Dir + "/" + Path.GetFileNameWithoutExtension(File_Now) + ".raw");
+                        }
+                        catch
+                        {
 
+                        }
                     }
-                }
-                else if (Path.GetFileName(File_Now) != ".mp3")
-                {
-                    try
+                    else if (Path.GetFileName(File_Now) != ".mp3")
                     {
-                        File.Move(File_Now, Dir + "/" + Path.GetFileName(File_Now));
-                    }
-                    catch
-                    {
+                        try
+                        {
+                            File.Move(File_Now, Dir + "/" + Path.GetFileName(File_Now));
+                        }
+                        catch
+                        {
 
+                        }
                     }
                 }
-            }
-            await Task.Delay(10);
-            string[] Files_02 = Directory.GetFiles(Dir, "*.raw", SearchOption.TopDirectoryOnly);
-            foreach (string File_Now in Files_02)
-            {
-                StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Encode_Mp3/Start.bat");
-                stw.Write("\"" + Voice_Set.Special_Path + "/Encode_Mp3/ffmpeg.exe\" -i \"" + File_Now + "\" -acodec libmp3lame -ab 128k \"" + Dir + "/" + Path.GetFileNameWithoutExtension(File_Now) + ".mp3\"");
-                stw.Close();
-                ProcessStartInfo processStartInfo1 = new ProcessStartInfo
+                await Task.Delay(10);
+                string[] Files_02 = Directory.GetFiles(Dir, "*.raw", SearchOption.TopDirectoryOnly);
+                foreach (string File_Now in Files_02)
                 {
-                    FileName = Voice_Set.Special_Path + "/Encode_Mp3/Start.bat",
-                    CreateNoWindow = true,
-                    UseShellExecute = false
-                };
-                Process p = Process.Start(processStartInfo1);
-                p.WaitForExit();
-                File.Delete(Voice_Set.Special_Path + "/Encode_Mp3/Start.bat");
-                File.Delete(File_Now);
-            }
-            string File_Import = "";
-            string[] Files_03 = Directory.GetFiles(Dir, "*.mp3", SearchOption.TopDirectoryOnly);
-            foreach (string File_Now in Files_03)
-            {
-                if (File_Import == "")
-                {
-                    File_Import = "\"" + File_Now + "\"";
+                    StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Encode_Mp3/Start.bat");
+                    stw.WriteLine("chcp 65001");
+                    stw.Write("\"" + Voice_Set.Special_Path + "/Encode_Mp3/ffmpeg.exe\" -y -i \"" + File_Now + "\" -acodec libmp3lame -ab 128k \"" + Dir + "/" + Path.GetFileNameWithoutExtension(File_Now) + ".mp3\"");
+                    stw.Close();
+                    ProcessStartInfo processStartInfo1 = new ProcessStartInfo
+                    {
+                        FileName = Voice_Set.Special_Path + "/Encode_Mp3/Start.bat",
+                        CreateNoWindow = true,
+                        UseShellExecute = false
+                    };
+                    Process p = Process.Start(processStartInfo1);
+                    p.WaitForExit();
+                    File.Delete(Voice_Set.Special_Path + "/Encode_Mp3/Start.bat");
+                    File.Delete(File_Now);
                 }
-                else
+                string File_Import = "";
+                string[] Files_03 = Directory.GetFiles(Dir, "*.mp3", SearchOption.TopDirectoryOnly);
+                foreach (string File_Now in Files_03)
                 {
-                    File_Import += " \"" + File_Now + "\"";
+                    if (File_Import == "")
+                    {
+                        File_Import = "\"" + File_Now + "\"";
+                    }
+                    else
+                    {
+                        File_Import += " \"" + File_Now + "\"";
+                    }
+                }
+                await Task.Delay(50);
+                if (File_Import != "")
+                {
+                    StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Encode_Mp3/Volume_Set.bat");
+                    stw.Write("\"" + Voice_Set.Special_Path + "/Encode_Mp3/mp3gain.exe\" -r -c -p -d " + Gain + " " + File_Import);
+                    stw.Close();
+                    ProcessStartInfo processStartInfo1 = new ProcessStartInfo
+                    {
+                        FileName = Voice_Set.Special_Path + "/Encode_Mp3/Volume_Set.bat",
+                        CreateNoWindow = true,
+                        UseShellExecute = false
+                    };
+                    Process p = Process.Start(processStartInfo1);
+                    p.WaitForExit();
+                    File.Delete(Voice_Set.Special_Path + "/Encode_Mp3/Volume_Set.bat");
                 }
             }
-            await Task.Delay(50);
-            if (File_Import != "")
+            catch (Exception e)
             {
-                StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Encode_Mp3/Volume_Set.bat");
-                stw.Write("\"" + Voice_Set.Special_Path + "/Encode_Mp3/mp3gain.exe\" -r -c -p -d " + Gain + " " + File_Import);
-                stw.Close();
-                ProcessStartInfo processStartInfo1 = new ProcessStartInfo
-                {
-                    FileName = Voice_Set.Special_Path + "/Encode_Mp3/Volume_Set.bat",
-                    CreateNoWindow = true,
-                    UseShellExecute = false
-                };
-                Process p = Process.Start(processStartInfo1);
-                p.WaitForExit();
-                //File.Delete(Voice_Set.Special_Path + "/Encode_Mp3/Volume_Set.bat");
+                Sub_Code.Error_Log_Write(e.Message);
             }
         }
         //.fdpファイルから.fev + .fsbを作成する
@@ -690,6 +741,50 @@ namespace WoTB_Voice_Mod_Creater
         {
             bool isJapanese = Regex.IsMatch(text, @"[\p{IsHiragana}\p{IsKatakana}\p{IsCJKUnifiedIdeographs}]+");
             return isJapanese;
+        }
+        /// <summary>
+        /// オーディオと動画を結合させる
+        /// 元動画のオーディオは消えるので注意
+        /// </summary>
+        /// <param name="Audio_File">オーディオのファイル場所</param>
+        /// <param name="Video_File">動画のファイル場所</param>
+        /// <param name="Out_File">出力場所</param>
+        public static void Audio_Video_Convert(string Video_File, string Audio_File, string Out_File, bool IsOverWrite = true)
+        {
+            if (!File.Exists(Video_File) || !File.Exists(Audio_File))
+            {
+                return;
+            }
+            if (File.Exists(Out_File) && !IsOverWrite)
+            {
+                return;
+            }
+            StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Encode_Mp3/Audio_Video_Convert.bat");
+            stw.WriteLine("chcp 65001");
+            stw.Write("\"" + Voice_Set.Special_Path + "/Encode_Mp3/ffmpeg.exe\" -y -i \"" + Video_File + "\" -i \"" + Audio_File + "\" -c:v copy -c:a mp3 \"" + Out_File + "\"");
+            stw.Close();
+            ProcessStartInfo processStartInfo = new ProcessStartInfo
+            {
+                FileName = Voice_Set.Special_Path + "/Encode_Mp3/Audio_Video_Convert.bat",
+                CreateNoWindow = true,
+                UseShellExecute = false
+            };
+            Process p = Process.Start(processStartInfo);
+            p.WaitForExit();
+            File.Delete(Voice_Set.Special_Path + "/Encode_Mp3/Audio_Video_Convert.dat");
+        }
+        public static void Error_Log_Write(string Text)
+        {
+            DateTime dt = DateTime.Now;
+            string Time = Get_Time_Now(dt, ".", 1, 6);
+            if (Text.EndsWith("\n"))
+            {
+                File.AppendAllText(Directory.GetCurrentDirectory() + "/Error_Log.txt", Time + ":" + Text);
+            }
+            else
+            {
+                File.AppendAllText(Directory.GetCurrentDirectory() + "/Error_Log.txt", Time + ":" + Text + "\n");
+            }
         }
     }
 }

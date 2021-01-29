@@ -60,9 +60,10 @@ namespace WoTB_Voice_Mod_Creater.Class
                 BGM_Mode_C.IsChecked = bool.Parse(item2.Element("IsBGMMode").Value);
                 Mod_Explanation_T.Text = item2.Element("Explanation").Value;
             }
-            catch
+            catch (Exception e)
             {
                 MessageBox.Show("Modの情報を取得できませんでした。");
+                Sub_Code.Error_Log_Write(e.Message);
             }
             while (Opacity < 1 && !IsBusy)
             {
@@ -94,6 +95,8 @@ namespace WoTB_Voice_Mod_Creater.Class
                 await Task.Delay(1000 / 60);
             }
             IsMessageShowing = false;
+            Message_T.Text = "";
+            Message_T.Opacity = 1;
         }
         //ファイルのリストの空きスペースをクリックするとインデックスを-1にする
         private void Mod_File_L_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
@@ -276,9 +279,10 @@ namespace WoTB_Voice_Mod_Creater.Class
                     return;
                 }
             }
-            catch
+            catch (Exception e1)
             {
                 Message_Feed_Out("Mod名に不適切な文字が含まれています。");
+                Sub_Code.Error_Log_Write(e1.Message);
                 return;
             }
             if (Mod_Name_T.Text.CountOf("  ") > 0)
@@ -379,10 +383,11 @@ namespace WoTB_Voice_Mod_Creater.Class
                         return;
                     }
                 }
-                catch
+                catch (Exception e1)
                 {
                     Message_Feed_Out("BGMを付ける場合はファイル構成を\"Music/Music/Music\"にしてください。");
                     IsBusy = false;
+                    Sub_Code.Error_Log_Write(e1.Message);
                     return;
                 }
             }
@@ -434,9 +439,10 @@ namespace WoTB_Voice_Mod_Creater.Class
                 }
                 Message_Feed_Out("変更を保存しました。");
             }
-            catch
+            catch (Exception e1)
             {
                 Message_Feed_Out("正常に保存できませんでした。");
+                Sub_Code.Error_Log_Write(e1.Message);
             }
             IsBusy = false;
             Sub_Code.ModChange = true;
@@ -473,9 +479,10 @@ namespace WoTB_Voice_Mod_Creater.Class
                     Sub_Code.ModChange = true;
                     Message_Feed_Out("正常に削除しました。");
                 }
-                catch
+                catch (Exception e1)
                 {
                     Message_Feed_Out("正常に削除できませんでした。。");
+                    Sub_Code.Error_Log_Write(e1.Message);
                 }
                 IsBusy = false;
                 Sub_Code.ModChange = true;

@@ -56,12 +56,13 @@ namespace WoTB_Voice_Mod_Creater
                     Voice_Create_Tool_B.Visibility = Visibility.Visible;
                 }
             }
-            catch
+            catch (Exception e)
             {
                 Connectiong = false;
                 Server_OK = false;
                 Connect_Mode_Layout();
                 Message_T.Text = "エラー:サーバーが開いていない可能性があります。";
+                Sub_Code.Error_Log_Write(e.Message);
             }
         }
         //ログインできるか
@@ -172,6 +173,7 @@ namespace WoTB_Voice_Mod_Creater
                     catch (Exception e1)
                     {
                         MessageBox.Show(e1.Message);
+                        Sub_Code.Error_Log_Write(e1.Message);
                     }
                 }
                 else if (Directory.Exists(Voice_Set.Special_Path + "/Server/" + Directory_Name))
@@ -199,9 +201,9 @@ namespace WoTB_Voice_Mod_Creater
                             }
                         }
                     }
-                    catch
+                    catch (Exception e1)
                     {
-
+                        Sub_Code.Error_Log_Write(e1.Message);
                     }
                     Message_T.Text = "ロード中です。しばらくお待ちください。";
                 }
@@ -245,9 +247,9 @@ namespace WoTB_Voice_Mod_Creater
                             Download_T.Text = Now_Count + "/" + Max_Count;
                             Now_Count++;
                         }
-                        catch
+                        catch (Exception e1)
                         {
-
+                            Sub_Code.Error_Log_Write(e1.Message);
                         }
                     }
                     //Server_Directory_Download("/WoTB_Voice_Mod/" + Server_Lists.Items[Server_Lists.SelectedIndex].ToString() + "/Voices", Special_Path + "/Server/Voices");
@@ -392,9 +394,9 @@ namespace WoTB_Voice_Mod_Creater
                         Voice_Set.FTP_Server.Dispose();
                     }
                 }
-                catch
+                catch (Exception e1)
                 {
-
+                    Sub_Code.Error_Log_Write(e1.Message);
                 }
                 int Minus = (int)(Voice_Volume_S.Value / 40);
                 while (Opacity > 0)

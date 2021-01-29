@@ -64,7 +64,6 @@ namespace WoTB_Voice_Mod_Creater.Class
             Download_Border.Visibility = Visibility.Hidden;
             Mod_Control_Change_Visible(false);
             Opacity = 0;
-            Fmod_Player.ESystem.Init(128, Cauldron.FMOD.INITFLAGS.NORMAL, IntPtr.Zero);
             Voice_Pitch_S.Minimum = -4;
             Voice_Pitch_S.Maximum = 2;
             Voice_Volume_S.Minimum = 0;
@@ -97,6 +96,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         {
             Fmod_Bank_List.Items.Clear();
             List<string> Mods_Read = Server_Open_File_Line("/WoTB_Voice_Mod/Mods/Mod_Names.dat");
+            Mods_Read.Sort();
             foreach (string Line in Mods_Read)
             {
                 Fmod_Bank_List.Items.Add(Line);
@@ -202,9 +202,9 @@ namespace WoTB_Voice_Mod_Creater.Class
                             await Task.Delay(100);
                         }
                     }
-                    catch
+                    catch (Exception e)
                     {
-
+                        Sub_Code.Error_Log_Write(e.Message);
                     }
                 }
                 //Voice_Set.FTP_Server.DownloadDirectory(Voice_Set.Special_Path + "/Server/Download_Mods/" + Bank_Name, "/WoTB_Voice_Mod/Mods/" + Bank_Name + "/Files");
@@ -593,9 +593,10 @@ namespace WoTB_Voice_Mod_Creater.Class
                         throw new Exception("sfx_high(low).yamlが存在しません。");
                     }
                 }
-                catch
+                catch (Exception e1)
                 {
                     Message_Feed_Out("sfx_high(low).yamlが見つかりませんでした。");
+                    Sub_Code.Error_Log_Write(e1.Message);
                     return;
                 }
             }
@@ -758,9 +759,10 @@ namespace WoTB_Voice_Mod_Creater.Class
                         Message_Feed_Out("エラー:サーバーから復元できませんでした。");
                     }
                 }
-                catch
+                catch (Exception e1)
                 {
                     Message_Feed_Out("エラー:元ファイルが使用中です。");
+                    Sub_Code.Error_Log_Write(e1.Message);
                     return;
                 }
             }

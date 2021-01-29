@@ -5,27 +5,141 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
              d:DesignHeight="1080" d:DesignWidth="1920">
+    <UserControl.Resources>
+        <SolidColorBrush x:Key="CyanBrush" Color="Gray" />
+        <SolidColorBrush x:Key="PinkBrush" Color="Gray" />
+        <SolidColorBrush x:Key="LimeBrush" Color="Gray" />
+        <Style x:Key="SliderThumbStyle" TargetType="{x:Type Thumb}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Thumb}">
+                        <Ellipse Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Slider}, Mode=FindAncestor}}" Width="25" Height="25"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="CustomSliderStyle" TargetType="{x:Type Slider}">
+            <Style.Triggers>
+                <Trigger Property="Orientation" Value="Horizontal">
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate>
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="25" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+                                    <TickBar Grid.Row="0" x:Name="TopTick" Placement="Top" Visibility="Collapsed" Fill="{TemplateBinding Foreground}" Height="8" Opacity="0.64" Margin="0,0,0,2" />
+                                    <TickBar Grid.Row="2" x:Name="BottomTick" Placement="Bottom" Visibility="Collapsed" Fill="{TemplateBinding Foreground}" Height="8" Opacity="0.64" Margin="0,2,0,0" />
+                                    <Track Grid.Row="1" x:Name="PART_Track">
+                                        <Track.DecreaseRepeatButton>
+                                            <RepeatButton Command="Slider.DecreaseLarge" Background="Aqua" Height="5" BorderBrush="{x:Null}" Opacity="0.2"/>
+                                        </Track.DecreaseRepeatButton>
+                                        <Track.IncreaseRepeatButton>
+                                            <RepeatButton Command="Slider.IncreaseLarge" Background="Gray" Height="5" BorderBrush="{x:Null}" Opacity="0.5"/>
+                                        </Track.IncreaseRepeatButton>
+                                        <Track.Thumb>
+                                            <Thumb Style="{StaticResource SliderThumbStyle}"/>
+                                        </Track.Thumb>
+                                    </Track>
+                                </Grid>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="Slider.TickPlacement" Value="TopLeft">
+                                        <Setter TargetName="TopTick" Property="Visibility" Value="Visible" />
+                                    </Trigger>
+                                    <Trigger Property="Slider.TickPlacement" Value="BottomRight">
+                                        <Setter TargetName="BottomTick" Property="Visibility" Value="Visible" />
+                                    </Trigger>
+                                    <Trigger Property="Slider.TickPlacement" Value="Both">
+                                        <Setter TargetName="TopTick" Property="Visibility" Value="Visible" />
+                                        <Setter TargetName="BottomTick" Property="Visibility" Value="Visible" />
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="CustomSliderStyle2" TargetType="{x:Type Slider}">
+            <Style.Triggers>
+                <Trigger Property="Orientation" Value="Horizontal">
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate>
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="25" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+                                    <TickBar Grid.Row="0" x:Name="TopTick" Placement="Top" Visibility="Collapsed" Fill="{TemplateBinding Foreground}" Height="8" Opacity="0.64" Margin="0,0,0,2" />
+                                    <TickBar Grid.Row="2" x:Name="BottomTick" Placement="Bottom" Visibility="Collapsed" Fill="{TemplateBinding Foreground}" Height="8" Opacity="0.64" Margin="0,2,0,0" />
+                                    <Track Grid.Row="1" x:Name="PART_Track">
+                                        <Track.DecreaseRepeatButton>
+                                            <RepeatButton Command="Slider.DecreaseLarge" Background="Purple" Height="5" BorderBrush="{x:Null}" Opacity="1"/>
+                                        </Track.DecreaseRepeatButton>
+                                        <Track.IncreaseRepeatButton>
+                                            <RepeatButton Command="Slider.IncreaseLarge" Background="Gray" Height="5" BorderBrush="{x:Null}" Opacity="0.5"/>
+                                        </Track.IncreaseRepeatButton>
+                                        <Track.Thumb>
+                                            <Thumb Style="{StaticResource SliderThumbStyle}"/>
+                                        </Track.Thumb>
+                                    </Track>
+                                </Grid>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="Slider.TickPlacement" Value="TopLeft">
+                                        <Setter TargetName="TopTick" Property="Visibility" Value="Visible" />
+                                    </Trigger>
+                                    <Trigger Property="Slider.TickPlacement" Value="BottomRight">
+                                        <Setter TargetName="BottomTick" Property="Visibility" Value="Visible" />
+                                    </Trigger>
+                                    <Trigger Property="Slider.TickPlacement" Value="Both">
+                                        <Setter TargetName="TopTick" Property="Visibility" Value="Visible" />
+                                        <Setter TargetName="BottomTick" Property="Visibility" Value="Visible" />
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Resources>
     <Viewbox>
         <DockPanel Width="1920" Height="1080">
             <Border BorderBrush="Black" BorderThickness="1" Background="#4E3E5C" Height="1080" VerticalAlignment="Top" Width="1920"/>
             <TextBlock Height="50" Width="625" TextWrapping="Wrap" Text="DVPL解除(同じフォルダに作成されます)" Foreground="Aqua" FontSize="40" VerticalAlignment="Top" Margin="-2800,50,0,0" TextAlignment="Center"/>
             <Button x:Name="DVPL_Extract_B" Content="ファイルを選択" Height="65" Margin="-2800,125,0,0" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" VerticalAlignment="Top" Width="350" Click="DVPL_Extract_B_Click"/>
+            <Button x:Name="DVPL_Extract_Help_B" Content="？" Height="65" Margin="-2375,125,0,0" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" VerticalAlignment="Top" Width="65" Click="DVPL_Extract_Help_B_Click"/>
             <TextBlock Height="50" Width="625" TextWrapping="Wrap" Text="DVPL化(同じフォルダに作成されます)" Foreground="Aqua" FontSize="40" VerticalAlignment="Top" Margin="-1000,50,0,0" TextAlignment="Center"/>
             <Button x:Name="DVPL_Create_B" Content="ファイルを選択" Height="65" Margin="-1000,125,0,0" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" VerticalAlignment="Top" Width="350" Click="DVPL_Create_B_Click"/>
             <TextBlock x:Name="Message_T" Height="50" Width="1468" Foreground="Aqua" FontSize="40" Margin="-1920,950,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" TextAlignment="Center"/>
             <Button x:Name="Exit_B" Content="戻る" Height="75" Margin="-3532,1000,0,0" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" VerticalAlignment="Top" Width="300" Click="Exit_B_Click"/>
-            <TextBlock Height="50" Width="625" TextWrapping="Wrap" Text="BGMMod作成(戦闘中に流れます)" Foreground="Aqua" FontSize="40" VerticalAlignment="Top" Margin="-1920,300,0,0" TextAlignment="Center"/>
-            <ListBox x:Name="BGM_List" Height="400" FontSize="35" VerticalAlignment="Top" Width="750" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" Margin="-2500,475,0,0" MouseDown="BGM_List_MouseDown"/>
-            <TextBlock Height="50" Width="190" TextWrapping="Wrap" Text="BGMリスト" Foreground="Aqua" FontSize="40" VerticalAlignment="Top" Margin="-2500,400,0,0" TextAlignment="Center"/>
-            <Button x:Name="BGM_Add_B" Content="ファイルを追加" Height="65" Margin="-2190,875,0,0" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" VerticalAlignment="Top" Width="300" Click="BGM_Add_B_Click"/>
-            <Button x:Name="BGM_Delete_B" Content="ファイルを取消" Height="65" Margin="-2810,875,0,0" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" VerticalAlignment="Top" Width="300" Click="BGM_Delete_B_Click"/>
-            <Button x:Name="BGM_Create_B" Content="FEV + FSBを作成" Height="85" Margin="-1300,625,0,0" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" VerticalAlignment="Top" Width="350" Click="BGM_Create_B_Click"/>
-            <CheckBox x:Name="BGM_Volume_Set_C" Content="" Height="15" VerticalAlignment="Top" Width="16" Margin="-1620,425,0,0"/>
-            <TextBlock Height="50" Width="285" TextWrapping="Wrap" Text="音量を均一にする" Foreground="Aqua" FontSize="40" VerticalAlignment="Top" Margin="-1275,405,0,0" TextAlignment="Center"/>
-            <CheckBox x:Name="BGM_Encode_Set_C" Content="" Height="15" VerticalAlignment="Top" Width="16" Margin="-1620,525,0,0"/>
-            <TextBlock Height="50" Width="305" TextWrapping="Wrap" Text="作成したらDVPL化" Foreground="Aqua" FontSize="40" VerticalAlignment="Top" Margin="-1250,505,0,0" TextAlignment="Center"/>
-            <Button x:Name="BGM_Load_B" Content="リストをロード" Height="65" Margin="-2970,395,0,0" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" VerticalAlignment="Top" Width="280" Click="BGM_Load_B_Click"/>
-            <Button x:Name="BGM_Install_B" Content="BGMを反映" Height="85" Margin="-1300,750,0,0" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" VerticalAlignment="Top" Width="350" Click="BGM_Install_B_Click"/>
+            <TextBlock Height="50" Width="625" TextWrapping="Wrap" Text="BGMMod作成(戦闘中に流れます)" Foreground="Aqua" FontSize="40" VerticalAlignment="Top" Margin="-2520,300,0,0" TextAlignment="Center"/>
+            <ListBox x:Name="BGM_List" Height="400" FontSize="35" VerticalAlignment="Top" Width="750" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" Margin="-3000,475,0,0" MouseDown="BGM_List_MouseDown"/>
+            <TextBlock Height="50" Width="190" TextWrapping="Wrap" Text="BGMリスト" Foreground="Aqua" FontSize="40" VerticalAlignment="Top" Margin="-3000,400,0,0" TextAlignment="Center"/>
+            <Button x:Name="BGM_Add_B" Content="ファイルを追加" Height="65" Margin="-2690,875,0,0" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" VerticalAlignment="Top" Width="300" Click="BGM_Add_B_Click"/>
+            <Button x:Name="BGM_Delete_B" Content="ファイルを取消" Height="65" Margin="-3310,875,0,0" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" VerticalAlignment="Top" Width="300" Click="BGM_Delete_B_Click"/>
+            <Button x:Name="BGM_Create_B" Content="FEV + FSBを作成" Height="85" Margin="-1800,625,0,0" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" VerticalAlignment="Top" Width="350" Click="BGM_Create_B_Click"/>
+            <CheckBox x:Name="BGM_Volume_Set_C" Content="" Height="15" VerticalAlignment="Top" Width="16" Margin="-2120,425,0,0"/>
+            <TextBlock Height="50" Width="285" TextWrapping="Wrap" Text="音量を均一にする" Foreground="Aqua" FontSize="40" VerticalAlignment="Top" Margin="-1775,405,0,0" TextAlignment="Center"/>
+            <CheckBox x:Name="BGM_Encode_Set_C" Content="" Height="15" VerticalAlignment="Top" Width="16" Margin="-2120,525,0,0"/>
+            <TextBlock Height="50" Width="305" TextWrapping="Wrap" Text="作成したらDVPL化" Foreground="Aqua" FontSize="40" VerticalAlignment="Top" Margin="-1750,505,0,0" TextAlignment="Center"/>
+            <Button x:Name="BGM_Load_B" Content="リストをロード" Height="65" Margin="-3470,395,0,0" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" VerticalAlignment="Top" Width="280" Click="BGM_Load_B_Click"/>
+            <Button x:Name="BGM_Install_B" Content="BGMを反映" Height="85" Margin="-1800,750,0,0" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" VerticalAlignment="Top" Width="350" Click="BGM_Install_B_Click"/>
+            <TextBlock Height="50" Width="175" TextWrapping="Wrap" Text="FEVを再生" Foreground="Aqua" FontSize="40" VerticalAlignment="Top" Margin="-700,300,0,0" TextAlignment="Center"/>
+            <Button x:Name="FEV_Select_B" Content="FEVファイルを選択" Height="75" Margin="-700,375,0,0" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="37" VerticalAlignment="Top" Width="316" Click="FEV_Select_B_Click"/>
+            <TextBlock x:Name="FEV_Name_T" Height="50" Width="700" TextWrapping="Wrap" Text="" Foreground="Aqua" FontSize="37" VerticalAlignment="Top" Margin="-700,455,0,0" TextAlignment="Center"/>
+            <Button x:Name="FEV_Stop_B" Content="停止" Height="65" Margin="-930,510,0,0" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="37" VerticalAlignment="Top" Width="226" Click="FEV_Stop_B_Click"/>
+            <Button x:Name="FEV_Play_B" Content="再生" Height="65" Margin="-470,510,0,0" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="37" VerticalAlignment="Top" Width="225" Click="FEV_Play_B_Click"/>
+            <Slider x:Name="FEV_Index_S" Height="27" VerticalAlignment="Top"  Width="400" Margin="-700,605,0,0" Style="{StaticResource CustomSliderStyle}" SmallChange="1" LargeChange="1" ValueChanged="FEV_Index_S_ValueChanged"/>
+            <TextBlock x:Name="FEV_Index_T" Height="50" Width="450" TextWrapping="Wrap" Text="" Foreground="Aqua" FontSize="37" VerticalAlignment="Top" Margin="-700,650,0,0" TextAlignment="Center"/>
+            <TextBlock x:Name="Pitch_T" Height="45" Width="150" TextWrapping="Wrap" Text="速度:1.0" Foreground="Aqua" FontSize="37" VerticalAlignment="Top" Margin="-950,700,0,0" TextAlignment="Center"/>
+            <Slider x:Name="Pitch_S" Height="27" IsMoveToPointEnabled="True" VerticalAlignment="Top"  Width="250" Margin="-950,760,0,0" Style="{StaticResource CustomSliderStyle}" ValueChanged="Pitch_S_ValueChanged" MouseRightButtonDown="Pitch_S_MouseRightButtonDown"/>
+            <TextBlock x:Name="Volume_T" Height="45" Width="150" TextWrapping="Wrap" Text="音量:50" Foreground="Aqua" FontSize="37" VerticalAlignment="Top" Margin="-350,700,0,0" TextAlignment="Center"/>
+            <Slider x:Name="Volume_S" Height="27" IsMoveToPointEnabled="True" VerticalAlignment="Top"  Width="250" Margin="-350,760,0,0" Style="{StaticResource CustomSliderStyle}" Maximum="100" Value="50" ValueChanged="Volume_S_ValueChanged"/>
         </DockPanel>
     </Viewbox>
 </UserControl>

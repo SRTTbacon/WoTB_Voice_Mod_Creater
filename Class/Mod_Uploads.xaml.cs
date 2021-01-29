@@ -254,9 +254,10 @@ namespace WoTB_Voice_Mod_Creater.Class
                         throw new Exception("Music/Music/Musicが存在しません。");
                     }
                 }
-                catch
+                catch (Exception e1)
                 {
                     Message_Feed_Out("BGMを付ける場合はファイル構成を\"Music/Music/Music\"にしてください。");
+                    Sub_Code.Error_Log_Write(e1.Message);
                     return;
                 }
             }
@@ -297,6 +298,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 System.Windows.MessageBox.Show("エラー:" + e1.Message);
                 Message_Feed_Out("エラーが発生しました。");
+                Sub_Code.Error_Log_Write(e1.Message);
                 Window_Close();
                 IsBusy = false;
             }
