@@ -11,6 +11,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Diagnostics;
 using System.Net;
+using WoTB_Voice_Mod_Creater.Class;
 
 public static partial class StringExtensions
 {
@@ -28,16 +29,16 @@ public static partial class StringExtensions
 }
 public class SRTTbacon_Server
 {
-    public static string IP_Local = "非公開";
-    public static string IP_Global = "非公開";
-    public static string Name = "非公開";
-    public static string Password = "非公開";
+    public static string IP_Local = "192.168.3.12";
+    public static string IP_Global = "60.151.34.219";
+    public static string Name = "SRTTbacon_Server";
+    public static string Password = "SRTTbacon";
 }
 namespace WoTB_Voice_Mod_Creater
 {
     public partial class MainCode : Window
     {
-        const string Version = "1.2.6";
+        const string Version = "1.2.7";
         readonly string Path = Directory.GetCurrentDirectory();
         bool IsClosing = false;
         bool IsMessageShowing = false;
@@ -75,8 +76,10 @@ namespace WoTB_Voice_Mod_Creater
                 catch
                 {
                     MessageBox.Show("フォルダにアクセスできませんでした。ソフトを別の場所に移動する必要があります。");
+                    Sub_Code.Error_Log_Write("フォルダにアクセスできませんでした。");
                     Close();
                 }
+                Fmod_Player.ESystem.Init(128, Cauldron.FMOD.INITFLAGS.NORMAL, IntPtr.Zero);
                 Connect_Mode_Layout();
                 //自分はサーバーに参加できないためIPを分ける
                 if (Environment.UserName == "SRTTbacon" || Environment.UserName == "SRTTbacon_V1")
@@ -114,9 +117,9 @@ namespace WoTB_Voice_Mod_Creater
                             Voice_Set.Special_Path = Read;
                         }
                     }
-                    catch
+                    catch (Exception e)
                     {
-
+                        Sub_Code.Error_Log_Write(e.Message);
                     }
                 }
                 if (!Directory.Exists(Voice_Set.Special_Path + "/Server"))
@@ -176,13 +179,14 @@ namespace WoTB_Voice_Mod_Creater
                             Voice_Set.WoTB_Path = Read;
                         }
                     }
-                    catch
+                    catch (Exception e)
                     {
                         if (!Sub_Code.WoTB_Get_Directory())
                         {
                             WoTB_Select_B.Visibility = Visibility.Visible;
                             Message_Feed_Out("WoTBのインストール先を取得できません。手動で指定してください。");
                         }
+                        Sub_Code.Error_Log_Write(e.Message);
                     }
                 }
                 if (Voice_Set.WoTB_Path != "" && !Sub_Code.DVPL_File_Exists(Path + "/Backup/Main/sounds.yaml"))
@@ -200,14 +204,13 @@ namespace WoTB_Voice_Mod_Creater
                 if (Sub_Code.IsTextIncludeJapanese(Voice_Set.Special_Path))
                 {
                     Message_T.Text = "一時フォルダに日本語が含まれています。Shift+Dで変更してください。";
+                    Sub_Code.Error_Log_Write("エラー:一時フォルダに日本語が含まれています。Shift+Dで変更してください。");
                 }
             }
             catch (Exception e)
             {
-                StreamWriter stw = File.CreateText(Path + "/Log.txt");
-                stw.Write(e.Message);
-                stw.Close();
-                MessageBox.Show("エラーが発生しました。作者にLog.txtを送ってください。\nソフトは強制終了されます。");
+                MessageBox.Show("エラーが発生しました。作者にError_Log.txtを送ってください。\nソフトは強制終了されます。");
+                Sub_Code.Error_Log_Write(e.Message);
                 Close();
             }
         }
@@ -221,12 +224,12 @@ namespace WoTB_Voice_Mod_Creater
                     string[] args = Environment.GetCommandLineArgs();
                     int pid = Convert.ToInt32(args[2]);
                     Process.GetProcessById(pid).Kill();
+                    Directory.Delete(Path + "/Backup/Update", true);
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
-
+                    Sub_Code.Error_Log_Write(e.Message);
                 }
-                Directory.Delete(Path + "/Backup/Update", true);
             }
         }
         //ウィンドウのフェードイン
@@ -450,6 +453,7 @@ namespace WoTB_Voice_Mod_Creater
                 catch (Exception e)
                 {
                     MessageBox.Show("エラー:" + e.Message);
+                    Sub_Code.Error_Log_Write(e.Message);
                 }
             };
             IsConnecting();
@@ -511,9 +515,9 @@ namespace WoTB_Voice_Mod_Creater
                         {
                             Voice_Location_S.Value = (int)(Player.controls.currentPosition * 100);
                         }
-                        catch
+                        catch (Exception e)
                         {
-
+                            Sub_Code.Error_Log_Write(e.Message);
                         }
                     }
                 }
@@ -556,6 +560,7 @@ namespace WoTB_Voice_Mod_Creater
                     catch (Exception m)
                     {
                         MessageBox.Show("キャッシュを削除できませんでした。ファイルが使用中でないか確認してください。\nエラーコード:" + m.Message);
+                        Sub_Code.Error_Log_Write(m.Message);
                     }
                 }
                 else
@@ -1001,9 +1006,9 @@ namespace WoTB_Voice_Mod_Creater
                                     await Task.Delay(100);
                                 }
                             }
-                            catch
+                            catch (Exception e1)
                             {
-
+                                Sub_Code.Error_Log_Write(e1.Message);
                             }
                         }
                         //Voice_Set.FTP_Server.DownloadDirectory(Voice_Set.Special_Path + "/Update", "/WoTB_Voice_Mod/Update/" + Line, FtpFolderSyncMode.Update, FtpLocalExists.Overwrite);
@@ -1057,11 +1062,12 @@ namespace WoTB_Voice_Mod_Creater
                     }
                 }
             }
-            catch
+            catch (Exception e1)
             {
                 Voice_Set.App_Busy = false;
                 IsProcessing = false;
                 Message_Feed_Out("最新バージョンを取得できませんでした。");
+                Sub_Code.Error_Log_Write(e1.Message);
             }
         }
         private void Other_B_Click(object sender, RoutedEventArgs e)
@@ -1155,9 +1161,9 @@ namespace WoTB_Voice_Mod_Creater
                 {
                     ApplyAllFiles(subDir, fileAction);
                 }
-                catch
+                catch (Exception e)
                 {
-                    
+                    Sub_Code.Error_Log_Write(e.Message);
                 }
             }
         }
@@ -1191,6 +1197,11 @@ namespace WoTB_Voice_Mod_Creater
             {
                 return;
             }
+            if (Server_Create_Window.Visibility == Visibility.Visible || Save_Window.Visibility == Visibility.Visible || Voice_Mods_Window.Visibility == Visibility.Visible || Tools_Window.Visibility == Visibility ||
+                Other_Window.Visibility == Visibility.Visible || Voice_Create_Window.Visibility == Visibility.Visible || Message_Window.Visibility == Visibility.Visible || Load_Data_Window.Visibility == Visibility.Visible)
+            {
+                return;
+            }
             //アンインストール
             if ((System.Windows.Forms.Control.ModifierKeys & System.Windows.Forms.Keys.Shift) == System.Windows.Forms.Keys.Shift && e.Key == System.Windows.Input.Key.Escape)
             {
@@ -1214,15 +1225,15 @@ namespace WoTB_Voice_Mod_Creater
                             {
                                 File.Delete(File_Name);
                             }
-                            catch
+                            catch (Exception e1)
                             {
-
+                                Sub_Code.Error_Log_Write(e1.Message);
                             }
                         }
                     }
-                    catch
+                    catch (Exception e1)
                     {
-
+                        Sub_Code.Error_Log_Write(e1.Message);
                     }
                     try
                     {
@@ -1232,9 +1243,9 @@ namespace WoTB_Voice_Mod_Creater
                             Voice_Set.FTP_Server.Dispose();
                         }
                     }
-                    catch
+                    catch (Exception e1)
                     {
-
+                        Sub_Code.Error_Log_Write(e1.Message);
                     }
                     int Minus = (int)(Voice_Volume_S.Value / 40);
                     while (Opacity > 0)
@@ -1308,16 +1319,16 @@ namespace WoTB_Voice_Mod_Creater
                                         Directory.Delete(System.IO.Path.GetDirectoryName(File_Name), true);
                                     }
                                 }
-                                catch
+                                catch (Exception e1)
                                 {
-
+                                    Sub_Code.Error_Log_Write(e1.Message);
                                 }
                             }
                             Directory.Delete(Voice_Set.Special_Path, true);
                         }
-                        catch
+                        catch (Exception e1)
                         {
-
+                            Sub_Code.Error_Log_Write(e1.Message);
                         }
                         StreamWriter stw = File.CreateText(Dir + "/TempDirPath.dat");
                         stw.Write(Dir);
