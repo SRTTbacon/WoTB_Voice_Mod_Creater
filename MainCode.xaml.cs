@@ -29,10 +29,10 @@ public static partial class StringExtensions
 }
 public class SRTTbacon_Server
 {
-    public static string IP_Local = "192.168.3.12";
-    public static string IP_Global = "60.151.34.219";
-    public static string Name = "SRTTbacon_Server";
-    public static string Password = "SRTTbacon";
+    public static string IP_Local = "非公開";
+    public static string IP_Global = "非公開";
+    public static string Name = "非公開";
+    public static string Password = "非公開";
 }
 namespace WoTB_Voice_Mod_Creater
 {
