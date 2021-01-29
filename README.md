@@ -6,6 +6,12 @@ FMod Designerの使い方がわからなくても自動でプロジェクトを�
 操作方法はYoutubeの動画を参照してください<br>
 バグや不具合、わからないことがあればSRTTbacon#2395までご連絡を！<br>
 <br>
+V1.2.7変更点<br>
+・WoTB用ツールにてFEVファイルを再生できる機能を追加(対応するFSBファイルがないと動作しません。)<br>
+・音楽プレイヤーにてYoutubeから取得できる機能を追加(音声か動画か選択できます。)<br>
+・音声Mod作成時音声が見つからない場合クラッシュする問題を修正<br>
+・エラーが発生した場合Error_Log.txtに内容を出力するように変更(ログをもとに修正します。)<br>
+・その他軽度なバグを修正<br>
 V1.2.6変更点<br>
 ・Android対応のfsbファイルを作成できる機能を追加("Android用"にチェックを入れる必要があります。)<br>
 ・Android用のModにSEを追加できるように<br>
@@ -67,4 +73,5 @@ Crc32.NET.1.2.0<br>
 System.Buffers.4.5.1<br>
 System.Memory.4.5.4<br>
 System.Runtime.CompilerServices.Unsafe.5.0.0<br>
-Cauldron.FMOD(V1.1から導入)
+Cauldron.FMOD(V1.1から導入)<br>
+YoutubeExplode(V1.2.7から導入)
