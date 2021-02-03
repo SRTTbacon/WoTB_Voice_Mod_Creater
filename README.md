@@ -1,12 +1,13 @@
 # WoTB_Voice_Mod_Creater
 FMod Designerの使い方がわからなくても自動でプロジェクトを作成、ビルド、適応をしてくれるソフトです。<br>
 ※sounds.yamlを変更するためAndroid端末は適応できません。<br>
+追記:音声ModのみAndroidに対応しました。<br>
 おまけとして戦闘BGMの作成と、謎の音楽プレイヤーを搭載しています。<br>
 既にオンラインも実装していますが、バグがまだまだたくさんあるため利用できないようになっています。<br>
 操作方法はYoutubeの動画を参照してください<br>
 バグや不具合、わからないことがあればSRTTbacon#2395までご連絡を！<br>
 V1.2.7から.NetFramework4.6.1に変更しましたので、Windows7などはマイクロソフトからダウンロード&インストールする必要があります。<br>
-ダウンロード:https://drive.google.com/file/d/1rTmmRGbGPCuXOSDNt31pz6hQ1cqGWWb1/view
+ダウンロード:https://drive.google.com/file/d/1rTmmRGbGPCuXOSDNt31pz6hQ1cqGWWb1/view<br>
 <br>
 # V1.2.8変更点<br>
 ・FSBファイルを抽出できる機能を追加(.aac .flac .mp3 .ogg .wav .webm .wma形式に対応)<br>
