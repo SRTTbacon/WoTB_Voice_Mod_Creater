@@ -5,6 +5,7 @@ using System.IO;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Forms;
+using System.Windows.Input;
 
 namespace WoTB_Voice_Mod_Creater.Class
 {
@@ -25,6 +26,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         public Tools()
         {
             InitializeComponent();
+            Volume_S.AddHandler(MouseUpEvent, new MouseButtonEventHandler(Volume_MouseUp), true);
             Pitch_S.Minimum = -4;
             Pitch_S.Maximum = 2;
             Volume_S.Minimum = 0;
@@ -34,6 +36,30 @@ namespace WoTB_Voice_Mod_Creater.Class
         }
         public async void Window_Show()
         {
+            if (File.Exists(Voice_Set.Special_Path + "/Configs/Tools.conf"))
+            {
+                try
+                {
+                    using (var eifs = new FileStream(Voice_Set.Special_Path + "/Configs/Tools.conf", FileMode.Open, FileAccess.Read))
+                    {
+                        using (var eofs = new FileStream(Voice_Set.Special_Path + "/Configs/Temp_Tools.tmp", FileMode.Create, FileAccess.Write))
+                        {
+                            FileEncode.FileEncryptor.Decrypt(eifs, eofs, "Tools_Configs_Save");
+                        }
+                    }
+                    StreamReader str = new StreamReader(Voice_Set.Special_Path + "/Configs/Temp_Tools.tmp");
+                    Volume_S.Value = double.Parse(str.ReadLine());
+                    str.Close();
+                    File.Delete(Voice_Set.Special_Path + "/Configs/Temp_Tools.tmp");
+                }
+                catch (Exception e)
+                {
+                    System.Windows.MessageBox.Show("設定を読み込めませんでした。。\nエラー回避のため設定は削除されます。");
+                    File.Delete(Voice_Set.Special_Path + "/Configs/Tools.conf");
+                    Volume_S.Value = 75;
+                    Sub_Code.Error_Log_Write(e.Message);
+                }
+            }
             Opacity = 0;
             Visibility = Visibility.Visible;
             while (Opacity < 1 && !IsBusy)
@@ -555,6 +581,10 @@ namespace WoTB_Voice_Mod_Creater.Class
         //作成したBGMのModファイルをWoTBに導入(自動でsfx_high(low)やsounds.yamlに記述される)
         void BGM_Mod_Install(string Install_From_Dir)
         {
+            if (IsBusy)
+            {
+                return;
+            }
             if (Voice_Set.WoTB_Path == "")
             {
                 Sub_Code.WoTB_Get_Directory();
@@ -811,6 +841,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 FE.Stop();
             }
             EG.GetEventByIndex(Voice_Number, Cauldron.FMOD.EVENT_MODE.DEFAULT, ref FE);
+
             FE.SetVolume(Volume);
             FE.SetPitch(Pitch, Cauldron.FMOD.EVENT_PITCHUNITS.TONES);
             FE.Start();
@@ -821,7 +852,10 @@ namespace WoTB_Voice_Mod_Creater.Class
         }
         private void FEV_Play_B_Click(object sender, RoutedEventArgs e)
         {
-            Set_Fmod_Bank_Play((int)FEV_Index_S.Value);
+            if (!IsBusy)
+            {
+                Set_Fmod_Bank_Play((int)FEV_Index_S.Value);
+            }
         }
         private void FEV_Index_S_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
@@ -849,6 +883,52 @@ namespace WoTB_Voice_Mod_Creater.Class
         private void Pitch_S_MouseRightButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             Pitch_S.Value = 0;
+        }
+        void Volume_MouseUp(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            Configs_Save();
+        }
+        void Configs_Save()
+        {
+            try
+            {
+                StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Configs/Tools.tmp");
+                stw.Write(Volume_S.Value);
+                stw.Close();
+                using (var eifs = new FileStream(Voice_Set.Special_Path + "/Configs/Tools.tmp", FileMode.Open, FileAccess.Read))
+                {
+                    using (var eofs = new FileStream(Voice_Set.Special_Path + "/Configs/Tools.conf", FileMode.Create, FileAccess.Write))
+                    {
+                        FileEncode.FileEncryptor.Encrypt(eifs, eofs, "Tools_Configs_Save");
+                    }
+                }
+                File.Delete(Voice_Set.Special_Path + "/Configs/Tools.tmp");
+            }
+            catch (Exception e)
+            {
+                Sub_Code.Error_Log_Write(e.Message);
+            }
+        }
+        private void DDS_B_Click(object sender, RoutedEventArgs e)
+        {
+            if (!IsBusy)
+            {
+                DDS_Tool_Window.Window_Show();
+            }
+        }
+        private void FSB_Extract_B_Click(object sender, RoutedEventArgs e)
+        {
+            if (!IsBusy)
+            {
+                Fmod_Extract_Window.Window_Show();
+            }
+        }
+        private void FSB_Create_B_Click(object sender, RoutedEventArgs e)
+        {
+            if (!IsBusy)
+            {
+                Fmod_Create_Window.Window_Show();
+            }
         }
     }
 }

@@ -4,7 +4,9 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
+using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading.Tasks;
 using System.Windows;
 
 namespace WoTB_Voice_Mod_Creater
@@ -161,6 +163,26 @@ namespace WoTB_Voice_Mod_Creater
                 Sub_Code.Error_Log_Write(e.Message);
             }
         }
+        public static void DDS_DLL_Extract()
+        {
+            if (!Directory.Exists(Directory.GetCurrentDirectory() + "/dll"))
+            {
+                Directory.CreateDirectory(Directory.GetCurrentDirectory() + "/dll");
+            }
+            using (Stream stream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("WoTB_Voice_Mod_Creater.Resources.DdsFileTypePlusIO_x86.dll"))
+            {
+                using (FileStream bw = new FileStream(Directory.GetCurrentDirectory() + "/dll/DdsFileTypePlusIO_x86.dll", FileMode.Create))
+                {
+                    while (stream.Position < stream.Length)
+                    {
+                        byte[] bits = new byte[stream.Length];
+                        stream.Read(bits, 0, (int)stream.Length);
+                        bw.Write(bits, 0, (int)stream.Length);
+                    }
+                }
+                stream.Close();
+            }
+        }
         public static void Fmod_Android_Create_Extract()
         {
             try
@@ -193,29 +215,37 @@ namespace WoTB_Voice_Mod_Creater
         }
         //.dvplを解除する
         //例:sounds.yaml.dvpl->sounds.yaml
+        static Process p;
         public static void DVPL_UnPack(string From_File, string To_File, bool IsFromFileDelete)
         {
             if (!File.Exists(From_File))
             {
                 return;
             }
-            File.Copy(From_File, Voice_Set.Special_Path + "/DVPL/Temp_Unpack.dvpl", true);
+            File.Copy(From_File, Voice_Set.Special_Path + "/DVPL/Temp_Unpack.tmp.dvpl", true);
             StreamWriter DVPL_Unpack = File.CreateText(Voice_Set.Special_Path + "/DVPL/UnPack.bat");
             DVPL_Unpack.WriteLine("chcp 65001");
-            DVPL_Unpack.Write("\"" + Voice_Set.Special_Path + "/DVPL/Python/python.exe\" \"" + Voice_Set.Special_Path + "/DVPL/UnPack.py\" \"" + From_File + "\" \"" + To_File + "\"");
+            DVPL_Unpack.Write("\"" + Voice_Set.Special_Path + "/DVPL/DVPL_Extract.exe\"");
             DVPL_Unpack.Close();
             ProcessStartInfo processStartInfo = new ProcessStartInfo
             {
                 FileName = Voice_Set.Special_Path + "/DVPL/UnPack.bat",
                 CreateNoWindow = true,
+                RedirectStandardInput = true,
+                RedirectStandardOutput = true,
+                WorkingDirectory = Voice_Set.Special_Path + "/DVPL",
                 UseShellExecute = false
             };
-            Process p = Process.Start(processStartInfo);
+            p = Process.Start(processStartInfo);
+            p.StandardInput.WriteLine("\r\n");
+            p.OutputDataReceived += new DataReceivedEventHandler(WriteMessage);
+            p.BeginOutputReadLine();
             p.WaitForExit();
+            p.Close();
+            p.Dispose();
             try
             {
-                File.Copy(Voice_Set.Special_Path + "/DVPL/Temp_Unpacked.tmp", To_File, true);
-                File.Delete(Voice_Set.Special_Path + "/DVPL/Temp_Unpacked.tmp");
+                Sub_Code.File_Move(Voice_Set.Special_Path + "/DVPL/Temp_Unpack.tmp", To_File, true);
                 if (IsFromFileDelete)
                 {
                     File.Delete(From_File);
@@ -226,8 +256,15 @@ namespace WoTB_Voice_Mod_Creater
                 //dvplが解除されなかった場合
                 Sub_Code.Error_Log_Write(e.Message);
             }
-            File.Delete(Voice_Set.Special_Path + "/DVPL/Temp_Unpack.dvpl");
             File.Delete(Voice_Set.Special_Path + "/DVPL/UnPack.bat");
+        }
+        static void WriteMessage(object sender, DataReceivedEventArgs e)
+        {
+            if (e.Data == null)
+            {
+                return;
+            }
+            p.StandardInput.WriteLine("\r\n");
         }
         public static bool DVPL_Pack(string From_File, string To_File, bool IsFromFileDelete)
         {
@@ -238,7 +275,7 @@ namespace WoTB_Voice_Mod_Creater
             CREATE_DVPL(LZ4Level.L03_HC, From_File, To_File, IsFromFileDelete);
             return true;
         }
-        static void CREATE_DVPL(LZ4Level COMPRESSION_TYPE, string From_File, string ToFile, bool Delete)
+        static void CREATE_DVPL(LZ4Level COMPRESSION_TYPE, string From_File, string ToFile, bool IsFromFileDelete)
         {
             byte[] ORIGINAL_DATA = File.ReadAllBytes(From_File);
             int ORIGINAL_SIZE = ORIGINAL_DATA.Length;
@@ -252,7 +289,7 @@ namespace WoTB_Voice_Mod_Creater
             Array.Resize(ref LZ4_CONTENT, LZ4_SIZE);
             byte[] DVPL_CONTENT = FORMAT_WG_DVPL(LZ4_CONTENT, LZ4_SIZE, ORIGINAL_SIZE, COMPRESSION_TYPE);
             File.WriteAllBytes(ToFile, DVPL_CONTENT);
-            if (Delete)
+            if (IsFromFileDelete)
             {
                 File.Delete(From_File);
             }

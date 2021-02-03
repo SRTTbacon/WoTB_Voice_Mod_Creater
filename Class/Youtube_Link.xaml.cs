@@ -16,12 +16,12 @@ namespace WoTB_Voice_Mod_Creater.Class
     {
         bool IsClosing = false;
         bool IsMessageShowing = false;
+        bool IsSaveOK = false;
         public Youtube_Link()
         {
             InitializeComponent();
             Type_L.Items.Add("音声のみを保存");
             Type_L.Items.Add("動画も含めて保存");
-            Type_L.SelectedIndex = 0;
         }
         //画面を表示
         public async void Window_Show()
@@ -34,29 +34,34 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 try
                 {
-                    using (var eifs = new FileStream(Voice_Set.Special_Path + "/Download_Location.dat", FileMode.Open, FileAccess.Read))
+                    using (var eifs = new FileStream(Voice_Set.Special_Path + "/Configs/Download_Location.dat", FileMode.Open, FileAccess.Read))
                     {
-                        using (var eofs = new FileStream(Voice_Set.Special_Path + "/Temp_Location.dat", FileMode.Create, FileAccess.Write))
+                        using (var eofs = new FileStream(Voice_Set.Special_Path + "/Configs/Temp_Location.dat", FileMode.Create, FileAccess.Write))
                         {
                             FileEncode.FileEncryptor.Decrypt(eifs, eofs, "Youtube_Download_Location_Save");
                         }
                     }
-                    StreamReader str = new StreamReader(Voice_Set.Special_Path + "/Temp_Location.dat");
+                    StreamReader str = new StreamReader(Voice_Set.Special_Path + "/Configs/Temp_Location.dat");
                     Save_Destination_T.Text = str.ReadLine();
                     Type_L.SelectedIndex = int.Parse(str.ReadLine());
                     List_Add_C.IsChecked = bool.Parse(str.ReadLine());
                     Close_C.IsChecked = bool.Parse(str.ReadLine());
                     str.Close();
-                    File.Delete(Voice_Set.Special_Path + "/Temp_Location.dat");
+                    File.Delete(Voice_Set.Special_Path + "/Configs/Temp_Location.dat");
                 }
                 catch (Exception e)
                 {
                     Message_Feed_Out("保存先を取得できませんでした。");
-                    File.Delete(Voice_Set.Special_Path + "/Download_Location.dat");
+                    File.Delete(Voice_Set.Special_Path + "/Configs/Download_Location.dat");
                     Type_L.SelectedIndex = 0;
                     Sub_Code.Error_Log_Write(e.Message);
                 }
             }
+            else
+            {
+                Type_L.SelectedIndex = 0;
+            }
+            IsSaveOK = true;
             while (Opacity < 1 && !IsClosing)
             {
                 Opacity += 0.025;
@@ -116,22 +121,26 @@ namespace WoTB_Voice_Mod_Creater.Class
         //現在の設定を保存
         void Configs_Save()
         {
+            if (!IsSaveOK)
+            {
+                return;
+            }
             try
             {
-                StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Temp_Location.dat");
+                StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Configs/Temp_Location.dat");
                 stw.WriteLine(Save_Destination_T.Text);
                 stw.WriteLine(Type_L.SelectedIndex);
                 stw.WriteLine(List_Add_C.IsChecked.Value);
                 stw.Write(Close_C.IsChecked.Value);
                 stw.Close();
-                using (var eifs = new FileStream(Voice_Set.Special_Path + "/Temp_Location.dat", FileMode.Open, FileAccess.Read))
+                using (var eifs = new FileStream(Voice_Set.Special_Path + "/Configs/Temp_Location.dat", FileMode.Open, FileAccess.Read))
                 {
-                    using (var eofs = new FileStream(Voice_Set.Special_Path + "/Download_Location.dat", FileMode.Create, FileAccess.Write))
+                    using (var eofs = new FileStream(Voice_Set.Special_Path + "/Configs/Download_Location.dat", FileMode.Create, FileAccess.Write))
                     {
                         FileEncode.FileEncryptor.Encrypt(eifs, eofs, "Youtube_Download_Location_Save");
                     }
                 }
-                File.Delete(Voice_Set.Special_Path + "/Temp_Location.dat");
+                File.Delete(Voice_Set.Special_Path + "/Configs/Temp_Location.dat");
             }
             catch (Exception e)
             {
@@ -210,7 +219,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             //動画の場合はダウンロード後ffmpegで合わせる
             var youtube = new YoutubeClient();
             var video = await youtube.Videos.GetAsync(Link);
-            var title = video.Title;
+            var title = Sub_Code.File_Replace_Name(video.Title);
             var streamManifest = await youtube.Videos.Streams.GetManifestAsync(Link_ID_Only);
             var streamInfo = streamManifest.GetAudioOnly().WithHighestBitrate();
             if (streamInfo != null)
@@ -231,28 +240,28 @@ namespace WoTB_Voice_Mod_Creater.Class
                     await youtube.Videos.Streams.DownloadAsync(streamInfo2, OutDir + "Temp.mp4");
                     Message_T.Text = "動画と音声を結合しています...";
                     await Task.Delay(50);
-                    Sub_Code.Audio_Video_Convert(OutDir + "Temp.mp4", OutDir + "Temp.mp3", OutDir + video.Title + ".mp4");
+                    Sub_Code.Audio_Video_Convert(OutDir + "Temp.mp4", OutDir + "Temp.mp3", OutDir + title + ".mp4");
                     if (List_Add_C.IsChecked.Value)
                     {
-                        Sub_Code.AutoListAdd.Add(OutDir + video.Title + ".mp4");
+                        Sub_Code.AutoListAdd.Add(OutDir + title + ".mp4");
                     }
                 }
                 else
                 {
                     Message_Feed_Out("動画を取得できなかったため音声のみ保存しました。");
-                    Sub_Code.File_Move(OutDir + "Temp.mp3", OutDir + video.Title + ".mp3", true);
+                    Sub_Code.File_Move(OutDir + "Temp.mp3", OutDir + title + ".mp3", true);
                     if (List_Add_C.IsChecked.Value)
                     {
-                        Sub_Code.AutoListAdd.Add(OutDir + video.Title + ".mp3");
+                        Sub_Code.AutoListAdd.Add(OutDir + title + ".mp3");
                     }
                 }
             }
             else
             {
-                Sub_Code.File_Move(OutDir + "Temp.mp3", OutDir + video.Title + ".mp3", true);
+                Sub_Code.File_Move(OutDir + "Temp.mp3", OutDir + title + ".mp3", true);
                 if (List_Add_C.IsChecked.Value)
                 {
-                    Sub_Code.AutoListAdd.Add(OutDir + video.Title + ".mp3");
+                    Sub_Code.AutoListAdd.Add(OutDir + title + ".mp3");
                 }
             }
             File.Delete(OutDir + "Temp.mp3");
@@ -303,13 +312,12 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Thumbnail_Image.Source = image;
                 Thumbnail_Image.Visibility = Visibility.Visible;
             }
-            catch (Exception e1)
+            catch
             {
                 if (Thumbnail_Image != null)
                 {
                     Thumbnail_Image.Visibility = Visibility.Hidden;
                 }
-                Sub_Code.Error_Log_Write(e1.Message);
             }
         }
         private void List_Add_C_Click(object sender, RoutedEventArgs e)

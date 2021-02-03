@@ -9,32 +9,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 
-public partial class Scroll
-{
-    private static ScrollViewer FindViewer(DependencyObject root)
-    {
-        var queue = new Queue<DependencyObject>(new[] { root });
-        do
-        {
-            var item = queue.Dequeue();
-            if (item is ScrollViewer) { return (ScrollViewer)item; }
-            var count = VisualTreeHelper.GetChildrenCount(item);
-            for (var i = 0; i < count; i++) { queue.Enqueue(VisualTreeHelper.GetChild(item, i)); }
-        } while (queue.Count > 0);
-        return null;
-    }
-    public static void ToBottom(ListBox listBox)
-    {
-        var scrollViewer = FindViewer(listBox);
-        if (scrollViewer != null)
-        {
-            scrollViewer.ScrollChanged += (o, args) =>
-            {
-                if (args.ExtentHeightChange > 0) { scrollViewer.ScrollToBottom(); }
-            };
-        }
-    }
-}
 namespace WoTB_Voice_Mod_Creater
 {
     public class Sub_Code
@@ -80,6 +54,33 @@ namespace WoTB_Voice_Mod_Creater
         {
             get { return IsAutoListAdd; }
             set { IsAutoListAdd = value; }
+        }
+        //必要なdllがない場合そのdll名のリストを返す
+        public static List<string> DLL_Exists()
+        {
+            string DLL_Path = Directory.GetCurrentDirectory() + "/dll";
+            List<string> DLL_List = new List<string>();
+            if (!File.Exists(DLL_Path + "/bass.dll"))
+            {
+                DLL_List.Add("bass.dll");
+            }
+            if (!File.Exists(DLL_Path + "/bass_fx.dll"))
+            {
+                DLL_List.Add("bass_fx.dll");
+            }
+            if (!File.Exists(DLL_Path + "/DdsFileTypePlusIO_x86.dll"))
+            {
+                DLL_List.Add("DdsFileTypePlusIO_x86.dll");
+            }
+            if (!File.Exists(DLL_Path + "/fmod_event.dll"))
+            {
+                DLL_List.Add("fmod_event.dll");
+            }
+            if (!File.Exists(DLL_Path + "/fmodex.dll"))
+            {
+                DLL_List.Add("fmodex.dll");
+            }
+            return DLL_List;
         }
         //.dvplを抜いたファイルパスからファイルが存在するか
         //例:sounds.yaml.dvpl -> DVPL_File_Exists(sounds.yaml) -> true,false
@@ -265,9 +266,8 @@ namespace WoTB_Voice_Mod_Creater
                 File.Delete(From_File_Path);
                 return true;
             }
-            catch (Exception e)
+            catch
             {
-                Sub_Code.Error_Log_Write(e.Message);
                 return false;
             }
         }
@@ -320,6 +320,18 @@ namespace WoTB_Voice_Mod_Creater
                 return true;
             }
             return false;
+        }
+        public static bool File_Delete_V2(string File_Path)
+        {
+            try
+            {
+                File.Delete(File_Path);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
         //ファイル拡張子なしでファイルが存在するか取得
         //戻り値:存在した場合true,それ以外はfalse
@@ -655,6 +667,7 @@ namespace WoTB_Voice_Mod_Creater
             return "";
         }
         //sounds.yamlの中身が古かった場合サーバーに置いてある最新のものと比較して置き換える
+        //本当にWoTBの仕様が変わると思っていなかったのでこの方法でしていて良かったです...
         public static void Sounds_Yaml_Update(string File_Path, string To_Path, bool IsDVPLEncode)
         {
             try
@@ -667,7 +680,8 @@ namespace WoTB_Voice_Mod_Creater
                 while (str.EndOfStream == false)
                 {
                     string Line = str.ReadLine();
-                    if (Line.Contains("sounds:"))
+                    //この方法で大丈夫そうですが、念のためgui_sounds:を追加
+                    if (Line.Contains("sounds:") || Line.Contains("gui_sounds:"))
                     {
                         IsSoundsIn = true;
                     }
@@ -773,6 +787,7 @@ namespace WoTB_Voice_Mod_Creater
             p.WaitForExit();
             File.Delete(Voice_Set.Special_Path + "/Encode_Mp3/Audio_Video_Convert.dat");
         }
+        //エラーをログに記録(改行コードはあってもなくてもよい)
         public static void Error_Log_Write(string Text)
         {
             DateTime dt = DateTime.Now;
@@ -784,6 +799,157 @@ namespace WoTB_Voice_Mod_Creater
             else
             {
                 File.AppendAllText(Directory.GetCurrentDirectory() + "/Error_Log.txt", Time + ":" + Text + "\n");
+            }
+        }
+        //BitmapをBitmapImageへ変換
+        public static System.Windows.Media.Imaging.BitmapImage Bitmap_To_BitmapImage(System.Drawing.Bitmap bitmap)
+        {
+            MemoryStream stream = new MemoryStream();
+            bitmap.Save(stream, System.Drawing.Imaging.ImageFormat.Png);
+            stream.Seek(0, SeekOrigin.Begin);
+            System.Windows.Media.Imaging.BitmapImage img = new System.Windows.Media.Imaging.BitmapImage();
+            img.BeginInit();
+            img.CacheOption = System.Windows.Media.Imaging.BitmapCacheOption.OnLoad;
+            img.StreamSource = stream;
+            img.EndInit();
+            return img;
+        }
+        //ファイル名に使用できない文字を_に変更
+        public static string File_Replace_Name(string FileName)
+        {
+            string valid = FileName;
+            char[] invalidch = Path.GetInvalidFileNameChars();
+            foreach (char c in invalidch)
+            {
+                valid = valid.Replace(c, '_');
+            }
+            return valid;
+        }
+        //音声ファイルを指定した拡張子へエンコード
+        public static bool Audio_Encode_To_Other(string From_Audio_File, string To_Audio_File, string Encode_Mode, bool IsFromFileDelete)
+        {
+            try
+            {
+                if (!File.Exists(From_Audio_File))
+                {
+                    return false;
+                }
+                Encode_Mode = Encode_Mode.Replace(".", "");
+                string Encode_Style = "";
+                //変換先に合わせて.batファイルを作成
+                if (Encode_Mode == "aac")
+                {
+                    Encode_Style = "-y -vn -strict experimental -c:a aac -b:a 256k";
+                }
+                else if (Encode_Mode == "flac")
+                {
+                    Encode_Style = "-y -vn -ac 2 -ar 44100 -acodec flac -f flac";
+                }
+                else if (Encode_Mode == "mp3")
+                {
+                    Encode_Style = "-y -vn -ac 2 -ar 44100 -ab 128k -acodec libmp3lame -f mp3";
+                }
+                else if (Encode_Mode == "ogg")
+                {
+                    Encode_Style = "-y -vn -ac 2 -ar 44100 -ab 128k -acodec libvorbis -f ogg";
+                }
+                else if (Encode_Mode == "wav")
+                {
+                    Encode_Style = "-y -vn -ac 2 -ar 44100 -acodec pcm_s24le -f wav";
+                }
+                else if (Encode_Mode == "webm")
+                {
+                    Encode_Style = "-y -vn -f opus -acodec libopus -ab 128k";
+                }
+                else if (Encode_Mode == "wma")
+                {
+                    Encode_Style = "-y -vn -ac 2 -ar 44100 -ab 128k -acodec wmav2 -f asf";
+                }
+                StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Encode_Mp3/Audio_Encode.bat");
+                stw.WriteLine("chcp 65001");
+                stw.Write(Voice_Set.Special_Path + "/Encode_Mp3/ffmpeg.exe -i \"" + From_Audio_File + "\" " + Encode_Style + " \"" + To_Audio_File + "\"");
+                stw.Close();
+                ProcessStartInfo processStartInfo = new ProcessStartInfo
+                {
+                    FileName = Voice_Set.Special_Path + "/Encode_Mp3/Audio_Encode.bat",
+                    CreateNoWindow = true,
+                    UseShellExecute = false
+                };
+                Process p = Process.Start(processStartInfo);
+                p.WaitForExit();
+                if (!File.Exists(To_Audio_File))
+                {
+                    return false;
+                }
+                if (IsFromFileDelete)
+                {
+                    File.Delete(From_Audio_File);
+                }
+                File.Delete(Voice_Set.Special_Path + "/Encode_Mp3/Audio_Encode.bat");
+                return true;
+            }
+            catch (Exception e)
+            {
+                Sub_Code.Error_Log_Write(e.Message);
+                return false;
+            }
+        }
+        //ファイルを暗号化
+        //引数:元ファイルのパス,暗号先のパス,元ファイルを削除するか
+        public static bool File_Encrypt(string From_File, string To_File, string Password, bool IsFromFileDelete)
+        {
+            try
+            {
+                if (!File.Exists(From_File))
+                {
+                    return false;
+                }
+                using (var eifs = new FileStream(From_File, FileMode.Open, FileAccess.Read))
+                {
+                    using (var eofs = new FileStream(To_File, FileMode.Create, FileAccess.Write))
+                    {
+                        FileEncode.FileEncryptor.Encrypt(eifs, eofs, Password);
+                    }
+                }
+                if (IsFromFileDelete)
+                {
+                    File.Delete(From_File);
+                }
+                return true;
+            }
+            catch (Exception e)
+            {
+                Error_Log_Write(e.Message);
+                return false;
+            }
+        }
+        //ファイルを復号化
+        //引数:元ファイルのパス,復号先のパス,元ファイルを削除するか
+        public static bool File_Decrypt(string From_File, string To_File, string Password, bool IsFromFileDelete)
+        {
+            try
+            {
+                if (!File.Exists(From_File))
+                {
+                    return false;
+                }
+                using (var eifs = new FileStream(From_File, FileMode.Open, FileAccess.Read))
+                {
+                    using (var eofs = new FileStream(To_File, FileMode.Create, FileAccess.Write))
+                    {
+                        FileEncode.FileEncryptor.Decrypt(eifs, eofs, Password);
+                    }
+                }
+                if (IsFromFileDelete)
+                {
+                    File.Delete(From_File);
+                }
+                return true;
+            }
+            catch (Exception e)
+            {
+                Error_Log_Write(e.Message);
+                return false;
             }
         }
     }

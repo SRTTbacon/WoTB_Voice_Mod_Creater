@@ -23,7 +23,7 @@ namespace WoTB_Voice_Mod_Creater
         {
             try
             {
-                Voice_Set.TCP_Server = new SimpleTcpClient().Connect(IP, 50000);
+                Voice_Set.TCP_Server = new SimpleTcpClient().Connect(IP, SRTTbacon_Server.Port);
                 Voice_Set.TCP_Server.StringEncoder = Encoding.UTF8;
                 Voice_Set.TCP_Server.Delimiter = 0x00;
                 Voice_Set.FTP_Server = new FtpClient(IP)
@@ -37,6 +37,7 @@ namespace WoTB_Voice_Mod_Creater
                 Voice_Set.FTP_Server.ValidateCertificate += new FtpSslValidation(OnValidateCertificate);
                 Voice_Set.FTP_Server.Connect();
                 Server_OK = true;
+                Message_T.Text = "";
                 if (Login())
                 {
                     Connectiong = true;
@@ -62,7 +63,7 @@ namespace WoTB_Voice_Mod_Creater
                 Server_OK = false;
                 Connect_Mode_Layout();
                 Message_T.Text = "エラー:サーバーが開いていない可能性があります。";
-                Sub_Code.Error_Log_Write(e.Message);
+                Sub_Code.Error_Log_Write(e.Message.Replace(SRTTbacon_Server.IP_Global + ":" + SRTTbacon_Server.Port, "").Replace(SRTTbacon_Server.IP_Local + ":" + SRTTbacon_Server.Port, ""));
             }
         }
         //ログインできるか
@@ -95,8 +96,9 @@ namespace WoTB_Voice_Mod_Creater
                         return false;
                     }
                 }
-                catch
+                catch (Exception e)
                 {
+                    Sub_Code.Error_Log_Write(e.Message);
                     return false;
                 }
             }
@@ -377,7 +379,7 @@ namespace WoTB_Voice_Mod_Creater
         //終了
         private async void Exit_B_Click(object sender, RoutedEventArgs e)
         {
-            if (IsProcessing)
+            if (IsProcessing || IsClosing)
             {
                 return;
             }
