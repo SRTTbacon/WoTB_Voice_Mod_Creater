@@ -12,6 +12,8 @@ using System.Windows.Media.Imaging;
 using System.Diagnostics;
 using System.Net;
 using WoTB_Voice_Mod_Creater.Class;
+using System.Runtime.InteropServices;
+using WK.Libraries.BetterFolderBrowserNS;
 
 public static partial class StringExtensions
 {
@@ -33,15 +35,17 @@ public class SRTTbacon_Server
     public static string IP_Global = "非公開";
     public static string Name = "非公開";
     public static string Password = "非公開";
+    public static int Port = 00000;
 }
 namespace WoTB_Voice_Mod_Creater
 {
     public partial class MainCode : Window
     {
-        const string Version = "1.2.7";
+        const string Version = "1.2.8";
         readonly string Path = Directory.GetCurrentDirectory();
         bool IsClosing = false;
         bool IsMessageShowing = false;
+        bool IsIncludeJapanese = false;
         readonly bool IsSRTTbacon_V1 = false;
         //チャットモード(0が全体:1がサーバー内:2が管理者チャット)
         //管理者チャットは管理者(SRTTbacon)と個人チャットする用(主にバグ報告かな？)
@@ -49,13 +53,65 @@ namespace WoTB_Voice_Mod_Creater
         readonly string IP;
         readonly WindowsMediaPlayer Player = new WindowsMediaPlayer();
         readonly List<string> Server_Names_List = new List<string>();
+        [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        static extern bool SetDllDirectory(string lpPathName);
         public MainCode()
         {
+            //dllの位置を変更
+            string dllPath = System.IO.Path.Combine(System.IO.Directory.GetParent(System.Reflection.Assembly.GetExecutingAssembly().Location).FullName, @"dll");
+            SetDllDirectory(dllPath);
+            try
+            {
+                StreamWriter stw = File.CreateText(Path + "/Test.dat");
+                stw.WriteLine("テストファイル");
+                stw.Close();
+                File.Delete(Path + "/Test.dat");
+            }
+            catch
+            {
+                MessageBox.Show("フォルダにアクセスできませんでした。ソフトを別の場所に移動する必要があります。");
+                Close();
+            }
+            //V1.2.8以前からアップデートしたとき用
+            if (File.Exists(Path + "/bass.dll"))
+            {
+                try
+                {
+                    if (!Directory.Exists(Path + "/dll"))
+                    {
+                        Directory.CreateDirectory(Path + "/dll");
+                    }
+                    Sub_Code.File_Move(Path + "/bass.dll", Path + "/dll/bass.dll", true);
+                    Sub_Code.File_Move(Path + "/bass_fx.dll", Path + "/dll/bass_fx.dll", true);
+                    Sub_Code.File_Move(Path + "/fmod_event.dll", Path + "/dll/fmod_event.dll", true);
+                    Sub_Code.File_Move(Path + "/fmodex.dll", Path + "/dll/fmodex.dll", true);
+                    Sub_Code.File_Delete_V2(Path + "/bass.Net.dll");
+                }
+                catch (Exception e)
+                {
+                    Sub_Code.Error_Log_Write(e.Message);
+                }
+            }
+            if (!File.Exists(Path + "/dll/DdsFileTypePlusIO_x86.dll"))
+            {
+                DVPL.DDS_DLL_Extract();
+            }
+            //必要なdllがなかったら強制終了
+            List<string> DLL_Error_List = Sub_Code.DLL_Exists();
+            if (DLL_Error_List.Count > 0)
+            {
+                string DLLs = "";
+                foreach (string DLL_None in DLL_Error_List)
+                {
+                    DLLs += DLL_None + "\n";
+                }
+                MessageBox.Show("/dll内に以下のファイルが存在しません。\n" + DLLs + "ソフトは強制終了されます。");
+                Close();
+            }
             Clean();
             InitializeComponent();
             try
             {
-
                 Download_P.Visibility = Visibility.Hidden;
                 Download_T.Visibility = Visibility.Hidden;
                 Load_Image.Visibility = Visibility.Hidden;
@@ -66,20 +122,11 @@ namespace WoTB_Voice_Mod_Creater
                 WoTB_Select_B.Visibility = Visibility.Hidden;
                 Server_Create_Window.Opacity = 0;
                 Save_Window.Opacity = 0;
-                try
-                {
-                    StreamWriter stw = File.CreateText(Path + "/Test.dat");
-                    stw.WriteLine("テストファイル");
-                    stw.Close();
-                    File.Delete(Path + "/Test.dat");
-                }
-                catch
-                {
-                    MessageBox.Show("フォルダにアクセスできませんでした。ソフトを別の場所に移動する必要があります。");
-                    Sub_Code.Error_Log_Write("フォルダにアクセスできませんでした。");
-                    Close();
-                }
                 Fmod_Player.ESystem.Init(128, Cauldron.FMOD.INITFLAGS.NORMAL, IntPtr.Zero);
+                FMOD_API.System FModSys = new FMOD_API.System();
+                FMOD_API.Factory.System_Create(ref FModSys);
+                FMOD.Fmod_System.FModSystem = FModSys;
+                FMOD.Fmod_System.FModSystem.init(16, FMOD_API.INITFLAGS.NORMAL, IntPtr.Zero);
                 Connect_Mode_Layout();
                 //自分はサーバーに参加できないためIPを分ける
                 if (Environment.UserName == "SRTTbacon" || Environment.UserName == "SRTTbacon_V1")
@@ -97,21 +144,21 @@ namespace WoTB_Voice_Mod_Creater
                     ConnectType = FtpDataConnectionType.PASV;
                 }
                 //一時ファイルの保存先を変更している場合それを適応
-                if (File.Exists(Directory.GetCurrentDirectory() + "/TempDirPath.dat"))
+                if (File.Exists(Path + "/TempDirPath.dat"))
                 {
                     try
                     {
-                        using (var eifs = new FileStream(Directory.GetCurrentDirectory() + "/TempDirPath.dat", FileMode.Open, FileAccess.Read))
+                        using (var eifs = new FileStream(Path + "/TempDirPath.dat", FileMode.Open, FileAccess.Read))
                         {
-                            using (var eofs = new FileStream(Directory.GetCurrentDirectory() + "/Temp.dat", FileMode.Create, FileAccess.Write))
+                            using (var eofs = new FileStream(Path + "/Temp.dat", FileMode.Create, FileAccess.Write))
                             {
                                 FileEncode.FileEncryptor.Decrypt(eifs, eofs, "Temp_Directory_Path_Pass");
                             }
                         }
-                        StreamReader str = new StreamReader(Directory.GetCurrentDirectory() + "/Temp.dat");
+                        StreamReader str = new StreamReader(Path + "/Temp.dat");
                         string Read = str.ReadLine();
                         str.Close();
-                        File.Delete(Directory.GetCurrentDirectory() + "/Temp.dat");
+                        File.Delete(Path + "/Temp.dat");
                         if (Read != "")
                         {
                             Voice_Set.Special_Path = Read;
@@ -122,14 +169,30 @@ namespace WoTB_Voice_Mod_Creater
                         Sub_Code.Error_Log_Write(e.Message);
                     }
                 }
-                if (!Directory.Exists(Voice_Set.Special_Path + "/Server"))
+                try
                 {
-                    Directory.CreateDirectory(Voice_Set.Special_Path + "/Server");
+                    if (!Directory.Exists(Voice_Set.Special_Path + "/Server"))
+                    {
+                        Directory.CreateDirectory(Voice_Set.Special_Path + "/Server");
+                    }
+                    if (!Directory.Exists(Voice_Set.Special_Path + "/Configs"))
+                    {
+                        Directory.CreateDirectory(Voice_Set.Special_Path + "/Configs");
+                    }
+                    //V1.2を実行した人用に削除
+                    if (File.Exists(Voice_Set.Special_Path + "/DVPL/Pack.py"))
+                    {
+                        File.Delete(Voice_Set.Special_Path + "/DVPL/Pack.py");
+                    }
+                    if (File.Exists(Voice_Set.Special_Path + "/Other_Music_List.dat"))
+                    {
+                        Sub_Code.File_Move(Voice_Set.Special_Path + "/Other_Music_List.dat", Voice_Set.Special_Path + "/Configs/Other_Music_List.dat", false);
+                        File.Delete(Voice_Set.Special_Path + "/Other_Music_List.dat");
+                    }
                 }
-                //V1.2を実行した人用に削除
-                if (File.Exists(Voice_Set.Special_Path + "/DVPL/Pack.py"))
+                catch (Exception e)
                 {
-                    File.Delete(Voice_Set.Special_Path + "/DVPL/Pack.py");
+                    Sub_Code.Error_Log_Write(e.Message);
                 }
                 Server_Connect();
                 Voice_Volume_S.Maximum = 100;
@@ -203,8 +266,19 @@ namespace WoTB_Voice_Mod_Creater
                 Version_T.Text = "V" + Version;
                 if (Sub_Code.IsTextIncludeJapanese(Voice_Set.Special_Path))
                 {
+                    IsIncludeJapanese = true;
                     Message_T.Text = "一時フォルダに日本語が含まれています。Shift+Dで変更してください。";
                     Sub_Code.Error_Log_Write("エラー:一時フォルダに日本語が含まれています。Shift+Dで変更してください。");
+                }
+                try
+                {
+                    File.Delete(Voice_Set.Special_Path + "/FSB_Select_Temp_01.fsb");
+                    File.Delete(Voice_Set.Special_Path + "/FSB_Select_Temp_02.fsb");
+                    File.Delete(Voice_Set.Special_Path + "/FSB_Select_Temp_03.fsb");
+                }
+                catch (Exception e)
+                {
+                    Sub_Code.Error_Log_Write(e.Message);
                 }
             }
             catch (Exception e)
@@ -253,7 +327,7 @@ namespace WoTB_Voice_Mod_Creater
             bool IsOK_05 = true;
             Task task = Task.Run(() =>
             {
-                if (!File.Exists(Voice_Set.Special_Path + "/DVPL/UnPack.py"))
+                if (!File.Exists(Voice_Set.Special_Path + "/DVPL/DVPL_Extract.exe"))
                 {
                     IsOK_01 = false;
                     Task task_01 = Task.Run(() =>
@@ -306,7 +380,7 @@ namespace WoTB_Voice_Mod_Creater
                 else
                 {
                     FileInfo f = new FileInfo(Voice_Set.Special_Path + "/Fmod_Android_Create/Fmod_Android_Create.exe");
-                    if (f.Length != 202240)
+                    if (f.Length != 1639936)
                     {
                         IsOK_05 = false;
                         Task task_01 = Task.Run(() =>
@@ -452,7 +526,6 @@ namespace WoTB_Voice_Mod_Creater
                 }
                 catch (Exception e)
                 {
-                    MessageBox.Show("エラー:" + e.Message);
                     Sub_Code.Error_Log_Write(e.Message);
                 }
             };
@@ -549,24 +622,34 @@ namespace WoTB_Voice_Mod_Creater
             MessageBoxResult result = MessageBox.Show(Message_01, "確認", MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.No);
             if (result == MessageBoxResult.Yes)
             {
-                if (Directory.Exists(Voice_Set.Special_Path + "/Server"))
+                try
                 {
-                    try
+                    Directory.Delete(Voice_Set.Special_Path + "/Server", true);
+                    Directory.Delete(Voice_Set.Special_Path + "/Configs", true);
+                    string[] Dirs = Directory.GetDirectories(Path + "/Backup", "*", SearchOption.TopDirectoryOnly);
+                    foreach (string Dir in Dirs)
                     {
-                        Directory.Delete(Voice_Set.Special_Path + "/Server", true);
-                        Directory.CreateDirectory(Voice_Set.Special_Path + "/Server");
-                        MessageBox.Show("キャッシュを削除しました。");
+                        string Dir_Name_Only = System.IO.Path.GetFileName(Dir);
+                        if (Dir_Name_Only == "Main")
+                        {
+                            continue;
+                        }
+                        try
+                        {
+                            Directory.Delete(Dir, true);
+                        }
+                        catch (Exception e1)
+                        {
+                            Sub_Code.Error_Log_Write(e1.Message);
+                        }
                     }
-                    catch (Exception m)
-                    {
-                        MessageBox.Show("キャッシュを削除できませんでした。ファイルが使用中でないか確認してください。\nエラーコード:" + m.Message);
-                        Sub_Code.Error_Log_Write(m.Message);
-                    }
-                }
-                else
-                {
-                    MessageBox.Show("既に削除されています。");
                     Directory.CreateDirectory(Voice_Set.Special_Path + "/Server");
+                    MessageBox.Show("キャッシュを削除しました。");
+                }
+                catch (Exception m)
+                {
+                    MessageBox.Show("キャッシュを削除できませんでした。ファイルが使用中でないか確認してください。\nエラーコード:" + m.Message);
+                    Sub_Code.Error_Log_Write(m.Message);
                 }
             }
         }
@@ -891,8 +974,8 @@ namespace WoTB_Voice_Mod_Creater
                 Voice_Set.SRTTbacon_Server_Name = "";
                 Voice_Set.Voice_Files = new List<string>();
                 Voice_Set.Voice_Files_Number = 0;
-                //Voice_S.Value = 0;
-                //Voice_S.Maximum = 1;
+                Voice_S.Value = 0;
+                Voice_S.Maximum = 1;
                 Player.settings.volume = 100;
                 Chat_Hide();
                 Server_Connect_B.Margin = new Thickness(-600, 375, 0, 0);
@@ -923,6 +1006,14 @@ namespace WoTB_Voice_Mod_Creater
         {
             if (IsProcessing)
             {
+                return;
+            }
+            if (IsIncludeJapanese)
+            {
+                if (Message_T.Text == "")
+                {
+                    Message_Feed_Out("一時フォルダのパスに日本語が含まれているため表示できません。");
+                }
                 return;
             }
             Tools_Window.Window_Show();
@@ -1100,22 +1191,24 @@ namespace WoTB_Voice_Mod_Creater
             {
                 return;
             }
-            System.Windows.Forms.OpenFileDialog openFileDialog = new System.Windows.Forms.OpenFileDialog
+            BetterFolderBrowser ofd = new BetterFolderBrowser()
             {
-                Title = "WoTBのフォルダを選択してください。",
-                InitialDirectory = "C:",
-                FileName = "WoTBのフォルダを選択",
-                Filter = "フォルダ |.",
-                CheckFileExists = false
+                Title = "WoTBのインストール先を選択してください。",
+                Multiselect = false
             };
-            if (openFileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            if (ofd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
-                if (System.IO.Path.GetDirectoryName(openFileDialog.FileName) == "C:\\")
+                if (ofd.SelectedFolder == "C:\\")
                 {
-                    Message_Feed_Out("C:/を選択することはできません。");
+                    Message_Feed_Out("C:\\を選択することはできません。");
                     return;
                 }
-                ApplyAllFiles(System.IO.Path.GetDirectoryName(openFileDialog.FileName), ProcessFile);
+                else if (ofd.SelectedFolder == "D:\\")
+                {
+                    Message_Feed_Out("D:\\を選択することはできません。");
+                    return;
+                }
+                ApplyAllFiles(ofd.SelectedFolder, ProcessFile);
                 if (Voice_Set.WoTB_Path == "")
                 {
                     Message_Feed_Out("WoTBのフォルダを取得できませんでした。");
@@ -1274,7 +1367,7 @@ namespace WoTB_Voice_Mod_Creater
                         UseShellExecute = false
                     };
                     Process.Start(processStartInfo2);
-                    Application.Current.Shutdown();
+                    Close();
                 }
             }
             //一時ファイルの保存場所を指定
@@ -1283,16 +1376,14 @@ namespace WoTB_Voice_Mod_Creater
                 MessageBoxResult result = MessageBox.Show("一時ファイルの保存先を変更しますか？", "確認", MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.No);
                 if (result == MessageBoxResult.Yes)
                 {
-                    System.Windows.Forms.OpenFileDialog ofd = new System.Windows.Forms.OpenFileDialog()
+                    BetterFolderBrowser ofd = new BetterFolderBrowser()
                     {
-                        Title = "フォルダを選択してください。",
-                        Filter = "フォルダを選択(Folder;)|",
-                        FileName = "フォルダを指定",
-                        CheckFileExists = false
+                        Title = "保存先のフォルダを選択してください。",
+                        Multiselect = false
                     };
                     if (ofd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                     {
-                        string Dir = System.IO.Path.GetDirectoryName(ofd.FileName);
+                        string Dir = ofd.SelectedFolder;
                         if (Sub_Code.IsTextIncludeJapanese(Dir))
                         {
                             Message_Feed_Out("エラー:パスに日本語を含むことはできません。");
@@ -1344,6 +1435,34 @@ namespace WoTB_Voice_Mod_Creater
                         Voice_Set.Special_Path = Dir;
                         Message_Feed_Out("一時ファイルの保存先を変更しました。");
                     }
+                }
+            }
+            //エラーログをクリア
+            if ((System.Windows.Forms.Control.ModifierKeys & System.Windows.Forms.Keys.Shift) == System.Windows.Forms.Keys.Shift && e.Key == System.Windows.Input.Key.L)
+            {
+                try
+                {
+                    if (!File.Exists(Path + "/Error_Log.txt"))
+                    {
+                        Message_Feed_Out("ログファイルが存在しません。");
+                    }
+                    StreamReader str = new StreamReader(Path + "/Error_Log.txt");
+                    string Temp = str.ReadToEnd();
+                    str.Close();
+                    if (Temp == "")
+                    {
+                        Message_Feed_Out("ログはすでにクリアされています。");
+                    }
+                    MessageBoxResult result = MessageBox.Show("エラーログをクリアしますか？", "確認", MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.No);
+                    if (result == MessageBoxResult.Yes)
+                    {
+                        File.WriteAllText(Path + "/Error_Log.txt", "");
+                    }
+                }
+                catch (Exception e1)
+                {
+                    Message_Feed_Out("エラーログをクリアできませんでした。");
+                    Sub_Code.Error_Log_Write(e1.Message);
                 }
             }
         }

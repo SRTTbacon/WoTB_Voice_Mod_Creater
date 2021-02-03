@@ -138,8 +138,8 @@
             <Slider x:Name="Voice_Volume_S" Height="28" VerticalAlignment="Top" Width="450" Style="{StaticResource CustomSliderStyle}" Margin="-675,260,0,0" ValueChanged="Voice_Volume_S_ValueChanged"/>
             <ComboBox x:Name="Voice_Type_C" Height="50" BorderBrush="Red" Foreground="Red" Background="Transparent" VerticalAlignment="Top" Width="300" FontSize="35" Margin="-3150,250,0,0" Style="{StaticResource ComboBoxStyle}" SelectionChanged="Voice_Type_C_SelectionChanged"/>
             <Border x:Name="Voice_Type_Border" BorderBrush="Aqua" Width="300" Height="50" Margin="-3150,250,0,0" BorderThickness="1" VerticalAlignment="Top"/>
-            <ProgressBar x:Name="Download_Progress_P" Height="30" VerticalAlignment="Top" Width="425" Margin="-3250,300,0,0"/>
-            <TextBlock x:Name="Download_Progress_T" Height="50" Width="500" Margin="-3250,225,0,0" Foreground="Aqua" FontSize="40" TextWrapping="Wrap" Text="1000/1000" VerticalAlignment="Top" TextAlignment="Center"/>
+            <ProgressBar x:Name="Download_P" Height="30" VerticalAlignment="Top" Width="425" Margin="-3250,555,0,0"/>
+            <TextBlock x:Name="Download_T" Height="50" Width="500" Margin="-3250,500,0,0" Foreground="Aqua" FontSize="40" TextWrapping="Wrap" Text="1000/1000" VerticalAlignment="Top" TextAlignment="Center"/>
             <Button x:Name="Cache_Delete_B" Content="キャッシュを削除" HorizontalAlignment="Left" Margin="-352,995,0,0" VerticalAlignment="Top" Width="349" Height="82" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="30" Click="Cache_Delete_B_Click"/>
             <TextBlock x:Name="Password_Text" Height="50" Width="260" Margin="-750,300,0,0" Foreground="Aqua" FontSize="40" TextWrapping="Wrap" Text="パスワードを入力" VerticalAlignment="Top" TextAlignment="Center" Visibility="Hidden"/>
             <TextBox x:Name="Password_T" Height="50" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="350" Margin="-760,375,0,0" FontSize="35" TextAlignment="Center" Visibility="Hidden"/>
@@ -173,7 +173,8 @@
             <Button x:Name="Message_B" Content="作者より" HorizontalAlignment="Left" Margin="-1920,340,0,0" VerticalAlignment="Top" Width="300" Height="70" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Click="Message_B_Click"/>
             <Image x:Name="Load_Image" Height="720" VerticalAlignment="Top" Width="1280" Stretch="Fill" Margin="-1920,200,0,0"/>
             <Button x:Name="Voice_Create_Tool_B" Content="音声作成ツール(オフラインモード)" HorizontalAlignment="Left" Margin="-1220,150,0,0" VerticalAlignment="Top" Width="525" Height="90" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Click="Voice_Create_Tool_B_Click"/>
-            <Button x:Name="WoTB_Select_B" Content="WoTBのインストールフォルダを指定" HorizontalAlignment="Left" Margin="-560,75,0,0" VerticalAlignment="Top" Width="550" Height="90" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Click="WoTB_Select_B_Click"/>
+            <Button x:Name="WoTB_Select_B" Content="WoTBのインストールフォルダを指定" HorizontalAlignment="Left" Margin="-560,75,0,0" VerticalAlignment="Top" Width="500" Height="80" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="35" Click="WoTB_Select_B_Click"/>
+            <Border x:Name="Download_Border" BorderBrush="Transparent" Background="Transparent" BorderThickness="1" Height="1080" VerticalAlignment="Top" Width="1920" Margin="-1920,0,0,0" Visibility="Hidden"/>
             <Class1:Server_Create x:Name="Server_Create_Window" Width="1920" Height="1080" Margin="-1920,0,0,0" Visibility="Hidden"/>
             <Class1:Voice_Control x:Name="Voice_Control_Window" Width="1920" Height="1080" Margin="-1920,0,0,0" Visibility="Hidden"/>
             <Class1:Voice_Control_Sub x:Name="Voice_Control_Sub_Window" Width="1920" Height="1080" Margin="-1920,0,0,0" Visibility="Hidden"/>
