@@ -7,6 +7,25 @@ FMod Designerの使い方がわからなくても自動でプロジェクトを�
 バグや不具合、わからないことがあればSRTTbacon#2395までご連絡を！<br>
 V1.2.7から.NetFramework4.6.1に変更しましたので、Windows7などはマイクロソフトからダウンロード&インストールする必要があります。
 <br>
+V1.2.8変更点<br>
+・FSBファイルを抽出できる機能を追加(.aac .flac .mp3 .ogg .wav .webm .wma形式に対応)<br>
+・FSBファイル専用の再生プレイヤーを追加<br>
+↑はともにWoTB用ツール内のFSB変換ツールに入っています。<br>
+・DDSをPNGに、PNGをDDSにエンコードできる機能を追加(WoTB用ツールに入っています。)<br>
+.dds(BC1～BC7まで対応) .png .jpg .bmp .gif .tiff .exifを相互変換できます。(WoTBのddsはBC3形式です。)<br>
+↑はWoTB用ツール内の画像変換ツールに入っています。<br>
+・FSBファイルから抽出してできたファイルをFSB形式に戻す機能を追加<br>
+↑はWoTB用ツール内のFSB作成ツールに入っています。(FSBから抽出すると.wfsファイルが生成されるのでそれを指定します。)<br>
+・音楽プレイヤー、Mod配布画面にてリストの順番を変更できるように<br>
+(音楽プレイヤーでは名前順、拡張子順 / Mod配布画面では名前順、配布順)<br>
+・チェックボックスのチェックの有無や音量を保存し起動時に適応されるように変更<br>
+・Youtubeのタイトルにファイル名として保存できない文字がある場合、正常に保存されない不具合を修正<br>
+・ログをクリアできるように変更(ホーム画面でShift+Lキーを押すとダイアログが表示されます。)<br>
+・一部の環境でAndroid用の音声Modが作成されない問題を修正<br>
+・すべての環境でWoTBのDVPLを解除できない問題を修正<br>
+・.dllの位置を変更(dllフォルダに移動)<br>
+・軽度なバグを修正<br>
+・一部仕様を変更<br>
 V1.2.7変更点<br>
 ・WoTB用ツールにてFEVファイルを再生できる機能を追加(対応するFSBファイルがないと動作しません。)<br>
 ・音楽プレイヤーにてYoutubeから取得できる機能を追加(音声か動画か選択できます。)<br>
@@ -75,4 +94,6 @@ System.Buffers.4.5.1<br>
 System.Memory.4.5.4<br>
 System.Runtime.CompilerServices.Unsafe.5.0.0<br>
 Cauldron.FMOD(V1.1から導入)<br>
-YoutubeExplode(V1.2.7から導入)
+YoutubeExplode(V1.2.7から導入)<br>
+DdsFileTypePlusIO(V1.2.8から導入)<br>
+BetterFolderBrowser(V1.2.8から導入)
