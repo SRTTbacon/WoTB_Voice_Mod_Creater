@@ -28,7 +28,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             Visibility = System.Windows.Visibility.Visible;
             while (Opacity < 1 && !IsClosing)
             {
-                Opacity += 0.025;
+                Opacity += Sub_Code.Window_Feed_Time;
                 await Task.Delay(1000 / 60);
             }
         }
@@ -39,7 +39,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 IsClosing = true;
                 while (Opacity > 0)
                 {
-                    Opacity -= 0.025;
+                    Opacity -= Sub_Code.Window_Feed_Time;
                     await Task.Delay(1000 / 60);
                 }
                 IsClosing = false;

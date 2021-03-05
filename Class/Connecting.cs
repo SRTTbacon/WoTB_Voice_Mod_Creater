@@ -13,14 +13,14 @@ namespace WoTB_Voice_Mod_Creater
         {
             while (true)
             {
-                if (Connectiong != Voice_Set.TCP_Server.TcpClient.Connected)
+                if (Connectiong != Voice_Set.FTP_Server.IsConnected)
                 {
-                    Connectiong = Voice_Set.TCP_Server.TcpClient.Connected;
+                    Connectiong = Voice_Set.FTP_Server.IsConnected;
                     Connect_Mode_Layout();
                     Message_T.Text = "サーバーとの接続が切断されました。";
                     break;
                 }
-                await Task.Delay(100);
+                await Task.Delay(1000);
             }
         }
         //アカウントが存在するか
@@ -99,7 +99,6 @@ namespace WoTB_Voice_Mod_Creater
                             }
                             catch
                             {
-
                             }
                         }
                     }
@@ -124,7 +123,6 @@ namespace WoTB_Voice_Mod_Creater
                             }
                             catch
                             {
-
                             }
                         }
                     }

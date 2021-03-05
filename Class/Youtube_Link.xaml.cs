@@ -1,13 +1,13 @@
-﻿using System.IO;
-using System.Windows.Controls;
-using System.Windows;
-using System.Threading.Tasks;
-using System;
-using System.Windows.Media.Imaging;
-using System.Net;
-using YoutubeExplode;
-using System.Collections.Generic;
+﻿using System;
+using System.IO;
 using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media.Imaging;
+using WK.Libraries.BetterFolderBrowserNS;
+using YoutubeExplode;
 using YoutubeExplode.Videos.Streams;
 
 namespace WoTB_Voice_Mod_Creater.Class
@@ -64,7 +64,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             IsSaveOK = true;
             while (Opacity < 1 && !IsClosing)
             {
-                Opacity += 0.025;
+                Opacity += Sub_Code.Window_Feed_Time;
                 await Task.Delay(1000 / 60);
             }
         }
@@ -100,17 +100,16 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 return;
             }
-            System.Windows.Forms.OpenFileDialog ofd = new System.Windows.Forms.OpenFileDialog()
+            BetterFolderBrowser ofd = new BetterFolderBrowser()
             {
-                Title = "フォルダを選択してください。",
-                Filter = "フォルダを選択(Folder;)|",
-                FileName = "フォルダを指定",
-                CheckFileExists = false,
+                Title = "保存先のフォルダを選択してください。",
+                RootFolder = Sub_Code.Get_OpenDirectory_Path(),
                 Multiselect = false
             };
             if (ofd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
-                Save_Destination_T.Text = Path.GetDirectoryName(ofd.FileName) + "\\";
+                Sub_Code.Set_Directory_Path(ofd.SelectedFolder);
+                Save_Destination_T.Text = ofd.SelectedFolder + "\\";
                 Configs_Save();
             }
         }
@@ -159,7 +158,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 IsClosing = true;
                 while (Opacity > 0)
                 {
-                    Opacity -= 0.025;
+                    Opacity -= Sub_Code.Window_Feed_Time;
                     await Task.Delay(1000 / 60);
                 }
                 Visibility = Visibility.Hidden;
@@ -206,10 +205,10 @@ namespace WoTB_Voice_Mod_Creater.Class
                     return;
                 }
             }
-            catch (Exception e1)
+            catch/* (Exception e1)*/
             {
-                Message_Feed_Out("保存できませんでした。");
-                Sub_Code.Error_Log_Write(e1.Message);
+                Message_Feed_Out("保存できませんでした。Youtubeの仕様が変更された可能性があります。");
+                //Sub_Code.Error_Log_Write(e1.Message);
             }
             IsClosing = false;
         }
@@ -267,6 +266,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             File.Delete(OutDir + "Temp.mp3");
             File.Delete(OutDir + "Temp.mp4");
         }
+        //URLが変更されたらサムネイルを取得して表示
         private void Link_T_TextChanged(object sender, TextChangedEventArgs e)
         {
             if (IsClosing)

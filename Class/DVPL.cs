@@ -4,9 +4,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
-using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 
 namespace WoTB_Voice_Mod_Creater
@@ -206,6 +204,36 @@ namespace WoTB_Voice_Mod_Creater
                 }
                 ZipFile.ExtractToDirectory(Voice_Set.Special_Path + "/Temp_Fmod_Android_Create.zip", Voice_Set.Special_Path + "/Fmod_Android_Create");
                 File.Delete(Voice_Set.Special_Path + "/Temp_Fmod_Android_Create.zip");
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message);
+                Sub_Code.Error_Log_Write(e.Message);
+            }
+        }
+        public static void Wwise_Extract()
+        {
+            try
+            {
+                if (Directory.Exists(Voice_Set.Special_Path + "/Wwise"))
+                {
+                    Directory.Delete(Voice_Set.Special_Path + "/Wwise", true);
+                }
+                using (Stream stream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("WoTB_Voice_Mod_Creater.Resources.Wwise.zip"))
+                {
+                    using (FileStream bw = new FileStream(Voice_Set.Special_Path + "/Temp_Wwise.zip", FileMode.Create))
+                    {
+                        while (stream.Position < stream.Length)
+                        {
+                            byte[] bits = new byte[stream.Length];
+                            stream.Read(bits, 0, (int)stream.Length);
+                            bw.Write(bits, 0, (int)stream.Length);
+                        }
+                    }
+                    stream.Close();
+                }
+                ZipFile.ExtractToDirectory(Voice_Set.Special_Path + "/Temp_Wwise.zip", Voice_Set.Special_Path + "/Wwise");
+                File.Delete(Voice_Set.Special_Path + "/Temp_Wwise.zip");
             }
             catch (Exception e)
             {

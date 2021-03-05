@@ -1,10 +1,12 @@
-﻿using System;
+﻿using SimpleTCP;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Forms;
+using System.Windows.Input;
 using WMPLib;
 
 namespace WoTB_Voice_Mod_Creater.Class
@@ -14,6 +16,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         bool IsBusy = false;
         bool IsMessageShowing = false;
         bool IsCreating = false;
+        bool IsNewMode = false;
         List<List<string>> Voice_List_Full_File_Name = new List<List<string>>();
         List<List<string>> Voice_Sub_List_Full_File_Name = new List<List<string>>();
         readonly WindowsMediaPlayer Player = new WindowsMediaPlayer();
@@ -22,6 +25,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             InitializeComponent();
             Voice_Sub_List.Visibility = Visibility.Hidden;
             Voice_Back_B.Visibility = Visibility.Hidden;
+            Volume_S.AddHandler(MouseUpEvent, new MouseButtonEventHandler(Volume_MouseUp), true);
             List_Text_Reset();
         }
         void List_Text_Reset()
@@ -78,6 +82,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             Voice_Sub_List.Items.Add("装填完了 | 未選択");
             Voice_Sub_List.Items.Add("マップクリック時 | 未選択");
             Voice_Sub_List.Items.Add("戦闘終了時 | 未選択");
+            Voice_Sub_List.Items.Add("戦闘BGM | 未選択");
             Voice_List_Full_File_Name = new List<List<string>>();
             Voice_Sub_List_Full_File_Name = new List<List<string>>();
             for (int Number = 0; Number < 34; Number++)
@@ -85,21 +90,47 @@ namespace WoTB_Voice_Mod_Creater.Class
                 List<string> Temp = new List<string>();
                 Voice_List_Full_File_Name.Add(Temp);
             }
-            for (int Number = 0; Number < 15; Number++)
+            for (int Number = 0; Number < 16; Number++)
             {
                 List<string> Temp = new List<string>();
                 Voice_Sub_List_Full_File_Name.Add(Temp);
             }
         }
-        public async void Window_Show()
+        //引数:新サウンドエンジンの音声Mod=true,旧サウンドエンジン=false
+        public async void Window_Show(bool Mode)
         {
             //画面を表示
+            IsNewMode = Mode;
             Volume_S.Value = 50;
+            if (File.Exists(Voice_Set.Special_Path + "/Configs/Voice_Create.conf"))
+            {
+                try
+                {
+                    using (var eifs = new FileStream(Voice_Set.Special_Path + "/Configs/Voice_Create.conf", FileMode.Open, FileAccess.Read))
+                    {
+                        using (var eofs = new FileStream(Voice_Set.Special_Path + "/Configs/Temp_Voice_Create.tmp", FileMode.Create, FileAccess.Write))
+                        {
+                            FileEncode.FileEncryptor.Decrypt(eifs, eofs, "Voice_Create_Configs_Save");
+                        }
+                    }
+                    StreamReader str = new StreamReader(Voice_Set.Special_Path + "/Configs/Temp_Voice_Create.tmp");
+                    Volume_S.Value = double.Parse(str.ReadLine());
+                    str.Close();
+                    File.Delete(Voice_Set.Special_Path + "/Configs/Temp_Voice_Create.tmp");
+                }
+                catch (Exception e)
+                {
+                    System.Windows.MessageBox.Show("設定を読み込めませんでした。。\nエラー回避のため設定は削除されます。");
+                    File.Delete(Voice_Set.Special_Path + "/Configs/Voice_Create.conf");
+                    Volume_S.Value = 75;
+                    Sub_Code.Error_Log_Write(e.Message);
+                }
+            }
             Opacity = 0;
             Visibility = Visibility.Visible;
             while (Opacity < 1 && !IsBusy)
             {
-                Opacity += 0.025;
+                Opacity += Sub_Code.Window_Feed_Time;
                 await Task.Delay(1000 / 60);
             }
         }
@@ -109,9 +140,10 @@ namespace WoTB_Voice_Mod_Creater.Class
             if (!IsBusy)
             {
                 IsBusy = true;
+                Player.controls.pause();
                 while (Opacity > 0)
                 {
-                    Opacity -= 0.025;
+                    Opacity -= Sub_Code.Window_Feed_Time;
                     await Task.Delay(1000 / 60);
                 }
                 Visibility = Visibility.Hidden;
@@ -264,7 +296,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 //fmod designerが対応しているファイルのみ
                 Title = "音声ファイルを選択してください。",
-                Filter = "音声ファイル(*.mp3;*.wav;*.ogg;*.flac;*.wma)|*.mp3;*.wav;*.ogg;*.flac;*.wma",
+                Filter = "音声ファイル(*.mp3;*.wav;*.ogg;*.flac;*.wma;*.aac;*.mp4)|*.mp3;*.wav;*.ogg;*.flac;*.wma;*.aac;*.mp4",
                 Multiselect = true
             };
             if (ofd.ShowDialog() == DialogResult.OK)
@@ -333,6 +365,11 @@ namespace WoTB_Voice_Mod_Creater.Class
                     Voice_Sub_List.Items[Voice_Sub_List.SelectedIndex] = Voice_Sub_List.Items[Voice_Sub_List.SelectedIndex].ToString().Replace("選択済み", "未選択");
                 }
             }
+        }
+        private void Voice_File_List_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            Player.controls.stop();
+            Player.close();
         }
         private void Volume_S_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
@@ -469,6 +506,8 @@ namespace WoTB_Voice_Mod_Creater.Class
                     StreamReader file = new StreamReader(Voice_Set.Special_Path + "/Temp_Load_Voice.dat");
                     Project_Name_T.Text = file.ReadLine();
                     List_Text_Reset();
+                    Player.controls.stop();
+                    Player.close();
                     while ((line = file.ReadLine()) != null)
                     {
                         int Number = int.Parse(line.Substring(0, line.IndexOf('|')));
@@ -520,6 +559,19 @@ namespace WoTB_Voice_Mod_Creater.Class
                     Message_Feed_Out("WoTBのインストール場所を取得できませんでした。");
                     return;
                 }
+                bool IsOK = false;
+                foreach (string Name_Now in Voice_List.Items)
+                {
+                    if (Name_Now.Contains("選択済み"))
+                    {
+                        IsOK = true;
+                    }
+                }
+                if (!IsOK)
+                {
+                    Message_Feed_Out("音声が1つも選択されていません。");
+                    return;
+                }
                 if (Project_Name_T.Text == "")
                 {
                     Message_Feed_Out("プロジェクト名が設定されていません。");
@@ -546,7 +598,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                     Sub_Code.Error_Log_Write(e1.Message);
                     return;
                 }
-                if (Sub_Code.IsTextIncludeJapanese(Project_Name_T.Text))
+                if (Sub_Code.IsTextIncludeJapanese(Project_Name_T.Text) && !IsNewMode)
                 {
                     Message_Feed_Out("プロジェクト名に日本語を含めることはできません。");
                     return;
@@ -558,23 +610,25 @@ namespace WoTB_Voice_Mod_Creater.Class
                 }*/
                 //作成画面へ
                 IsCreating = true;
-                string Dir_Name = Directory.GetCurrentDirectory() + "/Projects/" + Project_Name_T.Text;
+                Message_T.Opacity = 1;
+                IsMessageShowing = false;
                 string Dir_Path = Directory.GetCurrentDirectory();
+                string Dir_Name = Dir_Path + "/Projects/" + Project_Name_T.Text;
                 List<List<string>> Temp = new List<List<string>>();
-                for (int Number_01 = 0; Number_01 <= Voice_List_Full_File_Name.Count - 1; Number_01++)
+                for (int Number_01 = 0; Number_01 < Voice_List_Full_File_Name.Count; Number_01++)
                 {
                     Temp.Add(Voice_List_Full_File_Name[Number_01]);
                 }
-                for (int Number_02 = 0; Number_02 <= Voice_Sub_List_Full_File_Name.Count - 1; Number_02++)
+                for (int Number_02 = 0; Number_02 < Voice_Sub_List_Full_File_Name.Count; Number_02++)
                 {
                     Temp.Add(Voice_Sub_List_Full_File_Name[Number_02]);
                 }
-                Voice_Create_Window.Window_Show_V2(Project_Name_T.Text, Temp);
+                Voice_Create_Window.Window_Show_V2(Project_Name_T.Text, Temp, IsNewMode);
                 Voice_Create_Window.Opacity = 0;
                 Voice_Create_Window.Visibility = Visibility.Visible;
                 while (Voice_Create_Window.Opacity < 1)
                 {
-                    Voice_Create_Window.Opacity += 0.025;
+                    Voice_Create_Window.Opacity += Sub_Code.Window_Feed_Time;
                     await Task.Delay(1000 / 60);
                 }
                 while (Voice_Create_Window.Visibility == Visibility.Visible)
@@ -585,6 +639,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 if (Sub_Code.CreatingProject)
                 {
                     Sub_Code.CreatingProject = false;
+                    Border_All.Visibility = Visibility.Visible;
                     if (Directory.Exists(Dir_Name))
                     {
                         try
@@ -592,13 +647,13 @@ namespace WoTB_Voice_Mod_Creater.Class
                             Directory.Delete(Dir_Name + "/Voices", true);
                             Directory.Delete(Dir_Name + "/" + Project_Name_T.Text + "_Mod", true);
                         }
-                        catch (Exception e1)
+                        catch
                         {
-                            Sub_Code.Error_Log_Write(e1.Message);
                         }
                     }
+                    Message_T.Opacity = 1;
                     Message_T.Text = "ファイルをコピーしています...";
-                    await Task.Delay(10);
+                    await Task.Delay(30);
                     Directory.CreateDirectory(Dir_Name + "/Voices");
                     string Log_01 = Sub_Code.Set_Voice_Type_Change_Name_By_Index(Dir_Name + "/Voices", Temp);
                     if (Log_01 != "")
@@ -613,10 +668,24 @@ namespace WoTB_Voice_Mod_Creater.Class
                         Message_T.Text = "音量を均一にしています...";
                         await Task.Delay(50);
                         await Sub_Code.Change_MP3_Encode(Dir_Name + "/Voices");
-                        await Task.Delay(1000);
+                        await Task.Delay(500);
                     }
                     string File_Name = Project_Name_T.Text.Replace(" ", "_");
-                    if (Sub_Code.AndroidMode)
+                    if (IsNewMode)
+                    {
+                        //BNK_Create_V1(Dir_Name);
+                        await BNK_Create_V2(Dir_Name);
+                        if (Sub_Code.DVPL_Encode)
+                        {
+                            Message_T.Text = "DVPL化しています...";
+                            await Task.Delay(50);
+                            DVPL.DVPL_Pack(Dir_Name + "/voiceover_crew.bnk", Dir_Name + "/voiceover_crew.bnk.dvpl", true);
+                            DVPL.DVPL_Pack(Dir_Name + "/ui_battle.bnk", Dir_Name + "/ui_battle.bnk.dvpl", true);
+                            DVPL.DVPL_Pack(Dir_Name + "/ui_chat_quick_commands.bnk", Dir_Name + "/ui_chat_quick_commands.bnk.dvpl", true);
+                            DVPL.DVPL_Pack(Dir_Name + "/reload.bnk", Dir_Name + "/reload.bnk.dvpl", true);
+                        }
+                    }
+                    else if (Sub_Code.AndroidMode)
                     {
                         await Android_Create.Android_Project_Create(Message_T, Project_Name_T.Text, Dir_Name + "/Voices", Voice_Set.Special_Path + "/SE");
                         Message_T.Text = "DVPL化しています...";
@@ -672,23 +741,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                         Sub_Code.DVPL_File_Copy(Voice_Set.WoTB_Path + "/Data/sounds.yaml", Dir_Path + "/Backup/" + Time + "/sounds.yaml", false);
                         Sub_Code.DVPL_File_Copy(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_high.yaml", Dir_Path + "/Backup/" + Time + "/sfx_high.yaml", false);
                         Sub_Code.DVPL_File_Copy(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_low.yaml", Dir_Path + "/Backup/" + Time + "/sfx_low.yaml", false);
-                        string[] Dirs = Directory.GetDirectories(Dir_Path + "/Backup", "*", SearchOption.TopDirectoryOnly);
-                        foreach (string Dir in Dirs)
-                        {
-                            string Dir_Name_Only = Path.GetFileName(Dir);
-                            if (Dir_Name_Only == Time || Dir_Name_Only == "Main")
-                            {
-                                continue;
-                            }
-                            try
-                            {
-                                Directory.Delete(Dir, true);
-                            }
-                            catch (Exception e1)
-                            {
-                                Sub_Code.Error_Log_Write(e1.Message);
-                            }
-                        }
+                        Sub_Code.Backup_Update(Time);
                         if (File.Exists(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_high.yaml.dvpl"))
                         {
                             DVPL.DVPL_UnPack(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_high.yaml.dvpl", Dir_Name + "/" + Project_Name_T.Text + "_Mod/Configs/Sfx/sfx_high.yaml", false);
@@ -770,6 +823,16 @@ namespace WoTB_Voice_Mod_Creater.Class
                             Sub_Code.Error_Log_Write(e1.Message);
                         }
                     }
+                    try
+                    {
+                        Message_T.Text = "一時フォルダを削除しています...";
+                        await Task.Delay(50);
+                        Directory.Delete(Dir_Name + "/Voices", true);
+                    }
+                    catch (Exception e1)
+                    {
+                        Sub_Code.Error_Log_Write(e1.Message);
+                    }
                     Message_T.Text = "ダイアログを表示しています...";
                     await Task.Delay(50);
                     MessageBoxResult result = System.Windows.MessageBox.Show("完了しました。WoTBに適応しますか？", "確認", MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.Yes);
@@ -783,7 +846,23 @@ namespace WoTB_Voice_Mod_Creater.Class
                         try
                         {
                             //WoTBのフォルダに作成したファイルをコピー
-                            if (Sub_Code.AndroidMode)
+                            if (IsNewMode)
+                            {
+                                /*string GetDir = Dir_Name + "/" + Project_Name_T.Text + "_Mod/Data/WwiseSound";
+                                Sub_Code.DVPL_File_Delete(Voice_Set.WoTB_Path + "/Data/WwiseSound/" + Sub_Code.SetLanguage + "/voiceover_crew.bnk");
+                                Sub_Code.DVPL_File_Delete(Voice_Set.WoTB_Path + "/Data/WwiseSound/reload.bnk");
+                                Sub_Code.DVPL_File_Delete(Voice_Set.WoTB_Path + "/Data/WwiseSound/ui_chat_quick_commands.bnk");
+                                Sub_Code.DVPL_File_Delete(Voice_Set.WoTB_Path + "/Data/WwiseSound/ui_battle.bnk");
+                                Sub_Code.DVPL_File_Copy(GetDir + "/" + Sub_Code.SetLanguage + "/voiceover_crew.bnk", Voice_Set.WoTB_Path + "/Data/WwiseSound/" + Sub_Code.SetLanguage + "/voiceover_crew.bnk", true);
+                                Sub_Code.DVPL_File_Copy(GetDir + "/reload.bnk", Voice_Set.WoTB_Path + "/Data/WwiseSound/reload.bnk", true);
+                                Sub_Code.DVPL_File_Copy(GetDir + "/ui_chat_quick_commands.bnk", Voice_Set.WoTB_Path + "/Data/WwiseSound/ui_chat_quick_commands.bnk", true);
+                                Sub_Code.DVPL_File_Copy(GetDir + "/ui_battle.bnk", Voice_Set.WoTB_Path + "/Data/WwiseSound/ui_battle.bnk", true);*/
+                                Sub_Code.DVPL_File_Copy(Dir_Name + "/voiceover_crew.bnk", Voice_Set.WoTB_Path + "/Data/WwiseSound/" + Sub_Code.SetLanguage + "/voiceover_crew.bnk", true);
+                                Sub_Code.DVPL_File_Copy(Dir_Name + "/reload.bnk", Voice_Set.WoTB_Path + "/Data/WwiseSound/reload.bnk", true);
+                                Sub_Code.DVPL_File_Copy(Dir_Name + "/ui_chat_quick_commands.bnk", Voice_Set.WoTB_Path + "/Data/WwiseSound/ui_chat_quick_commands.bnk", true);
+                                Sub_Code.DVPL_File_Copy(Dir_Name + "/ui_battle.bnk", Voice_Set.WoTB_Path + "/Data/WwiseSound/ui_battle.bnk", true);
+                            }
+                            else if (Sub_Code.AndroidMode)
                             {
                                 File.Copy(Dir_Name + "/ingame_voice_ja.fsb.dvpl", Voice_Set.WoTB_Path + "/Data/Sfx/ingame_voice_ja.fsb.dvpl", true);
                                 File.Copy(Dir_Name + "/GUI_battle_streamed.fsb.dvpl", Voice_Set.WoTB_Path + "/Data/Sfx/GUI_battle_streamed.fsb.dvpl", true);
@@ -813,6 +892,8 @@ namespace WoTB_Voice_Mod_Creater.Class
                             return;
                         }
                     }
+                    Sub_Code.DVPL_Encode = false;
+                    Sub_Code.SetLanguage = "";
                     Message_Feed_Out("完了しました。");
                 }
             }
@@ -821,7 +902,363 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Message_Feed_Out("致命的なエラーが発生し正常に作成されませんでした。");
                 Sub_Code.Error_Log_Write(e1.Message);
             }
+            Border_All.Visibility = Visibility.Hidden;
             IsCreating = false;
+        }
+        void Volume_MouseUp(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            Configs_Save();
+        }
+        void Configs_Save()
+        {
+            try
+            {
+                StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Configs/Voice_Create.tmp");
+                stw.Write(Volume_S.Value);
+                stw.Close();
+                using (var eifs = new FileStream(Voice_Set.Special_Path + "/Configs/Voice_Create.tmp", FileMode.Open, FileAccess.Read))
+                {
+                    using (var eofs = new FileStream(Voice_Set.Special_Path + "/Configs/Voice_Create.conf", FileMode.Create, FileAccess.Write))
+                    {
+                        FileEncode.FileEncryptor.Encrypt(eifs, eofs, "Voice_Create_Configs_Save");
+                    }
+                }
+                File.Delete(Voice_Set.Special_Path + "/Configs/Voice_Create.tmp");
+            }
+            catch (Exception e)
+            {
+                Sub_Code.Error_Log_Write(e.Message);
+            }
+        }
+        void Wwise_Bnk_Pck_Replace(string From_File, string From_Dir, string Language_OR_Mode, bool IsVoiceMod)
+        {
+            if (!File.Exists(From_File) || !Directory.Exists(From_Dir))
+            {
+                return;
+            }
+            List<string> WoTB_IDs;
+            if (IsVoiceMod)
+            {
+                WoTB_IDs = Sub_Code.Get_Voices_ID(Language_OR_Mode);
+            }
+            else
+            {
+                WoTB_IDs = Sub_Code.Get_SE_ID(Language_OR_Mode);
+            }
+            string[] Files = Directory.GetFiles(From_Dir, "*.wav", SearchOption.TopDirectoryOnly);
+            string Ex = Path.GetExtension(From_File);
+            if (Ex == ".pck")
+            {
+                Wwise_Class.Wwise_File_Extract_V1 Wwise_Pck = new Wwise_Class.Wwise_File_Extract_V1(From_File);
+                List<string> File_IDs = Wwise_Pck.Wwise_Get_Banks_ID();
+                Wwise_Pck.Pck_Clear();
+                for (int Number = 0; Number < Files.Length; Number++)
+                {
+                    string File_ID_Now = "";
+                    for (int Number_01 = 0; Number_01 < WoTB_IDs.Count; Number_01++)
+                    {
+                        string Name = WoTB_IDs[Number_01].Substring(0, WoTB_IDs[Number_01].IndexOf('|'));
+                        if (Name == Path.GetFileName(Files[Number]))
+                        {
+                            File_ID_Now = WoTB_IDs[Number_01].Substring(WoTB_IDs[Number_01].IndexOf('|') + 1);
+                            break;
+                        }
+                    }
+                    if (File_ID_Now != "")
+                    {
+                        for (int Number_01 = 0; Number_01 < File_IDs.Count; Number_01++)
+                        {
+                            if (File_IDs[Number_01] == File_ID_Now)
+                            {
+                                Sub_Code.File_Move(Files[Number], Path.GetDirectoryName(Files[Number]) + "/" + (Number_01 + 1) + ".wav", true);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            else if (Ex == ".bnk")
+            {
+                Wwise_Class.Wwise_File_Extract_V2 Wwise_Bnk = new Wwise_Class.Wwise_File_Extract_V2(From_File);
+                List<string> File_IDs = Wwise_Bnk.Wwise_Get_Names();
+                Wwise_Bnk.Bank_Clear();
+                for (int Number = 0; Number < Files.Length; Number++)
+                {
+                    string File_ID_Now = "";
+                    for (int Number_01 = 0; Number_01 < WoTB_IDs.Count; Number_01++)
+                    {
+                        string Name = WoTB_IDs[Number_01].Substring(0, WoTB_IDs[Number_01].IndexOf('|'));
+                        if (Name == Path.GetFileName(Files[Number]))
+                        {
+                            File_ID_Now = WoTB_IDs[Number_01].Substring(WoTB_IDs[Number_01].IndexOf('|') + 1);
+                            break;
+                        }
+                    }
+                    if (File_ID_Now != "")
+                    {
+                        for (int Number_01 = 0; Number_01 < File_IDs.Count; Number_01++)
+                        {
+                            if (File_IDs[Number_01] == File_ID_Now)
+                            {
+                                Sub_Code.File_Move(Files[Number], Path.GetDirectoryName(Files[Number]) + "/" + Number_01 + ".wav", true);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        async Task Encode_WEM_And_Create_Bnk_Pck(string From_Bnk_Pck_File,string From_Dir)
+        {
+            await Encode_WEM_And_Create_Bnk_Pck(From_Bnk_Pck_File, From_Bnk_Pck_File, From_Dir);
+        }
+        async Task Encode_WEM_And_Create_Bnk_Pck(string From_Bnk_Pck_File, string To_Bnk_Pck_File, string From_Dir)
+        {
+            if (!File.Exists(From_Bnk_Pck_File) || !Directory.Exists(From_Dir))
+            {
+                return;
+            }
+            try
+            {
+                Wwise_Class.Wwise_File_Extract_V2 Wwise_Bnk = null;
+                bool IsPck;
+                if (Path.GetExtension(From_Bnk_Pck_File) == ".pck")
+                {
+                    IsPck = true;
+                }
+                else
+                {
+                    IsPck = false;
+                    Wwise_Bnk = new Wwise_Class.Wwise_File_Extract_V2(From_Bnk_Pck_File);
+                }
+                string[] WAV_Files = Directory.GetFiles(From_Dir, "*.wav", SearchOption.TopDirectoryOnly);
+                int Number = 1;
+                foreach (string File_Now in WAV_Files)
+                {
+                    Message_T.Text = Number + "個目のサウンドファイルをエンコードしています...";
+                    await Task.Delay(10);
+                    string Dir_Name_Voice = Path.GetDirectoryName(File_Now) + "/" + Path.GetFileNameWithoutExtension(File_Now);
+                    int Index = int.Parse(Path.GetFileNameWithoutExtension(File_Now));
+                    Sub_Code.File_To_WEM(File_Now, Dir_Name_Voice + ".wem", true, true);
+                    if (!IsPck)
+                    {
+                        Wwise_Bnk.Bank_Edit_Sound(Index, Dir_Name_Voice + ".wem", false);
+                    }
+                    Number++;
+                }
+                Message_T.Text = "WoTBのModファイルを作成しています...";
+                await Task.Delay(25);
+                if (IsPck)
+                {
+                    Wwise_Class.Wwise_File_Extract_V1 Wwise_Pck = new Wwise_Class.Wwise_File_Extract_V1(From_Bnk_Pck_File);
+                    if (From_Bnk_Pck_File == To_Bnk_Pck_File)
+                    {
+                        Wwise_Pck.Wwise_PCK_Save(From_Dir);
+                    }
+                    else
+                    {
+                        Wwise_Pck.Wwise_PCK_Save(To_Bnk_Pck_File, From_Dir, true);
+                    }
+                }
+                else
+                {
+                    if (From_Bnk_Pck_File == To_Bnk_Pck_File)
+                    {
+                        Wwise_Bnk.Bank_Save();
+                    }
+                    else
+                    {
+                        Wwise_Bnk.Bank_Save(To_Bnk_Pck_File);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Sub_Code.Error_Log_Write(e.Message);
+            }
+        }
+        //.bnkファイルを作成(既に存在する.bnkの中身のみを置き換えるのでファイル数は変更しない)
+        async Task BNK_Create_V1(string Dir_Name)
+        {
+            try
+            {
+                if (File.Exists(Voice_Set.WoTB_Path + "/Data/WwiseSound/" + Sub_Code.SetLanguage + "/voiceover_crew.bnk.dvpl"))
+                {
+                    DVPL.DVPL_UnPack(Voice_Set.WoTB_Path + "/Data/WwiseSound/" + Sub_Code.SetLanguage + "/voiceover_crew.bnk.dvpl", Voice_Set.Special_Path + "/Wwise/voiceover_crew.bnk", false);
+                }
+                else
+                {
+                    File.Copy(Voice_Set.WoTB_Path + "/Data/WwiseSound/" + Sub_Code.SetLanguage + "/voiceover_crew.bnk", Voice_Set.Special_Path + "/Wwise/voiceover_crew.bnk", true);
+                }
+                if (File.Exists(Voice_Set.WoTB_Path + "/Data/WwiseSound/reload.bnk.dvpl"))
+                {
+                    DVPL.DVPL_UnPack(Voice_Set.WoTB_Path + "/Data/WwiseSound/reload.bnk.dvpl", Voice_Set.Special_Path + "/Wwise/reload.bnk", false);
+                }
+                else
+                {
+                    File.Copy(Voice_Set.WoTB_Path + "/Data/WwiseSound/reload.bnk", Voice_Set.Special_Path + "/Wwise/reload.bnk", true);
+                }
+                if (File.Exists(Voice_Set.WoTB_Path + "/Data/WwiseSound/ui_chat_quick_commands.bnk.dvpl"))
+                {
+                    DVPL.DVPL_UnPack(Voice_Set.WoTB_Path + "/Data/WwiseSound/ui_chat_quick_commands.bnk.dvpl", Voice_Set.Special_Path + "/Wwise/ui_chat_quick_commands.bnk", false);
+                }
+                else
+                {
+                    File.Copy(Voice_Set.WoTB_Path + "/Data/WwiseSound/ui_chat_quick_commands.bnk", Voice_Set.Special_Path + "/Wwise/ui_chat_quick_commands.bnk", true);
+                }
+                if (File.Exists(Voice_Set.WoTB_Path + "/Data/WwiseSound/ui_battle.bnk.dvpl"))
+                {
+                    DVPL.DVPL_UnPack(Voice_Set.WoTB_Path + "/Data/WwiseSound/ui_battle.bnk.dvpl", Voice_Set.Special_Path + "/Wwise/ui_battle.bnk", false);
+                }
+                else
+                {
+                    File.Copy(Voice_Set.WoTB_Path + "/Data/WwiseSound/ui_battle.bnk", Voice_Set.Special_Path + "/Wwise/ui_battle.bnk", true);
+                }
+            }
+            catch
+            {
+                throw new Exception("'" + Voice_Set.Special_Path + "\\Wwise\\voiceover_crew.bnk'にアクセスできないか、WoTB内にファイルが存在しません。");
+            }
+            if (!Directory.Exists(Dir_Name + "/Voices"))
+            {
+                return;
+            }
+            Message_T.Text = "音声のファイル名を変換しています...";
+            await Task.Delay(50);
+            Android_Create.Voice_Name_To_Ingame_Voice(Dir_Name + "/Voices");
+            Message_T.Text = "音声のファイル数を修正しています...";
+            await Task.Delay(50);
+            Android_Create.Ingame_Voice_Set_Number(Voice_Set.Special_Path + "/Wwise", Dir_Name + "/Voices");
+            Message_T.Text = "音声ファイルにSEを付けています...";
+            await Task.Delay(50);
+            await Android_Create.Ingame_Voice_In_SE_By_Dir(Dir_Name + "/Voices", Voice_Set.Special_Path + "/SE", Voice_Set.Special_Path + "/Wwise/Voices");
+            Directory.Delete(Dir_Name + "/Voices", true);
+            Android_Create.Ingame_Voice_Move_Directory(Voice_Set.Special_Path + "/Wwise/Voices", false);
+            Message_T.Text = "ファイルをコピーしています...";
+            await Task.Delay(50);
+            Sub_Code.Directory_Copy(Voice_Set.Special_Path + "/Wwise/Voices", Dir_Name + "/Voices");
+            Directory.Delete(Voice_Set.Special_Path + "/Wwise/Voices", true);
+            Message_T.Text = "音声ファイルをwavに変換しています...";
+            await Task.Delay(50);
+            string[] Voice_Files = Directory.GetFiles(Dir_Name + "/Voices", "*", SearchOption.AllDirectories);
+            foreach (string Voice_Now in Voice_Files)
+            {
+                if (!Sub_Code.Audio_IsWAV(Voice_Now))
+                {
+                    string Dir_Name_Voice = Path.GetDirectoryName(Voice_Now) + "/" + Path.GetFileNameWithoutExtension(Voice_Now);
+                    Sub_Code.File_Move(Voice_Now, Dir_Name_Voice + ".tmp", true);
+                    Sub_Code.Audio_Encode_To_Other(Dir_Name_Voice + ".tmp", Dir_Name_Voice + ".wav", "wav", true);
+                }
+            }
+            Message_T.Text = "ファイル名を変更しています...";
+            await Task.Delay(50);
+            Wwise_Bnk_Pck_Replace(Voice_Set.Special_Path + "/Wwise/voiceover_crew.bnk", Dir_Name + "/Voices", "ja", true);
+            Wwise_Bnk_Pck_Replace(Voice_Set.Special_Path + "/Wwise/reload.bnk", Dir_Name + "/Voices/GUI_notifications_FX_howitzer_load", "reload", false);
+            Wwise_Bnk_Pck_Replace(Voice_Set.Special_Path + "/Wwise/ui_chat_quick_commands.bnk", Dir_Name + "/Voices/GUI_quick_commands", "command", false);
+            Wwise_Bnk_Pck_Replace(Voice_Set.Special_Path + "/Wwise/ui_battle.bnk", Dir_Name + "/Voices/GUI_battle_streamed", "battle_streamed", false);
+            if (Directory.Exists(Dir_Name + "/" + Project_Name_T.Text + "_Mod"))
+            {
+                Directory.Delete(Dir_Name + "/" + Project_Name_T.Text + "_Mod", true);
+            }
+            string GetDir = Dir_Name + "/" + Project_Name_T.Text + "_Mod/Data/WwiseSound";
+            Directory.CreateDirectory(GetDir + "/" + Sub_Code.SetLanguage);
+            await Encode_WEM_And_Create_Bnk_Pck(Voice_Set.Special_Path + "/Wwise/voiceover_crew.bnk", GetDir + "/" + Sub_Code.SetLanguage + "/voiceover_crew.bnk", Dir_Name + "/Voices");
+            await Encode_WEM_And_Create_Bnk_Pck(Voice_Set.Special_Path + "/Wwise/reload.bnk", GetDir + "/reload.bnk", Dir_Name + "/Voices/GUI_notifications_FX_howitzer_load");
+            await Encode_WEM_And_Create_Bnk_Pck(Voice_Set.Special_Path + "/Wwise/ui_chat_quick_commands.bnk", GetDir + "/ui_chat_quick_commands.bnk", Dir_Name + "/Voices/GUI_quick_commands");
+            await Encode_WEM_And_Create_Bnk_Pck(Voice_Set.Special_Path + "/Wwise/ui_battle.bnk", GetDir + "/ui_battle.bnk", Dir_Name + "/Voices/GUI_battle_streamed");
+            if (Sub_Code.DVPL_Encode)
+            {
+                Message_T.Text = "DVPL化しています...";
+                await Task.Delay(50);
+                try
+                {
+                    DVPL.DVPL_Pack(GetDir + "/" + Sub_Code.SetLanguage + "/voiceover_crew.bnk", GetDir + "/" + Sub_Code.SetLanguage + "/voiceover_crew.bnk.dvpl", true);
+                    DVPL.DVPL_Pack(GetDir + "/reload.bnk", GetDir + "/reload.bnk.dvpl", true);
+                    DVPL.DVPL_Pack(GetDir + "/ui_chat_quick_commands.bnk", GetDir + "/ui_chat_quick_commands.bnk.dvpl", true);
+                    DVPL.DVPL_Pack(GetDir + "/ui_battle.bnk", GetDir + "/ui_battle.bnk.dvpl", true);
+                }
+                catch (Exception e1)
+                {
+                    Message_Feed_Out("DVPL化できませんでした。");
+                    Sub_Code.Error_Log_Write(e1.Message);
+                    return;
+                }
+            }
+        }
+        //Wwiseのプロジェクトファイルを用いて.bnkファイルを作成(ファイル数やイベントの内容も変更できます)
+        async Task BNK_Create_V2(string Dir_Name)
+        {
+            if (!Directory.Exists(Dir_Name + "/Voices"))
+            {
+                return;
+            }
+            Message_T.Text = "音声ファイルをwavに変換しています...";
+            await Task.Delay(50);
+            string[] Voice_Files = Directory.GetFiles(Dir_Name + "/Voices", "*", SearchOption.AllDirectories);
+            await Multithread.Convert_To_Wav(Dir_Name + "/Voices", true);
+            Message_T.Text = "プロジェクトファイルを作成しています...";
+            await Task.Delay(50);
+            FileInfo fi = new FileInfo(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Default Work Unit.wwu");
+            if (File.Exists(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Backup.tmp") && fi.Length >= 800000)
+            {
+                File.Copy(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Backup.tmp", Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Default Work Unit.wwu", true);
+            }
+            if (!File.Exists(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Backup.tmp"))
+            {
+                File.Copy(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Default Work Unit.wwu", Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Backup.tmp", true);
+            }
+            Wwise_Class.Wwise_Project_Create Wwise = new Wwise_Class.Wwise_Project_Create(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod");
+            Wwise.Sound_Add_Wwise(Dir_Name + "/Voices");
+            Wwise.Save();
+            if (File.Exists(Dir_Name + "/Voices/battle_bgm_01.wav"))
+            {
+                Message_T.Text = ".bnkファイルを作成しています...\nBGMファイルが含まれているため時間がかかります。";
+            }
+            else
+            {
+                Message_T.Text = ".bnkファイルを作成しています...";
+            }
+            await Task.Delay(50);
+            Wwise.Project_Build("voiceover_crew", Dir_Name + "/voiceover_crew.bnk");
+            await Task.Delay(500);
+            Wwise.Project_Build("ui_battle", Dir_Name + "/ui_battle.bnk");
+            await Task.Delay(500);
+            Wwise.Project_Build("ui_chat_quick_commands", Dir_Name + "/ui_chat_quick_commands.bnk");
+            await Task.Delay(500);
+            Wwise.Project_Build("reload", Dir_Name + "/reload.bnk");
+            Wwise.Clear();
+            if (File.Exists(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Backup.tmp"))
+            {
+                File.Copy(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Backup.tmp", Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Default Work Unit.wwu", true);
+            }
+        }
+        private void Voice_Clear_Click(object sender, RoutedEventArgs e)
+        {
+            if (IsBusy)
+            {
+                return;
+            }
+            MessageBoxResult result = System.Windows.MessageBox.Show("追加された音声をクリアしますか？", "確認", MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.No);
+            if (result == MessageBoxResult.Yes)
+            {
+                List_Text_Reset();
+                Project_Name_T.Text = "";
+                Player.controls.stop();
+                Player.close();
+                Voice_Back_B.Visibility = Visibility.Hidden;
+                Voice_Sub_List.Visibility = Visibility.Hidden;
+                Voice_Next_B.Visibility = Visibility.Visible;
+                Voice_List.Visibility = Visibility.Visible;
+                Voice_List_T.Text = "音声リスト1";
+                if (Voice_List.SelectedIndex != -1)
+                {
+                    Voice_File_Reset(Voice_List_Full_File_Name, Voice_List.SelectedIndex);
+                }
+                else
+                {
+                    Voice_File_List.Items.Clear();
+                }
+            }
         }
     }
 }

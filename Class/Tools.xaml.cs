@@ -2,10 +2,13 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Input;
+using Un4seen.Bass;
+using WoTB_Voice_Mod_Creater.Wwise_Class;
 
 namespace WoTB_Voice_Mod_Creater.Class
 {
@@ -26,6 +29,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         public Tools()
         {
             InitializeComponent();
+            DVPL_Extract_Help_B.Visibility = Visibility.Hidden;
             Volume_S.AddHandler(MouseUpEvent, new MouseButtonEventHandler(Volume_MouseUp), true);
             Pitch_S.Minimum = -4;
             Pitch_S.Maximum = 2;
@@ -64,7 +68,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             Visibility = Visibility.Visible;
             while (Opacity < 1 && !IsBusy)
             {
-                Opacity += 0.025;
+                Opacity += Sub_Code.Window_Feed_Time;
                 await Task.Delay(1000 / 60);
             }
         }
@@ -157,7 +161,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 IsBusy = true;
                 while (Opacity > 0)
                 {
-                    Opacity -= 0.025;
+                    Opacity -= Sub_Code.Window_Feed_Time;
                     await Task.Delay(1000 / 60);
                 }
                 Visibility = Visibility.Hidden;
@@ -175,6 +179,11 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 return;
             }
+            if (BGM_List.Items.Count >= 20)
+            {
+                Message_Feed_Out("BGMを20個以上にすることはできません。");
+                return;
+            }
             OpenFileDialog ofd = new OpenFileDialog()
             {
                 Title = "BGMファイルを選択してください。",
@@ -186,7 +195,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 string Error_Message = "";
                 foreach (string FilePath in ofd.FileNames)
                 {
-                    if (BGM_List.Items.Count > 20)
+                    if (BGM_List.Items.Count >= 20)
                     {
                         Message_T.Text = "BGMファイルを20個以上入れることはできません。";
                         break;
@@ -240,10 +249,83 @@ namespace WoTB_Voice_Mod_Creater.Class
             }
             if (BGM_List.Items.Count == 0)
             {
-                System.Windows.MessageBox.Show("少なくとも1つはBGMファイルが必要です。");
+                Message_Feed_Out("少なくとも1つはBGMファイルが必要です。");
+                return;
+            }
+            string VoiceOver_Crew = "";
+            OpenFileDialog ofd = new OpenFileDialog()
+            {
+                Title = "voiceover_crew.bnkを選択してください。",
+                Filter = "音声ファイル(voiceover_crew.bnk;voiceover_crew.bnk.dvpl)|voiceover_crew.bnk;voiceover_crew.bnk.dvpl",
+                InitialDirectory = Voice_Set.WoTB_Path + "\\Data\\WwiseSound\\ja",
+                Multiselect = false
+            };
+            if (ofd.ShowDialog() == DialogResult.OK)
+            {
+                VoiceOver_Crew = ofd.FileName;
+            }
+            else
+            {
+                return;
+            }
+            Message_T.Text = "音声ファイルを確認しています...";
+            await Task.Delay(50);
+            if (Path.GetExtension(ofd.FileName) == ".dvpl")
+            {
+                DVPL.DVPL_UnPack(ofd.FileName, Voice_Set.Special_Path + "/Temp_VoiceOver_Crew_01.bnk", false);
+            }
+            else
+            {
+                File.Copy(ofd.FileName, Voice_Set.Special_Path + "/Temp_VoiceOver_Crew_01.bnk", true);
+            }
+            //voiceover_crew.bnkが対応しているか確認
+            Wwise_File_Extract_V2 Wwise = new Wwise_File_Extract_V2(Voice_Set.Special_Path + "/Temp_VoiceOver_Crew_01.bnk");
+            List<string> Files2 = Wwise.Wwise_Get_Names();
+            Wwise.Bank_Clear();
+            bool IsUseThisSoftware = false;
+            string WoTB_Language = "";
+            if (Files2.Contains("500000000"))
+            {
+                IsUseThisSoftware = true;
+            }
+            if (!IsUseThisSoftware)
+            {
+                WoTB_Language = BGM_Create.Get_Voice_Language(Files2);
+            }
+            if (!IsUseThisSoftware && WoTB_Language == "")
+            {
+                Message_Feed_Out("指定したファイルは対応していません。詳しくは\"?\"ボタンを押して確認してください。");
+                return;
+            }
+            int Start_Battle_Number = 0;
+            if (IsUseThisSoftware)
+            {
+                //Start_Battleの要素数を取得
+                int SetFirst = 500000000;
+                while (true)
+                {
+                    if (!Files2.Contains((SetFirst).ToString()))
+                    {
+                        Start_Battle_Number = SetFirst - 500000000;
+                        break;
+                    }
+                    SetFirst++;
+                }
+            }
+            if (BGM_List.Items.Count > Start_Battle_Number)
+            {
+                System.Windows.MessageBox.Show("指定した音声ファイルのBGM数は最大" + Start_Battle_Number + "個です。");
+                Message_Feed_Out("BGMの数を修正してください。");
+                return;
+            }
+            else if (WoTB_Language != "")
+            {
+                System.Windows.MessageBox.Show("指定した音声ファイルのBGM数は最大8個です。");
+                Message_Feed_Out("BGMの数を修正してください。");
                 return;
             }
             IsBusy = true;
+            string Path_Dir = Directory.GetCurrentDirectory();
             IsMessageShowing = true;
             string Temp;
             int Temp_01 = 1;
@@ -252,7 +334,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 if (Temp_01 < 10)
                 {
-                    if (!Directory.Exists(Directory.GetCurrentDirectory() + "/Projects/BGM_Mod/BGM_0" + Temp_01))
+                    if (!Directory.Exists(Path_Dir + "/Projects/BGM_Mod/BGM_0" + Temp_01))
                     {
                         Temp = "0" + Temp_01;
                         break;
@@ -260,7 +342,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 }
                 else
                 {
-                    if (!Directory.Exists(Directory.GetCurrentDirectory() + "/Projects/BGM_Mod/BGM_" + Temp_01))
+                    if (!Directory.Exists(Path_Dir + "/Projects/BGM_Mod/BGM_" + Temp_01))
                     {
                         Temp = Temp_01.ToString();
                         break;
@@ -272,17 +354,38 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 Temp = BGM_Dir;
             }
-            if (Directory.Exists(Directory.GetCurrentDirectory() + "/Projects/BGM_Mod/BGM_" + Temp + "/Music"))
+            try
             {
-                Directory.Delete(Directory.GetCurrentDirectory() + "/Projects/BGM_Mod/BGM_" + Temp + "/Music", true);
+                if (Directory.Exists(Path_Dir + "/Projects/BGM_Mod/BGM_" + Temp + "/Music"))
+                {
+                    Directory.Delete(Path_Dir + "/Projects/BGM_Mod/BGM_" + Temp + "/Music", true);
+                }
             }
+            catch (Exception e1)
+            {
+                Sub_Code.Error_Log_Write(e1.Message);
+                Message_Feed_Out("エラーが発生しました。");
+                IsBusy = false;
+                return;
+            }
+            await Task.Delay(100);
             //Music_*としてファイルをコピー
             foreach (string File_Now in File_Full_Path)
             {
-                Directory.CreateDirectory(Directory.GetCurrentDirectory() + "/Projects/BGM_Mod/BGM_" + Temp + "/Music");
-                File.Copy(File_Now, Directory.GetCurrentDirectory() + "/Projects/BGM_Mod/BGM_" + Temp + "/Music/" + Path.GetFileName(File_Now), true);
+                try
+                {
+                    Directory.CreateDirectory(Path_Dir + "/Projects/BGM_Mod/BGM_" + Temp + "/Music");
+                    File.Copy(File_Now, Path_Dir + "/Projects/BGM_Mod/BGM_" + Temp + "/Music/" + Path.GetFileName(File_Now), true);
+                }
+                catch (Exception e1)
+                {
+                    Sub_Code.Error_Log_Write(e1.Message);
+                    Message_Feed_Out("エラー:もう一度お試しください。");
+                    IsBusy = false;
+                    return;
+                }
             }
-            string[] Files = Directory.GetFiles(Directory.GetCurrentDirectory() + "/Projects/BGM_Mod/BGM_" + Temp + "/Music", "*", SearchOption.TopDirectoryOnly);
+            string[] Files = Directory.GetFiles(Path_Dir + "/Projects/BGM_Mod/BGM_" + Temp + "/Music", "*", SearchOption.TopDirectoryOnly);
             foreach (string File_Path in Files)
             {
                 int Number = 1;
@@ -290,32 +393,32 @@ namespace WoTB_Voice_Mod_Creater.Class
                 {
                     if (Number < 10)
                     {
-                        if (!Sub_Code.File_Exists(Directory.GetCurrentDirectory() + "/Projects/BGM_Mod/BGM_" + Temp + "/Music/Music_0" + Number))
+                        if (!Sub_Code.File_Exists(Path_Dir + "/Projects/BGM_Mod/BGM_" + Temp + "/Music/Music_0" + Number))
                         {
                             try
                             {
-                                File.Move(File_Path, Directory.GetCurrentDirectory() + "/Projects/BGM_Mod/BGM_" + Temp + "/Music/Music_0" + Number + Path.GetExtension(File_Path));
+                                File.Move(File_Path, Path_Dir + "/Projects/BGM_Mod/BGM_" + Temp + "/Music/Music_0" + Number + Path.GetExtension(File_Path));
                             }
                             catch (Exception e1)
                             {
-                                System.Windows.MessageBox.Show(Path.GetFileName(File_Path + "が存在しません。"));
                                 Sub_Code.Error_Log_Write(e1.Message);
+                                System.Windows.MessageBox.Show(Path.GetFileName(File_Path + "が存在しません。"));
                             }
                             break;
                         }
                     }
                     else
                     {
-                        if (!Sub_Code.File_Exists(Directory.GetCurrentDirectory() + "/Projects/BGM_Mod/BGM_" + Temp + "/Music/Music_" + Number))
+                        if (!Sub_Code.File_Exists(Path_Dir + "/Projects/BGM_Mod/BGM_" + Temp + "/Music/Music_" + Number))
                         {
                             try
                             {
-                                File.Move(File_Path, Directory.GetCurrentDirectory() + "/Projects/BGM_Mod/BGM_" + Temp + "/Music/Music_" + Number + Path.GetExtension(File_Path));
+                                File.Move(File_Path, Path_Dir + "/Projects/BGM_Mod/BGM_" + Temp + "/Music/Music_" + Number + Path.GetExtension(File_Path));
                             }
                             catch (Exception e1)
                             {
-                                System.Windows.MessageBox.Show(Path.GetFileName(File_Path + "が存在しません。"));
                                 Sub_Code.Error_Log_Write(e1.Message);
+                                System.Windows.MessageBox.Show(Path.GetFileName(File_Path + "が存在しません。"));
                             }
                             break;
                         }
@@ -327,94 +430,12 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 //音量を均一にする場合実行
                 //MP3Gainを用いてすべての音量を100にする(Fmodで音量を下げるため問題ない)
-                string[] Files_01 = Directory.GetFiles(Directory.GetCurrentDirectory() + "/Projects/BGM_Mod/BGM_" + Temp + "/Music", "*", SearchOption.TopDirectoryOnly);
-                foreach (string File_Now in Files_01)
-                {
-                    StreamReader str = new StreamReader(File_Now);
-                    string Read_01 = str.ReadLine();
-                    str.Close();
-                    string Read = Read_01.Substring(0, 3);
-                    //最初の3文字がID3だった場合.mp3形式
-                    //このため拡張子がmp3でも変換される
-                    if (Read != "ID3" && !Read_01.Contains("Xing"))
-                    {
-                        try
-                        {
-                            File.Move(File_Now, Directory.GetCurrentDirectory() + "/Projects/BGM_Mod/BGM_" + Temp + "/Music/" + Path.GetFileNameWithoutExtension(File_Now) + ".raw");
-                        }
-                        catch (Exception e1)
-                        {
-                            Sub_Code.Error_Log_Write(e1.Message);
-                        }
-                    }
-                    else if (Path.GetFileName(File_Now) != ".mp3")
-                    {
-                        try
-                        {
-                            File.Move(File_Now, Directory.GetCurrentDirectory() + "/Projects/BGM_Mod/BGM_" + Temp + "/Music/" + Path.GetFileNameWithoutExtension(File_Now) + ".mp3");
-                        }
-                        catch (Exception e1)
-                        {
-                            Sub_Code.Error_Log_Write(e1.Message);
-                        }
-                    }
-                }
-                Message_T.Text = "MP3にエンコードしています...";
-                await Task.Delay(50);
-                string[] Files_02 = Directory.GetFiles(Directory.GetCurrentDirectory() + "/Projects/BGM_Mod/BGM_" + Temp + "/Music", "*.raw", SearchOption.TopDirectoryOnly);
-                foreach (string File_Now in Files_02)
-                {
-                    StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Encode_Mp3/Start.bat");
-                    stw.Write("\"" + Voice_Set.Special_Path + "/Encode_Mp3/ffmpeg.exe\" -i \"" + File_Now + "\" -acodec libmp3lame -ab 128k \"" + Directory.GetCurrentDirectory() + "/Projects/BGM_Mod/BGM_" + Temp + "/Music/" + Path.GetFileNameWithoutExtension(File_Now) + ".mp3\"");
-                    stw.Close();
-                    ProcessStartInfo processStartInfo1 = new ProcessStartInfo
-                    {
-                        FileName = Voice_Set.Special_Path + "/Encode_Mp3/Start.bat",
-                        CreateNoWindow = true,
-                        UseShellExecute = false
-                    };
-                    Process p = Process.Start(processStartInfo1);
-                    p.WaitForExit();
-                    File.Delete(Voice_Set.Special_Path + "/Encode_Mp3/Start.bat");
-                    File.Delete(File_Now);
-                }
-                string File_Import = "";
-                string[] Files_03 = Directory.GetFiles(Directory.GetCurrentDirectory() + "/Projects/BGM_Mod/BGM_" + Temp + "/Music", "*.mp3", SearchOption.TopDirectoryOnly);
-                foreach (string File_Now in Files_03)
-                {
-                    if (File_Import == "")
-                    {
-                        File_Import = File_Now;
-                    }
-                    else
-                    {
-                        File_Import += " " + File_Now;
-                    }
-                }
+                //BNKファイルでは音量を調整できないため音量を89%にする
                 Message_T.Text = "音量を均一にしています...";
                 await Task.Delay(50);
-                if (File_Import != "")
-                {
-                    StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Encode_Mp3/Volume_Set.bat");
-                    stw.Write("\"" + Voice_Set.Special_Path + "/Encode_Mp3/mp3gain.exe\" -r -c -p -d 10 " + File_Import);
-                    stw.Close();
-                    ProcessStartInfo processStartInfo1 = new ProcessStartInfo
-                    {
-                        FileName = Voice_Set.Special_Path + "/Encode_Mp3/Volume_Set.bat",
-                        CreateNoWindow = true,
-                        UseShellExecute = false
-                    };
-                    Process p = Process.Start(processStartInfo1);
-                    p.WaitForExit();
-                    File.Delete(Voice_Set.Special_Path + "/Encode_Mp3/Volume_Set.bat");
-                }
+                await Sub_Code.Change_MP3_Encode(Path_Dir + "/Projects/BGM_Mod/BGM_" + Temp + "/Music", 0);
             }
-            else
-            {
-                Message_T.Text = "作成中です。しばらくお待ちください...";
-                await Task.Delay(50);
-            }
-            BGM_Create.BGM_Project_Create(Directory.GetCurrentDirectory() + "/Projects/BGM_Mod/BGM_" + Temp);
+            /*BGM_Create.BGM_Project_Create(Directory.GetCurrentDirectory() + "/Projects/BGM_Mod/BGM_" + Temp);
             StreamWriter stw2 = File.CreateText(Voice_Set.Special_Path + "/Fmod_Designer/BGM_Create.bat");
             stw2.Write("\"" + Voice_Set.Special_Path + "/Fmod_Designer/fmod_designercl.exe\" -pc -mp3 " + Directory.GetCurrentDirectory() + "/Projects/BGM_Mod/BGM_" + Temp + "/Music.fdp");
             stw2.Close();
@@ -448,16 +469,113 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Number_01++;
                 await Task.Delay(1000);
             }
-            File.Delete(Voice_Set.Special_Path + "/Fmod_Designer/BGM_Create.bat");
+            File.Delete(Voice_Set.Special_Path + "/Fmod_Designer/BGM_Create.bat");*/
+            if (BGM_Mix_Set_C.IsChecked.Value)
+            {
+                Message_T.Text = "BGMを5分以上にしています...この作業は時間がかかる可能性があります。";
+                await Task.Delay(50);
+                BGM_Create.Set_Music_Mix_Random(Path_Dir + "/Projects/BGM_Mod/BGM_" + Temp + "/Music");
+            }
+            string[] Music_Files = Directory.GetFiles(Path_Dir + "/Projects/BGM_Mod/BGM_" + Temp + "/Music", "*", SearchOption.TopDirectoryOnly);
+            int Music_Now = 1;
+            foreach (string Music_File in Music_Files)
+            {
+                Message_T.Text = Music_Now + "個目のBGMファイルをエンコードしています...";
+                await Task.Delay(50);
+                Sub_Code.File_To_WEM(Music_File, Path_Dir + "/Projects/BGM_Mod/BGM_" + Temp + "/Music/" + Path.GetFileNameWithoutExtension(Music_File) + ".wem", true, true);
+                Music_Now++;
+            }
+            Message_T.Text = "ファイル数を合わせています...";
+            await Task.Delay(40);
+            int Set_File_Number = 0;
+            if (IsUseThisSoftware)
+            {
+                Set_File_Number = Start_Battle_Number;
+            }
+            else
+            {
+                Set_File_Number = 8;
+            }
+            Set_Music_Number(Path_Dir + "/Projects/BGM_Mod/BGM_" + Temp + "/Music", Set_File_Number);
+            try
+            {
+                Message_T.Text = "ファイル名を変更しています...";
+                await Task.Delay(40);
+                Directory.CreateDirectory(Path_Dir + "/Projects/BGM_Mod/BGM_" + Temp + "/ja");
+                string[] BGM_Files = Directory.GetFiles(Path_Dir + "/Projects/BGM_Mod/BGM_" + Temp + "/Music", "*", SearchOption.TopDirectoryOnly);
+                foreach (string BGM_File_Now in BGM_Files)
+                {
+                    Sub_Code.File_Rename_Number(BGM_File_Now, Path_Dir + "/Projects/BGM_Mod/BGM_" + Temp + "/Music/start_battle");
+                }
+                Message_T.Text = "Modファイルを作成しています...";
+                await Task.Delay(50);
+                Wwise_Class.Wwise_File_Extract_V2 Wwise_Bnk = new Wwise_Class.Wwise_File_Extract_V2(Voice_Set.Special_Path + "/Temp_VoiceOver_Crew_01.bnk");
+                List<string> File_IDs = Wwise_Bnk.Wwise_Get_Names();
+                string[] Music_Files_WEM = Directory.GetFiles(Path_Dir + "/Projects/BGM_Mod/BGM_" + Temp + "/Music", "*.wem", SearchOption.TopDirectoryOnly);
+                if (IsUseThisSoftware)
+                {
+                    for (int Number = 0; Number < Music_Files_WEM.Length; Number++)
+                    {
+                        for (int Number_01 = 0; Number_01 < File_IDs.Count; Number_01++)
+                        {
+                            if (File_IDs[Number_01] == (500000000 + Number).ToString())
+                            {
+                                Wwise_Bnk.Bank_Edit_Sound(Number_01, Music_Files_WEM[Number], false);
+                                break;
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    List<string> WoTB_IDs = Sub_Code.Get_Voices_ID(WoTB_Language);
+                    for (int Number = 0; Number < Music_Files_WEM.Length; Number++)
+                    {
+                        Music_Files_WEM[Number] = Music_Files_WEM[Number].Replace(".wem", ".wav");
+                        string File_ID_Now = "";
+                        for (int Number_01 = 0; Number_01 < WoTB_IDs.Count; Number_01++)
+                        {
+                            string Name = WoTB_IDs[Number_01].Substring(0, WoTB_IDs[Number_01].IndexOf('|'));
+                            if (Name == Path.GetFileName(Music_Files_WEM[Number]))
+                            {
+                                File_ID_Now = WoTB_IDs[Number_01].Substring(WoTB_IDs[Number_01].IndexOf('|') + 1);
+                                break;
+                            }
+                        }
+                        if (File_ID_Now != "")
+                        {
+                            for (int Number_01 = 0; Number_01 < File_IDs.Count; Number_01++)
+                            {
+                                if (File_IDs[Number_01] == File_ID_Now)
+                                {
+                                    Sub_Code.File_Move(Music_Files_WEM[Number].Replace(".wav", ".wem"), Path.GetDirectoryName(Music_Files_WEM[Number]) + "/" + Number_01 + ".wem", true);
+                                    Wwise_Bnk.Bank_Edit_Sound(Number_01, Path.GetDirectoryName(Music_Files_WEM[Number]) + "/" + Number_01 + ".wem", false);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+                Wwise_Bnk.Bank_Save(Path_Dir + "/Projects/BGM_Mod/BGM_" + Temp + "/ja/voiceover_crew.bnk");
+                Wwise_Bnk.Bank_Clear();
+            }
+            catch (Exception e1)
+            {
+                Message_Feed_Out("エラーが発生しました。");
+                Sub_Code.Error_Log_Write(e1.Message);
+                IsBusy = false;
+                return;
+            }
             if (BGM_Encode_Set_C.IsChecked.Value)
             {
                 Message_T.Text = "DVPL化しています...";
                 await Task.Delay(50);
-                string Dir = Directory.GetCurrentDirectory() + "/Projects/BGM_Mod/BGM_" + Temp;
-                DVPL.DVPL_Pack(Dir + "/Music.fev", Dir + "/Music.fev.dvpl", true);
-                DVPL.DVPL_Pack(Dir + "/Music.fsb", Dir + "/Music.fsb.dvpl", true);
+                string Dir = Path_Dir + "/Projects/BGM_Mod/BGM_" + Temp;
+                //DVPL.DVPL_Pack(Dir + "/Music.fev", Dir + "/Music.fev.dvpl", true);
+                //DVPL.DVPL_Pack(Dir + "/Music.fsb", Dir + "/Music.fsb.dvpl", true);
+                DVPL.DVPL_Pack(Dir + "/ja/voiceover_crew.bnk", Dir + "/ja/voiceover_crew.bnk.dvpl", true);
             }
-            Message_T.Text = "BGMファイルを作成しました。メッセージボックスを開いています。";
+            Message_T.Text = "BGMファイルを作成しました。ダイアログを開いています。";
             StreamWriter stw3 = new StreamWriter(Voice_Set.Special_Path + "/Temp_BGM_Create_Project.dat");
             foreach (string Line in File_Full_Path)
             {
@@ -466,13 +584,13 @@ namespace WoTB_Voice_Mod_Creater.Class
             stw3.Close();
             using (var eifs = new FileStream(Voice_Set.Special_Path + "/Temp_BGM_Create_Project.dat", FileMode.Open, FileAccess.Read))
             {
-                using (var eofs = new FileStream(Directory.GetCurrentDirectory() + "/Projects/BGM_Mod/BGM_" + Temp + "/Save.vcb", FileMode.Create, FileAccess.Write))
+                using (var eofs = new FileStream(Path_Dir + "/Projects/BGM_Mod/BGM_" + Temp + "/Save.vcb", FileMode.Create, FileAccess.Write))
                 {
                     FileEncode.FileEncryptor.Encrypt(eifs, eofs, "WoTB_BGM_Create_Save");
                 }
             }
             File.Delete(Voice_Set.Special_Path + "/Temp_BGM_Create_Project.dat");
-            MessageBoxResult result = System.Windows.MessageBox.Show("FEV+FSBファイルを作成しました。WoTBに導入しますか？", "完了", MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.Yes);
+            MessageBoxResult result = System.Windows.MessageBox.Show("BGMModファイルを作成しました。WoTBに導入しますか？", "確認", MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.Yes);
             if (result == MessageBoxResult.Yes)
             {
                 try
@@ -482,7 +600,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 }
                 catch (Exception e1)
                 {
-                    Message_Feed_Out("エラー:BGMをWoTBに適応できませんでした。");
+                    Message_Feed_Out("エラー:BGMModをWoTBに適応できませんでした。");
                     Sub_Code.Error_Log_Write(e1.Message);
                 }
             }
@@ -551,32 +669,46 @@ namespace WoTB_Voice_Mod_Creater.Class
                 {
                     Message_Feed_Out("データをロードできませんでした。");
                     Sub_Code.Error_Log_Write(e1.Message);
+                    File_Full_Path.Clear();
+                    BGM_List.Items.Clear();
                 }
             }
         }
         //セーブ
-        private void BGM_Install_B_Click(object sender, RoutedEventArgs e)
+        private async void BGM_Install_B_Click(object sender, RoutedEventArgs e)
         {
-            if (IsBusy)
+            if (IsBusy || Opacity < 1)
             {
                 return;
             }
+            IsBusy = true;
             string AA = Directory.GetCurrentDirectory();
             if (BGM_Dir != "")
             {
                 BGM_Dir_Now = BGM_Dir;
             }
-            if (BGM_Dir_Now == "" || !File.Exists(AA + "/Projects/BGM_Mod/BGM_" + BGM_Dir_Now + "/Music.fev") || !File.Exists(AA + "/Projects/BGM_Mod/BGM_" + BGM_Dir_Now + "/Music.fsb"))
+            /*if (BGM_Dir_Now == "" || !File.Exists(AA + "/Projects/BGM_Mod/BGM_" + BGM_Dir_Now + "/Music.fev") || !File.Exists(AA + "/Projects/BGM_Mod/BGM_" + BGM_Dir_Now + "/Music.fsb"))
             {
                 if (BGM_Dir_Now == "" || !File.Exists(AA + "/Projects/BGM_Mod/BGM_" + BGM_Dir_Now + "/Music.fev.dvpl") || !File.Exists(AA + "/Projects/BGM_Mod/BGM_" + BGM_Dir_Now + "/Music.fsb.dvpl"))
                 {
                     Message_Feed_Out("データを取得できませんでした。先に\"FEV + FSBを作成\"ボタンを押してください。");
                     return;
                 }
+            }*/
+            if (BGM_Dir_Now == "" || !File.Exists(AA + "/Projects/BGM_Mod/BGM_" + BGM_Dir_Now + "/ja/voiceover_crew.bnk"))
+            {
+                if (BGM_Dir_Now == "" || !File.Exists(AA + "/Projects/BGM_Mod/BGM_" + BGM_Dir_Now + "/ja/voiceover_crew.bnk.dvpl"))
+                {
+                    Message_Feed_Out("データを取得できませんでした。先に\"作成\"ボタンを押してください。");
+                    IsBusy = false;
+                    return;
+                }
             }
-            IsBusy = true;
+            Message_T.Text = "インストールしています...";
+            await Task.Delay(50);
             BGM_Mod_Install(BGM_Dir_Now);
             IsBusy = false;
+            Message_T.Text = "完了しました。";
         }
         //作成したBGMのModファイルをWoTBに導入(自動でsfx_high(low)やsounds.yamlに記述される)
         void BGM_Mod_Install(string Install_From_Dir)
@@ -589,8 +721,9 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 Sub_Code.WoTB_Get_Directory();
                 Message_Feed_Out("WoTBのインストール場所を取得できませんでした。");
+                return;
             }
-            if (!Directory.Exists(Voice_Set.WoTB_Path + "/Data/Mods"))
+            /*if (!Directory.Exists(Voice_Set.WoTB_Path + "/Data/Mods"))
             {
                 Directory.CreateDirectory(Voice_Set.WoTB_Path + "/Data/Mods");
             }
@@ -756,6 +889,24 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Sub_Code.DVPL_File_Copy(Voice_Set.Special_Path + "/back_Music.fev", Voice_Set.WoTB_Path + "/Data/Mods/Music.fev", true);
                 Sub_Code.DVPL_File_Copy(Voice_Set.Special_Path + "/back_Music.fsb", Voice_Set.WoTB_Path + "/Data/Mods/Music.fsb", true);
                 Sub_Code.Error_Log_Write(e1.Message);
+            }*/
+            //BNKファイルをコピー(Modのインストール)
+            DateTime dt = DateTime.Now;
+            string Time = Sub_Code.Get_Time_Now(dt, ".", 1, 6);
+            string Dir_Path = Directory.GetCurrentDirectory();
+            Directory.CreateDirectory(Dir_Path + "/Backup/" + Time);
+            Sub_Code.DVPL_File_Copy(Voice_Set.WoTB_Path + "/Data/WwiseSound/ja/voiceover_crew.bnk", Dir_Path + "/Backup/" + Time + "/voiceover_crew.bnk", true);
+            try
+            {
+                File.Delete(Voice_Set.WoTB_Path + "/Data/WwiseSound/ja/voiceover_crew.bnk");
+                File.Delete(Voice_Set.WoTB_Path + "/Data/WwiseSound/ja/voiceover_crew.bnk.dvpl");
+                Sub_Code.DVPL_File_Copy(Dir_Path + "/Projects/BGM_Mod/BGM_" + Install_From_Dir + "/ja/voiceover_crew.bnk", Voice_Set.WoTB_Path + "/Data/WwiseSound/ja/voiceover_crew.bnk", true);
+                Message_Feed_Out("WoTBに適応しました。起動して確認してください。");
+            }
+            catch (Exception e)
+            {
+                Sub_Code.Error_Log_Write(e.Message);
+                Message_Feed_Out("エラーが発生したためインストールできませんでした。");
             }
         }
         private void BGM_List_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
@@ -789,6 +940,10 @@ namespace WoTB_Voice_Mod_Creater.Class
         }
         private void DVPL_Extract_Help_B_Click(object sender, RoutedEventArgs e)
         {
+            if (IsBusy)
+            {
+                return;
+            }
             string Message_01 = "このバージョンではWoTB内のData/Sfxに入っている*.fev.dvplと*.fsb.dvplを解除できない可能性があります。\n";
             string Message_02 = "また、WoTB内の他のファイルも解除できないかもしれません。(sounds.yaml.dvplやマップファイルは解除できました。)";
             System.Windows.MessageBox.Show(Message_01 + Message_02);
@@ -841,7 +996,6 @@ namespace WoTB_Voice_Mod_Creater.Class
                 FE.Stop();
             }
             EG.GetEventByIndex(Voice_Number, Cauldron.FMOD.EVENT_MODE.DEFAULT, ref FE);
-
             FE.SetVolume(Volume);
             FE.SetPitch(Pitch, Cauldron.FMOD.EVENT_PITCHUNITS.TONES);
             FE.Start();
@@ -930,10 +1084,278 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Fmod_Create_Window.Window_Show();
             }
         }
+        private void BGM_Create_Help_B_Click(object sender, RoutedEventArgs e)
+        {
+            if (IsBusy)
+            {
+                return;
+            }
+            string Message_01 = "注意:WoTBの設定で多国籍音声を使用している場合、指定した国家でしか再生されません。\n";
+            string Message_02 = "全体の言語を日本語以外に設定されている場合でも再生されません。\n";
+            string Message_03 = "初期のWoTBの音声ファイルではBGMを入れると戦闘開始時の音声が再生されなくなりますが、このソフトで作成した音声はちゃんと再生されるようになっています。\n";
+            string Message_04 = "重要:このバージョンでは、初期のWoTBの音声ファイルか、このソフトで作成した音声ファイルでないと動作しません。\n";
+            string Message_05 = "また、選択した音声ファイルにBGMを追加するため、事前にバックアップを作成しておくことをお勧めします。";
+            System.Windows.MessageBox.Show(Message_01 + Message_02 + Message_03 + Message_04 + Message_05);
+        }
+        void Set_Music_Number(string Music_Dir, int MaxNumber)
+        {
+            int File_Number = 0;
+            for (int Number2 = 0; Number2 <= 9; Number2++)
+            {
+                string[] Files2 = Directory.GetFiles(Music_Dir, "Music_" + Number2 + "*", SearchOption.TopDirectoryOnly);
+                File_Number += Files2.Length;
+            }
+            if (File_Number > MaxNumber)
+            {
+                for (int Number2 = MaxNumber + 1; Number2 <= File_Number + 1; Number2++)
+                {
+                    try
+                    {
+                        if (Number2 < 10)
+                        {
+                            File.Delete(Sub_Code.File_Get_FileName_No_Extension(Music_Dir + "/" + "Music_0" + Number2));
+                        }
+                        else
+                        {
+                            File.Delete(Sub_Code.File_Get_FileName_No_Extension(Music_Dir + "/" + "Music_" + Number2));
+                        }
+                    }
+                    catch
+                    {
+                        continue;
+                    }
+                }
+            }
+            else if (File_Number < MaxNumber)
+            {
+                Random r = new Random();
+                for (int Number2 = File_Number; Number2 <= MaxNumber; Number2++)
+                {
+                    int Test = 0;
+                    start:
+                    Test++;
+                    try
+                    {
+                        int r2 = r.Next(1, File_Number + 1);
+                        string r3;
+                        if (r2 < 10)
+                        {
+                            r3 = "0" + r2;
+                        }
+                        else
+                        {
+                            r3 = r2.ToString();
+                        }
+                        string FilePath = Sub_Code.File_Get_FileName_No_Extension(Music_Dir + "/" + "Music_" + r3);
+                        if (Number2 < 10)
+                        {
+                            File.Copy(FilePath, Music_Dir + "/" + "Music_0" + Number2 + Path.GetExtension(FilePath), true);
+                        }
+                        else
+                        {
+                            File.Copy(FilePath, Music_Dir + "/" + "Music_" + Number2 + Path.GetExtension(FilePath), true);
+                        }
+                    }
+                    catch
+                    {
+                        if (Test >= 10)
+                        {
+                            continue;
+                        }
+                        goto start;
+                    }
+                }
+            }
+        }
+        private void BGM_Mix_Help_B_Click(object sender, RoutedEventArgs e)
+        {
+            string Message_01 = "・新サウンドエンジンでは、曲が終わったあと次の曲に変更するということができないため、事前に曲が5分以下であれば";
+            string Message_02 = "別の曲を付け足して5分以上にします。(作成ボタンを押してファイルを選択する際、このソフトで作成した音声の場合この設定は無視されます。)\n";
+            string Message_03 = "その分ファイル容量は増えますが、ゲームの動作に影響はないかと思います。\n";
+            string Message_04 = "・BGMが一曲しかない場合や付け足しても5分以上に届かない場合は同じ曲を付け足します。\n";
+            string Message_05 = "・戦闘時間が最大7分のため、BGMが7分30秒を超えるとそれ以降は強制的にカットされます。\n";
+            string Message_06 = "注意:指定しているBGMによって作成時間が増える可能性があります。";
+            System.Windows.MessageBox.Show(Message_01 + Message_02 + Message_03 + Message_04 + Message_05 + Message_06);
+        }
     }
 }
 public class BGM_Create
 {
+    //新サウンドエンジンでは曲が終わったら次の曲を流すということができないため、ランダムで曲をつなげて5分以上にします
+    //戦闘時間は7分なので7分30秒以降はカットされます
+    public static void Set_Music_Mix_Random(string BGM_Dir, int Max_Second = 440)
+    {
+        try
+        {
+            Random r = new Random();
+            string[] Ex = { ".mp3", ".mp2", ".wav", ".ogg", "aiff", ".aif", ".asf", ".flac", ".wma" };
+            string[] BGM_Files_Temp = DirectoryEx.GetFiles(BGM_Dir, SearchOption.TopDirectoryOnly, Ex);
+            Directory.CreateDirectory(WoTB_Voice_Mod_Creater.Voice_Set.Special_Path + "/BGM_Temp");
+            foreach (string BGM_File_Now in BGM_Files_Temp)
+            {
+                File.Copy(BGM_File_Now, WoTB_Voice_Mod_Creater.Voice_Set.Special_Path + "/BGM_Temp/" + Path.GetFileName(BGM_File_Now), true);
+            }
+            string[] BGM_Files = DirectoryEx.GetFiles(WoTB_Voice_Mod_Creater.Voice_Set.Special_Path + "/BGM_Temp", SearchOption.TopDirectoryOnly, Ex);
+            int File_Number_Now = -1;
+            foreach (string BGM_File_Now in BGM_Files)
+            {
+                File_Number_Now++;
+                int stream = Bass.BASS_StreamCreateFile(BGM_File_Now, 0, 0, BASSFlag.BASS_STREAM_DECODE);
+                int length = (int)Bass.BASS_ChannelBytes2Seconds(stream, Bass.BASS_ChannelGetLength(stream));
+                Bass.BASS_StreamFree(stream);
+                if (length >= 300)
+                {
+                    continue;
+                }
+                List<int> Include_Numbers = new List<int>();
+                Include_Numbers.Add(File_Number_Now);
+                for (int Number = 0; Number < BGM_Files.Length; Number++)
+                {
+                    if (Include_Numbers.Count >= BGM_Files.Length)
+                    {
+                        Include_Numbers.Clear();
+                        Number = -1;
+                        continue;
+                    }
+                    int Include_Number = 0;
+                    while (true)
+                    {
+                        int Temp = r.Next(0, BGM_Files.Length);
+                        bool IsIncluded = false;
+                        foreach (int Number_Now in Include_Numbers)
+                        {
+                            if (Number_Now == Temp)
+                            {
+                                IsIncluded = true;
+                                break;
+                            }
+                        }
+                        if (!IsIncluded)
+                        {
+                            Include_Number = Temp;
+                            break;
+                        }
+                    }
+                    Include_Numbers.Add(Include_Number);
+                    int stream2 = Bass.BASS_StreamCreateFile(BGM_Files[Include_Number], 0, 0, BASSFlag.BASS_STREAM_DECODE);
+                    int length2 = (int)Bass.BASS_ChannelBytes2Seconds(stream2, Bass.BASS_ChannelGetLength(stream2));
+                    Bass.BASS_StreamFree(stream2);
+                    length += length2;
+                    if (length >= 300)
+                    {
+                        break;
+                    }
+                }
+                StreamWriter stw = File.CreateText(WoTB_Voice_Mod_Creater.Voice_Set.Special_Path + "/Encode_Mp3/BGM_Mix.bat");
+                stw.WriteLine("chcp 65001");
+                stw.Write("\"" + WoTB_Voice_Mod_Creater.Voice_Set.Special_Path + "/Encode_Mp3/ffmpeg.exe\" -y ");
+                foreach (int Number in Include_Numbers)
+                {
+                    stw.Write("-i \"" + BGM_Files[Number] + "\" ");
+                }
+                stw.Write("-filter_complex \"concat=n=" + Include_Numbers.Count + ":v=0:a=1\" -t " + Max_Second + " \"" + BGM_Dir + "/" + Path.GetFileName(BGM_Files[File_Number_Now]) + "\"");
+                stw.Close();
+                ProcessStartInfo processStartInfo1 = new ProcessStartInfo
+                {
+                    FileName = WoTB_Voice_Mod_Creater.Voice_Set.Special_Path + "/Encode_Mp3/BGM_Mix.bat",
+                    CreateNoWindow = true,
+                    UseShellExecute = false
+                };
+                Process p = Process.Start(processStartInfo1);
+                p.WaitForExit();
+                File.Delete(WoTB_Voice_Mod_Creater.Voice_Set.Special_Path + "/Encode_Mp3/BGM_Mix.bat");
+            }
+            Directory.Delete(WoTB_Voice_Mod_Creater.Voice_Set.Special_Path + "/BGM_Temp", true);
+        }
+        catch (Exception e)
+        {
+            WoTB_Voice_Mod_Creater.Sub_Code.Error_Log_Write(e.Message);
+        }
+    }
+    //WoTBの初期の音声ファイルの言語を取得
+    public static string Get_Voice_Language(List<string> Files)
+    {
+        if (Files.Contains("783658022"))
+        {
+            return "English(US)";
+        }
+        else if (Files.Contains("148236242"))
+        {
+            return "arb";
+        }
+        else if (Files.Contains("522280109"))
+        {
+            return "gup";
+        }
+        else if (Files.Contains("897549921"))
+        {
+            return "pbr";
+        }
+        else if (Files.Contains("1003460716"))
+        {
+            return "vi";
+        }
+        else if (Files.Contains("348256779"))
+        {
+            return "tr";
+        }
+        else if (Files.Contains("270859153"))
+        {
+            return "th";
+        }
+        else if (Files.Contains("892963782"))
+        {
+            return "ru";
+        }
+        else if (Files.Contains("778579436"))
+        {
+            return "pl";
+        }
+        else if (Files.Contains("885986556"))
+        {
+            return "ko";
+        }
+        else if (Files.Contains("1056502513"))
+        {
+            return "ja";
+        }
+        else if (Files.Contains("549350697"))
+        {
+            return "it";
+        }
+        else if (Files.Contains("26760078"))
+        {
+            return "fr";
+        }
+        else if (Files.Contains("327412030"))
+        {
+            return "fi";
+        }
+        else if (Files.Contains("365235587"))
+        {
+            return "en";
+        }
+        else if (Files.Contains("286527395"))
+        {
+            return "es";
+        }
+        else if (Files.Contains("970759741"))
+        {
+            return "de";
+        }
+        else if (Files.Contains("513502435"))
+        {
+            return "cs";
+        }
+        else if (Files.Contains("586623688"))
+        {
+            return "cn";
+        }
+        else
+        {
+            return "";
+        }
+    }
     //.fdpプロジェクトを作成(長すぎて解説不可能)
     static string Set_Voice_By_Name(string File_Path)
     {
@@ -1544,5 +1966,23 @@ public class BGM_Create
                   "    <TimelineRepository/>\n" +
                   "</Composition></project>\n");
         stw.Close();
+    }
+}
+//フォルダ内のファイルを取得(複数の拡張子を指定できます)
+public static class DirectoryEx
+{
+    public static string[] GetFiles(string path, params string[] extensions)
+    {
+        return Directory
+            .GetFiles(path, "*.*")
+            .Where(c => extensions.Any(extension => c.EndsWith(extension)))
+            .ToArray();
+    }
+    public static string[] GetFiles(string path, SearchOption searchOption, params string[] extensions)
+    {
+        return Directory
+            .GetFiles(path, "*.*", searchOption)
+            .Where(c => extensions.Any(extension => c.EndsWith(extension)))
+            .ToArray();
     }
 }

@@ -1,15 +1,15 @@
 ﻿<UserControl x:Class="WoTB_Voice_Mod_Creater.Class.Message"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             mc:Ignorable="d" 
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
              d:DesignHeight="1080" d:DesignWidth="1920">
     <Viewbox>
         <DockPanel Width="1920" Height="1080">
-            <Border BorderBrush="Aqua" Background="Black" BorderThickness="1" Height="1080" VerticalAlignment="Top" Width="1920" Opacity="0.75"/>
+            <Border BorderBrush="Aqua" Background="Black" BorderThickness="1" Height="1080" VerticalAlignment="Top" Width="1920" Opacity="0.85"/>
             <ScrollViewer x:Name ="Message_Scrool" Width="1238" Height="950" VerticalScrollBarVisibility="Auto" Margin="-1620,0,0,0">
-                <TextBlock x:Name="Message_T" HorizontalAlignment="Left" TextWrapping="Wrap" Text="" Background="Transparent" Foreground="Aqua" FontSize="35" VerticalAlignment="Top" Height="950" Width="1238"/>
+                <TextBlock x:Name="Message_T" HorizontalAlignment="Left" TextWrapping="Wrap" Text="" Background="Transparent" Foreground="Aqua" FontSize="34" VerticalAlignment="Top" Height="950" Width="1238"/>
             </ScrollViewer>
             <Border x:Name="Message_Border" BorderBrush="Aqua" Width="1238" Height="950" Margin="-1620,0,0,0" BorderThickness="1"/>
             <TextBlock Height="55" Width="320" Margin="-3350,50,0,0" FontSize="40" Foreground="Aqua" TextWrapping="Wrap" Text="作者からのメッセージ" VerticalAlignment="Top"/>

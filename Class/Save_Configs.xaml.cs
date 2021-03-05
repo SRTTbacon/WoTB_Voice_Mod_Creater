@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -14,12 +13,16 @@ namespace WoTB_Voice_Mod_Creater.Class
         readonly BrushConverter bc = new BrushConverter();
         List<string> Voice_Type = new List<string>();
         List<int> Voice_Type_Number = new List<int>();
+        string[] Languages = { "arb", "cn", "cs", "de", "en", "es", "fi", "fr", "gup", "it", "ja", "ko", "pbr", "pl", "ru", "th", "tr", "vi" };
         string Select_SE_Name = "";
         string SE_Dir = "";
         int Select_SE_File_Count = 0;
         int SE_Play_Index = 1;
+        int Select_Language = 10;
         bool IsBusy = false;
         bool IsSEStop = false;
+        bool IsNewMode = false;
+        bool IsMessageShowing = false;
         public Save_Configs()
         {
             InitializeComponent();
@@ -44,9 +47,45 @@ namespace WoTB_Voice_Mod_Creater.Class
             }
             Player.settings.volume = 100;
         }
-        public void Window_Show()
+        async void Message_Feed_Out(string Message)
+        {
+            if (IsMessageShowing)
+            {
+                IsMessageShowing = false;
+                await Task.Delay(1000 / 59);
+            }
+            Message_T.Text = Message;
+            IsMessageShowing = true;
+            Message_T.Opacity = 1;
+            int Number = 0;
+            while (Message_T.Opacity > 0 && IsMessageShowing)
+            {
+                Number++;
+                if (Number >= 120)
+                {
+                    Message_T.Opacity -= 0.025;
+                }
+                await Task.Delay(1000 / 60);
+            }
+            IsMessageShowing = false;
+            Message_T.Text = "";
+            Message_T.Opacity = 1;
+        }
+        public void Window_Show(bool IsNewMode)
         {
             //画面を表示(マルチで行った場合)
+            if (IsNewMode)
+            {
+                Android_C.Visibility = Visibility.Hidden;
+                Android_T.Visibility = Visibility.Hidden;
+                Android_Help_B.Visibility = Visibility.Hidden;
+            }
+            else
+            {
+                Android_C.Visibility = Visibility.Visible;
+                Android_T.Visibility = Visibility.Visible;
+                Android_Help_B.Visibility = Visibility.Visible;
+            }
             SE_Dir = Voice_Set.Special_Path + "/Server/" + Voice_Set.SRTTbacon_Server_Name + "/Voices/SE";
             Project_T.Text = "プロジェクト名:" + Voice_Set.SRTTbacon_Server_Name;
             Sub_Code.Get_Voice_Type_And_Index(Voice_Set.Special_Path + "/Server/" + Voice_Set.SRTTbacon_Server_Name + "/Voices", ref Voice_Type, ref Voice_Type_Number);
@@ -55,9 +94,26 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Voice_Lists.Items.Add(Voice_Type[Number] + ":" + Voice_Type_Number[Number] + "個");
             }
         }
-        public void Window_Show_V2(string Project_Name, List<List<string>> Lists)
+        public void Window_Show_V2(string Project_Name, List<List<string>> Lists, bool IsNewMode)
         {
             //画面を表示(オフラインモードで行った場合)
+            if (IsNewMode)
+            {
+                Android_C.Visibility = Visibility.Hidden;
+                Language_Left_B.Visibility = Visibility.Visible;
+                Language_Right_B.Visibility = Visibility.Visible;
+                Android_T.Text = "言語:" + Languages[Select_Language];
+                Android_Help_B.Margin = new Thickness(-1400, 892, 0, 0);
+            }
+            else
+            {
+                Android_C.Visibility = Visibility.Visible;
+                Language_Left_B.Visibility = Visibility.Hidden;
+                Language_Right_B.Visibility = Visibility.Hidden;
+                Android_T.Text = "Android用";
+                Android_Help_B.Margin = new Thickness(-1525, 892, 0, 0);
+            }
+            this.IsNewMode = IsNewMode;
             SE_Dir = Voice_Set.Special_Path + "/SE";
             Project_T.Text = "プロジェクト名:" + Project_Name;
             for (int Number = 0; Number <= Lists.Count - 1; Number++)
@@ -247,7 +303,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Sub_Code.DVPL_Encode = false;
                 while (Opacity > 0)
                 {
-                    Opacity -= 0.025;
+                    Opacity -= Sub_Code.Window_Feed_Time;
                     await Task.Delay(1000 / 60);
                 }
                 Visibility = Visibility.Hidden;
@@ -264,6 +320,11 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 if (Voice_Set.SE_Enable_List[SE_Lists.SelectedIndex])
                 {
+                    if (IsNewMode)
+                    {
+                        Message_Feed_Out("このバージョンではSEを無効化できません。");
+                        return;
+                    }
                     int Number = SE_Lists.SelectedIndex;
                     Voice_Set.SE_Enable_List[SE_Lists.SelectedIndex] = false;
                     SE_Disable_B.Background = (Brush)bc.ConvertFrom("#59999999");
@@ -313,15 +374,16 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 //作成ボタンが押されたら別クラスに情報を送り画面を閉じる
                 IsBusy = true;
+                Sub_Code.CreatingProject = true;
+                Sub_Code.VolumeSet = Volume_Set_C.IsChecked.Value;
+                Sub_Code.DVPL_Encode = DVPL_C.IsChecked.Value;
+                Sub_Code.AndroidMode = Android_C.IsChecked.Value;
+                Sub_Code.SetLanguage = Languages[Select_Language];
                 while (Opacity > 0)
                 {
                     Opacity -= 0.025;
                     await Task.Delay(1000 / 60);
                 }
-                Sub_Code.CreatingProject = true;
-                Sub_Code.VolumeSet = Volume_Set_C.IsChecked.Value;
-                Sub_Code.DVPL_Encode = DVPL_C.IsChecked.Value;
-                Sub_Code.AndroidMode = Android_C.IsChecked.Value;
                 IsBusy = false;
                 Visibility = Visibility.Hidden;
             }
@@ -345,6 +407,12 @@ namespace WoTB_Voice_Mod_Creater.Class
         }
         private void Android_C_Click(object sender, RoutedEventArgs e)
         {
+            if (Android_C.IsChecked.Value && !Voice_Set.FTP_Server.IsConnected)
+            {
+                MessageBox.Show("サーバーに接続されていないためAndroid用の音声を作成することはできません。");
+                Android_C.IsChecked = false;
+                return;
+            }
             if (Android_C.IsChecked.Value)
             {
                 DVPL_C.IsChecked = true;
@@ -352,10 +420,38 @@ namespace WoTB_Voice_Mod_Creater.Class
         }
         private void Android_Help_B_Click(object sender, RoutedEventArgs e)
         {
-            string Message_01 = "ingame_voice_ja.fsb,GUI_battle_streamed.fsb,GUI_notifications_FX_howitzer_load.fsb,GUI_quick_commands.fsb,GUI_sirene.fsbを作成します。\n";
-            string Message_02 = "所々音量が小さく聞こえる場合がありますが、WoTBの標準のfevファイルの仕様上調整できませんのでご了承ください。\n";
-            string Message_03 = "まれに↑のfsbファイルが作成されない時がありますのでその場合はもう一度作成しなおすと改善されるかと思います。";
-            MessageBox.Show(Message_01 + Message_02 + Message_03);
+            if (IsNewMode)
+            {
+                string Message_01 = "ゲーム内の言語を多国籍に設定している場合は指定してください。\n";
+                string Message_02 = "多国籍音声でない場合は'ja'にします。(日本でプレイしている場合のみ)\n";
+                string Message_03 = "'gup'はガルパンの音声です。ガルパン仕様のPzIVに乗る場合のみ再生されます。";
+                MessageBox.Show(Message_01 + Message_02 + Message_03);
+            }
+            else
+            {
+                string Message_01 = "ingame_voice_ja.fsb,GUI_battle_streamed.fsb,GUI_notifications_FX_howitzer_load.fsb,GUI_quick_commands.fsb,GUI_sirene.fsbを作成します。\n";
+                string Message_02 = "所々音量が小さく聞こえる場合がありますが、WoTBの標準のfevファイルの仕様上調整できませんのでご了承ください。\n";
+                string Message_03 = "まれに↑のfsbファイルが作成されない時がありますのでその場合はもう一度作成しなおすと改善されるかと思います。";
+                MessageBox.Show(Message_01 + Message_02 + Message_03);
+            }
+        }
+        private void Language_Left_B_Click(object sender, RoutedEventArgs e)
+        {
+            if (IsBusy || Select_Language <= 0)
+            {
+                return;
+            }
+            Select_Language--;
+            Android_T.Text = "言語:" + Languages[Select_Language];
+        }
+        private void Language_Right_B_Click(object sender, RoutedEventArgs e)
+        {
+            if (IsBusy || Select_Language >= 17)
+            {
+                return;
+            }
+            Select_Language++;
+            Android_T.Text = "言語:" + Languages[Select_Language];
         }
     }
 }

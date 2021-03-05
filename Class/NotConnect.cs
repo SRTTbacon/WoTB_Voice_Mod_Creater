@@ -23,16 +23,29 @@ namespace WoTB_Voice_Mod_Creater
         {
             try
             {
-                Voice_Set.TCP_Server = new SimpleTcpClient().Connect(IP, SRTTbacon_Server.Port);
-                Voice_Set.TCP_Server.StringEncoder = Encoding.UTF8;
-                Voice_Set.TCP_Server.Delimiter = 0x00;
+                Voice_Set.TCP_Server = new SimpleTcpClient();
+                Task task = Task.Run(() =>
+                {
+                    try
+                    {
+                        Voice_Set.TCP_Server.Connect(IP, SRTTbacon_Server.Port);
+                        Voice_Set.TCP_Server.StringEncoder = Encoding.UTF8;
+                        Voice_Set.TCP_Server.Delimiter = 0x00;
+                        Message_T.Text = "";
+                    }
+                    catch
+                    {
+                        Connectiong = false;
+                        Server_OK = false;
+                    }
+                });
                 Voice_Set.FTP_Server = new FtpClient(IP)
                 {
                     Credentials = new NetworkCredential(SRTTbacon_Server.Name, SRTTbacon_Server.Password),
                     SocketKeepAlive = false,
                     DataConnectionType = ConnectType,
                     SslProtocols = SslProtocols.Tls,
-                    ConnectTimeout = 3000,
+                    ConnectTimeout = 1000,
                 };
                 Voice_Set.FTP_Server.ValidateCertificate += new FtpSslValidation(OnValidateCertificate);
                 Voice_Set.FTP_Server.Connect();
@@ -55,12 +68,14 @@ namespace WoTB_Voice_Mod_Creater
                     User_Login_B.Visibility = Visibility.Visible;
                     User_Register_B.Visibility = Visibility.Visible;
                     Voice_Create_Tool_B.Visibility = Visibility.Visible;
+                    Update_B.Visibility = Visibility.Visible;
                 }
             }
             catch (Exception e)
             {
                 Connectiong = false;
                 Server_OK = false;
+                Update_B.Visibility = Visibility.Hidden;
                 Connect_Mode_Layout();
                 Message_T.Text = "エラー:サーバーが開いていない可能性があります。";
                 Sub_Code.Error_Log_Write(e.Message.Replace(SRTTbacon_Server.IP_Global + ":" + SRTTbacon_Server.Port, "").Replace(SRTTbacon_Server.IP_Local + ":" + SRTTbacon_Server.Port, ""));
@@ -388,26 +403,45 @@ namespace WoTB_Voice_Mod_Creater
             {
                 IsClosing = true;
                 Voice_Set.App_Busy = true;
+                int Minus = (int)(Voice_Volume_S.Value / 40);
                 try
                 {
                     if (Voice_Set.FTP_Server.IsConnected)
                     {
                         Voice_Set.FTP_Server.Disconnect();
+                        Voice_Set.TCP_Server.Disconnect();
                         Voice_Set.FTP_Server.Dispose();
+                        Voice_Set.TCP_Server.Dispose();
                     }
                 }
                 catch (Exception e1)
                 {
                     Sub_Code.Error_Log_Write(e1.Message);
                 }
-                int Minus = (int)(Voice_Volume_S.Value / 40);
                 while (Opacity > 0)
                 {
                     Player.settings.volume -= Minus;
-                    Opacity -= 0.025;
+                    Opacity -= 0.05;
                     await Task.Delay(1000 / 60);
                 }
                 Application.Current.Shutdown();
+            }
+        }
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            try
+            {
+                if (Voice_Set.FTP_Server.IsConnected)
+                {
+                    Voice_Set.FTP_Server.Disconnect();
+                    Voice_Set.TCP_Server.Disconnect();
+                    Voice_Set.FTP_Server.Dispose();
+                    Voice_Set.TCP_Server.Dispose();
+                }
+            }
+            catch (Exception e1)
+            {
+                Sub_Code.Error_Log_Write(e1.Message);
             }
         }
         //再接続ボタン
@@ -489,7 +523,6 @@ namespace WoTB_Voice_Mod_Creater
                 Server_Connect_B.Visibility = Visibility.Hidden;
                 Voice_Mod_Free_B.Visibility = Visibility.Hidden;
                 Message_B.Visibility = Visibility.Hidden;
-                Update_B.Visibility = Visibility.Hidden;
                 Server_Lists.Visibility = Visibility.Hidden;
                 Voice_S.Visibility = Visibility.Hidden;
                 Voice_Back_B.Visibility = Visibility.Hidden;
@@ -510,6 +543,7 @@ namespace WoTB_Voice_Mod_Creater
                 Explanation_Scrool.Visibility = Visibility.Hidden;
                 Explanation_Text.Visibility = Visibility.Hidden;
                 Explanation_Border.Visibility = Visibility.Hidden;
+                Update_B.Visibility = Visibility.Hidden;
                 Chat_Hide();
             }
         }
