@@ -1,22 +1,24 @@
-﻿using System;
-using System.Windows;
-using FluentFTP;
-using System.IO;
-using System.Threading.Tasks;
-using WMPLib;
+﻿using FluentFTP;
+using System;
 using System.Collections.Generic;
-using System.Xml.Linq;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Diagnostics;
-using System.Net;
-using WoTB_Voice_Mod_Creater.Class;
-using System.Runtime.InteropServices;
+using System.Xml.Linq;
 using WK.Libraries.BetterFolderBrowserNS;
+using WMPLib;
+using WoTB_Voice_Mod_Creater.Class;
+using WoTB_Voice_Mod_Creater.Wwise_Class;
 
 public static partial class StringExtensions
 {
+    //文字列に指定した文字が何個あるか取得
     public static int CountOf(this string self, string Name)
     {
         int count = 0;
@@ -31,17 +33,18 @@ public static partial class StringExtensions
 }
 public class SRTTbacon_Server
 {
-    public static string IP_Local = "非公開";
-    public static string IP_Global = "非公開";
-    public static string Name = "非公開";
-    public static string Password = "非公開";
-    public static int Port = 00000;
+    public const string IP_Local = "非公開";
+    public const string IP_Global = "非公開";
+    public const string Name = "非公開";
+    public const string Password = "非公開";
+    public const int Port = -1;
+    public static bool IsSRTTbaconOwnerMode = false;
 }
 namespace WoTB_Voice_Mod_Creater
 {
     public partial class MainCode : Window
     {
-        const string Version = "1.2.8";
+        const string Version = "1.2.9";
         readonly string Path = Directory.GetCurrentDirectory();
         bool IsClosing = false;
         bool IsMessageShowing = false;
@@ -70,7 +73,7 @@ namespace WoTB_Voice_Mod_Creater
             catch
             {
                 MessageBox.Show("フォルダにアクセスできませんでした。ソフトを別の場所に移動する必要があります。");
-                Close();
+                Application.Current.Shutdown();
             }
             //V1.2.8以前からアップデートしたとき用
             if (File.Exists(Path + "/bass.dll"))
@@ -96,6 +99,10 @@ namespace WoTB_Voice_Mod_Creater
             {
                 DVPL.DDS_DLL_Extract();
             }
+            if (Environment.UserName == "SRTTbacon")
+            {
+                SRTTbacon_Server.IsSRTTbaconOwnerMode = true;
+            }
             //必要なdllがなかったら強制終了
             List<string> DLL_Error_List = Sub_Code.DLL_Exists();
             if (DLL_Error_List.Count > 0)
@@ -106,7 +113,7 @@ namespace WoTB_Voice_Mod_Creater
                     DLLs += DLL_None + "\n";
                 }
                 MessageBox.Show("/dll内に以下のファイルが存在しません。\n" + DLLs + "ソフトは強制終了されます。");
-                Close();
+                Application.Current.Shutdown();
             }
             Clean();
             InitializeComponent();
@@ -252,12 +259,25 @@ namespace WoTB_Voice_Mod_Creater
                         Sub_Code.Error_Log_Write(e.Message);
                     }
                 }
-                if (Voice_Set.WoTB_Path != "" && !Sub_Code.DVPL_File_Exists(Path + "/Backup/Main/sounds.yaml"))
+                /*if (Voice_Set.WoTB_Path != "" && !Sub_Code.DVPL_File_Exists(Path + "/Backup/Main/sounds.yaml"))
                 {
                     Directory.CreateDirectory(Path + "/Backup/Main");
                     Sub_Code.DVPL_File_Copy(Voice_Set.WoTB_Path + "/Data/sounds.yaml", Path + "/Backup/Main/sounds.yaml", false);
                     Sub_Code.DVPL_File_Copy(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_high.yaml", Path + "/Backup/Main/sfx_high.yaml", false);
                     Sub_Code.DVPL_File_Copy(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_low.yaml", Path + "/Backup/Main/sfx_low.yaml", false);
+                }*/
+                if (Voice_Set.WoTB_Path != "" && !Sub_Code.DVPL_File_Exists(Path + "/Backup/Main/reload.bnk"))
+                {
+                    string[] Languages = { "arb", "cn", "cs", "de", "en", "es", "fi", "fr", "gup", "it", "ja", "ko", "pbr", "pl", "ru", "th", "tr", "vi" };
+                    foreach (string Language_Now in Languages)
+                    {
+                        Directory.CreateDirectory(Path + "/Backup/Main/" + Language_Now);
+                        Sub_Code.DVPL_File_Copy(Voice_Set.WoTB_Path + "/Data/WwiseSound/" + Language_Now + "/voiceover_crew.bnk", Path + "/Backup/Main/" + Language_Now + "/voiceover_crew.bnk", false);
+                    }
+                    Sub_Code.DVPL_File_Copy(Voice_Set.WoTB_Path + "/Data/WwiseSound/reload.bnk", Path + "/Backup/Main/reload.bnk", false);
+                    Sub_Code.DVPL_File_Copy(Voice_Set.WoTB_Path + "/Data/WwiseSound/ui_chat_quick_commands.bnk", Path + "/Backup/Main/ui_chat_quick_commands.bnk", false);
+                    Sub_Code.DVPL_File_Copy(Voice_Set.WoTB_Path + "/Data/WwiseSound/ui_battle.bnk", Path + "/Backup/Main/ui_battle.bnk", false);
+                    Sub_Code.DVPL_File_Copy(Voice_Set.WoTB_Path + "/Data/WwiseSound/music_login_screen.bnk", Path + "/Backup/Main/music_login_screen.bnk", false);
                 }
                 System.Drawing.Size MaxSize = System.Windows.Forms.Screen.PrimaryScreen.WorkingArea.Size;
                 MaxWidth = MaxSize.Width;
@@ -275,17 +295,31 @@ namespace WoTB_Voice_Mod_Creater
                     File.Delete(Voice_Set.Special_Path + "/FSB_Select_Temp_01.fsb");
                     File.Delete(Voice_Set.Special_Path + "/FSB_Select_Temp_02.fsb");
                     File.Delete(Voice_Set.Special_Path + "/FSB_Select_Temp_03.fsb");
+                    File.Delete(Voice_Set.Special_Path + "/Wwise/Temp_01.ogg");
+                    File.Delete(Voice_Set.Special_Path + "/Wwise/Temp_02.ogg");
                 }
                 catch (Exception e)
                 {
                     Sub_Code.Error_Log_Write(e.Message);
                 }
+                /*var a = Multithread.Convert_To_Wav(Voice_Set.Special_Path + "/Test_02", true);
+                Wwise_Class.Wwise_Project_Create Wwise = new Wwise_Class.Wwise_Project_Create(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod");
+                Wwise.Sound_Add_Wwise(Voice_Set.Special_Path + "/Test_02");
+                Wwise.Save();
+                Wwise.Project_Build("music_login_screen", Voice_Set.Special_Path + "/Test_02.bnk");
+                Wwise.Clear();
+                if (File.Exists(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Backup.tmp"))
+                {
+                    File.Copy(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Backup.tmp", Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Default Work Unit.wwu", true);
+                }*/
+                //リリース時に必ず削除するように！！！
+                //Voice_Set.WoTB_Path = "D:/Downloads/SDA Downloads/WoTB";
             }
             catch (Exception e)
             {
                 MessageBox.Show("エラーが発生しました。作者にError_Log.txtを送ってください。\nソフトは強制終了されます。");
                 Sub_Code.Error_Log_Write(e.Message);
-                Close();
+                Application.Current.Shutdown();
             }
         }
         //アップデートしたとき用
@@ -325,6 +359,7 @@ namespace WoTB_Voice_Mod_Creater
             bool IsOK_03 = true;
             bool IsOK_04 = true;
             bool IsOK_05 = true;
+            bool IsOK_06 = true;
             Task task = Task.Run(() =>
             {
                 if (!File.Exists(Voice_Set.Special_Path + "/DVPL/DVPL_Extract.exe"))
@@ -391,11 +426,21 @@ namespace WoTB_Voice_Mod_Creater
                         IsOK_05 = true;
                     }
                 }
+                if (!File.Exists(Voice_Set.Special_Path + "/Wwise/x64/Release/bin/Wwise.exe"))
+                {
+                    IsOK_06 = false;
+                    Task task_01 = Task.Run(() =>
+                    {
+                        DVPL.Wwise_Extract();
+                    });
+                    task_01.Wait();
+                    IsOK_06 = true;
+                }
             });
             await Task.Delay(100);
             while (true)
             {
-                if (IsOK_01 && IsOK_02 && IsOK_03 && IsOK_04 && IsOK_05)
+                if (IsOK_01 && IsOK_02 && IsOK_03 && IsOK_04 && IsOK_05 && IsOK_06)
                 {
                     break;
                 }
@@ -618,7 +663,7 @@ namespace WoTB_Voice_Mod_Creater
         //キャッシュを削除
         private void Cache_Delete_B_Click(object sender, RoutedEventArgs e)
         {
-            string Message_01 = "キャッシュを削除すると、サーバーからダウンロードした音声がなくなりますので再度ダウンロードする必要があります。\nこの操作は取り消せません。よろしいですか？";
+            string Message_01 = "キャッシュを削除します。この操作は取り消せません。よろしいですか？";
             MessageBoxResult result = MessageBox.Show(Message_01, "確認", MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.No);
             if (result == MessageBoxResult.Yes)
             {
@@ -648,7 +693,7 @@ namespace WoTB_Voice_Mod_Creater
                 }
                 catch (Exception m)
                 {
-                    MessageBox.Show("キャッシュを削除できませんでした。ファイルが使用中でないか確認してください。\nエラーコード:" + m.Message);
+                    MessageBox.Show("キャッシュを削除できませんでした。ファイルが使用中でないか確認してください。\nエラー:" + m.Message);
                     Sub_Code.Error_Log_Write(m.Message);
                 }
             }
@@ -1052,21 +1097,10 @@ namespace WoTB_Voice_Mod_Creater
                         Directory.CreateDirectory(Voice_Set.Special_Path + "/Update");
                         IsProcessing = true;
                         List<string> strList = new List<string>();
-                        FtpWebRequest fwr = (FtpWebRequest)WebRequest.Create(new Uri("ftp://" + IP + "/WoTB_Voice_Mod/Update/" + Line + "/"));
-                        fwr.UsePassive = true;
-                        fwr.KeepAlive = false;
-                        fwr.Timeout = 3000;
-                        fwr.Credentials = new NetworkCredential(SRTTbacon_Server.Name, SRTTbacon_Server.Password);
-                        fwr.Method = WebRequestMethods.Ftp.ListDirectory;
-                        StreamReader sr = new StreamReader(fwr.GetResponse().GetResponseStream());
-                        string str2 = sr.ReadLine();
-                        while (str2 != null)
+                        foreach (FtpListItem item in Voice_Set.FTP_Server.GetListing("/WoTB_Voice_Mod/Update/" + Line))
                         {
-                            strList.Add(str2);
-                            str2 = sr.ReadLine();
+                            strList.Add(item.Name);
                         }
-                        sr.Close();
-                        fwr.Abort();
                         foreach (string File_Name in strList)
                         {
                             try
@@ -1142,7 +1176,7 @@ namespace WoTB_Voice_Mod_Creater
                         if (IsReboot)
                         {
                             Process.Start(Path + "/WoTB_Voice_Mod_Creater.exe", "/up " + Process.GetCurrentProcess().Id);
-                            Close();
+                            Application.Current.Shutdown();
                         }
                         Download_P.Visibility = Visibility.Hidden;
                         Download_T.Visibility = Visibility.Hidden;
@@ -1155,6 +1189,9 @@ namespace WoTB_Voice_Mod_Creater
             }
             catch (Exception e1)
             {
+                Download_P.Visibility = Visibility.Hidden;
+                Download_T.Visibility = Visibility.Hidden;
+                Download_Border.Visibility = Visibility.Hidden;
                 Voice_Set.App_Busy = false;
                 IsProcessing = false;
                 Message_Feed_Out("最新バージョンを取得できませんでした。");
@@ -1183,7 +1220,7 @@ namespace WoTB_Voice_Mod_Creater
             {
                 return;
             }
-            Voice_Create_Window.Window_Show();
+            Voice_Create_Window.Window_Show(false);
         }
         private void WoTB_Select_B_Click(object sender, RoutedEventArgs e)
         {
@@ -1194,10 +1231,12 @@ namespace WoTB_Voice_Mod_Creater
             BetterFolderBrowser ofd = new BetterFolderBrowser()
             {
                 Title = "WoTBのインストール先を選択してください。",
+                RootFolder = Sub_Code.Get_OpenDirectory_Path(),
                 Multiselect = false
             };
             if (ofd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
+                Sub_Code.Set_Directory_Path(ofd.SelectedFolder);
                 if (ofd.SelectedFolder == "C:\\")
                 {
                     Message_Feed_Out("C:\\を選択することはできません。");
@@ -1206,6 +1245,11 @@ namespace WoTB_Voice_Mod_Creater
                 else if (ofd.SelectedFolder == "D:\\")
                 {
                     Message_Feed_Out("D:\\を選択することはできません。");
+                    return;
+                }
+                else if (ofd.SelectedFolder == "E:\\")
+                {
+                    Message_Feed_Out("E:\\を選択することはできません。");
                     return;
                 }
                 ApplyAllFiles(ofd.SelectedFolder, ProcessFile);
@@ -1303,7 +1347,7 @@ namespace WoTB_Voice_Mod_Creater
                     return;
                 }
                 IsClosing = true;
-                MessageBoxResult result = MessageBox.Show("ソフトをアンインストールしますか？これには一時ファイルも削除されます。", "確認", MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.No);
+                MessageBoxResult result = MessageBox.Show("ソフトをアンインストールしますか？これには一時ファイルも削除されます。\n注意:この操作は取り消しできません。", "確認", MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.No);
                 if (result == MessageBoxResult.Yes)
                 {
                     Voice_Set.App_Busy = true;
@@ -1311,18 +1355,15 @@ namespace WoTB_Voice_Mod_Creater
                     await Task.Delay(50);
                     try
                     {
-                        string[] Files = Directory.GetFiles(Voice_Set.Special_Path, "*", SearchOption.AllDirectories);
-                        foreach (string File_Name in Files)
-                        {
-                            try
-                            {
-                                File.Delete(File_Name);
-                            }
-                            catch (Exception e1)
-                            {
-                                Sub_Code.Error_Log_Write(e1.Message);
-                            }
-                        }
+                        Sub_Code.Directory_Delete(Voice_Set.Special_Path + "/Configs");
+                        Sub_Code.Directory_Delete(Voice_Set.Special_Path + "/DVPL");
+                        Sub_Code.Directory_Delete(Voice_Set.Special_Path + "/Encode_Mp3");
+                        Sub_Code.Directory_Delete(Voice_Set.Special_Path + "/Fmod_Android_Create");
+                        Sub_Code.Directory_Delete(Voice_Set.Special_Path + "/Loading");
+                        Sub_Code.Directory_Delete(Voice_Set.Special_Path + "/SE");
+                        Sub_Code.Directory_Delete(Voice_Set.Special_Path + "/Server");
+                        Sub_Code.Directory_Delete(Voice_Set.Special_Path + "/Wwise");
+                        Sub_Code.Directory_Delete(Voice_Set.Special_Path + "/Temp");
                     }
                     catch (Exception e1)
                     {
@@ -1333,7 +1374,9 @@ namespace WoTB_Voice_Mod_Creater
                         if (Voice_Set.FTP_Server.IsConnected)
                         {
                             Voice_Set.FTP_Server.Disconnect();
+                            Voice_Set.TCP_Server.Disconnect();
                             Voice_Set.FTP_Server.Dispose();
+                            Voice_Set.TCP_Server.Dispose();
                         }
                     }
                     catch (Exception e1)
@@ -1344,30 +1387,30 @@ namespace WoTB_Voice_Mod_Creater
                     while (Opacity > 0)
                     {
                         Player.settings.volume -= Minus;
-                        Opacity -= 0.025;
+                        Opacity -= Sub_Code.Window_Feed_Time;
                         await Task.Delay(1000 / 60);
                     }
-                    StreamWriter stw = File.CreateText(System.IO.Path.GetTempPath() + "/WoTB_Voice_Mod_Creater_Remove_01.bat");
-                    stw.Write("timeout 2\nrd /s /q \"" + Path + "\"\ndel %0");
+                    StreamWriter stw = File.CreateText(System.IO.Path.GetTempPath() + "/WoTB_Voice_Mod_Creater_Remove.bat");
+                    stw.WriteLine("timeout 2");
+                    stw.WriteLine("del " + Path + "/WoTB_Voice_Mod_Creater.exe");
+                    stw.WriteLine("del " + Path + "/ChangeLog.txt");
+                    stw.WriteLine("del " + Path + "/Error_Log.txt");
+                    stw.WriteLine("del " + Path + "/TempDirPath.dat");
+                    stw.WriteLine("del " + Path + "/User.dat");
+                    stw.WriteLine("del " + Path + "/WoTB_Path.dat");
+                    stw.WriteLine("rd /s /q " + Path + "/dll");
+                    stw.WriteLine("rd /s /q " + Path + "/Backup");
+                    stw.WriteLine("rd /s /q " + Path + "/Projects");
+                    stw.WriteLine("rd /s /q " + Path + "/Youtube");
                     stw.Close();
                     ProcessStartInfo processStartInfo = new ProcessStartInfo
                     {
-                        FileName = System.IO.Path.GetTempPath() + "/WoTB_Voice_Mod_Creater_Remove_01.bat",
+                        FileName = System.IO.Path.GetTempPath() + "/WoTB_Voice_Mod_Creater_Remove.bat",
                         CreateNoWindow = true,
                         UseShellExecute = false
                     };
                     Process.Start(processStartInfo);
-                    StreamWriter stw2 = File.CreateText(System.IO.Path.GetTempPath() + "/WoTB_Voice_Mod_Creater_Remove_02.bat");
-                    stw2.Write("timeout 2\nrd /s /q \"" + Voice_Set.Special_Path + "\"\ndel %0");
-                    stw2.Close();
-                    ProcessStartInfo processStartInfo2 = new ProcessStartInfo
-                    {
-                        FileName = System.IO.Path.GetTempPath() + "/WoTB_Voice_Mod_Creater_Remove_02.bat",
-                        CreateNoWindow = true,
-                        UseShellExecute = false
-                    };
-                    Process.Start(processStartInfo2);
-                    Close();
+                    Application.Current.Shutdown();
                 }
             }
             //一時ファイルの保存場所を指定
@@ -1379,10 +1422,12 @@ namespace WoTB_Voice_Mod_Creater
                     BetterFolderBrowser ofd = new BetterFolderBrowser()
                     {
                         Title = "保存先のフォルダを選択してください。",
+                        RootFolder = Sub_Code.Get_OpenDirectory_Path(),
                         Multiselect = false
                     };
                     if (ofd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                     {
+                        Sub_Code.Set_Directory_Path(ofd.SelectedFolder);
                         string Dir = ofd.SelectedFolder;
                         if (Sub_Code.IsTextIncludeJapanese(Dir))
                         {
@@ -1465,6 +1510,78 @@ namespace WoTB_Voice_Mod_Creater
                     Sub_Code.Error_Log_Write(e1.Message);
                 }
             }
+        }
+        private async void Voice_Create_V2_B_Click(object sender, RoutedEventArgs e)
+        {
+            if (!File.Exists(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Version.dat") && !Voice_Set.FTP_Server.IsConnected)
+            {
+                Message_Feed_Out("サーバーに接続できないため実行できません。");
+                return;
+            }
+            int Tmp = await Sub_Code.Wwise_Project_Update(Message_T);
+            if (Tmp == 0 || Tmp == 3)
+            {
+                Message_Feed_Out("チェックが完了しました。");
+            }
+            else if (Tmp == 1)
+            {
+                Message_Feed_Out("ダウンロードに失敗しました。以前のバージョンで実行します。");
+            }
+            else if (Tmp == 3)
+            {
+                Message_Feed_Out("ダウンロードに失敗しました。開発者へご連絡ください。");
+                return;
+            }
+            else if (Tmp == 4)
+            {
+                return;
+            }
+            else if (Tmp == 5)
+            {
+                Message_Feed_Out("エラーが発生しました。Log.txtを参照してください。");
+                return;
+            }
+            Voice_Create_Window.Window_Show(true);
+        }
+        private void Tool_V2_B_Click(object sender, RoutedEventArgs e)
+        {
+            Tools_V2_Window.Window_Show();
+        }
+        private void Advanced_Mode_B_Click(object sender, RoutedEventArgs e)
+        {
+            Bank_Editor_Window.Window_Show();
+        }
+        private async void Change_Wwise_B_Click(object sender, RoutedEventArgs e)
+        {
+            if (!File.Exists(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Version.dat") && !Voice_Set.FTP_Server.IsConnected)
+            {
+                Message_Feed_Out("サーバーに接続できないため実行できません。");
+                return;
+            }
+            int Tmp = await Sub_Code.Wwise_Project_Update(Message_T);
+            if (Tmp == 0 || Tmp == 3)
+            {
+                Message_Feed_Out("チェックが完了しました。");
+            }
+            else if (Tmp == 1)
+            {
+                Message_Feed_Out("ダウンロードに失敗しました。以前のバージョンで実行します。");
+            }
+            else if (Tmp == 3)
+            {
+                Message_Feed_Out("ダウンロードに失敗しました。開発者へご連絡ください。");
+                return;
+            }
+            else if (Tmp == 4)
+            {
+                return;
+            }
+            else if (Tmp == 5)
+            {
+                Message_Feed_Out("エラーが発生しました。Log.txtを参照してください。");
+                return;
+            }
+            Change_To_Wwise_Window.Window_Show();
         }
     }
 }

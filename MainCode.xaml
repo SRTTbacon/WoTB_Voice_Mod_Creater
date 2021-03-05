@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:Class1="clr-namespace:WoTB_Voice_Mod_Creater.Class"
+        xmlns:Class2="clr-namespace:WoTB_Voice_Mod_Creater.Wwise_Class"
         mc:Ignorable="d"
         WindowStyle="None"
         WindowStartupLocation="CenterScreen"
@@ -11,11 +12,11 @@
         Background="Gray"
         Icon="may17_wallpaper_2560x1600.ico"
         KeyDown="DockPanel_KeyDown"
-        Title="WoTB_Voice_Mod_Creater" Height="1080" Width="1920">
+        Title="WoTB_Voice_Mod_Creater" Height="1080" Width="1920" Closing="Window_Closing">
     <Window.Resources>
-        <SolidColorBrush x:Key="CyanBrush" Color="Gray" />
-        <SolidColorBrush x:Key="PinkBrush" Color="Gray" />
-        <SolidColorBrush x:Key="LimeBrush" Color="Gray" />
+        <SolidColorBrush x:Key="CyanBrush" Color="Gray"/>
+        <SolidColorBrush x:Key="PinkBrush" Color="Gray"/>
+        <SolidColorBrush x:Key="LimeBrush" Color="Gray"/>
         <Style x:Key="SliderThumbStyle" TargetType="{x:Type Thumb}">
             <Setter Property="Template">
                 <Setter.Value>
@@ -33,12 +34,12 @@
                             <ControlTemplate>
                                 <Grid>
                                     <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto" />
-                                        <RowDefinition Height="25" />
-                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="25"/>
+                                        <RowDefinition Height="Auto"/>
                                     </Grid.RowDefinitions>
-                                    <TickBar Grid.Row="0" x:Name="TopTick" Placement="Top" Visibility="Collapsed" Fill="{TemplateBinding Foreground}" Height="8" Opacity="0.64" Margin="0,0,0,2" />
-                                    <TickBar Grid.Row="2" x:Name="BottomTick" Placement="Bottom" Visibility="Collapsed" Fill="{TemplateBinding Foreground}" Height="8" Opacity="0.64" Margin="0,2,0,0" />
+                                    <TickBar Grid.Row="0" x:Name="TopTick" Placement="Top" Visibility="Collapsed" Fill="{TemplateBinding Foreground}" Height="8" Opacity="0.64" Margin="0,0,0,2"/>
+                                    <TickBar Grid.Row="2" x:Name="BottomTick" Placement="Bottom" Visibility="Collapsed" Fill="{TemplateBinding Foreground}" Height="8" Opacity="0.64" Margin="0,2,0,0"/>
                                     <Track Grid.Row="1" x:Name="PART_Track">
                                         <Track.DecreaseRepeatButton>
                                             <RepeatButton Command="Slider.DecreaseLarge" Background="Aqua" Height="5" BorderBrush="{x:Null}" Opacity="0.2"/>
@@ -53,14 +54,14 @@
                                 </Grid>
                                 <ControlTemplate.Triggers>
                                     <Trigger Property="Slider.TickPlacement" Value="TopLeft">
-                                        <Setter TargetName="TopTick" Property="Visibility" Value="Visible" />
+                                        <Setter TargetName="TopTick" Property="Visibility" Value="Visible"/>
                                     </Trigger>
                                     <Trigger Property="Slider.TickPlacement" Value="BottomRight">
-                                        <Setter TargetName="BottomTick" Property="Visibility" Value="Visible" />
+                                        <Setter TargetName="BottomTick" Property="Visibility" Value="Visible"/>
                                     </Trigger>
                                     <Trigger Property="Slider.TickPlacement" Value="Both">
-                                        <Setter TargetName="TopTick" Property="Visibility" Value="Visible" />
-                                        <Setter TargetName="BottomTick" Property="Visibility" Value="Visible" />
+                                        <Setter TargetName="TopTick" Property="Visibility" Value="Visible"/>
+                                        <Setter TargetName="BottomTick" Property="Visibility" Value="Visible"/>
                                     </Trigger>
                                 </ControlTemplate.Triggers>
                             </ControlTemplate>
@@ -74,35 +75,35 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="ComboBox">
                         <Grid>
-                            <ToggleButton Grid.Column="2" Focusable="false" IsChecked="{Binding Path=IsDropDownOpen,Mode=TwoWay,RelativeSource={RelativeSource TemplatedParent}}" >
+                            <ToggleButton Grid.Column="2" Focusable="false" IsChecked="{Binding Path=IsDropDownOpen,Mode=TwoWay,RelativeSource={RelativeSource TemplatedParent}}">
                                 <ToggleButton.Template>
                                     <ControlTemplate>
                                         <Grid>
                                             <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="5*" />
-                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="5*"/>
+                                                <ColumnDefinition Width="*"/>
                                             </Grid.ColumnDefinitions>
-                                            <Border x:Name="Border"  Grid.ColumnSpan="2" CornerRadius="5" Background="#50100064" BorderBrush="Black" BorderThickness="1" />
-                                            <Border Grid.Column="0" CornerRadius="5,0,0,5"  Margin="1,1,10,1"  Background="#50100064"  BorderBrush="Black" BorderThickness="0,0,1,0" Grid.ColumnSpan="2" />
+                                            <Border x:Name="Border"  Grid.ColumnSpan="2" CornerRadius="5" Background="#50100064" BorderBrush="Black" BorderThickness="1"/>
+                                            <Border Grid.Column="0" CornerRadius="5,0,0,5"  Margin="1,1,10,1"  Background="#50100064"  BorderBrush="Black" BorderThickness="0,0,1,0" Grid.ColumnSpan="2"/>
                                         </Grid>
                                         <ControlTemplate.Triggers>
                                             <Trigger Property="ToggleButton.IsMouseOver" Value="true">
-                                                <Setter TargetName="Border" Property="Background" Value="#50100064" />
+                                                <Setter TargetName="Border" Property="Background" Value="#50100064"/>
                                             </Trigger>
                                             <Trigger Property="ToggleButton.IsChecked" Value="true">
-                                                <Setter TargetName="Border" Property="Background" Value="#50100064" />
+                                                <Setter TargetName="Border" Property="Background" Value="#50100064"/>
                                             </Trigger>
                                         </ControlTemplate.Triggers>
                                     </ControlTemplate>
                                 </ToggleButton.Template>
                             </ToggleButton>
-                            <ContentPresenter Name="ContentSite" IsHitTestVisible="False"  Content="{TemplateBinding SelectionBoxItem}" ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}" ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}" Margin="3"  />
+                            <ContentPresenter Name="ContentSite" IsHitTestVisible="False"  Content="{TemplateBinding SelectionBoxItem}" ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}" ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}" Margin="3"/>
                             <TextBox x:Name="PART_EditableTextBox" Visibility="Hidden" IsReadOnly="{TemplateBinding IsReadOnly}"/>
                             <Popup Name="Popup" Placement="Bottom" IsOpen="{TemplateBinding IsDropDownOpen}" AllowsTransparency="True"  Focusable="False" PopupAnimation="Slide">
                                 <Grid  Name="DropDown" SnapsToDevicePixels="True" MinWidth="{TemplateBinding ActualWidth}" MaxHeight="{TemplateBinding MaxDropDownHeight}">
                                     <Border x:Name="DropDownBorder" Background="#50100064" Margin="-50,0,-38,0"/>
                                     <ScrollViewer SnapsToDevicePixels="True">
-                                        <StackPanel IsItemsHost="True" />
+                                        <StackPanel IsItemsHost="True"/>
                                     </ScrollViewer>
                                 </Grid>
                             </Popup>
@@ -118,7 +119,7 @@
         <DockPanel Width="1920" Height="1080">
             <Border BorderBrush="Black" BorderThickness="1" Background="#0E0E1C" Height="1080" VerticalAlignment="Top" Width="1920"/>
             <Button x:Name="Connect_B" Content="再接続" HorizontalAlignment="Left" Margin="-1200,450,0,0" VerticalAlignment="Top" Width="480" Height="120" Background="Transparent" BorderBrush="Aqua" Foreground="Aqua" FontSize="30" Click="Connect_B_Click"/>
-            <TextBlock x:Name="Message_T" Height="55" Width="1200" TextWrapping="Wrap" Text="" Foreground="Aqua" FontSize="40" Margin="-1920,940,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
+            <TextBlock x:Name="Message_T" Height="103" Width="1200" TextWrapping="Wrap" Text="" Foreground="Aqua" FontSize="40" Margin="-1920,920,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
             <TextBlock x:Name="Version_T" Height="55" Width="250" TextWrapping="Wrap" Text="V1.2.3.1" Foreground="Aqua" FontSize="40" Margin="-350,930,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
             <Button x:Name="Exit_B" Content="終了" HorizontalAlignment="Left" Margin="-1917,995,0,0" VerticalAlignment="Top" Width="291" Height="82" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="30" Click="Exit_B_Click"/>
             <Button x:Name="Back_B" Content="メニュー画面に戻る" HorizontalAlignment="Left" Margin="-1617,995,0,0" VerticalAlignment="Top" Width="291" Height="82" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="30" Click="Back_B_Click"/>
@@ -166,13 +167,17 @@
             <Button x:Name="Chat_Mode_Public_B" Content="全体" Height="50" VerticalAlignment="Top" Width="198" Margin="-2344,270,0,0" FontSize="35" Foreground="Aqua" Background="Transparent" BorderBrush="Aqua" Click="Chat_Mode_Public_B_Click"/>
             <Button x:Name="Chat_Mode_Server_B" Content="サーバー" Height="50" VerticalAlignment="Top" Width="198" Margin="-1920,270,0,0" FontSize="35" Foreground="Aqua" Background="Transparent" BorderBrush="Aqua" Click="Chat_Mode_Server_B_Click"/>
             <Button x:Name="Chat_Mode_Private_B" Content="個人" Height="50" VerticalAlignment="Top" Width="198" Margin="-1496,270,0,0" FontSize="35" Foreground="Aqua" Background="Transparent" BorderBrush="Aqua" Click="Chat_Mode_Private_B_Click"/>
-            <Button x:Name="Tool_B" Content="WoTB用ツール" HorizontalAlignment="Left" Margin="-1920,0,0,0" VerticalAlignment="Top" Width="300" Height="70" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Click="Tool_B_Click"/>
+            <Button x:Name="Tool_B" Content="WoTB用ツールV1" HorizontalAlignment="Left" Margin="-1920,0,0,0" VerticalAlignment="Top" Width="300" Height="70" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Click="Tool_B_Click"/>
+            <Button x:Name="Tool_V2_B" Content="WoTB用ツールV2" HorizontalAlignment="Left" Margin="-1610,0,0,0" VerticalAlignment="Top" Width="300" Height="70" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Click="Tool_V2_B_Click"/>
+            <Button x:Name="Advanced_Mode_B" Content="上級者向け" HorizontalAlignment="Left" Margin="-1610,85,0,0" VerticalAlignment="Top" Width="300" Height="70" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Click="Advanced_Mode_B_Click"/>
+            <Button x:Name="Change_Wwise_B" Content="Wwiseに移植" HorizontalAlignment="Left" Margin="-1610,170,0,0" VerticalAlignment="Top" Width="300" Height="70" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Click="Change_Wwise_B_Click"/>
+            <Button x:Name="Voice_Create_V2_B" Content="音声作成ツールV2(新)" HorizontalAlignment="Left" Margin="-1220,150,0,0" VerticalAlignment="Top" Width="525" Height="90" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Click="Voice_Create_V2_B_Click"/>
             <Button x:Name="Other_B" Content="その他ツール" HorizontalAlignment="Left" Margin="-1920,85,0,0" VerticalAlignment="Top" Width="300" Height="70" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Click="Other_B_Click"/>
             <Button x:Name="Voice_Mod_Free_B" Content="Mod配布" HorizontalAlignment="Left" Margin="-1920,170,0,0" VerticalAlignment="Top" Width="300" Height="70" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Click="Voice_Mod_Free_B_Click"/>
             <Button x:Name="Update_B" Content="アップデートを確認" HorizontalAlignment="Left" Margin="-1920,255,0,0" VerticalAlignment="Top" Width="300" Height="70" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Click="Update_B_Click"/>
-            <Button x:Name="Message_B" Content="作者より" HorizontalAlignment="Left" Margin="-1920,340,0,0" VerticalAlignment="Top" Width="300" Height="70" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Click="Message_B_Click"/>
+            <Button x:Name="Message_B" Content="メッセージ" HorizontalAlignment="Left" Margin="-1920,340,0,0" VerticalAlignment="Top" Width="300" Height="70" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Click="Message_B_Click"/>
             <Image x:Name="Load_Image" Height="720" VerticalAlignment="Top" Width="1280" Stretch="Fill" Margin="-1920,200,0,0"/>
-            <Button x:Name="Voice_Create_Tool_B" Content="音声作成ツール(オフラインモード)" HorizontalAlignment="Left" Margin="-1220,150,0,0" VerticalAlignment="Top" Width="525" Height="90" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Click="Voice_Create_Tool_B_Click"/>
+            <Button x:Name="Voice_Create_Tool_B" Content="音声作成ツールV1(旧)" HorizontalAlignment="Left" Margin="-1220,50,0,0" VerticalAlignment="Top" Width="525" Height="90" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Click="Voice_Create_Tool_B_Click"/>
             <Button x:Name="WoTB_Select_B" Content="WoTBのインストールフォルダを指定" HorizontalAlignment="Left" Margin="-560,75,0,0" VerticalAlignment="Top" Width="500" Height="80" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="35" Click="WoTB_Select_B_Click"/>
             <Border x:Name="Download_Border" BorderBrush="Transparent" Background="Transparent" BorderThickness="1" Height="1080" VerticalAlignment="Top" Width="1920" Margin="-1920,0,0,0" Visibility="Hidden"/>
             <Class1:Server_Create x:Name="Server_Create_Window" Width="1920" Height="1080" Margin="-1920,0,0,0" Visibility="Hidden"/>
@@ -186,6 +191,9 @@
             <Class1:Voice_Create x:Name="Voice_Create_Window" Width="1920" Height="1080" Margin="-1920,0,0,0" Visibility="Hidden"/>
             <Class1:Message x:Name="Message_Window" Width="1920" Height="1080" Margin="-1920,0,0,0" Visibility="Hidden"/>
             <Class1:Load_Data x:Name="Load_Data_Window" Width="1920" Height="1080" Margin="-1920,0,0,0" Visibility="Hidden"/>
+            <Class2:Bank_Editor x:Name="Bank_Editor_Window" Width="1920" Height="1080" Margin="-1920,0,0,0" Visibility="Hidden"/>
+            <Class2:Tools_V2 x:Name="Tools_V2_Window" Height="1080" VerticalAlignment="Top" Width="1920" Margin="-1920,0,0,0" Visibility="Hidden"/>
+            <Class2:Change_To_Wwise x:Name="Change_To_Wwise_Window" Height="1080" Width="1920" Margin="-1920,0,0,0" Visibility="Hidden"/>
         </DockPanel>
     </Viewbox>
 </Window>
