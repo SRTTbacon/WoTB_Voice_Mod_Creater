@@ -7,6 +7,8 @@ Wwiseの使い方がわからなくても自動でプロジェクトを作成、
 V1.2.7から.NetFramework4.6.1に変更しましたので、Windows7などはマイクロソフトからダウンロード&インストールする必要があります。<br>
 ダウンロード:https://drive.google.com/file/d/1rTmmRGbGPCuXOSDNt31pz6hQ1cqGWWb1/view<br>
 <br>
+ソース内のWwise_Class/V1とV2の違いは、V1では.pckファイルを扱い、V2では.bnkファイルを扱う感じです。<br>
+<br>
 # V1.2.9変更点<br>
 ・新サウンドエンジンに対応<br>
 ・↑に伴い、音声ファイルを.wemに変換->.bnkに適応を自動で行う機能を追加<br>
