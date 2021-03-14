@@ -10,6 +10,7 @@ namespace WoTB_Voice_Mod_Creater
 {
     public class Voice_Set
     {
+        static List<List<string>> Voice_BGM_Change_List = new List<List<string>>();
         static List<string> Voice_Lists = new List<string>();
         static List<bool> SE_Enable_Disable = new List<bool>();
         static string Special_Path_Dir = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "/WoTB_Voice_Mod_Creater";
@@ -799,171 +800,74 @@ namespace WoTB_Voice_Mod_Creater
                 return "";
             }
         }
+        public static void Voice_BGM_Change_List_Init()
+        {
+            FTPClient.DownloadFile(Special_Path + "/Wwise/Change_To_Wwise.dat", "/WoTB_Voice_Mod/Update/Data/Change_To_Wwise.txt");
+            if (!File.Exists(Special_Path + "/Wwise/Change_To_Wwise.dat"))
+            {
+                return;
+            }
+            try
+            {
+                Voice_BGM_Change_List.Clear();
+                for (int Number = 0; Number < 37; Number++)
+                {
+                    Voice_BGM_Change_List.Add(new List<string>());
+                }
+                string line;
+                int Number_01 = -1;
+                StreamReader str = new StreamReader(Special_Path + "/Wwise/Change_To_Wwise.dat");
+                while ((line = str.ReadLine()) != null)
+                {
+                    if (line[0] == '・')
+                    {
+                        Number_01++;
+                        continue;
+                    }
+                    Voice_BGM_Change_List[Number_01].Add(line.Trim());
+                }
+                str.Close();
+            }
+            catch (Exception e)
+            {
+                Sub_Code.Error_Log_Write(e.Message);
+            }
+        }
         public static void Voice_BGM_Name_Change_From_FSB(string Dir_Path)
         {
             if (!Directory.Exists(Dir_Path))
             {
                 return;
             }
+            string[] To_File_Name = { "mikata", "danyaku", "hikantuu", "kantuu", "tokusyu", "tyoudan", "syatyou", "souzyuusyu", "tekikasai", "gekiha", "enjinhason", "enjintaiha", "enjinhukkyuu"
+            ,"kasai","syouka","nenryou","housinhason","housintaiha","housinhukkyuu","housyu","soutensyu","musen","musensyu","battle","kansokuhason","kansokutaiha"
+            ,"kansokuhukkyuu","ritaihason","ritaitaiha","ritaihukkyuu","houtouhason","houtoutaiha","houtouhukkyuu","taiha","battle_bgm","reload","touzyouin"};
             string[] Files = Directory.GetFiles(Dir_Path, "*.wav", SearchOption.TopDirectoryOnly);
             foreach (string File_Now in Files)
             {
                 if (Path.GetFileNameWithoutExtension(File_Now).Contains("_"))
                 {
                     string Name = Path.GetFileNameWithoutExtension(File_Now).Substring(0, Path.GetFileNameWithoutExtension(File_Now).LastIndexOf('_'));
-                    Name = Name.Replace(" ", "");
-                    if (Name == "ally_killed_by_player")
+                    Name = Name.Trim();
+                    for (int Number = 0; Number < 37; Number++)
                     {
-                        Sub_Code.File_Rename_Number(File_Now, "mikata");
-                    }
-                    else if (Name == "ammo_bay_damaged")
-                    {
-                        Sub_Code.File_Rename_Number(File_Now, "danyaku");
-                    }
-                    else if (Name == "armor_not_pierced_by_player")
-                    {
-                        Sub_Code.File_Rename_Number(File_Now, "hikantuu");
-                    }
-                    else if (Name == "armor_pierced_by_player")
-                    {
-                        Sub_Code.File_Rename_Number(File_Now, "kantuu");
-                    }
-                    else if (Name == "armor_pierced_crit_by_player")
-                    {
-                        Sub_Code.File_Rename_Number(File_Now, "tokusyu");
-                    }
-                    else if (Name == "armor_ricochet_by_player")
-                    {
-                        Sub_Code.File_Rename_Number(File_Now, "tyoudan");
-                    }
-                    else if (Name == "commander_killed")
-                    {
-                        Sub_Code.File_Rename_Number(File_Now, "syatyou");
-                    }
-                    else if (Name == "driver_killed")
-                    {
-                        Sub_Code.File_Rename_Number(File_Now, "souzyuusyu");
-                    }
-                    else if (Name == "enemy_fire_started_by_player")
-                    {
-                        Sub_Code.File_Rename_Number(File_Now, "tekikasai");
-                    }
-                    else if (Name == "enemy_killed_by_player")
-                    {
-                        Sub_Code.File_Rename_Number(File_Now, "gekiha");
-                    }
-                    else if (Name == "engine_damaged")
-                    {
-                        Sub_Code.File_Rename_Number(File_Now, "enjinhason");
-                    }
-                    else if (Name == "engine_destroyed")
-                    {
-                        Sub_Code.File_Rename_Number(File_Now, "enjintaiha");
-                    }
-                    else if (Name == "engine_functional")
-                    {
-                        Sub_Code.File_Rename_Number(File_Now, "enjinhukkyuu");
-                    }
-                    else if (Name == "fire_started")
-                    {
-                        Sub_Code.File_Rename_Number(File_Now, "kasai");
-                    }
-                    else if (Name == "fire_stopped")
-                    {
-                        Sub_Code.File_Rename_Number(File_Now, "syouka");
-                    }
-                    else if (Name == "fuel_tank_damaged")
-                    {
-                        Sub_Code.File_Rename_Number(File_Now, "nenryou");
-                    }
-                    else if (Name == "gun_damaged")
-                    {
-                        Sub_Code.File_Rename_Number(File_Now, "housinhason");
-                    }
-                    else if (Name == "gun_destroyed")
-                    {
-                        Sub_Code.File_Rename_Number(File_Now, "housintaiha");
-                    }
-                    else if (Name == "gun_functional")
-                    {
-                        Sub_Code.File_Rename_Number(File_Now, "housinhukkyuu");
-                    }
-                    else if (Name == "gunner_killed")
-                    {
-                        Sub_Code.File_Rename_Number(File_Now, "housyu");
-                    }
-                    else if (Name == "loader_killed")
-                    {
-                        Sub_Code.File_Rename_Number(File_Now, "soutensyu");
-                    }
-                    else if (Name == "radio_damaged" || Name == "musenki")
-                    {
-                        Sub_Code.File_Rename_Number(File_Now, "musen");
-                    }
-                    else if (Name == "radioman_killed")
-                    {
-                        Sub_Code.File_Rename_Number(File_Now, "musensyu");
-                    }
-                    else if (Name == "start_battle")
-                    {
-                        Sub_Code.File_Rename_Number(File_Now, "battle");
-                    }
-                    else if (Name == "surveying_devices_damaged")
-                    {
-                        Sub_Code.File_Rename_Number(File_Now, "kansokuhason");
-                    }
-                    else if (Name == "surveying_devices_destroyed")
-                    {
-                        Sub_Code.File_Rename_Number(File_Now, "kansokutaiha");
-                    }
-                    else if (Name == "surveying_devices_functional")
-                    {
-                        Sub_Code.File_Rename_Number(File_Now, "kansokuhukkyuu");
-                    }
-                    else if (Name == "track_damaged")
-                    {
-                        Sub_Code.File_Rename_Number(File_Now, "ritaihason");
-                    }
-                    else if (Name == "track_destroyed")
-                    {
-                        Sub_Code.File_Rename_Number(File_Now, "ritaitaiha");
-                    }
-                    else if (Name == "track_functional" || Name == "track_functional_can_move")
-                    {
-                        Sub_Code.File_Rename_Number(File_Now, "ritaihukkyuu");
-                    }
-                    else if (Name == "turret_rotator_damaged")
-                    {
-                        Sub_Code.File_Rename_Number(File_Now, "houtouhason");
-                    }
-                    else if (Name == "turret_rotator_destroyed")
-                    {
-                        Sub_Code.File_Rename_Number(File_Now, "houtoutaiha");
-                    }
-                    else if (Name == "turret_rotator_functional")
-                    {
-                        Sub_Code.File_Rename_Number(File_Now, "houtouhukkyuu");
-                    }
-                    else if (Name == "vehicle_destroyed")
-                    {
-                        Sub_Code.File_Rename_Number(File_Now, "taiha");
-                    }
-                    else if (Name == "Music")
-                    {
-                        Sub_Code.File_Rename_Number(File_Now, "battle_bgm");
-                    }
-                    else if (Name == "souten")
-                    {
-                        Sub_Code.File_Rename_Number(File_Now, "reload");
-                    }
-                    else if (Name == "touzyouin")
-                    {
-                        File.Copy(File_Now, Sub_Code.File_Rename_Get_Name(Path.GetDirectoryName(File_Now) + "\\syatyou") + ".wav", true);
-                        File.Copy(File_Now, Sub_Code.File_Rename_Get_Name(Path.GetDirectoryName(File_Now) + "\\souzyuusyu") + ".wav", true);
-                        File.Copy(File_Now, Sub_Code.File_Rename_Get_Name(Path.GetDirectoryName(File_Now) + "\\housyu") + ".wav", true);
-                        File.Copy(File_Now, Sub_Code.File_Rename_Get_Name(Path.GetDirectoryName(File_Now) + "\\housyu") + ".wav", true);
-                        File.Copy(File_Now, Sub_Code.File_Rename_Get_Name(Path.GetDirectoryName(File_Now) + "\\soutensyu") + ".wav", true);
-                        Sub_Code.File_Move(File_Now, Sub_Code.File_Rename_Get_Name(Path.GetDirectoryName(File_Now) + "\\musensyu") + ".wav", true);
+                        foreach (string Voice_Name in Voice_BGM_Change_List[Number])
+                        {
+                            if (Name.Contains(Voice_Name))
+                            {
+                                if (Number == 36)
+                                {
+                                    File.Copy(File_Now, Sub_Code.File_Rename_Get_Name(Path.GetDirectoryName(File_Now) + "\\syatyou") + ".wav", true);
+                                    File.Copy(File_Now, Sub_Code.File_Rename_Get_Name(Path.GetDirectoryName(File_Now) + "\\souzyuusyu") + ".wav", true);
+                                    File.Copy(File_Now, Sub_Code.File_Rename_Get_Name(Path.GetDirectoryName(File_Now) + "\\housyu") + ".wav", true);
+                                    File.Copy(File_Now, Sub_Code.File_Rename_Get_Name(Path.GetDirectoryName(File_Now) + "\\housyu") + ".wav", true);
+                                    File.Copy(File_Now, Sub_Code.File_Rename_Get_Name(Path.GetDirectoryName(File_Now) + "\\soutensyu") + ".wav", true);
+                                    Sub_Code.File_Move(File_Now, Sub_Code.File_Rename_Get_Name(Path.GetDirectoryName(File_Now) + "\\musensyu") + ".wav", true);
+                                    continue;
+                                }
+                                Sub_Code.File_Rename_Number(File_Now, To_File_Name[Number]);
+                            }
+                        }
                     }
                 }
             }

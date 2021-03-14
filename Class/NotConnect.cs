@@ -354,7 +354,6 @@ namespace WoTB_Voice_Mod_Creater
                 Voice_Set.TCP_Server.WriteLine(Voice_Set.SRTTbacon_Server_Name + "|Chat\0");
                 Chat_T.Text = Server_Open_File("/WoTB_Voice_Mod/" + Voice_Set.SRTTbacon_Server_Name + "/Chat.dat");
                 Chat_Scrool.ScrollToEnd();
-                Player.settings.volume = (int)Voice_Volume_S.Value;
                 IsProcessing = false;
                 Message_Feed_Out("サーバーに参加しました。");
                 while (true)
@@ -403,6 +402,7 @@ namespace WoTB_Voice_Mod_Creater
             {
                 IsClosing = true;
                 Voice_Set.App_Busy = true;
+                Other_Window.Pause_Volume_Animation(true, 25);
                 int Minus = (int)(Voice_Volume_S.Value / 40);
                 try
                 {
@@ -420,7 +420,6 @@ namespace WoTB_Voice_Mod_Creater
                 }
                 while (Opacity > 0)
                 {
-                    Player.settings.volume -= Minus;
                     Opacity -= 0.05;
                     await Task.Delay(1000 / 60);
                 }
