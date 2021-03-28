@@ -470,6 +470,10 @@ namespace WoTB_Voice_Mod_Creater
         //例:Indexが2で既にそのタイプのファイル数が3個ある場合 -> danyaku_04.mp3
         public static string Set_Voice_Type_Change_Name_By_Index(string Dir, List<List<string>> Lists)
         {
+            if (!Directory.Exists(Dir))
+            {
+                Directory.CreateDirectory(Dir);
+            }
             int Romaji_Number = 0;
             foreach (List<string> Index in Lists)
             {
@@ -485,6 +489,42 @@ namespace WoTB_Voice_Mod_Creater
                         else
                         {
                             File.Copy(File_Path, Dir + "/" + Voice_Set.Get_Voice_Type_Romaji_Name(Romaji_Number) + "_" + File_Number + Path.GetExtension(File_Path), true);
+                        }
+                        File_Number++;
+                    }
+                    catch (Exception e)
+                    {
+                        Sub_Code.Error_Log_Write(e.Message);
+                        return "ファイルをコピーできませんでした。";
+                    }
+                }
+                Romaji_Number++;
+            }
+            return "";
+        }
+        //↑の拡張子もフォルダ名もいらないバージョン
+        public static string Set_Voice_Type_Change_Name_By_Index(string From_Dir, string To_Dir, List<List<string>> Lists)
+        {
+            if (!Directory.Exists(To_Dir))
+            {
+                Directory.CreateDirectory(To_Dir);
+            }
+            int Romaji_Number = 0;
+            foreach (List<string> Index in Lists)
+            {
+                int File_Number = 1;
+                foreach (string File_Path in Index)
+                {
+                    try
+                    {
+                        string File_Path_01 = File_Get_FileName_No_Extension(From_Dir + "/" + File_Path);
+                        if (File_Number < 10)
+                        {
+                            File.Copy(File_Path_01, To_Dir + "/" + Voice_Set.Get_Voice_Type_Romaji_Name(Romaji_Number) + "_0" + File_Number + Path.GetExtension(File_Path_01), true);
+                        }
+                        else
+                        {
+                            File.Copy(File_Path_01, To_Dir + "/" + Voice_Set.Get_Voice_Type_Romaji_Name(Romaji_Number) + "_" + File_Number + Path.GetExtension(File_Path_01), true);
                         }
                         File_Number++;
                     }
@@ -586,6 +626,83 @@ namespace WoTB_Voice_Mod_Creater
             catch (Exception e)
             {
                 Sub_Code.Error_Log_Write(e.Message);
+            }
+        }
+        //MP3形式のファイルの音量を調整
+        public static void MP3_Volume_Set(string To_Dir, int Gain = 10)
+        {
+            string File_Import = "";
+            string[] Files_03 = Directory.GetFiles(To_Dir, "*.mp3", SearchOption.TopDirectoryOnly);
+            foreach (string File_Now in Files_03)
+            {
+                if (File_Import == "")
+                {
+                    File_Import = "\"" + File_Now + "\"";
+                }
+                else
+                {
+                    File_Import += " \"" + File_Now + "\"";
+                }
+                //Windowsのコマンドプロンプトは8191文字までしか入力できないため、この時点で8000文字を超えていたら実行
+                if (File_Import.Length > 8000)
+                {
+                    Volume_Set_Start(File_Import, Gain);
+                    File_Import = "";
+                }
+            }
+            if (File_Import != "")
+            {
+                Volume_Set_Start(File_Import, Gain);
+            }
+        }
+        static void Volume_Set_Start(string File_Import, int Gain)
+        {
+            StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Encode_Mp3/Volume_Set.bat");
+            stw.WriteLine("chcp 65001");
+            stw.Write("\"" + Voice_Set.Special_Path + "/Encode_Mp3/mp3gain.exe\" -r -c -p -d " + Gain + " " + File_Import);
+            stw.Close();
+            ProcessStartInfo processStartInfo1 = new ProcessStartInfo
+            {
+                FileName = Voice_Set.Special_Path + "/Encode_Mp3/Volume_Set.bat",
+                CreateNoWindow = true,
+                UseShellExecute = false
+            };
+            Process p = Process.Start(processStartInfo1);
+            p.WaitForExit();
+            File.Delete(Voice_Set.Special_Path + "/Encode_Mp3/Volume_Set.bat");
+        }
+        //ファイルがMP3形式か判定してファイル拡張子を.rawに変更する
+        public static void Check_MP3_Rename(string Dir)
+        {
+            string[] Files_01 = Directory.GetFiles(Dir, "*", SearchOption.TopDirectoryOnly);
+            foreach (string File_Now in Files_01)
+            {
+                StreamReader str = new StreamReader(File_Now);
+                string Read_01 = str.ReadLine();
+                str.Close();
+                string Read = Read_01.Substring(0, 3);
+                //最初の3文字がID3だった場合.mp3形式
+                //Xrecordで変換した場合ヘッダがなくなるためXingが含まれていたら
+                if (Read != "ID3" && !Read_01.Contains("Xing") && !Read_01.Contains("LAME"))
+                {
+                    try
+                    {
+                        File.Move(File_Now, Dir + "/" + Path.GetFileNameWithoutExtension(File_Now) + ".raw");
+                    }
+                    catch
+                    {
+                    }
+                }
+                else if (Path.GetFileName(File_Now) != ".mp3")
+                {
+                    try
+                    {
+                        File.Move(File_Now, Dir + "/" + Path.GetFileName(File_Now));
+                    }
+                    catch
+                    {
+                    }
+                }
             }
         }
         //.fdpファイルから.fev + .fsbを作成する
@@ -932,7 +1049,7 @@ namespace WoTB_Voice_Mod_Creater
                 }
                 StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Encode_Mp3/Audio_Encode.bat");
                 stw.WriteLine("chcp 65001");
-                stw.Write(Voice_Set.Special_Path + "/Encode_Mp3/ffmpeg.exe -i \"" + From_Audio_File + "\" " + Encode_Style + " \"" + To_Audio_File + "\"");
+                stw.Write("\"" + Voice_Set.Special_Path + "/Encode_Mp3/ffmpeg.exe\" -i \"" + From_Audio_File + "\" " + Encode_Style + " \"" + To_Audio_File + "\"");
                 stw.Close();
                 ProcessStartInfo processStartInfo = new ProcessStartInfo
                 {
@@ -1487,7 +1604,7 @@ namespace WoTB_Voice_Mod_Creater
                 {
                     if (Voice_Set.FTP_Server.IsConnected)
                     {
-                        StreamReader str = new StreamReader(Voice_Set.FTP_Server.OpenRead("/WoTB_Voice_Mod/Update/Wwise/Version.txt"));
+                        StreamReader str = new StreamReader(Voice_Set.FTP_Server.OpenRead("/WoTB_Voice_Mod/Update/Wwise/Version_01.txt"));
                         string Line = str.ReadLine();
                         str.Close();
                         StreamReader str2 = new StreamReader(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Version.dat");
@@ -1504,7 +1621,7 @@ namespace WoTB_Voice_Mod_Creater
                                 }
                                 File.Delete(Voice_Set.Special_Path + "/Wwise_Project.dat");
                                 string Path = Directory.GetCurrentDirectory();
-                                double SizeMB = (double)(Voice_Set.FTP_Server.GetFileSize("/WoTB_Voice_Mod/Update/Wwise/Wwise_Project.zip") / 1024.0 / 1024.0);
+                                double SizeMB = (double)(Voice_Set.FTP_Server.GetFileSize("/WoTB_Voice_Mod/Update/Wwise/Wwise_Project_01.zip") / 1024.0 / 1024.0);
                                 SizeMB = (Math.Floor(SizeMB * 10)) / 10;
                                 Message_T.Text = "サーバーからプロジェクトデータをダウンロードしています...\nダウンロードサイズ:約" + SizeMB + "MB";
                                 await Task.Delay(50);
@@ -1514,10 +1631,10 @@ namespace WoTB_Voice_Mod_Creater
                                 Download_Border.Visibility = Visibility.Visible;
                                 try
                                 {
-                                    long File_Size_Full = Voice_Set.FTP_Server.GetFileSize("/WoTB_Voice_Mod/Update/Wwise/Wwise_Project.zip");
+                                    long File_Size_Full = Voice_Set.FTP_Server.GetFileSize("/WoTB_Voice_Mod/Update/Wwise/Wwise_Project_01.zip");
                                     Task task = Task.Run(() =>
                                     {
-                                        Voice_Set.FTP_Server.DownloadFile(Voice_Set.Special_Path + "/Wwise_Project.dat", "/WoTB_Voice_Mod/Update/Wwise/Wwise_Project.zip");
+                                        Voice_Set.FTP_Server.DownloadFile(Voice_Set.Special_Path + "/Wwise_Project.dat", "/WoTB_Voice_Mod/Update/Wwise/Wwise_Project_01.zip");
                                     });
                                     while (true)
                                     {
@@ -1666,6 +1783,22 @@ namespace WoTB_Voice_Mod_Creater
                 }
             }
             return false;
+        }
+        //指定したフォルダにアクセスできるか
+        public static bool CanDirectoryAccess(string Dir_Path)
+        {
+            try
+            {
+                StreamWriter stw5 = File.CreateText(Dir_Path + "/Test.dat");
+                stw5.Write("テストファイル");
+                stw5.Close();
+                File.Delete(Dir_Path + "/Test.dat");
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
 }

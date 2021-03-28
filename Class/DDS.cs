@@ -1,6 +1,5 @@
-﻿
+﻿using DdsFileTypePlus;
 using PaintDotNet;
-using DdsFileTypePlus;
 using System;
 using System.Drawing;
 using System.IO;
@@ -45,6 +44,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             MemoryStream ms = new MemoryStream(buff);
             DdsNative.DdsImage image = DdsNative.Load(ms);
             ms.Close();
+            ms.Dispose();
             Surface surface = new Surface(image.Width, image.Height);
             for (int y = 0; y < surface.Height; ++y)
             {

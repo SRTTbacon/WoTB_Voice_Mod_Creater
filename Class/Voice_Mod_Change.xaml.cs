@@ -1,12 +1,10 @@
-﻿using System.Windows.Controls;
-using System.Threading.Tasks;
-using System.IO;
+﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 using System.Xml.Linq;
-using System.Xml.Serialization;
-using System.Text;
-using System;
 
 namespace WoTB_Voice_Mod_Creater.Class
 {
@@ -15,9 +13,8 @@ namespace WoTB_Voice_Mod_Creater.Class
         bool IsBusy = false;
         bool IsMessageShowing = false;
         string Mod_Name;
-        Cauldron.FMOD.EVENT_LOADINFO ELI = new Cauldron.FMOD.EVENT_LOADINFO();
-        Cauldron.FMOD.EventProject EP = new Cauldron.FMOD.EventProject();
-        Cauldron.FMOD.Event FE = new Cauldron.FMOD.Event();
+        /*Cauldron.FMOD.EventProject EP = new Cauldron.FMOD.EventProject();
+        Cauldron.FMOD.Event FE = new Cauldron.FMOD.Event();*/
         readonly List<string> Delete_Files = new List<string>();
         readonly List<string> Add_Files = new List<string>();
         public Voice_Mod_Change()
@@ -67,7 +64,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             }
             while (Opacity < 1 && !IsBusy)
             {
-                Opacity += 0.025;
+                Opacity += Sub_Code.Window_Feed_Time;
                 await Task.Delay(1000 / 60);
             }
             this.Mod_Name = Mod_Name;
@@ -245,7 +242,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 IsBusy = true;
                 while (Opacity > 0)
                 {
-                    Opacity -= 0.025;
+                    Opacity -= Sub_Code.Window_Feed_Time;
                     await Task.Delay(1000 / 60);
                 }
                 IsBusy = false;
@@ -316,7 +313,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             }
             IsBusy = true;
             //Modを配布
-            if (BGM_Mode_C.IsChecked.Value)
+            /*if (BGM_Mode_C.IsChecked.Value)
             {
                 //BGMModも一緒に配布する場合は実行
                 try
@@ -390,7 +387,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                     Sub_Code.Error_Log_Write(e1.Message);
                     return;
                 }
-            }
+            }*/
             Message_T.Text = "情報を保存しています...";
             await Task.Delay(50);
             try

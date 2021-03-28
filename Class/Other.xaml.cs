@@ -280,7 +280,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                     else
                     {
                         Bass.BASS_ChannelStop(Stream);
-                        Stream = 1;
+                        Bass.BASS_StreamFree(Stream);
                         Video_V.Stop();
                         Video_V.Close();
                         Video_V.Source = null;
@@ -512,8 +512,8 @@ namespace WoTB_Voice_Mod_Creater.Class
                 WAVEForm_Color_Image.Source = null;
                 WAVEForm_Color_Image.Width = 0;
                 Bass.BASS_ChannelStop(Stream);
-                Location_S.Value = 0;
                 Bass.BASS_StreamFree(Stream);
+                Location_S.Value = 0;
                 int StreamHandle = Bass.BASS_StreamCreateFile(File_Full_Path[Select_Index], 0, 0, BASSFlag.BASS_SAMPLE_FLOAT | BASSFlag.BASS_STREAM_DECODE | BASSFlag.BASS_SAMPLE_LOOP);
                 Stream = BassFx.BASS_FX_TempoCreate(StreamHandle, BASSFlag.BASS_FX_FREESOURCE);
                 IsMusicEnd = new SYNCPROC(EndSync);
@@ -800,8 +800,8 @@ namespace WoTB_Voice_Mod_Creater.Class
                 if (IsStop)
                 {
                     Bass.BASS_ChannelStop(Stream);
-                    Video_V.Stop();
                     Bass.BASS_StreamFree(Stream);
+                    Video_V.Stop();
                     Video_V.Source = null;
                     Location_S.Value = 0;
                     Location_S.Maximum = 0;

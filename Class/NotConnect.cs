@@ -28,7 +28,7 @@ namespace WoTB_Voice_Mod_Creater
                 {
                     try
                     {
-                        Voice_Set.TCP_Server.Connect(IP, SRTTbacon_Server.Port);
+                        Voice_Set.TCP_Server.Connect(SRTTbacon_Server.IP, SRTTbacon_Server.Port);
                         Voice_Set.TCP_Server.StringEncoder = Encoding.UTF8;
                         Voice_Set.TCP_Server.Delimiter = 0x00;
                         Message_T.Text = "";
@@ -39,7 +39,7 @@ namespace WoTB_Voice_Mod_Creater
                         Server_OK = false;
                     }
                 });
-                Voice_Set.FTP_Server = new FtpClient(IP)
+                Voice_Set.FTP_Server = new FtpClient(SRTTbacon_Server.IP)
                 {
                     Credentials = new NetworkCredential(SRTTbacon_Server.Name, SRTTbacon_Server.Password),
                     SocketKeepAlive = false,
@@ -156,8 +156,6 @@ namespace WoTB_Voice_Mod_Creater
                         return;
                     }
                 }
-                Server_Connect_B.Visibility = Visibility.Hidden;
-                Server_Create_B.Visibility = Visibility.Hidden;
                 Cache_Delete_B.Visibility = Visibility.Hidden;
                 Password_Text.Visibility = Visibility.Hidden;
                 Password_T.Visibility = Visibility.Hidden;
@@ -236,7 +234,7 @@ namespace WoTB_Voice_Mod_Creater
                     Directory.CreateDirectory(Voice_Set.Special_Path + "/Server/" + Directory_Name);
                     await Task.Delay(50);
                     List<string> strList = new List<string>();
-                    FtpWebRequest fwr = (FtpWebRequest)WebRequest.Create(new Uri("ftp://" + IP + "/WoTB_Voice_Mod/" + Directory_Name));
+                    FtpWebRequest fwr = (FtpWebRequest)WebRequest.Create(new Uri("ftp://" + SRTTbacon_Server.IP + "/WoTB_Voice_Mod/" + Directory_Name));
                     fwr.UsePassive = true;
                     fwr.KeepAlive = false;
                     fwr.Credentials = new NetworkCredential("SRTTbacon_Server", "SRTTbacon");
@@ -284,8 +282,6 @@ namespace WoTB_Voice_Mod_Creater
                 {
                     Voice_Set.FTP_Server.DownloadDirectory(Voice_Set.Special_Path + "/Server/" + Directory_Name + "SE", "/WoTB_Voice_Mod/SE");
                 }
-                Server_Connect_B.Margin = new Thickness(-600, 375, 0, 0);
-                Server_Create_B.Margin = new Thickness(-600, 550, 0, 0);
                 await Loading_Show();
                 Server_Lists.Visibility = Visibility.Hidden;
                 Server_Create_Name_T.Visibility = Visibility.Hidden;
@@ -303,17 +299,12 @@ namespace WoTB_Voice_Mod_Creater
                 Voice_Play_B.Visibility = Visibility.Visible;
                 Voice_Location_S.Visibility = Visibility.Visible;
                 Voice_Volume_S.Visibility = Visibility.Visible;
-                Voice_Control_Window.Visibility = Visibility.Visible;
                 Voice_Type_C.Visibility = Visibility.Visible;
                 Voice_Delete_B.Visibility = Visibility.Visible;
                 Voice_Type_Border.Visibility = Visibility.Visible;
                 Back_B.Visibility = Visibility.Visible;
                 Chat_Show();
                 Save_B.Visibility = Visibility.Visible;
-                if (Voice_Set.UserName == item2.Element("Master_User_Name").Value)
-                {
-                    Administrator_B.Visibility = Visibility.Visible;
-                }
                 Voice_S.Minimum = 0;
                 List<string> Temp_01 = new List<string>();
                 for (int Number = 0; Number <= Temp.Length - 1; Number++)
@@ -329,7 +320,7 @@ namespace WoTB_Voice_Mod_Creater
                 Voice_All_Number_T.Text = Voice_Set.Voice_Files_Number + "|" + (Voice_Set.Voice_Files.Count - 1);
                 Voice_Set.SRTTbacon_Server_Name = Server_Names_List[Server_Lists.SelectedIndex].ToString();
                 Server_Lists.SelectedIndex = -1;
-                string Chat_Temp = Server_Open_File("/WoTB_Voice_Mod/" + Voice_Set.SRTTbacon_Server_Name + "/Chat.dat");
+                string Chat_Temp = Server_File.Server_Open_File("/WoTB_Voice_Mod/" + Voice_Set.SRTTbacon_Server_Name + "/Chat.dat");
                 if (Voice_Set.UserName == "SRTTbacon")
                 {
                     if (Chat_Temp.Contains(Voice_Set.UserName + "(管理者)が参加しました。"))
@@ -352,7 +343,7 @@ namespace WoTB_Voice_Mod_Creater
                     }
                 }
                 Voice_Set.TCP_Server.WriteLine(Voice_Set.SRTTbacon_Server_Name + "|Chat\0");
-                Chat_T.Text = Server_Open_File("/WoTB_Voice_Mod/" + Voice_Set.SRTTbacon_Server_Name + "/Chat.dat");
+                Chat_T.Text = Server_File.Server_Open_File("/WoTB_Voice_Mod/" + Voice_Set.SRTTbacon_Server_Name + "/Chat.dat");
                 Chat_Scrool.ScrollToEnd();
                 IsProcessing = false;
                 Message_Feed_Out("サーバーに参加しました。");
@@ -370,25 +361,6 @@ namespace WoTB_Voice_Mod_Creater
                     await Task.Delay(1000);
                 }
             }
-        }
-        //作成ボタン
-        private async void Server_Create_B_Click(object sender, RoutedEventArgs e)
-        {
-            if (IsProcessing)
-            {
-                return;
-            }
-            Server_Create_Window.Visibility = Visibility.Visible;
-            while (Server_Create_Window.Opacity < 1)
-            {
-                Server_Create_Window.Opacity += 0.025;
-                await Task.Delay(1000 / 60);
-            }
-            while (Server_Create_Window.Visibility == Visibility.Visible)
-            {
-                await Task.Delay(100);
-            }
-            Server_List_Reset();
         }
         //終了
         private async void Exit_B_Click(object sender, RoutedEventArgs e)
@@ -422,6 +394,17 @@ namespace WoTB_Voice_Mod_Creater
                 {
                     Opacity -= 0.05;
                     await Task.Delay(1000 / 60);
+                }
+                try
+                {
+                    if (Directory.Exists(Voice_Set.Special_Path + "/Wwise/BNK_WAV"))
+                    {
+                        Directory.Delete(Voice_Set.Special_Path + "/Wwise/BNK_WAV", true);
+                    }
+                }
+                catch (Exception e1)
+                {
+                    Sub_Code.Error_Log_Write(e1.Message);
                 }
                 Application.Current.Shutdown();
             }
@@ -482,8 +465,6 @@ namespace WoTB_Voice_Mod_Creater
                 Server_Lists.Items.Add(Temp[Number] + "   " + Add);
                 Server_Names_List.Add(Temp[Number]);
             }
-            Server_Connect_B.Margin = new Thickness(-600, 375, 0, 0);
-            Server_Create_B.Margin = new Thickness(-600, 550, 0, 0);
             Password_Text.Visibility = Visibility.Hidden;
             Password_T.Visibility = Visibility.Hidden;
             Server_Create_Name_T.Visibility = Visibility.Hidden;
@@ -519,7 +500,6 @@ namespace WoTB_Voice_Mod_Creater
             {
                 Connect_B.Visibility = Visibility.Visible;
                 Cache_Delete_B.Visibility = Visibility.Visible;
-                Server_Connect_B.Visibility = Visibility.Hidden;
                 Voice_Mod_Free_B.Visibility = Visibility.Hidden;
                 Message_B.Visibility = Visibility.Hidden;
                 Server_Lists.Visibility = Visibility.Hidden;
@@ -533,12 +513,9 @@ namespace WoTB_Voice_Mod_Creater
                 Voice_Type_C.Visibility = Visibility.Hidden;
                 Voice_Delete_B.Visibility = Visibility.Hidden;
                 Voice_Type_Border.Visibility = Visibility.Hidden;
-                Voice_Control_Window.Visibility = Visibility.Hidden;
                 Back_B.Visibility = Visibility.Hidden;
                 Save_B.Visibility = Visibility.Hidden;
-                Server_Create_B.Visibility = Visibility.Hidden;
                 Server_List_Update_B.Visibility = Visibility.Hidden;
-                Administrator_B.Visibility = Visibility.Hidden;
                 Explanation_Scrool.Visibility = Visibility.Hidden;
                 Explanation_Text.Visibility = Visibility.Hidden;
                 Explanation_Border.Visibility = Visibility.Hidden;

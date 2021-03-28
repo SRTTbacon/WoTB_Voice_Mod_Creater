@@ -7,13 +7,15 @@
              d:DesignHeight="1080" d:DesignWidth="1920">
     <Viewbox>
         <DockPanel Width="1920" Height="1080">
-            <Border BorderBrush="Black" Background="Black" BorderThickness="1" Height="1080" VerticalAlignment="Top" Width="1920" Opacity="0.85"/>
-            <Border BorderBrush="Black" Background="Khaki" BorderThickness="1" Height="968" VerticalAlignment="Top" Width="1700" Margin="-1920,0,0,0" Opacity="0.5"/>
+            <Border BorderBrush="Black" Background="Black" BorderThickness="1" Height="1080" VerticalAlignment="Top" Width="1920" Opacity="0.9"/>
+            <Border BorderBrush="Black" Background="Khaki" BorderThickness="1" Height="968" VerticalAlignment="Top" Width="1700" Margin="-1920,0,0,0" Opacity="0.6"/>
             <TextBlock x:Name="Project_T" Height="55" Width="900" FontSize="40" Foreground="Aqua" TextWrapping="Wrap" Text="プロジェクト名:" Margin="-1920,25,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
             <TextBlock Height="50" Width="125" FontSize="40" Foreground="Aqua" TextWrapping="Wrap" Text="SE設定" Margin="-2900,75,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
             <ListBox x:Name="SE_Lists" Height="500" VerticalAlignment="Top" Width="600" BorderBrush="Aqua" Background="Transparent" Margin="-2900,150,0,0" Foreground="Aqua" FontSize="35" SelectionChanged="SE_Lists_SelectionChanged" MouseDown="SE_Lists_MouseDown"/>
             <Button x:Name="SE_Disable_B" Content="無効化" Height="65" VerticalAlignment="Top" Width="296" Margin="-3200,655,0,0" FontSize="40" BorderBrush="Aqua" Foreground="Aqua" Background="Transparent" Click="SE_Disable_B_Click"/>
             <Button x:Name="SE_Enable_B" Content="有効化" Height="65" VerticalAlignment="Top" Width="296" Margin="-2600,655,0,0" FontSize="40" BorderBrush="Aqua" Foreground="Aqua" Background="Transparent" Click="SE_Enable_B_Click"/>
+            <Button x:Name="SE_All_Disable_B" Content="すべて無効化" Height="55" VerticalAlignment="Top" Width="200" Margin="-3300,75,0,0" FontSize="33" BorderBrush="Aqua" Foreground="Aqua" Background="Transparent" Click="SE_All_Disable_B_Click"/>
+            <Button x:Name="SE_All_Enable_B" Content="すべて有効化" Height="55" VerticalAlignment="Top" Width="200" Margin="-2500,75,0,0" FontSize="33" BorderBrush="Aqua" Foreground="Aqua" Background="Transparent" Click="SE_All_Enable_B_Click"/>
             <Button x:Name="SE_Play_B" Content="再生" Height="65" VerticalAlignment="Top" Width="296" Margin="-3200,725,0,0" FontSize="40" BorderBrush="Aqua" Foreground="Aqua" Background="Transparent" Click="SE_Play_B_Click"/>
             <TextBlock x:Name="SE_Play_Number_T" Height="58" Width="168" FontSize="40" Foreground="Aqua" TextWrapping="Wrap" Text="0/0" Margin="-2700,730,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
             <Button x:Name="Exit_B" Content="キャンセル" Height="77" VerticalAlignment="Top" Width="296" Margin="-3320,888,0,0" FontSize="40" BorderBrush="Aqua" Foreground="Aqua" Background="Transparent" Click="Exit_B_Click"/>
@@ -22,15 +24,15 @@
             <TextBlock x:Name="Voice_Select_T" Height="58" Width="860" FontSize="40" Foreground="Aqua" TextWrapping="Wrap" Text="" Margin="-1100,675,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
             <Button x:Name="Save_B" Content="作成" Height="77" VerticalAlignment="Top" Width="296" Margin="-520,888,0,0" FontSize="40" BorderBrush="Aqua" Foreground="Aqua" Background="Transparent" Click="Save_B_Click"/>
             <CheckBox x:Name="Volume_Set_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-2050,775,0,0"/>
-            <TextBlock Height="58" Width="285" FontSize="40" Foreground="Aqua" TextWrapping="Wrap" Text="音量を均一にする" Margin="-1700,755,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
+            <TextBlock x:Name="Volume_Set_T" Height="58" Width="285" FontSize="40" Foreground="Aqua" TextWrapping="Wrap" Text="音量を均一にする" Margin="-1700,755,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
             <CheckBox x:Name="DVPL_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-2050,845,0,0" Click="DVPL_C_Click"/>
-            <TextBlock Height="58" Width="135" FontSize="40" Foreground="Aqua" TextWrapping="Wrap" Text="DVPL化" Margin="-1840,825,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
+            <TextBlock x:Name="DVPL_T" Height="58" Width="135" FontSize="40" Foreground="Aqua" TextWrapping="Wrap" Text="DVPL化" Margin="-1840,825,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
             <CheckBox x:Name="Android_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-2050,915,0,0" Click="Android_C_Click"/>
             <TextBlock x:Name="Android_T" Height="58" Width="190" FontSize="40" Foreground="Aqua" TextWrapping="Wrap" Text="Android用" Margin="-1790,895,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
             <Button x:Name="Android_Help_B" Content="?" Height="60" VerticalAlignment="Top" Width="60" Margin="-1400,892,0,0" FontSize="40" BorderBrush="Aqua" Foreground="Aqua" Background="Transparent" Click="Android_Help_B_Click"/>
             <Button x:Name="Language_Left_B" Content="←" Height="60" VerticalAlignment="Top" Width="60" Margin="-2050,892,0,0" FontSize="40" BorderBrush="Aqua" Foreground="Aqua" Background="Transparent" Click="Language_Left_B_Click"/>
             <Button x:Name="Language_Right_B" Content="→" Height="60" VerticalAlignment="Top" Width="60" Margin="-1525,892,0,0" FontSize="40" BorderBrush="Aqua" Foreground="Aqua" Background="Transparent" Click="Language_Right_B_Click"/>
-            <TextBlock x:Name="Message_T" Height="95" Width="600" Foreground="Aqua" FontSize="35" Margin="-2920,785,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" TextAlignment="Center"/>
+            <TextBlock x:Name="Message_T" Height="92" Width="600" Foreground="Aqua" FontSize="35" Margin="-2920,788,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" TextAlignment="Center"/>
         </DockPanel>
     </Viewbox>
 </UserControl>

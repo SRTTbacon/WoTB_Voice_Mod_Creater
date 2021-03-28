@@ -115,7 +115,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             }
             OpenFileDialog ofd = new OpenFileDialog()
             {
-                Title = "ファイルを選択してください。",
+                Title = "dvpl化するファイルを選択してください。",
                 Multiselect = true,
                 Filter = "ファイル(*.*)|*.*"
             };

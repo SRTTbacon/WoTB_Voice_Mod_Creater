@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 
@@ -60,14 +58,14 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Voice_Name_To_Ingame_Voice(Voice_Dir);
                 Message_T.Text = "音声のファイル数を修正しています...";
                 await Task.Delay(50);
-                Ingame_Voice_Set_Number(Voice_Dir);
+                Ingame_Voice_Set_Number(Voice_Set.Special_Path + "/Fmod_Android_Create", Voice_Dir);
                 Message_T.Text = "音声ファイルにSEを付けています...";
                 await Task.Delay(50);
                 await Ingame_Voice_In_SE_By_Dir(Voice_Dir, SE_Dir, Voice_Set.Special_Path + "/Fmod_Android_Create/Voices");
                 Directory.Delete(Voice_Dir, true);
                 Message_T.Text = "サーバーから必要なファイルをダウンロードしています...";
                 await Task.Delay(50);
-                Ingame_Voice_Move_Directory(Voice_Set.Special_Path + "/Fmod_Android_Create/Voices");
+                Ingame_Voice_Move_Directory(Voice_Set.Special_Path + "/Fmod_Android_Create/Voices", true);
                 Message_T.Text = "FSBファイルを作成中...";
                 await Task.Delay(50);
                 Android_FSB_Create(Voice_Set.Special_Path + "/Fmod_Android_Create/Voices", Voice_Set.Special_Path + "/Fmod_Android_Create/ingame_voice_ja.fsb");
@@ -134,7 +132,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             string[] Voices = Directory.GetFiles(Voice_Dir, "*", SearchOption.TopDirectoryOnly);
             foreach (string Voice_Now in Voices)
             {
-                string Name_Only = Voice_Mod_Create.Get_Voice_Type(Voice_Now);
+                string Name_Only = Voice_Mod_Create.Get_Voice_Type_V1(Voice_Now);
                 if (Name_Only == "reload")
                 {
                     Sub_Code.File_Move(Voice_Now, Path.GetDirectoryName(Voice_Now) + "/howitzer_load_" + File_Rename_Number("howitzer_load") + Path.GetExtension(Voice_Now), false);
@@ -388,7 +386,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             }
         }
         //それぞれのフォルダへ移動(第六感やリロードなど)
-        static void Ingame_Voice_Move_Directory(string Voice_Dir)
+        public static void Ingame_Voice_Move_Directory(string Voice_Dir, bool IsAndroid)
         {
             if (Directory.Exists(Voice_Dir + "/GUI_battle_streamed"))
             {
@@ -406,11 +404,21 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 Directory.Delete(Voice_Dir + "/GUI_sirene", true);
             }
-            Voice_Set.FTP_Server.DownloadDirectory(Voice_Dir + "/GUI_battle_streamed", "/WoTB_Voice_Mod/Android/GUI_battle_streamed");
-            Voice_Set.FTP_Server.DownloadDirectory(Voice_Dir + "/GUI_notifications_FX_howitzer_load", "/WoTB_Voice_Mod/Android/GUI_notifications_FX_howitzer_load");
-            Voice_Set.FTP_Server.DownloadDirectory(Voice_Dir + "/GUI_quick_commands", "/WoTB_Voice_Mod/Android/GUI_quick_commands");
-            Voice_Set.FTP_Server.DownloadDirectory(Voice_Dir + "/GUI_sirene", "/WoTB_Voice_Mod/Android/GUI_sirene");
-            if (Voice_Set.SE_Enable_List[1])
+            if (IsAndroid)
+            {
+                Voice_Set.FTP_Server.DownloadDirectory(Voice_Dir + "/GUI_battle_streamed", "/WoTB_Voice_Mod/Android/GUI_battle_streamed");
+                Voice_Set.FTP_Server.DownloadDirectory(Voice_Dir + "/GUI_notifications_FX_howitzer_load", "/WoTB_Voice_Mod/Android/GUI_notifications_FX_howitzer_load");
+                Voice_Set.FTP_Server.DownloadDirectory(Voice_Dir + "/GUI_quick_commands", "/WoTB_Voice_Mod/Android/GUI_quick_commands");
+                Voice_Set.FTP_Server.DownloadDirectory(Voice_Dir + "/GUI_sirene", "/WoTB_Voice_Mod/Android/GUI_sirene");
+            }
+            else
+            {
+                Directory.CreateDirectory(Voice_Dir + "/GUI_battle_streamed");
+                Directory.CreateDirectory(Voice_Dir + "/GUI_notifications_FX_howitzer_load");
+                Directory.CreateDirectory(Voice_Dir + "/GUI_quick_commands");
+                Directory.CreateDirectory(Voice_Dir + "/GUI_sirene");
+            }
+            if (Voice_Set.SE_Enable_Disable[1])
             {
                 Sub_Code.File_Delete(Voice_Dir + "/GUI_quick_commands/quick_commands_attack");
                 Sub_Code.File_Delete(Voice_Dir + "/GUI_quick_commands/quick_commands_attack_target");
@@ -431,25 +439,18 @@ namespace WoTB_Voice_Mod_Creater.Class
             }
             if (Sub_Code.File_Exists(Voice_Dir + "/auto_target_off"))
             {
-                Sub_Code.File_Delete(Voice_Dir + "/GUI_battle_streamed/auto_target_off");
                 Sub_Code.File_Move_V2(Voice_Dir + "/auto_target_off", Voice_Dir + "/GUI_battle_streamed/auto_target_off", true);
             }
             if (Sub_Code.File_Exists(Voice_Dir + "/auto_target_on"))
             {
-                Sub_Code.File_Delete(Voice_Dir + "/GUI_battle_streamed/auto_target_on");
                 Sub_Code.File_Move_V2(Voice_Dir + "/auto_target_on", Voice_Dir + "/GUI_battle_streamed/auto_target_on", true);
             }
             if (Sub_Code.File_Exists(Voice_Dir + "/enemy_sighted"))
             {
-                Sub_Code.File_Delete(Voice_Dir + "/GUI_battle_streamed/enemy_sighted");
                 Sub_Code.File_Move_V2(Voice_Dir + "/enemy_sighted", Voice_Dir + "/GUI_battle_streamed/enemy_sighted", true);
             }
             if (Sub_Code.File_Exists(Voice_Dir + "/howitzer_load_01"))
             {
-                Sub_Code.File_Delete(Voice_Dir + "/GUI_notifications_FX_howitzer_load/howitzer_load_01");
-                Sub_Code.File_Delete(Voice_Dir + "/GUI_notifications_FX_howitzer_load/howitzer_load_03");
-                Sub_Code.File_Delete(Voice_Dir + "/GUI_notifications_FX_howitzer_load/howitzer_load_04");
-                Sub_Code.File_Delete(Voice_Dir + "/GUI_notifications_FX_howitzer_load/howitzer_load_05");
                 Sub_Code.File_Move_V2(Voice_Dir + "/howitzer_load_01", Voice_Dir + "/GUI_notifications_FX_howitzer_load/howitzer_load_01", true);
                 Sub_Code.File_Move_V2(Voice_Dir + "/howitzer_load_03", Voice_Dir + "/GUI_notifications_FX_howitzer_load/howitzer_load_03", true);
                 Sub_Code.File_Move_V2(Voice_Dir + "/howitzer_load_04", Voice_Dir + "/GUI_notifications_FX_howitzer_load/howitzer_load_04", true);
@@ -458,52 +459,43 @@ namespace WoTB_Voice_Mod_Creater.Class
             }
             if (Sub_Code.File_Exists(Voice_Dir + "/lamp_01"))
             {
-                Sub_Code.File_Delete(Voice_Dir + "/GUI_battle_streamed/lamp_01");
                 Sub_Code.File_Move_V2(Voice_Dir + "/lamp_01", Voice_Dir + "/GUI_battle_streamed/lamp_01", true);
             }
             if (Sub_Code.File_Exists(Voice_Dir + "/quick_commands_attack"))
             {
-                Sub_Code.File_Delete(Voice_Dir + "/GUI_quick_commands/quick_commands_attack");
                 Sub_Code.File_Move_V2(Voice_Dir + "/quick_commands_attack", Voice_Dir + "/GUI_quick_commands/quick_commands_attack", true);
             }
             if (Sub_Code.File_Exists(Voice_Dir + "/quick_commands_attack_target"))
             {
-                Sub_Code.File_Delete(Voice_Dir + "/GUI_quick_commands/quick_commands_attack_target");
                 Sub_Code.File_Move_V2(Voice_Dir + "/quick_commands_attack_target", Voice_Dir + "/GUI_quick_commands/quick_commands_attack_target", true);
             }
             if (Sub_Code.File_Exists(Voice_Dir + "/quick_commands_capture_base"))
             {
-                Sub_Code.File_Delete(Voice_Dir + "/GUI_quick_commands/quick_commands_capture_base");
                 Sub_Code.File_Move_V2(Voice_Dir + "/quick_commands_capture_base", Voice_Dir + "/GUI_quick_commands/quick_commands_capture_base", true);
             }
             if (Sub_Code.File_Exists(Voice_Dir + "/quick_commands_defend_base"))
             {
-                Sub_Code.File_Delete(Voice_Dir + "/GUI_quick_commands/quick_commands_defend_base");
                 Sub_Code.File_Move_V2(Voice_Dir + "/quick_commands_defend_base", Voice_Dir + "/GUI_quick_commands/quick_commands_defend_base", true);
             }
             if (Sub_Code.File_Exists(Voice_Dir + "/quick_commands_help_me"))
             {
-                Sub_Code.File_Delete(Voice_Dir + "/GUI_quick_commands/quick_commands_help_me");
                 Sub_Code.File_Move_V2(Voice_Dir + "/quick_commands_help_me", Voice_Dir + "/GUI_quick_commands/quick_commands_help_me", true);
             }
             if (Sub_Code.File_Exists(Voice_Dir + "/quick_commands_negative"))
             {
-                Sub_Code.File_Delete(Voice_Dir + "/GUI_quick_commands/quick_commands_negative");
                 Sub_Code.File_Move_V2(Voice_Dir + "/quick_commands_negative", Voice_Dir + "/GUI_quick_commands/quick_commands_negative", true);
             }
             if (Sub_Code.File_Exists(Voice_Dir + "/quick_commands_positive"))
             {
-                Sub_Code.File_Delete(Voice_Dir + "/GUI_quick_commands/quick_commands_positive");
                 Sub_Code.File_Move_V2(Voice_Dir + "/quick_commands_positive", Voice_Dir + "/GUI_quick_commands/quick_commands_positive", true);
             }
             if (Sub_Code.File_Exists(Voice_Dir + "/quick_commands_reloading"))
             {
-                Sub_Code.File_Delete(Voice_Dir + "/GUI_quick_commands/quick_commands_reloading");
                 Sub_Code.File_Move_V2(Voice_Dir + "/quick_commands_reloading", Voice_Dir + "/GUI_quick_commands/quick_commands_reloading", true);
             }
         }
         //音声を指定したファイル数にする(ファイルがなければ依存のファイルで補い、ファイル数を超えていれば削除)
-        static void Set_Voice_Number(string Voice_Dir, string Voice_Type, int Number)
+        static void Set_Voice_Number(string From_Dir, string Voice_Dir, string Voice_Type, int Number)
         {
             int File_Number = 0;
             for (int Number2 = 0; Number2 <= 9; Number2++)
@@ -519,16 +511,15 @@ namespace WoTB_Voice_Mod_Creater.Class
                     {
                         if (Number2 < 10)
                         {
-                            File.Copy(Voice_Set.Special_Path + "/Fmod_Android_Create/Not_Voice.mp3", Voice_Dir + "/" + Voice_Type + "_0" + Number2 + ".mp3", true);
+                            File.Copy(From_Dir + "/Not_Voice.mp3", Voice_Dir + "/" + Voice_Type + "_0" + Number2 + ".mp3", true);
                         }
                         else
                         {
-                            File.Copy(Voice_Set.Special_Path + "/Fmod_Android_Create/Not_Voice.mp3", Voice_Dir + "/" + Voice_Type + "_" + Number2 + ".mp3", true);
+                            File.Copy(From_Dir + "/Not_Voice.mp3", Voice_Dir + "/" + Voice_Type + "_" + Number2 + ".mp3", true);
                         }
                     }
                     catch
                     {
-                        
                     }
                 }
                 return;
@@ -596,93 +587,93 @@ namespace WoTB_Voice_Mod_Creater.Class
             }
         }
         //音声の数をWoTBに合わせる(音声の数が規定以上だった場合その音声は削除され、なければ今ある音声の中からランダムでコピーされる)
-        static void Ingame_Voice_Set_Number(string Voice_Dir)
+        public static void Ingame_Voice_Set_Number(string FromDir, string Voice_Dir)
         {
             if (!Sub_Code.File_Exists(Voice_Dir + "/auto_target_off"))
             {
-                File.Copy(Voice_Set.Special_Path + "/Fmod_Android_Create/Not_Voice.mp3", Voice_Dir + "/auto_target_off.mp3", true);
+                File.Copy(FromDir + "/Not_Voice.mp3", Voice_Dir + "/auto_target_off.mp3", true);
             }
             if (!Sub_Code.File_Exists(Voice_Dir + "/auto_target_on"))
             {
-                File.Copy(Voice_Set.Special_Path + "/Fmod_Android_Create/Not_Voice.mp3", Voice_Dir + "/auto_target_on.mp3", true);
+                File.Copy(FromDir + "/Not_Voice.mp3", Voice_Dir + "/auto_target_on.mp3", true);
             }
             if (!Sub_Code.File_Exists(Voice_Dir + "/enemy_sighted"))
             {
-                File.Copy(Voice_Set.Special_Path + "/Fmod_Android_Create/Not_Voice.mp3", Voice_Dir + "/enemy_sighted.mp3", true);
+                File.Copy(FromDir + "/Not_Voice.mp3", Voice_Dir + "/enemy_sighted.mp3", true);
             }
             if (!Sub_Code.File_Exists(Voice_Dir + "/quick_commands_positive"))
             {
-                File.Copy(Voice_Set.Special_Path + "/Fmod_Android_Create/Not_Voice.mp3", Voice_Dir + "/quick_commands_positive.mp3", true);
+                File.Copy(FromDir + "/Not_Voice.mp3", Voice_Dir + "/quick_commands_positive.mp3", true);
             }
             if (!Sub_Code.File_Exists(Voice_Dir + "/quick_commands_negative"))
             {
-                File.Copy(Voice_Set.Special_Path + "/Fmod_Android_Create/Not_Voice.mp3", Voice_Dir + "/quick_commands_negative.mp3", true);
+                File.Copy(FromDir + "/Not_Voice.mp3", Voice_Dir + "/quick_commands_negative.mp3", true);
             }
             if (!Sub_Code.File_Exists(Voice_Dir + "/quick_commands_reloading"))
             {
-                File.Copy(Voice_Set.Special_Path + "/Fmod_Android_Create/Not_Voice.mp3", Voice_Dir + "/quick_commands_reloading.mp3", true);
+                File.Copy(FromDir + "/Not_Voice.mp3", Voice_Dir + "/quick_commands_reloading.mp3", true);
             }
             if (!Sub_Code.File_Exists(Voice_Dir + "/quick_commands_help_me"))
             {
-                File.Copy(Voice_Set.Special_Path + "/Fmod_Android_Create/Not_Voice.mp3", Voice_Dir + "/quick_commands_help_me.mp3", true);
+                File.Copy(FromDir + "/Not_Voice.mp3", Voice_Dir + "/quick_commands_help_me.mp3", true);
             }
             if (!Sub_Code.File_Exists(Voice_Dir + "/quick_commands_capture_base"))
             {
-                File.Copy(Voice_Set.Special_Path + "/Fmod_Android_Create/Not_Voice.mp3", Voice_Dir + "/quick_commands_capture_base.mp3", true);
+                File.Copy(FromDir + "/Not_Voice.mp3", Voice_Dir + "/quick_commands_capture_base.mp3", true);
             }
             if (!Sub_Code.File_Exists(Voice_Dir + "/quick_commands_defend_base"))
             {
-                File.Copy(Voice_Set.Special_Path + "/Fmod_Android_Create/Not_Voice.mp3", Voice_Dir + "/quick_commands_defend_base.mp3", true);
+                File.Copy(FromDir + "/Not_Voice.mp3", Voice_Dir + "/quick_commands_defend_base.mp3", true);
             }
             if (!Sub_Code.File_Exists(Voice_Dir + "/quick_commands_attack"))
             {
-                File.Copy(Voice_Set.Special_Path + "/Fmod_Android_Create/Not_Voice.mp3", Voice_Dir + "/quick_commands_attack.mp3", true);
+                File.Copy(FromDir + "/Not_Voice.mp3", Voice_Dir + "/quick_commands_attack.mp3", true);
             }
             if (!Sub_Code.File_Exists(Voice_Dir + "/quick_commands_attack_target"))
             {
-                File.Copy(Voice_Set.Special_Path + "/Fmod_Android_Create/Not_Voice.mp3", Voice_Dir + "/quick_commands_attack_target.mp3", true);
+                File.Copy(FromDir + "/Not_Voice.mp3", Voice_Dir + "/quick_commands_attack_target.mp3", true);
             }
             if (!Sub_Code.File_Exists(Voice_Dir + "/capture_end"))
             {
-                File.Copy(Voice_Set.Special_Path + "/Fmod_Android_Create/Not_Voice.mp3", Voice_Dir + "/capture_end.mp3", true);
+                File.Copy(FromDir + "/Not_Voice.mp3", Voice_Dir + "/capture_end.mp3", true);
             }
-            Set_Voice_Number(Voice_Dir, "howitzer_load", 5);
-            Set_Voice_Number(Voice_Dir, "lamp", 1);
-            Set_Voice_Number(Voice_Dir, "ally_killed_by_player", 2);
-            Set_Voice_Number(Voice_Dir, "vehicle_destroyed", 3);
-            Set_Voice_Number(Voice_Dir, "armor_pierced_by_player", 12);
-            Set_Voice_Number(Voice_Dir, "armor_pierced_crit_by_player", 9);
-            Set_Voice_Number(Voice_Dir, "armor_not_pierced_by_player", 5);
-            Set_Voice_Number(Voice_Dir, "armor_ricochet_by_player", 7);
-            Set_Voice_Number(Voice_Dir, "enemy_fire_started_by_player", 4);
-            Set_Voice_Number(Voice_Dir, "start_battle", 8);
-            Set_Voice_Number(Voice_Dir, "fire_started", 2);
-            Set_Voice_Number(Voice_Dir, "fire_stopped", 3);
-            Set_Voice_Number(Voice_Dir, "track_destroyed", 4);
-            Set_Voice_Number(Voice_Dir, "track_damaged", 4);
-            Set_Voice_Number(Voice_Dir, "track_functional", 4);
-            Set_Voice_Number(Voice_Dir, "track_functional_can_move", 5);
-            Set_Voice_Number(Voice_Dir, "gun_damaged", 4);
-            Set_Voice_Number(Voice_Dir, "gun_destroyed", 3);
-            Set_Voice_Number(Voice_Dir, "gun_functional", 4);
-            Set_Voice_Number(Voice_Dir, "radio_damaged", 5);
-            Set_Voice_Number(Voice_Dir, "surveying_devices_damaged", 5);
-            Set_Voice_Number(Voice_Dir, "surveying_devices_functional", 6);
-            Set_Voice_Number(Voice_Dir, "surveying_devices_destroyed", 6);
-            Set_Voice_Number(Voice_Dir, "turret_rotator_damaged", 2);
-            Set_Voice_Number(Voice_Dir, "turret_rotator_functional", 2);
-            Set_Voice_Number(Voice_Dir, "turret_rotator_destroyed", 2);
-            Set_Voice_Number(Voice_Dir, "ammo_bay_damaged", 3);
-            Set_Voice_Number(Voice_Dir, "engine_functional", 2);
-            Set_Voice_Number(Voice_Dir, "engine_destroyed", 3);
-            Set_Voice_Number(Voice_Dir, "engine_damaged", 5);
-            Set_Voice_Number(Voice_Dir, "fuel_tank_damaged", 4);
-            Set_Voice_Number(Voice_Dir, "radioman_killed", 1);
-            Set_Voice_Number(Voice_Dir, "loader_killed", 2);
-            Set_Voice_Number(Voice_Dir, "gunner_killed", 3);
-            Set_Voice_Number(Voice_Dir, "driver_killed", 3);
-            Set_Voice_Number(Voice_Dir, "commander_killed", 3);
-            Set_Voice_Number(Voice_Dir, "enemy_killed_by_player", 9);
+            Set_Voice_Number(FromDir, Voice_Dir, "howitzer_load", 5);
+            Set_Voice_Number(FromDir, Voice_Dir, "lamp", 1);
+            Set_Voice_Number(FromDir, Voice_Dir, "ally_killed_by_player", 2);
+            Set_Voice_Number(FromDir, Voice_Dir, "vehicle_destroyed", 3);
+            Set_Voice_Number(FromDir, Voice_Dir, "armor_pierced_by_player", 12);
+            Set_Voice_Number(FromDir, Voice_Dir, "armor_pierced_crit_by_player", 9);
+            Set_Voice_Number(FromDir, Voice_Dir, "armor_not_pierced_by_player", 5);
+            Set_Voice_Number(FromDir, Voice_Dir, "armor_ricochet_by_player", 7);
+            Set_Voice_Number(FromDir, Voice_Dir, "enemy_fire_started_by_player", 4);
+            Set_Voice_Number(FromDir, Voice_Dir, "start_battle", 8);
+            Set_Voice_Number(FromDir, Voice_Dir, "fire_started", 2);
+            Set_Voice_Number(FromDir, Voice_Dir, "fire_stopped", 3);
+            Set_Voice_Number(FromDir, Voice_Dir, "track_destroyed", 4);
+            Set_Voice_Number(FromDir, Voice_Dir, "track_damaged", 4);
+            Set_Voice_Number(FromDir, Voice_Dir, "track_functional", 4);
+            Set_Voice_Number(FromDir, Voice_Dir, "track_functional_can_move", 5);
+            Set_Voice_Number(FromDir, Voice_Dir, "gun_damaged", 4);
+            Set_Voice_Number(FromDir, Voice_Dir, "gun_destroyed", 3);
+            Set_Voice_Number(FromDir, Voice_Dir, "gun_functional", 4);
+            Set_Voice_Number(FromDir, Voice_Dir, "radio_damaged", 5);
+            Set_Voice_Number(FromDir, Voice_Dir, "surveying_devices_damaged", 5);
+            Set_Voice_Number(FromDir, Voice_Dir, "surveying_devices_functional", 6);
+            Set_Voice_Number(FromDir, Voice_Dir, "surveying_devices_destroyed", 6);
+            Set_Voice_Number(FromDir, Voice_Dir, "turret_rotator_damaged", 2);
+            Set_Voice_Number(FromDir, Voice_Dir, "turret_rotator_functional", 2);
+            Set_Voice_Number(FromDir, Voice_Dir, "turret_rotator_destroyed", 2);
+            Set_Voice_Number(FromDir, Voice_Dir, "ammo_bay_damaged", 3);
+            Set_Voice_Number(FromDir, Voice_Dir, "engine_functional", 2);
+            Set_Voice_Number(FromDir, Voice_Dir, "engine_destroyed", 3);
+            Set_Voice_Number(FromDir, Voice_Dir, "engine_damaged", 5);
+            Set_Voice_Number(FromDir, Voice_Dir, "fuel_tank_damaged", 4);
+            Set_Voice_Number(FromDir, Voice_Dir, "radioman_killed", 1);
+            Set_Voice_Number(FromDir, Voice_Dir, "loader_killed", 2);
+            Set_Voice_Number(FromDir, Voice_Dir, "gunner_killed", 3);
+            Set_Voice_Number(FromDir, Voice_Dir, "driver_killed", 3);
+            Set_Voice_Number(FromDir, Voice_Dir, "commander_killed", 3);
+            Set_Voice_Number(FromDir, Voice_Dir, "enemy_killed_by_player", 9);
         }
         //指定した音声にSEを合わせる
         static void Ingame_Voice_In_SE_By_FileName(string Voice_Path, string SE_Path, string To_Dir)
@@ -720,7 +711,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             File.Delete(Voice_Set.Special_Path + "/Encode_Mp3/Rate_Change.bat");
         }
         //指定した音声フォルダの中身のファイルすべてにSEを付ける(SEが有効な場合のみ)
-        static async Task Ingame_Voice_In_SE_By_Dir(string Voice_Dir, string SE_Dir, string To_Dir)
+        public static async Task Ingame_Voice_In_SE_By_Dir(string Voice_Dir, string SE_Dir, string To_Dir)
         {
             try
             {
@@ -857,119 +848,119 @@ namespace WoTB_Voice_Mod_Creater.Class
             string[] Voice_Files = Directory.GetFiles(Voice_Dir, "*", SearchOption.TopDirectoryOnly);
             foreach (string Voice_Now in Voice_Files)
             {
-                string Voice_Type = Voice_Mod_Create.Get_Voice_Type(Voice_Now);
+                string Voice_Type = Voice_Mod_Create.Get_Voice_Type_V1(Voice_Now);
                 string NameOnly = Path.GetFileNameWithoutExtension(Voice_Now);
-                if (Voice_Type == "howitzer_load" && Voice_Set.SE_Enable_List[9])
+                if (Voice_Type == "howitzer_load" && Voice_Set.SE_Enable_Disable[9])
                 {
                     Ingame_Voice_In_SE_By_FileName(Voice_Now, Sub_Code.File_Get_FileName_No_Extension(SE_Dir + "/Reload_0" + r.Next(1, 7)), To_Dir);
                     continue;
                 }
-                if (Voice_Type == "lamp" && Voice_Set.SE_Enable_List[10])
+                if (Voice_Type == "lamp" && Voice_Set.SE_Enable_Disable[10])
                 {
                     Ingame_Voice_In_SE_By_FileName(Voice_Now, Sub_Code.File_Get_FileName_No_Extension(SE_Dir + "/Sixth_0" + r.Next(1, 4)), To_Dir);
                     continue;
                 }
-                if (Voice_Type == "vehicle_destroyed" && Voice_Set.SE_Enable_List[3])
+                if (Voice_Type == "vehicle_destroyed" && Voice_Set.SE_Enable_Disable[3])
                 {
                     Ingame_Voice_In_SE_By_FileName(Voice_Now, Sub_Code.File_Get_FileName_No_Extension(SE_Dir + "/Destroy_01"), To_Dir);
                     continue;
                 }
-                if (Voice_Type == "armor_pierced_by_player" && Voice_Set.SE_Enable_List[4])
+                if (Voice_Type == "armor_pierced_by_player" && Voice_Set.SE_Enable_Disable[4])
                 {
                     Ingame_Voice_In_SE_By_FileName(Voice_Now, Sub_Code.File_Get_FileName_No_Extension(SE_Dir + "/Enable_0" + r.Next(1, 4)), To_Dir);
                     continue;
                 }
-                if (Voice_Type == "armor_pierced_crit_by_player" && Voice_Set.SE_Enable_List[5])
+                if (Voice_Type == "armor_pierced_crit_by_player" && Voice_Set.SE_Enable_Disable[5])
                 {
                     Ingame_Voice_In_SE_By_FileName(Voice_Now, Sub_Code.File_Get_FileName_No_Extension(SE_Dir + "/Enable_Special_01"), To_Dir);
                     continue;
                 }
-                if (Voice_Type == "armor_not_pierced_by_player" && Voice_Set.SE_Enable_List[8])
+                if (Voice_Type == "armor_not_pierced_by_player" && Voice_Set.SE_Enable_Disable[8])
                 {
                     Ingame_Voice_In_SE_By_FileName(Voice_Now, Sub_Code.File_Get_FileName_No_Extension(SE_Dir + "/Not_Enable_01"), To_Dir);
                     continue;
                 }
-                if (Voice_Type == "armor_ricochet_by_player" && Voice_Set.SE_Enable_List[8])
+                if (Voice_Type == "armor_ricochet_by_player" && Voice_Set.SE_Enable_Disable[8])
                 {
                     Ingame_Voice_In_SE_By_FileName(Voice_Now, Sub_Code.File_Get_FileName_No_Extension(SE_Dir + "/Not_Enable_01"), To_Dir);
                     continue;
                 }
-                if (Voice_Type == "radio_damaged" && Voice_Set.SE_Enable_List[6])
+                if (Voice_Type == "radio_damaged" && Voice_Set.SE_Enable_Disable[6])
                 {
                     Ingame_Voice_In_SE_By_FileName(Voice_Now, Sub_Code.File_Get_FileName_No_Extension(SE_Dir + "/Musenki_01"), To_Dir);
                     continue;
                 }
-                if (Voice_Type == "ammo_bay_damaged" && Voice_Set.SE_Enable_List[2])
+                if (Voice_Type == "ammo_bay_damaged" && Voice_Set.SE_Enable_Disable[2])
                 {
                     Ingame_Voice_In_SE_By_FileName(Voice_Now, Sub_Code.File_Get_FileName_No_Extension(SE_Dir + "/Danyaku_SE_01"), To_Dir);
                     continue;
                 }
-                if (Voice_Type == "fuel_tank_damaged" && Voice_Set.SE_Enable_List[7])
+                if (Voice_Type == "fuel_tank_damaged" && Voice_Set.SE_Enable_Disable[7])
                 {
                     Ingame_Voice_In_SE_By_FileName(Voice_Now, Sub_Code.File_Get_FileName_No_Extension(SE_Dir + "/Nenryou_SE_01"), To_Dir);
                     continue;
                 }
-                if (Voice_Type == "enemy_killed_by_player" && Voice_Set.SE_Enable_List[4])
+                if (Voice_Type == "enemy_killed_by_player" && Voice_Set.SE_Enable_Disable[4])
                 {
                     Ingame_Voice_In_SE_By_FileName(Voice_Now, Sub_Code.File_Get_FileName_No_Extension(SE_Dir + "/Enable_0" + r.Next(1, 4)), To_Dir);
                     continue;
                 }
-                if (NameOnly == "enemy_sighted" && Voice_Set.SE_Enable_List[11])
+                if (NameOnly == "enemy_sighted" && Voice_Set.SE_Enable_Disable[11])
                 {
                     Ingame_Voice_In_SE_By_FileName(Voice_Now, Sub_Code.File_Get_FileName_No_Extension(SE_Dir + "/Spot_01"), To_Dir);
                     continue;
                 }
-                if (NameOnly == "capture_end" && Voice_Set.SE_Enable_List[0])
+                if (NameOnly == "capture_end" && Voice_Set.SE_Enable_Disable[0])
                 {
                     Ingame_Voice_In_SE_By_FileName(Voice_Now, Sub_Code.File_Get_FileName_No_Extension(SE_Dir + "/Capture_End_0" + r.Next(1, 3)), To_Dir);
                     continue;
                 }
-                if (NameOnly == "auto_target_on" && Voice_Set.SE_Enable_List[13])
+                if (NameOnly == "auto_target_on" && Voice_Set.SE_Enable_Disable[13])
                 {
                     Ingame_Voice_In_SE_By_FileName(Voice_Now, Sub_Code.File_Get_FileName_No_Extension(SE_Dir + "/Lock_01"), To_Dir);
                     continue;
                 }
-                if (NameOnly == "auto_target_off" && Voice_Set.SE_Enable_List[14])
+                if (NameOnly == "auto_target_off" && Voice_Set.SE_Enable_Disable[14])
                 {
                     Ingame_Voice_In_SE_By_FileName(Voice_Now, Sub_Code.File_Get_FileName_No_Extension(SE_Dir + "/Unlock_01"), To_Dir);
                     continue;
                 }
-                if (NameOnly == "quick_commands_positive" && Voice_Set.SE_Enable_List[1])
+                if (NameOnly == "quick_commands_positive" && Voice_Set.SE_Enable_Disable[1])
                 {
                     Ingame_Voice_In_SE_By_FileName(Voice_Now, Sub_Code.File_Get_FileName_No_Extension(SE_Dir + "/Command_01"), To_Dir);
                     continue;
                 }
-                if (NameOnly == "quick_commands_negative" && Voice_Set.SE_Enable_List[1])
+                if (NameOnly == "quick_commands_negative" && Voice_Set.SE_Enable_Disable[1])
                 {
                     Ingame_Voice_In_SE_By_FileName(Voice_Now, Sub_Code.File_Get_FileName_No_Extension(SE_Dir + "/Command_01"), To_Dir);
                     continue;
                 }
-                if (NameOnly == "quick_commands_reloading" && Voice_Set.SE_Enable_List[1])
+                if (NameOnly == "quick_commands_reloading" && Voice_Set.SE_Enable_Disable[1])
                 {
                     Ingame_Voice_In_SE_By_FileName(Voice_Now, Sub_Code.File_Get_FileName_No_Extension(SE_Dir + "/Command_01"), To_Dir);
                     continue;
                 }
-                if (NameOnly == "quick_commands_help_me" && Voice_Set.SE_Enable_List[1])
+                if (NameOnly == "quick_commands_help_me" && Voice_Set.SE_Enable_Disable[1])
                 {
                     Ingame_Voice_In_SE_By_FileName(Voice_Now, Sub_Code.File_Get_FileName_No_Extension(SE_Dir + "/Command_01"), To_Dir);
                     continue;
                 }
-                if (NameOnly == "quick_commands_capture_base" && Voice_Set.SE_Enable_List[1])
+                if (NameOnly == "quick_commands_capture_base" && Voice_Set.SE_Enable_Disable[1])
                 {
                     Ingame_Voice_In_SE_By_FileName(Voice_Now, Sub_Code.File_Get_FileName_No_Extension(SE_Dir + "/Command_01"), To_Dir);
                     continue;
                 }
-                if (NameOnly == "quick_commands_defend_base" && Voice_Set.SE_Enable_List[1])
+                if (NameOnly == "quick_commands_defend_base" && Voice_Set.SE_Enable_Disable[1])
                 {
                     Ingame_Voice_In_SE_By_FileName(Voice_Now, Sub_Code.File_Get_FileName_No_Extension(SE_Dir + "/Command_01"), To_Dir);
                     continue;
                 }
-                if (NameOnly == "quick_commands_attack" && Voice_Set.SE_Enable_List[1])
+                if (NameOnly == "quick_commands_attack" && Voice_Set.SE_Enable_Disable[1])
                 {
                     Ingame_Voice_In_SE_By_FileName(Voice_Now, Sub_Code.File_Get_FileName_No_Extension(SE_Dir + "/Command_01"), To_Dir);
                     continue;
                 }
-                if (NameOnly == "quick_commands_attack_target" && Voice_Set.SE_Enable_List[1])
+                if (NameOnly == "quick_commands_attack_target" && Voice_Set.SE_Enable_Disable[1])
                 {
                     Ingame_Voice_In_SE_By_FileName(Voice_Now, Sub_Code.File_Get_FileName_No_Extension(SE_Dir + "/Command_01"), To_Dir);
                     continue;
@@ -981,7 +972,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 try
                 {
-                                    File.Copy(Copy_File, To_Dir + "/" + Path.GetFileName(Copy_File), true);
+                    File.Copy(Copy_File, To_Dir + "/" + Path.GetFileName(Copy_File), true);
                 }
                 catch (Exception e)
                 {
@@ -1036,36 +1027,36 @@ namespace WoTB_Voice_Mod_Creater.Class
             }
             File.Delete(Save_File);
             string Name_Only = Path.GetFileNameWithoutExtension(Save_File);
-            StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Fmod_Android_Create/" + Name_Only + ".dat");
+            string SPath = Voice_Set.Special_Path + "\\Fmod_Android_Create";
+            string Cache_Path = Directory.GetCurrentDirectory() + "\\FMod_Cache";
+            StreamWriter stw = File.CreateText(SPath + "\\FSB_Create.lst");
             string[] Files_Dir = Directory.GetFiles(File_Dir, "*", SearchOption.TopDirectoryOnly);
             foreach (string File_Now in Files_Dir)
             {
                 stw.WriteLine(File_Now);
             }
             stw.Close();
-            StreamWriter Bat = File.CreateText(Voice_Set.Special_Path + "/Fmod_Android_Create/" + Name_Only + ".bat");
+            Directory.CreateDirectory(Cache_Path);
+            StreamWriter Bat = File.CreateText(SPath + "\\" + Name_Only + ".bat");
             Bat.WriteLine("chcp 65001");
-            Bat.Write(Voice_Set.Special_Path + "/Fmod_Android_Create/Fmod_Android_Create.exe " + Save_File + " " + Voice_Set.Special_Path + "/Fmod_Android_Create/" + Name_Only + ".dat");
+            Bat.Write("\"" + SPath + "\\Fmod_Android_Create.exe\" -cache_dir \"Cache\" -format adpcm -o \"" + SPath + "\\Temp.fsb\" \"" + SPath + "\\FSB_Create.lst\"");
             Bat.Close();
             ProcessStartInfo processStartInfo = new ProcessStartInfo
             {
-                FileName = Voice_Set.Special_Path + "/Fmod_Android_Create/" + Name_Only + ".bat",
+                FileName = SPath + "\\" + Name_Only + ".bat",
                 CreateNoWindow = true,
                 UseShellExecute = false
             };
             Process p = Process.Start(processStartInfo);
             p.WaitForExit();
-            File.Delete(Voice_Set.Special_Path + "/Fmod_Android_Create/" + Name_Only + ".dat");
-            File.Delete(Voice_Set.Special_Path + "/Fmod_Android_Create/" + Name_Only + ".bat");
+            Sub_Code.File_Move(SPath + "\\Temp.fsb", Save_File, true);
+            File.Delete(SPath + "\\FSB_Create.lst");
+            File.Delete(SPath + "\\" + Name_Only + ".bat");
             try
             {
-                if (Directory.Exists(Voice_Set.Special_Path + "/Fmod_Android_Create/.fsbcache"))
+                if (Directory.Exists(Cache_Path))
                 {
-                    Directory.Delete(Voice_Set.Special_Path + "/Fmod_Android_Create/.fsbcache", true);
-                }
-                else
-                {
-                    Directory.Delete(Directory.GetCurrentDirectory() + "/.fsbcache", true);
+                    Directory.Delete(Cache_Path, true);
                 }
             }
             catch (Exception e)

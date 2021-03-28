@@ -9,14 +9,14 @@
 /* ========================================================================================== */
 
 using System;
-using System.Text;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace FMOD_API
 {
     /*$ preserve end $*/
 
-    /* 
+    /*
         DSP callbacks
     */
     public delegate RESULT DSP_CREATECALLBACK(ref DSP_STATE dsp_state);
@@ -32,7 +32,7 @@ namespace FMOD_API
     /*
     [ENUM]
     [
-        [DESCRIPTION]   
+        [DESCRIPTION]
         These definitions can be used for creating FMOD defined special effects or DSP units.
 
         [REMARKS]
@@ -75,8 +75,7 @@ namespace FMOD_API
     /*
     [STRUCTURE]
     [
-        [DESCRIPTION]   
-
+        [DESCRIPTION]
         [REMARKS]
         Members marked with [in] mean the user sets the value before passing it to the function.<br>
         Members marked with [out] mean FMOD sets the value to be used after the function exits.<br>
@@ -91,7 +90,7 @@ namespace FMOD_API
         [PLATFORMS]
         Win32, Win64, Linux, Linux64, Macintosh, Xbox, Xbox360, PlayStation 2, GameCube, PlayStation Portable, PlayStation 3, Wii
 
-        [SEE_ALSO]    
+        [SEE_ALSO]
         System::createDSP
         System::getDSP
     ]
@@ -110,7 +109,7 @@ namespace FMOD_API
 
 
     /*
-    [STRUCTURE] 
+    [STRUCTURE]
     [
         [DESCRIPTION]
         Strcture to define the parameters for a DSP unit.
@@ -122,7 +121,7 @@ namespace FMOD_API
         There are 2 different ways to change a parameter in this architecture.<br>
         One is to use DSP::setParameter / DSP::getParameter.  This is platform independant and is dynamic, so new unknown plugins can have their parameters enumerated and used.<br>
         The other is to use DSP::showConfigDialog.  This is platform specific and requires a GUI, and will display a dialog box to configure the plugin.<br>
-        
+
         [PLATFORMS]
         Win32, Win64, Linux, Linux64, Macintosh, Xbox, Xbox360, PlayStation 2, GameCube, PlayStation Portable, PlayStation 3, Wii
 
@@ -155,7 +154,7 @@ namespace FMOD_API
 
 
     /*
-    [STRUCTURE] 
+    [STRUCTURE]
     [
         [DESCRIPTION]
         DSP plugin structure that is passed into each callback.
@@ -182,7 +181,7 @@ namespace FMOD_API
     /*
         ==============================================================================================================
 
-        FMOD built in effect parameters.  
+        FMOD built in effect parameters.
         Use DSP::setParameter with these enums for the 'index' parameter.
 
         ==============================================================================================================
@@ -190,19 +189,18 @@ namespace FMOD_API
 
     /*
     [ENUM]
-    [  
-        [DESCRIPTION]   
+    [
+        [DESCRIPTION]
         Parameter types for the FMOD_DSP_TYPE_OSCILLATOR filter.
 
         [REMARKS]
-
         [PLATFORMS]
         Win32, Win64, Linux, Linux64, Macintosh, Xbox, Xbox360, PlayStation 2, GameCube, PlayStation Portable, PlayStation 3, Wii
 
         [SEE_ALSO]
         DSP::setParameter
         DSP::getParameter
-        FMOD_DSP_TYPE   
+        FMOD_DSP_TYPE
     ]
     */
     public enum DSP_OSCILLATOR
@@ -214,16 +212,15 @@ namespace FMOD_API
 
     /*
     [ENUM]
-    [  
-        [DESCRIPTION]   
+    [
+        [DESCRIPTION]
         Parameter types for the FMOD_DSP_TYPE_LOWPASS filter.
 
         [REMARKS]
-
         [PLATFORMS]
         Win32, Win64, Linux, Linux64, Macintosh, Xbox, Xbox360, PlayStation 2, GameCube, PlayStation Portable, PlayStation 3, Wii
 
-        [SEE_ALSO]      
+        [SEE_ALSO]
         DSP::setParameter
         DSP::getParameter
         FMOD_DSP_TYPE
@@ -238,23 +235,23 @@ namespace FMOD_API
 
     /*
     [ENUM]
-    [  
-        [DESCRIPTION]   
+    [
+        [DESCRIPTION]
         Parameter types for the FMOD_DSP_TYPE_ITLOWPASS filter.
-        This is different to the default FMOD_DSP_TYPE_ITLOWPASS filter in that it uses a different quality algorithm and is 
-        the filter used to produce the correct sounding playback in .IT files.<br> 
+        This is different to the default FMOD_DSP_TYPE_ITLOWPASS filter in that it uses a different quality algorithm and is
+        the filter used to produce the correct sounding playback in .IT files.<br>
         FMOD Ex's .IT playback uses this filter.<br>
 
         [REMARKS]
-        Note! This filter actually has a limited cutoff frequency below the specified maximum, due to its limited design, 
-        so for a more  open range filter use FMOD_DSP_LOWPASS or if you don't mind not having resonance, 
+        Note! This filter actually has a limited cutoff frequency below the specified maximum, due to its limited design,
+        so for a more  open range filter use FMOD_DSP_LOWPASS or if you don't mind not having resonance,
         FMOD_DSP_LOWPASS_SIMPLE.<br>
         The effective maximum cutoff is about 8060hz.
 
         [PLATFORMS]
         Win32, Win64, Linux, Linux64, Macintosh, Xbox, Xbox360, PlayStation 2, GameCube, PlayStation Portable, PlayStation 3, Wii
 
-        [SEE_ALSO]      
+        [SEE_ALSO]
         DSP::setParameter
         DSP::getParameter
         FMOD_DSP_TYPE
@@ -269,16 +266,15 @@ namespace FMOD_API
 
     /*
     [ENUM]
-    [  
-        [DESCRIPTION]   
+    [
+        [DESCRIPTION]
         Parameter types for the FMOD_DSP_TYPE_HIGHPASS filter.
 
         [REMARKS]
-
         [PLATFORMS]
         Win32, Win64, Linux, Linux64, Macintosh, Xbox, Xbox360, PlayStation 2, GameCube, PlayStation Portable, PlayStation 3, Wii
 
-        [SEE_ALSO]      
+        [SEE_ALSO]
         DSP::setParameter
         DSP::getParameter
         FMOD_DSP_TYPE
@@ -293,8 +289,8 @@ namespace FMOD_API
 
     /*
     [ENUM]
-    [  
-        [DESCRIPTION]   
+    [
+        [DESCRIPTION]
         Parameter types for the FMOD_DSP_TYPE_ECHO filter.
 
         [REMARKS]
@@ -309,7 +305,7 @@ namespace FMOD_API
         [PLATFORMS]
         Win32, Win64, Linux, Linux64, Macintosh, Xbox, Xbox360, PlayStation 2, GameCube, PlayStation Portable, PlayStation 3, Wii
 
-        [SEE_ALSO]      
+        [SEE_ALSO]
         DSP::setParameter
         DSP::getParameter
         FMOD_DSP_TYPE
@@ -327,8 +323,8 @@ namespace FMOD_API
 
     /*
     [ENUM]
-    [  
-        [DESCRIPTION]   
+    [
+        [DESCRIPTION]
         Parameter types for the FMOD_DSP_TYPE_DELAY filter.
 
         [REMARKS]
@@ -340,7 +336,7 @@ namespace FMOD_API
         [PLATFORMS]
         Win32, Win64, Linux, Linux64, Macintosh, Xbox, Xbox360, PlayStation 2, GameCube, PlayStation Portable, PlayStation 3, Wii
 
-        [SEE_ALSO]      
+        [SEE_ALSO]
         DSP::setParameter
         DSP::getParameter
         FMOD_DSP_TYPE
@@ -370,8 +366,8 @@ namespace FMOD_API
 
     /*
     [ENUM]
-    [  
-        [DESCRIPTION]   
+    [
+        [DESCRIPTION]
         Parameter types for the FMOD_DSP_TYPE_FLANGE filter.
 
         [REMARKS]
@@ -383,7 +379,7 @@ namespace FMOD_API
         [PLATFORMS]
         Win32, Win64, Linux, Linux64, Macintosh, Xbox, Xbox360, PlayStation 2, GameCube, PlayStation Portable, PlayStation 3, Wii
 
-        [SEE_ALSO]      
+        [SEE_ALSO]
         DSP::setParameter
         DSP::getParameter
         FMOD_DSP_TYPE
@@ -400,8 +396,8 @@ namespace FMOD_API
 
     /*
     [ENUM]
-    [  
-        [DESCRIPTION]   
+    [
+        [DESCRIPTION]
         Parameter types for the FMOD_DSP_TYPE_TREMOLO filter.
 
         [REMARKS]
@@ -415,7 +411,7 @@ namespace FMOD_API
         [PLATFORMS]
         Win32, Win64, Linux, Linux64, Macintosh, Xbox, Xbox360, PlayStation 2, GameCube, PlayStation Portable, PlayStation 3, Wii
 
-        [SEE_ALSO]      
+        [SEE_ALSO]
         DSP::setParameter
         DSP::getParameter
         FMOD_DSP_TYPE
@@ -436,16 +432,15 @@ namespace FMOD_API
 
     /*
     [ENUM]
-    [  
-        [DESCRIPTION]   
+    [
+        [DESCRIPTION]
         Parameter types for the FMOD_DSP_TYPE_DISTORTION filter.
 
         [REMARKS]
-
         [PLATFORMS]
         Win32, Win64, Linux, Linux64, Macintosh, Xbox, Xbox360, PlayStation 2, GameCube, PlayStation Portable, PlayStation 3, Wii
 
-        [SEE_ALSO]      
+        [SEE_ALSO]
         DSP::setParameter
         DSP::getParameter
         FMOD_DSP_TYPE
@@ -459,8 +454,8 @@ namespace FMOD_API
 
     /*
     [ENUM]
-    [  
-        [DESCRIPTION]   
+    [
+        [DESCRIPTION]
         Parameter types for the FMOD_DSP_TYPE_NORMALIZE filter.
 
         [REMARKS]
@@ -474,7 +469,7 @@ namespace FMOD_API
         [PLATFORMS]
         Win32, Win64, Linux, Linux64, Macintosh, Xbox, Xbox360, PlayStation 2, GameCube, PlayStation Portable, PlayStation 3, Wii
 
-        [SEE_ALSO]      
+        [SEE_ALSO]
         DSP::setParameter
         DSP::getParameter
         FMOD_DSP_TYPE
@@ -490,8 +485,8 @@ namespace FMOD_API
 
     /*
     [ENUM]
-    [  
-        [DESCRIPTION]   
+    [
+        [DESCRIPTION]
         Parameter types for the FMOD_DSP_TYPE_PARAMEQ filter.
 
         [REMARKS]
@@ -504,7 +499,7 @@ namespace FMOD_API
         [PLATFORMS]
         Win32, Win64, Linux, Linux64, Macintosh, Xbox, Xbox360, PlayStation 2, GameCube, PlayStation Portable, PlayStation 3, Wii
 
-        [SEE_ALSO]      
+        [SEE_ALSO]
         DSP::setParameter
         DSP::getParameter
         FMOD_DSP_TYPE
@@ -521,8 +516,8 @@ namespace FMOD_API
 
     /*
     [ENUM]
-    [  
-        [DESCRIPTION]   
+    [
+        [DESCRIPTION]
         Parameter types for the FMOD_DSP_TYPE_PITCHSHIFT filter.
 
         [REMARKS]
@@ -544,7 +539,7 @@ namespace FMOD_API
         [PLATFORMS]
         Win32, Win64, Linux, Linux64, Macintosh, Xbox, Xbox360, PlayStation 2, GameCube, PlayStation Portable, PlayStation 3, Wii
 
-        [SEE_ALSO]      
+        [SEE_ALSO]
         DSP::setParameter
         DSP::getParameter
         FMOD_DSP_TYPE
@@ -562,19 +557,19 @@ namespace FMOD_API
 
     /*
     [ENUM]
-    [  
-        [DESCRIPTION]   
+    [
+        [DESCRIPTION]
         Parameter types for the FMOD_DSP_TYPE_CHORUS filter.
 
         [REMARKS]
         Chrous is an effect where the sound is more 'spacious' due to 1 to 3 versions of the sound being played along side the original signal but with the pitch of each copy modulating on a sine wave.<br>
         This is a highly configurable chorus unit.  It supports 3 taps, small and large delay times and also feedback.<br>
-        This unit also could be used to do a simple echo, or a flange effect. 
+        This unit also could be used to do a simple echo, or a flange effect.
 
         [PLATFORMS]
         Win32, Win64, Linux, Linux64, Macintosh, Xbox, Xbox360, PlayStation 2, GameCube, PlayStation Portable, PlayStation 3, Wii
 
-        [SEE_ALSO]      
+        [SEE_ALSO]
         DSP::setParameter
         DSP::getParameter
         FMOD_DSP_TYPE
@@ -595,8 +590,8 @@ namespace FMOD_API
 
     /*
     [ENUM]
-    [  
-        [DESCRIPTION]   
+    [
+        [DESCRIPTION]
         Parameter types for the FMOD_DSP_TYPE_ITECHO filter.<br>
         This is effectively a software based echo filter that emulates the DirectX DMO echo effect.  Impulse tracker files can support this, and FMOD will produce the effect on ANY platform, not just those that support DirectX effects!<br>
 
@@ -609,7 +604,7 @@ namespace FMOD_API
         [PLATFORMS]
         Win32, Win64, Linux, Macintosh, Xbox, Xbox360, PlayStation 2, GameCube, PlayStation Portable
 
-        [SEE_ALSO]      
+        [SEE_ALSO]
         DSP::setParameter
         DSP::getParameter
         FMOD_DSP_TYPE
@@ -628,8 +623,8 @@ namespace FMOD_API
 
     /*
     [ENUM]
-    [  
-        [DESCRIPTION]   
+    [
+        [DESCRIPTION]
         Parameter types for the FMOD_DSP_TYPE_COMPRESSOR unit.<br>
         This is a simple linked multichannel software limiter that is uniform across the whole spectrum.<br>
 
@@ -651,7 +646,7 @@ namespace FMOD_API
         [PLATFORMS]
         Win32, Win64, Linux, Linux64, Macintosh, Xbox, Xbox360, PlayStation 2, GameCube, PlayStation Portable, PlayStation 3
 
-        [SEE_ALSO]      
+        [SEE_ALSO]
         DSP::SetParameter
         DSP::GetParameter
         FMOD_DSP_TYPE
@@ -669,10 +664,10 @@ namespace FMOD_API
 
     /*
     [ENUM]
-    [  
-        [DESCRIPTION]   
+    [
+        [DESCRIPTION]
         Parameter types for the FMOD_DSP_TYPE_SFXREVERB unit.<br>
-    
+
         [REMARKS]
         This is a high quality I3DL2 based reverb which improves greatly on FMOD_DSP_REVERB.<br>
         On top of the I3DL2 property set, "Dry Level" is also included to allow the dry mix to be changed.<br>
@@ -684,7 +679,7 @@ namespace FMOD_API
         [PLATFORMS]
         Win32, Win64, Linux, Linux64, Macintosh, Xbox, Xbox360, PlayStation 2, GameCube, PlayStation Portable, PlayStation 3
 
-        [SEE_ALSO]      
+        [SEE_ALSO]
         DSP::SetParameter
         DSP::GetParameter
         FMOD_DSP_TYPE
@@ -713,18 +708,17 @@ namespace FMOD_API
 
     /*
     [ENUM]
-    [  
-        [DESCRIPTION]   
+    [
+        [DESCRIPTION]
         Parameter types for the FMOD_DSP_TYPE_LOWPASS_SIMPLE filter.<br>
         This is a very simple low pass filter, based on two single-pole RC time-constant modules.
-        The emphasis is on speed rather than accuracy, so this should not be used for task requiring critical filtering.<br> 
+        The emphasis is on speed rather than accuracy, so this should not be used for task requiring critical filtering.<br>
 
         [REMARKS]
-
         [PLATFORMS]
         Win32, Win64, Linux, Linux64, Macintosh, Xbox, Xbox360, PlayStation 2, GameCube, PlayStation Portable, PlayStation 3, Wii
 
-        [SEE_ALSO]      
+        [SEE_ALSO]
         DSP::setParameter
         DSP::getParameter
         FMOD_DSP_TYPE

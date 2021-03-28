@@ -1,8 +1,8 @@
 ﻿using System;
-using System.Windows;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using WK.Libraries.BetterFolderBrowserNS;
@@ -85,7 +85,7 @@ namespace WoTB_Voice_Mod_Creater.FMOD
             Position_Change();
             while (Opacity < 1 && !IsClosing)
             {
-                Opacity += 0.025;
+                Opacity += Sub_Code.Window_Feed_Time;
                 await Task.Delay(1000 / 60);
             }
         }
@@ -142,12 +142,16 @@ namespace WoTB_Voice_Mod_Creater.FMOD
         //選択されている音声を再生
         void Sound_Start()
         {
-            if (File_Full_Name == "")
+            if (File_Full_Name == "" || FSB_Name_L.SelectedIndex == -1)
             {
                 return;
             }
-            MainSound.release();
+            FModChannel.setPaused(true);
+            FModChannel = new FMOD_API.Channel();
             SubSound.release();
+            MainSound.release();
+            SubSound = new FMOD_API.Sound();
+            MainSound = new FMOD_API.Sound();
             Fmod_System.FModSystem.createSound(File_Full_Name, FMOD_API.MODE.CREATESTREAM, ref MainSound);
             MainSound.getSubSound(FSB_Name_L.SelectedIndex, ref SubSound);
             Fmod_System.FModSystem.playSound(FMOD_API.CHANNELINDEX.FREE, SubSound, true, ref FModChannel);
@@ -217,8 +221,12 @@ namespace WoTB_Voice_Mod_Creater.FMOD
                             Number = 3;
                         }
                     }
+                    FModChannel.setPaused(true);
+                    FModChannel = new FMOD_API.Channel();
                     SubSound.release();
                     MainSound.release();
+                    SubSound = new FMOD_API.Sound();
+                    MainSound = new FMOD_API.Sound();
                     Location_T.Text = "00:00";
                     Message_T.Text = "FSBファイルを読み込んでいます...";
                     await Task.Delay(50);
@@ -320,10 +328,9 @@ namespace WoTB_Voice_Mod_Creater.FMOD
             FModChannel.setPaused(true);
             System.Drawing.Point p = new System.Drawing.Point();
             int w = System.Windows.Forms.Screen.GetBounds(p).Width;
-            int Width_Display_From_1920 = w / 1920;
-            int Location_Mouse_X = (int)(Location_S.PointToScreen(new System.Windows.Point()).X + 390 * Width_Display_From_1920) - System.Windows.Forms.Cursor.Position.X;
+            double Width_Display_From_1920 = (double)w / 1920;
             int Location_Mouse_X_Display = System.Math.Abs((int)Location_S.PointToScreen(new System.Windows.Point()).X - System.Windows.Forms.Cursor.Position.X) - 10;
-            double Percent = (double)Location_Mouse_X_Display / (double)(390 * Width_Display_From_1920);
+            double Percent = Location_Mouse_X_Display / (390 * Width_Display_From_1920);
             Location_S.Value = Location_S.Maximum * Percent;
             FModChannel.setPosition((uint)Location_S.Value, FMOD_API.TIMEUNIT.MS);
             if (!IsPause)
@@ -342,10 +349,9 @@ namespace WoTB_Voice_Mod_Creater.FMOD
             //計算大変だった...
             System.Drawing.Point p = new System.Drawing.Point();
             int w = System.Windows.Forms.Screen.GetBounds(p).Width;
-            int Width_Display_From_1920 = w / 1920;
-            int Location_Mouse_X = (int)(Location_S.PointToScreen(new System.Windows.Point()).X + 390 * Width_Display_From_1920) - System.Windows.Forms.Cursor.Position.X;
+            double Width_Display_From_1920 = (double)w / 1920;
             int Location_Mouse_X_Display = System.Math.Abs((int)Location_S.PointToScreen(new System.Windows.Point()).X - System.Windows.Forms.Cursor.Position.X) - 10;
-            double Percent = (double)Location_Mouse_X_Display / (double)(390 * Width_Display_From_1920);
+            double Percent = Location_Mouse_X_Display / (390 * Width_Display_From_1920);
             Location_S.Value = Location_S.Maximum * Percent;
         }
         //Sliderの位置をサウンドに反映
@@ -461,6 +467,11 @@ namespace WoTB_Voice_Mod_Creater.FMOD
                 Message_Feed_Out("出力形式が指定されていません。");
                 return;
             }
+            if (FSB_Name_L.Items.Count == 0)
+            {
+                Message_Feed_Out("FSBファイルが選択されていません。");
+                return;
+            }
             if (Select_L.SelectedIndex == 1 && FSB_Name_L.SelectedIndex == -1)
             {
                 Message_Feed_Out("リスト内のファイルが選択されていません。");
@@ -486,7 +497,7 @@ namespace WoTB_Voice_Mod_Creater.FMOD
                     Message_T.Text = "FSBファイルから抽出しています...";
                     await Task.Delay(50);
                     string File_Name = sfd.FileName.Replace(Path.GetExtension(sfd.FileName), "");
-                    if (Fmod_File_Extract.FSB_Extract_To_File(File_Full_Name, FSB_Name_L.SelectedIndex, File_Name + ".wav"))
+                    if (Fmod_File_Extract_V1.FSB_Extract_To_File(File_Full_Name, FSB_Name_L.SelectedIndex, File_Name + ".wav"))
                     {
                         if (Extract_L.SelectedIndex != 4)
                         {
@@ -512,20 +523,30 @@ namespace WoTB_Voice_Mod_Creater.FMOD
                 BetterFolderBrowser ofd = new BetterFolderBrowser()
                 {
                     Title = "抽出先のフォルダを選択してください。",
+                    RootFolder = Sub_Code.Get_OpenDirectory_Path(),
                     Multiselect = false
                 };
                 if (ofd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                 {
+                    Sub_Code.Set_Directory_Path(ofd.SelectedFolder);
                     try
                     {
                         Message_T.Text = "FSBファイルから抽出しています...";
                         await Task.Delay(50);
+                        List<string> Name_Delete = Fmod_Class.FSB_GetNames(File_Full_Name);
+                        foreach (string Name_Now in Name_Delete)
+                        {
+                            if (Sub_Code.File_Exists(ofd.SelectedFolder + "/" + Name_Now))
+                            {
+                                Sub_Code.File_Delete(ofd.SelectedFolder + "/" + Name_Now);
+                            }
+                        }
                         //.wavに変換されたファイルパスすべてを取得し指定した形式にエンコード(形式がwavだった場合を除く)
-                        List<string> Output_Files = new List<string>();
-                        if (Fmod_File_Extract.FSB_Extract_To_Directry(File_Full_Name, ofd.SelectedFolder, ref Output_Files))
+                        if (Fmod_File_Extract_V2.FSB_Extract_To_Directory(File_Full_Name, ofd.SelectedFolder))
                         {
                             //FSBのファイル構成を保存&エンコード
                             StreamWriter stw = File.CreateText(ofd.SelectedFolder + "/" + Path.GetFileNameWithoutExtension(File_Full_Name) + ".tmp");
+                            string[] Output_Files = Directory.GetFiles(ofd.SelectedFolder, "*.wav", SearchOption.TopDirectoryOnly);
                             foreach (string File_Now in Output_Files)
                             {
                                 if (Extract_L.SelectedIndex != 4)
@@ -537,6 +558,10 @@ namespace WoTB_Voice_Mod_Creater.FMOD
                                 }
                                 else
                                 {
+                                    Message_T.Text = Path.GetFileNameWithoutExtension(File_Now) + "をエンコードしています...";
+                                    await Task.Delay(5);
+                                    Sub_Code.Audio_Encode_To_Other(File_Now, Path.GetDirectoryName(File_Now) + "/Temp" + Path.GetFileNameWithoutExtension(File_Now) + Extract_L.SelectedItem, Extract_L.SelectedItem.ToString(), true);
+                                    Sub_Code.File_Move(Path.GetDirectoryName(File_Now) + "/Temp" + Path.GetFileNameWithoutExtension(File_Now) + Extract_L.SelectedItem, File_Now, true);
                                     stw.WriteLine(File_Now);
                                 }
                             }
@@ -581,14 +606,18 @@ namespace WoTB_Voice_Mod_Creater.FMOD
                 float Down = (float)((Volume_S.Value / (double)100) / (double)30);
                 while (Opacity > 0)
                 {
-                    Opacity -= 0.025;
+                    Opacity -= Sub_Code.Window_Feed_Time;
                     float Volume_Now = 1f;
                     FModChannel.getVolume(ref Volume_Now);
                     FModChannel.setVolume(Volume_Now - Down);
                     await Task.Delay(1000 / 60);
                 }
+                FModChannel.setPaused(true);
+                FModChannel = new FMOD_API.Channel();
                 MainSound.release();
                 SubSound.release();
+                MainSound = new FMOD_API.Sound();
+                SubSound = new FMOD_API.Sound();
                 Location_T.Text = "00:00";
                 Location_S.Value = 0;
                 Location_S.Maximum = 0;

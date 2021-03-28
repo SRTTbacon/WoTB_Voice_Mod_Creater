@@ -23,7 +23,7 @@ namespace WoTB_Voice_Mod_Creater.FMOD_Class
             Visibility = Visibility.Visible;
             while (Opacity < 1 && !IsClosing)
             {
-                Opacity += 0.025;
+                Opacity += Sub_Code.Window_Feed_Time;
                 await Task.Delay(1000 / 60);
             }
         }
@@ -226,7 +226,7 @@ namespace WoTB_Voice_Mod_Creater.FMOD_Class
                 IsClosing = true;
                 while (Opacity > 0)
                 {
-                    Opacity -= 0.025;
+                    Opacity -= Sub_Code.Window_Feed_Time;
                     await Task.Delay(1000 / 60);
                 }
                 Visibility = Visibility.Hidden;

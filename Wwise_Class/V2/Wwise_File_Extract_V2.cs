@@ -1,7 +1,10 @@
 ﻿using BNKManager;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.Threading.Tasks;
+using WoTB_Voice_Mod_Creater.Class;
 
 namespace WoTB_Voice_Mod_Creater.Wwise_Class
 {
@@ -65,6 +68,22 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         {
             return WEML.Count;
         }
+        //指定したIDのインデックスを取得(なければ-1)
+        public int Wwise_Get_Index_By_Name(uint ID)
+        {
+            if (IsClear)
+            {
+                return -1;
+            }
+            for (int Number = 0; Number < WEML.Count; Number++)
+            {
+                if (ID == WEML[Number].ID)
+                {
+                    return Number;
+                }
+            }
+            return -1;
+        }
         //.bnkファイルの中身全てをフォルダに抽出
         //Name_Mode:1=連番,2=音声ID(数字数桁)
         public bool Wwise_Extract_To_WEM_Directory(string To_Dir, int Name_Mode)
@@ -116,6 +135,39 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             catch (Exception e)
             {
                 Sub_Code.Error_Log_Write(e.Message);
+                return false;
+            }
+        }
+        //.bnkファイルの中身全てをフォルダに抽出(V2)
+        public bool Wwise_Extract_To_WEM_Directory_V2(string To_Dir)
+        {
+            if (IsClear)
+            {
+                return false;
+            }
+            try
+            {
+                if (!Directory.Exists(To_Dir))
+                {
+                    Directory.CreateDirectory(To_Dir);
+                }
+                StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Wwise_Parse/BNK_Extract.bat");
+                stw.WriteLine("chcp 65001");
+                stw.Write(Voice_Set.Special_Path + "/Wwise_Parse/BNK_Extract.exe -a \"" + Selected_BNK_File + "\" -o \"" + To_Dir + "\" --oggs-only");
+                stw.Close();
+                ProcessStartInfo processStartInfo = new ProcessStartInfo
+                {
+                    FileName = Voice_Set.Special_Path + "/Wwise_Parse/BNK_Extract.bat",
+                    CreateNoWindow = true,
+                    UseShellExecute = false
+                };
+                Process p = Process.Start(processStartInfo);
+                p.WaitForExit();
+                File.Delete(Voice_Set.Special_Path + "/Wwise_Parse/BNK_Extract.bat");
+                return true;
+            }
+            catch
+            {
                 return false;
             }
         }

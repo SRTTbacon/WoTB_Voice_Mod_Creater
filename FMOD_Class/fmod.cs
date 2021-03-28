@@ -4,10 +4,10 @@
 /*                                                                                            */
 /* ========================================================================================== */
 
-using System;
-using System.Text;
-using System.Runtime.InteropServices;
 using Cauldron.FMOD;
+using System;
+using System.Runtime.InteropServices;
+using System.Text;
 
 namespace FMOD_API
 {
@@ -26,12 +26,12 @@ namespace FMOD_API
     }
 
     /*
-        FMOD types 
+        FMOD types
     */
     /*
-    [STRUCTURE] 
+    [STRUCTURE]
     [
-        [DESCRIPTION]   
+        [DESCRIPTION]
         Structure describing a point in 3D space.
 
         [REMARKS]
@@ -41,7 +41,7 @@ namespace FMOD_API
         [PLATFORMS]
         Win32, Win64, Linux, Linux64, Macintosh, Xbox360, PlayStation Portable, PlayStation 3, Wii
 
-        [SEE_ALSO]      
+        [SEE_ALSO]
         System::set3DListenerAttributes
         System::get3DListenerAttributes
         Channel::set3DAttributes
@@ -68,17 +68,16 @@ namespace FMOD_API
 
 
     /*
-    [STRUCTURE] 
+    [STRUCTURE]
     [
-        [DESCRIPTION]   
+        [DESCRIPTION]
         Structure describing a globally unique identifier.
 
         [REMARKS]
-
         [PLATFORMS]
         Win32, Win64, Linux, Linux64, Macintosh, Xbox360, PlayStation Portable, PlayStation 3, Wii
 
-        [SEE_ALSO]      
+        [SEE_ALSO]
         System::getDriverInfo
     ]
     */
@@ -93,16 +92,14 @@ namespace FMOD_API
     }
 
     /*
-    [STRUCTURE] 
+    [STRUCTURE]
     [
-        [DESCRIPTION]   
-
+        [DESCRIPTION]
         [REMARKS]
-
         [PLATFORMS]
         Win32, Win64, Linux, Linux64, Macintosh, Xbox360, PlayStation Portable, PlayStation 3, Wii, iPhone
 
-        [SEE_ALSO]      
+        [SEE_ALSO]
     ]
     */
     [StructLayout(LayoutKind.Sequential)]
@@ -123,15 +120,14 @@ namespace FMOD_API
     /*
     [ENUM]
     [
-        [DESCRIPTION]   
+        [DESCRIPTION]
         error codes.  Returned from every function.
 
         [REMARKS]
-
         [PLATFORMS]
         Win32, Win64, Linux, Linux64, Macintosh, Xbox360, PlayStation Portable, PlayStation 3, Wii
 
-        [SEE_ALSO]      
+        [SEE_ALSO]
     ]
     */
     public enum RESULT : int
@@ -241,12 +237,12 @@ namespace FMOD_API
     /*
     [ENUM]
     [
-        [DESCRIPTION]   
+        [DESCRIPTION]
         These output types are used with System::setOutput/System::getOutput, to choose which output method to use.
-  
+
         [REMARKS]
         To drive the output synchronously, and to disable FMOD's timing thread, use the FMOD_INIT_NONREALTIME flag.
-        
+
         To pass information to the driver when initializing fmod use the extradriverdata parameter for the following reasons.
         <li>FMOD_OUTPUTTYPE_WAVWRITER - extradriverdata is a pointer to a char * filename that the wav writer will output to.
         <li>FMOD_OUTPUTTYPE_WAVWRITER_NRT - extradriverdata is a pointer to a char * filename that the wav writer will output to.
@@ -257,7 +253,7 @@ namespace FMOD_API
         [PLATFORMS]
         Win32, Win64, Linux, Linux64, Macintosh, Xbox360, PlayStation Portable, PlayStation 3, Wii
 
-        [SEE_ALSO]      
+        [SEE_ALSO]
         System::setOutput
         System::getOutput
         System::setSoftwareFormat
@@ -300,12 +296,10 @@ namespace FMOD_API
 
 
     /*
-    [ENUM] 
+    [ENUM]
     [
-        [DESCRIPTION]   
-
+        [DESCRIPTION]
         [REMARKS]
-
         [PLATFORMS]
         Win32, Win64, Linux, Linux64, Macintosh, Xbox360, PlayStation Portable, PlayStation 3, Wii
 
@@ -327,21 +321,20 @@ namespace FMOD_API
     }
 
     /*
-    [DEFINE] 
+    [DEFINE]
     [
         [NAME]
         FMOD_DEBUGLEVEL
 
-        [DESCRIPTION]   
+        [DESCRIPTION]
         Bit fields to use with FMOD::Debug_SetLevel / FMOD::Debug_GetLevel to control the level of tty debug output with logging versions of FMOD (fmodL).
 
         [REMARKS]
-
         [PLATFORMS]
         Win32, Win64, Linux, Linux64, Macintosh, Xbox360, PlayStation Portable, PlayStation 3, Wii
 
         [SEE_ALSO]
-        Debug_SetLevel 
+        Debug_SetLevel
         Debug_GetLevel
     ]
     */
@@ -369,16 +362,15 @@ namespace FMOD_API
 
 
     /*
-    [DEFINE] 
+    [DEFINE]
     [
         [NAME]
         FMOD_MEMORY_TYPE
 
-        [DESCRIPTION]   
+        [DESCRIPTION]
         Bit fields for memory allocation type being passed into FMOD memory callbacks.
 
         [REMARKS]
-
         [PLATFORMS]
         Win32, Win64, Linux, Linux64, Macintosh, Xbox360, PlayStation Portable, PlayStation 3, Wii
 
@@ -387,7 +379,7 @@ namespace FMOD_API
         FMOD_MEMORY_REALLOCCALLBACK
         FMOD_MEMORY_FREECALLBACK
         Memory_Initialize
-    
+
     ]
     */
     public enum MEMORY_TYPE
@@ -406,12 +398,12 @@ namespace FMOD_API
     /*
     [ENUM]
     [
-        [DESCRIPTION]   
+        [DESCRIPTION]
         These are speaker types defined for use with the System::setSpeakerMode or System::getSpeakerMode command.
 
         [REMARKS]
         These are important notes on speaker modes in regards to sounds created with FMOD_SOFTWARE.<br>
-        Note below the phrase 'sound channels' is used.  These are the subchannels inside a sound, they are not related and 
+        Note below the phrase 'sound channels' is used.  These are the subchannels inside a sound, they are not related and
         have nothing to do with the FMOD class "Channel".<br>
         For example a mono sound has 1 sound channel, a stereo sound has 2 sound channels, and an AC3 or 6 channel wav file have 6 "sound channels".<br>
         <br>
@@ -436,7 +428,7 @@ namespace FMOD_API
         -----------------------<br>
         This mode is for 2 speaker arrangements that have a left and right speaker.<br>
         <li>Mono sounds default to an even distribution between left and right.  They can be panned with Channel::setPan.<br>
-        <li>Stereo sounds default to the middle, or full left in the left speaker and full right in the right speaker.  
+        <li>Stereo sounds default to the middle, or full left in the left speaker and full right in the right speaker.
         <li>They can be cross faded with Channel::setPan.<br>
         <li>Multichannel sounds have each sound channel played on each speaker at unity.<br>
         <li>Mix behaviour for multichannel sounds can be set with Channel::setSpeakerLevels.<br>
@@ -456,7 +448,7 @@ namespace FMOD_API
         ------------------------<br>
         This mode is for 4 speaker arrangements that have a front left, front right, front center and a rear center.<br>
         <li>Mono sounds default to the center speaker.  They can be panned with Channel::setPan.<br>
-        <li>Stereo sounds default to the left sound channel played on the front left, and the right sound channel played on the front right.  
+        <li>Stereo sounds default to the left sound channel played on the front left, and the right sound channel played on the front right.
         <li>They can be cross faded with Channel::setPan.<br>
         <li>Multichannel sounds default to all of their sound channels being played on each speaker in order of input.<br>
         <li>Mix behaviour for multichannel sounds can be set with Channel::setSpeakerLevels.<br>
@@ -466,33 +458,33 @@ namespace FMOD_API
         ------------------------<br>
         This mode is for 5.1 speaker arrangements that have a left/right/center/rear left/rear right and a subwoofer speaker.<br>
         <li>Mono sounds default to the center speaker.  They can be panned with Channel::setPan.<br>
-        <li>Stereo sounds default to the left sound channel played on the front left, and the right sound channel played on the front right.  
+        <li>Stereo sounds default to the left sound channel played on the front left, and the right sound channel played on the front right.
         <li>They can be cross faded with Channel::setPan.<br>
-        <li>Multichannel sounds default to all of their sound channels being played on each speaker in order of input.  
+        <li>Multichannel sounds default to all of their sound channels being played on each speaker in order of input.
         <li>Mix behaviour for multichannel sounds can be set with Channel::setSpeakerLevels.<br>
         <li>Channel::setSpeakerMix works but side left / side right are ignored.<br>
         <br>
         FMOD_SPEAKERMODE_7POINT1<br>
         ------------------------<br>
-        This mode is for 7.1 speaker arrangements that have a left/right/center/rear left/rear right/side left/side right 
+        This mode is for 7.1 speaker arrangements that have a left/right/center/rear left/rear right/side left/side right
         and a subwoofer speaker.<br>
         <li>Mono sounds default to the center speaker.  They can be panned with Channel::setPan.<br>
-        <li>Stereo sounds default to the left sound channel played on the front left, and the right sound channel played on the front right.  
+        <li>Stereo sounds default to the left sound channel played on the front left, and the right sound channel played on the front right.
         <li>They can be cross faded with Channel::setPan.<br>
-        <li>Multichannel sounds default to all of their sound channels being played on each speaker in order of input.  
+        <li>Multichannel sounds default to all of their sound channels being played on each speaker in order of input.
         <li>Mix behaviour for multichannel sounds can be set with Channel::setSpeakerLevels.<br>
         <li>Channel::setSpeakerMix works and every parameter is used to set the balance of a sound in any speaker.<br>
         <br>
         FMOD_SPEAKERMODE_SRS5_1_MATRIX<br>
         ------------------------------------------------------<br>
-		This mode is for mono, stereo, 5.1 and 7.1 speaker arrangements, as it is backwards and forwards compatible with 
+		This mode is for mono, stereo, 5.1 and 7.1 speaker arrangements, as it is backwards and forwards compatible with
 		stereo, but to get a surround effect a SRS 5.1, Prologic or Prologic 2 hardware decoder / amplifier is needed.<br>
 		Pan behavior is the same as FMOD_SPEAKERMODE_5POINT1.<br>
 		<br>
 		If this function is called the numoutputchannels setting in System::setSoftwareFormat is overwritten.<br>
 		<br>
 		Output rate must be 44100, 48000 or 96000 for this to work otherwise FMOD_ERR_OUTPUT_INIT will be returned.<br>
-    
+
         FMOD_SPEAKERMODE_MYEARS<br>
         ------------------------------------------------------<br>
         This mode is for headphones.  This will attempt to load a MyEars profile (see myears.net.au) and use it to generate
@@ -532,7 +524,7 @@ namespace FMOD_API
     /*
     [ENUM]
     [
-        [DESCRIPTION]   
+        [DESCRIPTION]
         These are speaker types defined for use with the Channel::setSpeakerLevels command.
         It can also be used for speaker placement in the System::setSpeakerPosition command.
 
@@ -574,12 +566,11 @@ namespace FMOD_API
     /*
     [ENUM]
     [
-        [DESCRIPTION]   
-        These are plugin types defined for use with the System::getNumPlugins / System_GetNumPlugins, 
+        [DESCRIPTION]
+        These are plugin types defined for use with the System::getNumPlugins / System_GetNumPlugins,
         System::getPluginInfo / System_GetPluginInfo and System::unloadPlugin / System_UnloadPlugin functions.
 
         [REMARKS]
-
         [PLATFORMS]
         Win32, Win64, Linux, Linux64, Macintosh, Xbox360, PlayStation Portable, PlayStation 3, Wii
 
@@ -598,13 +589,12 @@ namespace FMOD_API
 
 
     /*
-    [ENUM] 
+    [ENUM]
     [
-        [DESCRIPTION]   
-        Initialization flags.  Use them with System::init in the flags parameter to change various behaviour.  
+        [DESCRIPTION]
+        Initialization flags.  Use them with System::init in the flags parameter to change various behaviour.
 
         [REMARKS]
-
         [PLATFORMS]
         Win32, Win64, Linux, Linux64, Macintosh, Xbox360, PlayStation Portable, PlayStation 3, Wii
 
@@ -638,15 +628,14 @@ namespace FMOD_API
     /*
     [ENUM]
     [
-        [DESCRIPTION]   
+        [DESCRIPTION]
         These definitions describe the type of song being played.
 
         [REMARKS]
-
         [PLATFORMS]
         Win32, Win64, Linux, Linux64, Macintosh, Xbox360, PlayStation Portable, PlayStation 3, Wii
 
-        [SEE_ALSO]      
+        [SEE_ALSO]
         Sound::getFormat
     ]
     */
@@ -686,7 +675,7 @@ namespace FMOD_API
     /*
     [ENUM]
     [
-        [DESCRIPTION]   
+        [DESCRIPTION]
         These definitions describe the native format of the hardware or software buffer that will be used.
 
         [REMARKS]
@@ -725,10 +714,10 @@ namespace FMOD_API
     /*
     [DEFINE]
     [
-        [NAME] 
+        [NAME]
         FMOD_MODE
 
-        [DESCRIPTION]   
+        [DESCRIPTION]
         Sound description bitfields, bitwise OR them together for loading and describing sounds.
 
         [REMARKS]
@@ -794,11 +783,10 @@ namespace FMOD_API
     /*
     [ENUM]
     [
-        [DESCRIPTION]   
+        [DESCRIPTION]
         These values describe what state a sound is in after NONBLOCKING has been used to open it.
 
-        [REMARKS]    
-
+        [REMARKS]
         [PLATFORMS]
         Win32, Win64, Linux, Linux64, Macintosh, Xbox360, PlayStation Portable, PlayStation 3, Wii
 
@@ -823,18 +811,18 @@ namespace FMOD_API
     /*
     [ENUM]
     [
-        [DESCRIPTION]   
-        These flags are used with SoundGroup::setMaxAudibleBehavior to determine what happens when more sounds 
+        [DESCRIPTION]
+        These flags are used with SoundGroup::setMaxAudibleBehavior to determine what happens when more sounds
         are played than are specified with SoundGroup::setMaxAudible.
 
         [REMARKS]
-        When using FMOD_SOUNDGROUP_BEHAVIOR_MUTE, SoundGroup::setMuteFadeSpeed can be used to stop a sudden transition.  
+        When using FMOD_SOUNDGROUP_BEHAVIOR_MUTE, SoundGroup::setMuteFadeSpeed can be used to stop a sudden transition.
         Instead, the time specified will be used to cross fade between the sounds that go silent and the ones that become audible.
 
         [PLATFORMS]
         Win32, Win64, Linux, Linux64, Macintosh, Xbox360, PlayStation Portable, PlayStation 3, Wii
 
-        [SEE_ALSO]      
+        [SEE_ALSO]
         SoundGroup::setMaxAudibleBehavior
         SoundGroup::getMaxAudibleBehavior
         SoundGroup::setMaxAudible
@@ -853,7 +841,7 @@ namespace FMOD_API
     /*
     [ENUM]
     [
-        [DESCRIPTION]   
+        [DESCRIPTION]
         These callback types are used with System::setCallback.
 
         [REMARKS]
@@ -865,7 +853,7 @@ namespace FMOD_API
         [PLATFORMS]
         Win32, Win64, Linux, Linux64, Macintosh, Xbox360, PlayStation Portable, PlayStation 3, Wii
 
-        [SEE_ALSO]      
+        [SEE_ALSO]
         System::setCallback
         FMOD_SYSTEM_CALLBACK
         System::update
@@ -886,7 +874,7 @@ namespace FMOD_API
     /*
     [ENUM]
     [
-        [DESCRIPTION]   
+        [DESCRIPTION]
         These callback types are used with Channel::setCallback.
 
         [REMARKS]
@@ -896,7 +884,7 @@ namespace FMOD_API
         [PLATFORMS]
         Win32, Win64, Linux, Linux64, Macintosh, Xbox360, PlayStation Portable, PlayStation 3, Wii
 
-        [SEE_ALSO]      
+        [SEE_ALSO]
         Channel::setCallback
         FMOD_CHANNEL_CALLBACK
     ]
@@ -912,7 +900,7 @@ namespace FMOD_API
     }
 
 
-    /* 
+    /*
         FMOD Callbacks
     */
     public delegate RESULT SYSTEM_CALLBACK(IntPtr systemraw, SYSTEM_CALLBACKTYPE type, IntPtr commanddata1, IntPtr commanddata2);
@@ -935,7 +923,7 @@ namespace FMOD_API
     /*
     [ENUM]
     [
-        [DESCRIPTION]   
+        [DESCRIPTION]
         List of windowing methods used in spectrum analysis to reduce leakage / transient signals intefering with the analysis.
         This is a problem with analysis of continuous signals that only have a small portion of the signal sample (the fft window size).
         Windowing the signal with a curve or triangle tapers the sides of the fft window to help alleviate this problem.
@@ -946,22 +934,22 @@ namespace FMOD_API
         Not windowing is the same as FMOD_DSP_FFT_WINDOW_RECT, which is the default.
         If the cycle of the signal (ie the sine wave) is not a multiple of the window size, it will cause frequency abnormalities, so a different windowing method is needed.
         <exclude>
-        
+
         FMOD_DSP_FFT_WINDOW_RECT.
         <img src = "rectangle.gif"></img>
-        
+
         FMOD_DSP_FFT_WINDOW_TRIANGLE.
         <img src = "triangle.gif"></img>
-        
+
         FMOD_DSP_FFT_WINDOW_HAMMING.
         <img src = "hamming.gif"></img>
-        
+
         FMOD_DSP_FFT_WINDOW_HANNING.
         <img src = "hanning.gif"></img>
-        
+
         FMOD_DSP_FFT_WINDOW_BLACKMAN.
         <img src = "blackman.gif"></img>
-        
+
         FMOD_DSP_FFT_WINDOW_BLACKMANHARRIS.
         <img src = "blackmanharris.gif"></img>
         </exclude>
@@ -969,7 +957,7 @@ namespace FMOD_API
         [PLATFORMS]
         Win32, Win64, Linux, Linux64, Macintosh, Xbox360, PlayStation Portable, PlayStation 3, Wii
 
-        [SEE_ALSO]      
+        [SEE_ALSO]
         System::getSpectrum
         Channel::getSpectrum
     ]
@@ -990,8 +978,8 @@ namespace FMOD_API
     /*
     [ENUM]
     [
-        [DESCRIPTION]   
-        List of interpolation types that the FMOD Ex software mixer supports.  
+        [DESCRIPTION]
+        List of interpolation types that the FMOD Ex software mixer supports.
 
         [REMARKS]
         The default resampler type is FMOD_DSP_RESAMPLER_LINEAR.<br>
@@ -1000,7 +988,7 @@ namespace FMOD_API
         [PLATFORMS]
         Win32, Win64, Linux, Linux64, Macintosh, Xbox360, PlayStation Portable, PlayStation 3, Wii
 
-        [SEE_ALSO]      
+        [SEE_ALSO]
         System::setSoftwareFormat
         System::getSoftwareFormat
     ]
@@ -1019,15 +1007,14 @@ namespace FMOD_API
     /*
     [ENUM]
     [
-        [DESCRIPTION]   
+        [DESCRIPTION]
         List of tag types that could be stored within a sound.  These include id3 tags, metadata from netstreams and vorbis/asf data.
 
         [REMARKS]
-
         [PLATFORMS]
         Win32, Win64, Linux, Linux64, Macintosh, Xbox360, PlayStation Portable, PlayStation 3, Wii
 
-        [SEE_ALSO]      
+        [SEE_ALSO]
         Sound::getTag
     ]
     */
@@ -1050,15 +1037,14 @@ namespace FMOD_API
     /*
     [ENUM]
     [
-        [DESCRIPTION]   
+        [DESCRIPTION]
         List of data types that can be returned by Sound::getTag
 
         [REMARKS]
-
         [PLATFORMS]
         Win32, Win64, Linux, Linux64, Macintosh, Xbox360, PlayStation Portable, PlayStation 3, Wii
 
-        [SEE_ALSO]      
+        [SEE_ALSO]
         Sound::getTag
     ]
     */
@@ -1077,11 +1063,11 @@ namespace FMOD_API
     /*
     [ENUM]
     [
-        [DESCRIPTION]   
+        [DESCRIPTION]
         Types of delay that can be used with Channel::setDelay / Channel::getDelay.
 
         [REMARKS]
-        If you haven't called Channel::setDelay yet, if you call Channel::getDelay with FMOD_DELAYTYPE_DSPCLOCK_START it will return the 
+        If you haven't called Channel::setDelay yet, if you call Channel::getDelay with FMOD_DELAYTYPE_DSPCLOCK_START it will return the
         equivalent global DSP clock value to determine when a channel started, so that you can use it for other channels to sync against.<br>
         <br>
         Use System::getDSPClock to also get the current dspclock time, a base for future calls to Channel::setDelay.<br>
@@ -1093,7 +1079,7 @@ namespace FMOD_API
         [PLATFORMS]
         Win32, Win64, Linux, Linux64, Macintosh, Xbox360, PlayStation Portable, PlayStation 3, Wii
 
-        [SEE_ALSO]      
+        [SEE_ALSO]
         Channel::setDelay
         Channel::getDelay
         System::getDSPClock
@@ -1126,9 +1112,9 @@ namespace FMOD_API
 
 
     /*
-    [STRUCTURE] 
+    [STRUCTURE]
     [
-        [DESCRIPTION]   
+        [DESCRIPTION]
         Structure describing a piece of tag data.
 
         [REMARKS]
@@ -1138,7 +1124,7 @@ namespace FMOD_API
         [PLATFORMS]
         Win32, Win64, Linux, Linux64, Macintosh, Xbox360, PlayStation Portable, PlayStation 3, Wii
 
-        [SEE_ALSO]      
+        [SEE_ALSO]
         Sound::getTag
         TAGTYPE
         TAGDATATYPE
@@ -1159,9 +1145,9 @@ namespace FMOD_API
 
 
     /*
-    [STRUCTURE] 
+    [STRUCTURE]
     [
-        [DESCRIPTION]   
+        [DESCRIPTION]
         Structure describing a CD/DVD table of contents
 
         [REMARKS]
@@ -1171,7 +1157,7 @@ namespace FMOD_API
         [PLATFORMS]
         Win32, Win64, Linux, Linux64, Macintosh, Xbox360, PlayStation Portable, PlayStation 3, Wii
 
-        [SEE_ALSO]      
+        [SEE_ALSO]
         Sound::getTag
     ]
     */
@@ -1191,15 +1177,14 @@ namespace FMOD_API
     /*
     [ENUM]
     [
-        [DESCRIPTION]   
+        [DESCRIPTION]
         List of time types that can be returned by Sound::getLength and used with Channel::setPosition or Channel::getPosition.
 
         [REMARKS]
-
         [PLATFORMS]
         Win32, Win64, Linux, Linux64, Macintosh, Xbox360, PlayStation Portable, PlayStation 3, Wii
 
-        [SEE_ALSO]      
+        [SEE_ALSO]
         Sound::getLength
         Channel::setPosition
         Channel::getPosition
@@ -1254,7 +1239,7 @@ namespace FMOD_API
 
 
     /*
-    [STRUCTURE] 
+    [STRUCTURE]
     [
         [DESCRIPTION]
         Use this structure with System::createSound when more control is needed over loading.
@@ -1270,47 +1255,47 @@ namespace FMOD_API
 
         [REMARKS]
         This structure is optional!  Specify 0 or NULL in System::createSound if you don't need it!
-        
+
         Members marked with [in] mean the user sets the value before passing it to the function.
         Members marked with [out] mean FMOD sets the value to be used after the function exits.
-        
+
         <u>Loading a file from memory.</u>
         <li>Create the sound using the FMOD_OPENMEMORY flag.
         <li>Mandantory.  Specify 'length' for the size of the memory block in bytes.
         <li>Other flags are optional.
-        
-        
+
+
         <u>Loading a file from within another larger (possibly wad/pak) file, by giving the loader an offset and length.</u>
         <li>Mandantory.  Specify 'fileoffset' and 'length'.
         <li>Other flags are optional.
-        
-        
+
+
         <u>To create a user created / non file based sound.</u>
         <li>Create the sound using the FMOD_OPENUSER flag.
         <li>Mandantory.  Specify 'defaultfrequency, 'numchannels' and 'format'.
         <li>Other flags are optional.
-        
-        
+
+
         <u>To specify a starting subsound to seek to and flush with, within a multi-sample stream (ie FSB/DLS/SF2).</u>
-        
+
         <li>Mandantory.  Specify 'initialsubsound'.
-        
-        
+
+
         <u>To specify which subsounds to load for multi-sample sounds (ie FSB/DLS/SF2) so that memory is saved and only a subset is actually loaded/read from disk.</u>
-        
+
         <li>Mandantory.  Specify 'inclusionlist' and 'inclusionlistnum'.
-        
-        
+
+
         <u>To specify 'piggyback' read and seek callbacks for capture of sound data as fmod reads and decodes it.  Useful for ripping decoded PCM data from sounds as they are loaded / played.</u>
-        
+
         <li>Mandantory.  Specify 'pcmreadcallback' and 'pcmseekcallback'.
-        
-        
+
+
         <u>To specify a MIDI DLS/SF2 sample set file to load when opening a MIDI file.</u>
-        
+
         <li>Mandantory.  Specify 'dlsname'.
-        
-        
+
+
         Setting the 'decodebuffersize' is for cpu intensive codecs that may be causing stuttering, not file intensive codecs (ie those from CD or netstreams) which are normally altered with System::setStreamBufferSize.  As an example of cpu intensive codecs, an mp3 file will take more cpu to decode than a PCM wav file.
         If you have a stuttering effect, then it is using more cpu than the decode buffer playback rate can keep up with.  Increasing the decode buffersize will most likely solve this problem.
 
@@ -1364,7 +1349,7 @@ namespace FMOD_API
 
 
     /*
-    [STRUCTURE] 
+    [STRUCTURE]
     [
         [DESCRIPTION]
         Structure defining a reverb environment.<br>
@@ -1372,12 +1357,12 @@ namespace FMOD_API
         For more indepth descriptions of the reverb properties under win32, please see the EAX2 and EAX3
         documentation at http://developer.creative.com/ under the 'downloads' section.<br>
         If they do not have the EAX3 documentation, then most information can be attained from
-        the EAX2 documentation, as EAX3 only adds some more parameters and functionality on top of 
+        the EAX2 documentation, as EAX3 only adds some more parameters and functionality on top of
         EAX2.
 
         [REMARKS]
         Note the default reverb properties are the same as the FMOD_PRESET_GENERIC preset.<br>
-        Note that integer values that typically range from -10,000 to 1000 are represented in 
+        Note that integer values that typically range from -10,000 to 1000 are represented in
         decibels, and are of a logarithmic scale, not linear, wheras float values are always linear.<br>
         <br>
         The numerical values listed below are the maximum, minimum and default values for each variable respectively.<br>
@@ -1455,14 +1440,14 @@ namespace FMOD_API
             Density = density;
             Flags = flags;
         }
-        #endregion
+        #endregion wrapperinternal
     }
 
 
     /*
-    [DEFINE] 
+    [DEFINE]
     [
-        [NAME] 
+        [NAME]
         REVERB_FLAGS
 
         [DESCRIPTION]
@@ -1485,15 +1470,15 @@ namespace FMOD_API
 
 
     /*
-    [DEFINE] 
+    [DEFINE]
     [
-    [NAME] 
+    [NAME]
     FMOD_REVERB_PRESETS
 
-    [DESCRIPTION]   
+    [DESCRIPTION]
     A set of predefined environment PARAMETERS, created by Creative Labs
     These are used to initialize an FMOD_REVERB_PROPERTIES structure statically.
-    ie 
+    ie
     FMOD_REVERB_PROPERTIES prop = FMOD_PRESET_GENERIC;
 
     [PLATFORMS]
@@ -1533,7 +1518,7 @@ namespace FMOD_API
     }
 
     /*
-    [STRUCTURE] 
+    [STRUCTURE]
     [
         [DESCRIPTION]
         Structure defining the properties for a reverb source, related to a FMOD channel.
@@ -1541,13 +1526,13 @@ namespace FMOD_API
         For more indepth descriptions of the reverb properties under win32, please see the EAX3
         documentation at http://developer.creative.com/ under the 'downloads' section.
         If they do not have the EAX3 documentation, then most information can be attained from
-        the EAX2 documentation, as EAX3 only adds some more parameters and functionality on top of 
+        the EAX2 documentation, as EAX3 only adds some more parameters and functionality on top of
         EAX2.
 
         Note the default reverb properties are the same as the PRESET_GENERIC preset.
-        Note that integer values that typically range from -10,000 to 1000 are represented in 
+        Note that integer values that typically range from -10,000 to 1000 are represented in
         decibels, and are of a logarithmic scale, not linear, wheras FLOAT values are typically linear.
-        PORTABILITY: Each member has the platform it supports in braces ie (win32/xbox).  
+        PORTABILITY: Each member has the platform it supports in braces ie (win32/xbox).
         Some reverb parameters are only supported in win32 and some only on xbox. If all parameters are set then
         the reverb should product a similar effect on either platform.
         Linux and FMODCE do not support the reverb api.
@@ -1556,8 +1541,8 @@ namespace FMOD_API
 
         [REMARKS]
         For EAX4 support with multiple reverb environments, set FMOD_REVERB_CHANNELFLAGS_ENVIRONMENT0,
-        FMOD_REVERB_CHANNELFLAGS_ENVIRONMENT1 or/and FMOD_REVERB_CHANNELFLAGS_ENVIRONMENT2 in the flags member 
-        of FMOD_REVERB_CHANNELPROPERTIES to specify which environment instance(s) to target. 
+        FMOD_REVERB_CHANNELFLAGS_ENVIRONMENT1 or/and FMOD_REVERB_CHANNELFLAGS_ENVIRONMENT2 in the flags member
+        of FMOD_REVERB_CHANNELPROPERTIES to specify which environment instance(s) to target.
         Only up to 2 environments to target can be specified at once. Specifying three will result in an error.
         If the sound card does not support EAX4, the environment flag is ignored.
 
@@ -1581,9 +1566,9 @@ namespace FMOD_API
 
 
     /*
-    [DEFINE] 
+    [DEFINE]
     [
-        [NAME] 
+        [NAME]
         REVERB_CHANNELFLAGS
 
         [DESCRIPTION]
@@ -1608,17 +1593,17 @@ namespace FMOD_API
 
 
     /*
-    [STRUCTURE] 
+    [STRUCTURE]
     [
         [DESCRIPTION]
         Settings for advanced features like configuring memory and cpu usage for the FMOD_CREATECOMPRESSEDSAMPLE feature.
-   
+
         [REMARKS]
         maxMPEGcodecs / maxADPCMcodecs / maxXMAcodecs will determine the maximum cpu usage of playing realtime samples.  Use this to lower potential excess cpu usage and also control memory usage.<br>
-   
+
         [PLATFORMS]
         Win32, Win64, Linux, Linux64, Macintosh, Xbox360, PlayStation Portable, PlayStation 3
-   
+
         [SEE_ALSO]
         System::setAdvancedSettings
         System::getAdvancedSettings
@@ -1657,9 +1642,9 @@ namespace FMOD_API
 
 
     /*
-    [ENUM] 
+    [ENUM]
     [
-        [NAME] 
+        [NAME]
         FMOD_MISC_VALUES
 
         [DESCRIPTION]
@@ -1692,18 +1677,18 @@ namespace FMOD_API
             if (IntPtr.Size != 8)
             {
                 /* Attempting to use 64-bit FMOD dll with 32-bit application.*/
-            
+
                 return RESULT.ERR_FILE_BAD;
             }
 #else
             if (IntPtr.Size != 4)
             {
-                /* Attempting to use 32-bit FMOD dll with 64-bit application. A likely cause of this error 
+                /* Attempting to use 32-bit FMOD dll with 64-bit application. A likely cause of this error
                  * is targetting platform 'Any CPU'. You cannot link to unmanaged dll with 'Any CPU'
-                 * target. 
-                 * 
+                 * target.
+                 *
                  * For 32-bit applications: set the platform to 'x86'.
-                 * 
+                 *
                  * For 64-bit applications:
                  * 1. set the platform to x64
                  * 2. add the conditional complication symbol WIN64
@@ -1737,7 +1722,7 @@ namespace FMOD_API
         [DllImport(VERSION.dll)]
         private static extern RESULT FMOD_System_Create(ref IntPtr system);
 
-        #endregion
+        #endregion importfunctions
     }
 
 
@@ -1759,7 +1744,7 @@ namespace FMOD_API
         [DllImport(VERSION.dll)]
         private static extern RESULT FMOD_Memory_GetStats(ref int currentalloced, ref int maxalloced, int blocking);
 
-        #endregion
+        #endregion importfunctions
     }
 
 
@@ -1905,7 +1890,7 @@ namespace FMOD_API
         }
 
 
-        // Init/Close 
+        // Init/Close
         public RESULT init(int maxchannels, INITFLAGS flags, IntPtr extradriverdata)
         {
             return FMOD_System_Init(systemraw, maxchannels, flags, extradriverdata);
@@ -2021,7 +2006,7 @@ namespace FMOD_API
         }
 
 
-        // Sound/DSP/Channel creation and retrieval. 
+        // Sound/DSP/Channel creation and retrieval.
         public RESULT createSound(string name_or_data, MODE mode, ref CREATESOUNDEXINFO exinfo, ref Sound sound)
         {
             RESULT result = RESULT.OK;
@@ -2701,7 +2686,7 @@ namespace FMOD_API
         }
 
 
-        // Geometry api 
+        // Geometry api
         public RESULT createGeometry(int maxpolygons, int maxvertices, ref Geometry geometry)
         {
             RESULT result = RESULT.OK;
@@ -2797,7 +2782,7 @@ namespace FMOD_API
             return FMOD_System_GetNetworkTimeout(systemraw, ref timeout);
         }
 
-        // Userdata set/get                         
+        // Userdata set/get
         public RESULT setUserData(IntPtr userdata)
         {
             return FMOD_System_SetUserData(systemraw, userdata);
@@ -3030,7 +3015,7 @@ namespace FMOD_API
         [DllImport(VERSION.dll)]
         private static extern RESULT FMOD_System_GetMemoryInfo(IntPtr system, uint memorybits, uint event_memorybits, ref uint memoryused, ref MEMORY_USAGE_DETAILS memoryused_details);
 
-        #endregion
+        #endregion importfunctions
 
         #region wrapperinternal
 
@@ -3048,7 +3033,7 @@ namespace FMOD_API
             return systemraw;
         }
 
-        #endregion
+        #endregion wrapperinternal
     }
 
 
@@ -3448,7 +3433,7 @@ namespace FMOD_API
         private static extern RESULT FMOD_Sound_GetUserData(IntPtr sound, ref IntPtr userdata);
         [DllImport(VERSION.dll)]
         private static extern RESULT FMOD_Sound_GetMemoryInfo(IntPtr sound, uint memorybits, uint event_memorybits, ref uint memoryused, ref MEMORY_USAGE_DETAILS memoryused_details);
-        #endregion
+        #endregion importfunctions
 
         #region wrapperinternal
 
@@ -3465,7 +3450,7 @@ namespace FMOD_API
             return soundraw;
         }
 
-        #endregion
+        #endregion wrapperinternal
     }
 
 
@@ -4054,7 +4039,7 @@ namespace FMOD_API
         private static extern RESULT FMOD_Channel_GetUserData(IntPtr channel, ref IntPtr userdata);
         [DllImport(VERSION.dll)]
         private static extern RESULT FMOD_Channel_GetMemoryInfo(IntPtr channel, uint memorybits, uint event_memorybits, ref uint memoryused, ref MEMORY_USAGE_DETAILS memoryused_details);
-        #endregion
+        #endregion importfunctions
 
         #region wrapperinternal
 
@@ -4072,7 +4057,7 @@ namespace FMOD_API
             return channelraw;
         }
 
-        #endregion
+        #endregion wrapperinternal
     }
 
 
@@ -4489,7 +4474,7 @@ namespace FMOD_API
         private static extern RESULT FMOD_ChannelGroup_GetUserData(IntPtr channelgroup, ref IntPtr userdata);
         [DllImport(VERSION.dll)]
         private static extern RESULT FMOD_ChannelGroup_GetMemoryInfo(IntPtr channelgroup, uint memorybits, uint event_memorybits, ref uint memoryused, ref MEMORY_USAGE_DETAILS memoryused_details);
-        #endregion
+        #endregion importfunctions
 
         #region wrapperinternal
 
@@ -4507,7 +4492,7 @@ namespace FMOD_API
             return channelgroupraw;
         }
 
-        #endregion
+        #endregion wrapperinternal
     }
 
 
@@ -4693,7 +4678,7 @@ namespace FMOD_API
         private static extern RESULT FMOD_SoundGroup_GetUserData(IntPtr soundgroup, ref IntPtr userdata);
         [DllImport(VERSION.dll)]
         private static extern RESULT FMOD_SoundGroup_GetMemoryInfo(IntPtr soundgroup, uint memorybits, uint event_memorybits, ref uint memoryused, ref MEMORY_USAGE_DETAILS memoryused_details);
-        #endregion
+        #endregion importfunctions
 
         #region wrapperinternal
 
@@ -4711,7 +4696,7 @@ namespace FMOD_API
             return soundgroupraw;
         }
 
-        #endregion
+        #endregion wrapperinternal
     }
 
 
@@ -5068,7 +5053,7 @@ namespace FMOD_API
         private static extern RESULT FMOD_DSP_GetUserData(IntPtr dsp, ref IntPtr userdata);
         [DllImport(VERSION.dll)]
         private static extern RESULT FMOD_DSP_GetMemoryInfo(IntPtr dsp, uint memorybits, uint event_memorybits, ref uint memoryused, ref MEMORY_USAGE_DETAILS memoryused_details);
-        #endregion
+        #endregion importfunctions
 
         #region wrapperinternal
 
@@ -5086,7 +5071,7 @@ namespace FMOD_API
             return dspraw;
         }
 
-        #endregion
+        #endregion wrapperinternal
     }
 
 
@@ -5209,7 +5194,7 @@ namespace FMOD_API
         private static extern RESULT FMOD_DSPConnection_GetUserData(IntPtr dspconnection, ref IntPtr userdata);
         [DllImport(VERSION.dll)]
         private static extern RESULT FMOD_DSPConnection_GetMemoryInfo(IntPtr dspconnection, uint memorybits, uint event_memorybits, ref uint memoryused, ref MEMORY_USAGE_DETAILS memoryused_details);
-        #endregion
+        #endregion importfunctions
 
         #region wrapperinternal
 
@@ -5227,7 +5212,7 @@ namespace FMOD_API
             return dspconnectionraw;
         }
 
-        #endregion
+        #endregion wrapperinternal
     }
 
     /*
@@ -5386,7 +5371,7 @@ namespace FMOD_API
         private static extern RESULT FMOD_Geometry_GetUserData(IntPtr geometry, ref IntPtr userdata);
         [DllImport(VERSION.dll)]
         private static extern RESULT FMOD_Geometry_GetMemoryInfo(IntPtr geometry, uint memorybits, uint event_memorybits, ref uint memoryused, ref MEMORY_USAGE_DETAILS memoryused_details);
-        #endregion
+        #endregion importfunctions
 
         #region wrapperinternal
 
@@ -5404,7 +5389,7 @@ namespace FMOD_API
             return geometryraw;
         }
 
-        #endregion
+        #endregion wrapperinternal
     }
 
     /*
@@ -5412,7 +5397,6 @@ namespace FMOD_API
     */
     public class Reverb
     {
-
         public RESULT release()
         {
             return FMOD_Reverb_Release(reverbraw);
@@ -5488,7 +5472,7 @@ namespace FMOD_API
         private static extern RESULT FMOD_Reverb_GetUserData(IntPtr reverb, ref IntPtr userdata);
         [DllImport(VERSION.dll)]
         private static extern RESULT FMOD_Reverb_GetMemoryInfo(IntPtr reverb, uint memorybits, uint event_memorybits, ref uint memoryused, ref MEMORY_USAGE_DETAILS memoryused_details);
-        #endregion
+        #endregion importfunctions
 
         #region wrapperinternal
 
@@ -5506,6 +5490,6 @@ namespace FMOD_API
             return reverbraw;
         }
 
-        #endregion
+        #endregion wrapperinternal
     }
 }

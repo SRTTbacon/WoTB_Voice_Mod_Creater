@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Threading.Tasks;
+using WEMSharp;
 
 namespace WoTB_Voice_Mod_Creater.Wwise_Class
 {
@@ -65,6 +67,10 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             }
             return IDs;
         }
+        public int Wwise_Get_File_Count()
+        {
+            return Sounds.Count;
+        }
         //.bnkファイルから.wemファイルを抽出(1つのみ)
         public bool Wwise_Extract_To_WEM_File(int Index, string To_File, bool IsOverWrite)
         {
@@ -114,6 +120,76 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 Sub_Code.Error_Log_Write(e.Message);
                 return false;
             }
+        }
+        public async Task Async_Wwise_Extract_To_WEM_Directory(string To_Dir)
+        {
+            if (!IsPCKSelected)
+            {
+                return;
+            }
+            try
+            {
+                var tasks = new List<Task>();
+                for (int i = 0; i < Sounds.Count; i++)
+                {
+                    tasks.Add(Async_Wwise_Extract_To_WEM_File(i, To_Dir));
+                }
+                await Task.WhenAll(tasks);
+            }
+            catch (Exception e)
+            {
+                Sub_Code.Error_Log_Write(e.Message);
+            }
+        }
+        public async Task Async_Wwise_Extract_To_OGG_Directory(string To_Dir)
+        {
+            if (!IsPCKSelected)
+            {
+                return;
+            }
+            try
+            {
+                var tasks = new List<Task>();
+                for (int i = 0; i < Sounds.Count; i++)
+                {
+                    tasks.Add(Async_Wwise_Extract_To_Ogg_File(i, To_Dir));
+                }
+                await Task.WhenAll(tasks);
+            }
+            catch (Exception e)
+            {
+                Sub_Code.Error_Log_Write(e.Message);
+            }
+        }
+        async Task Async_Wwise_Extract_To_WEM_File(int Index, string To_Dir)
+        {
+            try
+            {
+                await Task.Run(() =>
+                {
+                    Wwise.ExtractFileIndex(Index, To_Dir + "/" + Sounds[Index].id + ".wem");
+                });
+            }
+            catch
+            {
+
+            }
+        }
+        async Task Async_Wwise_Extract_To_Ogg_File(int Index, string To_Dir)
+        {
+            await Task.Run(() =>
+            {
+                try
+                {
+                    WEMFile wem = new WEMFile(To_Dir + "/" + Sounds[Index].id + ".wem", WEMForcePacketFormat.NoForcePacketFormat);
+                    wem.GenerateOGG(To_Dir + "/" + Sounds[Index].id + ".ogg", Voice_Set.Special_Path + "/Wwise/packed_codebooks_aoTuV_603.bin", false, false);
+                    wem.Close();
+                }
+                catch
+                {
+
+                }
+            });
         }
         //wwiseutil.exeから指定したディレクトリにあるwemファイルをpckファイルに書き換える
         //引数:保存先(元ファイルと同じでもOK),wemファイルがあるフォルダ,既にファイルがある場合上書きするか

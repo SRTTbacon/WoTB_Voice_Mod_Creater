@@ -501,6 +501,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             }
             int StreamHandle = Bass.BASS_StreamCreateFile(Voice_Set.Special_Path + "/Wwise/Temp_03.ogg", 0, 0, BASSFlag.BASS_STREAM_DECODE);
             Stream = BassFx.BASS_FX_TempoCreate(StreamHandle, BASSFlag.BASS_FX_FREESOURCE);
+            Bass.BASS_ChannelSetDevice(Stream, Video_Mode.Sound_Device);
             Bass.BASS_ChannelGetAttribute(Stream, BASSAttribute.BASS_ATTRIB_TEMPO_FREQ, ref SetFirstFreq);
             Bass.BASS_ChannelSetAttribute(Stream, BASSAttribute.BASS_ATTRIB_TEMPO_FREQ, SetFirstFreq + Voice_Pitch);
             Bass.BASS_ChannelPlay(Stream, true);
@@ -730,7 +731,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 else if (Name_Only.Contains(".bnk") || Name_Only.Contains(".pck"))
                 {
                     Message_T.Text = "ファイルをコピーしています...";
-                    Sub_Code.DVPL_File_Delete(Voice_Set.WoTB_Path + "/Data/WwiseSound/" + Path.GetFileNameWithoutExtension(Name));
+                    Sub_Code.DVPL_File_Delete(Voice_Set.WoTB_Path + "/Data/WwiseSound/" + Path.GetFileName(Name).Replace(".dvpl", ""));
                     Sub_Code.DVPL_File_Copy(Name.Replace(".dvpl", ""), Voice_Set.WoTB_Path + "/Data/WwiseSound/" + Path.GetFileName(Name).Replace(".dvpl", ""), true);
                 }
             }
@@ -810,7 +811,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             IsBusy = false;
             Message_Feed_Out("インストールしました。");
         }
-        void Change_Sfx_High_And_Low(List<string> Write,string High_Path,string Low_Path)
+        void Change_Sfx_High_And_Low(List<string> Write, string High_Path, string Low_Path)
         {
             //sfx_high(low).yamlに"Write"にある.fevファイルを追加
             StreamReader str = new StreamReader(High_Path);
@@ -1145,7 +1146,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 List<string> List_Temp = new List<string>();
                 List_Temp.AddRange(Mod_List_Save);
                 List_Temp.Sort();
-                foreach(string Name in List_Temp)
+                foreach (string Name in List_Temp)
                 {
                     Fmod_Bank_List.Items.Add(Name);
                 }

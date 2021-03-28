@@ -11,156 +11,6 @@ namespace WoTB_Voice_Mod_Creater
 {
     public class DVPL
     {
-        public static void DVPL_Unpack_Extract()
-        {
-            try
-            {
-                if (Directory.Exists(Voice_Set.Special_Path + "/DVPL"))
-                {
-                    Directory.Delete(Voice_Set.Special_Path + "/DVPL", true);
-                }
-                using (Stream stream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("WoTB_Voice_Mod_Creater.Resources.DVPL.zip"))
-                {
-                    using (FileStream bw = new FileStream(Voice_Set.Special_Path + "/Temp_DVPL.zip", FileMode.Create))
-                    {
-                        while (stream.Position < stream.Length)
-                        {
-                            byte[] bits = new byte[stream.Length];
-                            stream.Read(bits, 0, (int)stream.Length);
-                            bw.Write(bits, 0, (int)stream.Length);
-                        }
-                    }
-                    stream.Close();
-                }
-                ZipFile.ExtractToDirectory(Voice_Set.Special_Path + "/Temp_DVPL.zip", Voice_Set.Special_Path + "/DVPL");
-                File.Delete(Voice_Set.Special_Path + "/Temp_DVPL.zip");
-            }
-            catch (Exception e)
-            {
-                MessageBox.Show(e.Message);
-                Sub_Code.Error_Log_Write(e.Message);
-            }
-        }
-        public static void Loading_Extract()
-        {
-            try
-            {
-                if (Directory.Exists(Voice_Set.Special_Path + "/Loading"))
-                {
-                    Directory.Delete(Voice_Set.Special_Path + "/Loading", true);
-                }
-                using (Stream stream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("WoTB_Voice_Mod_Creater.Resources.Loading.zip"))
-                {
-                    using (FileStream bw = new FileStream(Voice_Set.Special_Path + "/Temp_Loading.zip", FileMode.Create))
-                    {
-                        while (stream.Position < stream.Length)
-                        {
-                            byte[] bits = new byte[stream.Length];
-                            stream.Read(bits, 0, (int)stream.Length);
-                            bw.Write(bits, 0, (int)stream.Length);
-                        }
-                    }
-                    stream.Close();
-                }
-                ZipFile.ExtractToDirectory(Voice_Set.Special_Path + "/Temp_Loading.zip", Voice_Set.Special_Path + "/Loading");
-                File.Delete(Voice_Set.Special_Path + "/Temp_Loading.zip");
-            }
-            catch (Exception e)
-            {
-                MessageBox.Show(e.Message);
-                Sub_Code.Error_Log_Write(e.Message);
-            }
-        }
-        public static void Encode_Mp3_Extract()
-        {
-            try
-            {
-                if (Directory.Exists(Voice_Set.Special_Path + "/Encode_Mp3"))
-                {
-                    Directory.Delete(Voice_Set.Special_Path + "/Encode_Mp3", true);
-                }
-                using (Stream stream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("WoTB_Voice_Mod_Creater.Resources.Encode_Mp3.zip"))
-                {
-                    using (FileStream bw = new FileStream(Voice_Set.Special_Path + "/Temp_Encode_Mp3.zip", FileMode.Create))
-                    {
-                        while (stream.Position < stream.Length)
-                        {
-                            byte[] bits = new byte[stream.Length];
-                            stream.Read(bits, 0, (int)stream.Length);
-                            bw.Write(bits, 0, (int)stream.Length);
-                        }
-                    }
-                    stream.Close();
-                }
-                ZipFile.ExtractToDirectory(Voice_Set.Special_Path + "/Temp_Encode_Mp3.zip", Voice_Set.Special_Path + "/Encode_Mp3");
-                File.Delete(Voice_Set.Special_Path + "/Temp_Encode_Mp3.zip");
-            }
-            catch (Exception e)
-            {
-                MessageBox.Show(e.Message);
-                Sub_Code.Error_Log_Write(e.Message);
-            }
-        }
-        public static void Fmod_Designer_Extract()
-        {
-            try
-            {
-                if (Directory.Exists(Voice_Set.Special_Path + "/Fmod_Designer"))
-                {
-                    Directory.Delete(Voice_Set.Special_Path + "/Fmod_Designer", true);
-                }
-                using (Stream stream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("WoTB_Voice_Mod_Creater.Resources.Fmod_Designer.zip"))
-                {
-                    using (FileStream bw = new FileStream(Voice_Set.Special_Path + "/Temp_Fmod_Designer.zip", FileMode.Create))
-                    {
-                        while (stream.Position < stream.Length)
-                        {
-                            byte[] bits = new byte[stream.Length];
-                            stream.Read(bits, 0, (int)stream.Length);
-                            bw.Write(bits, 0, (int)stream.Length);
-                        }
-                    }
-                    stream.Close();
-                }
-                ZipFile.ExtractToDirectory(Voice_Set.Special_Path + "/Temp_Fmod_Designer.zip", Voice_Set.Special_Path + "/Fmod_Designer");
-                File.Delete(Voice_Set.Special_Path + "/Temp_Fmod_Designer.zip");
-            }
-            catch (Exception e)
-            {
-                MessageBox.Show(e.Message);
-                Sub_Code.Error_Log_Write(e.Message);
-            }
-        }
-        public static void SE_Extract()
-        {
-            try
-            {
-                if (Directory.Exists(Voice_Set.Special_Path + "/SE"))
-                {
-                    Directory.Delete(Voice_Set.Special_Path + "/SE", true);
-                }
-                using (Stream stream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("WoTB_Voice_Mod_Creater.Resources.SE.zip"))
-                {
-                    using (FileStream bw = new FileStream(Voice_Set.Special_Path + "/Temp_SE.zip", FileMode.Create))
-                    {
-                        while (stream.Position < stream.Length)
-                        {
-                            byte[] bits = new byte[stream.Length];
-                            stream.Read(bits, 0, (int)stream.Length);
-                            bw.Write(bits, 0, (int)stream.Length);
-                        }
-                    }
-                    stream.Close();
-                }
-                ZipFile.ExtractToDirectory(Voice_Set.Special_Path + "/Temp_SE.zip", Voice_Set.Special_Path + "/SE");
-                File.Delete(Voice_Set.Special_Path + "/Temp_SE.zip");
-            }
-            catch (Exception e)
-            {
-                MessageBox.Show(e.Message);
-                Sub_Code.Error_Log_Write(e.Message);
-            }
-        }
         public static void DDS_DLL_Extract()
         {
             if (!Directory.Exists(Directory.GetCurrentDirectory() + "/dll"))
@@ -181,64 +31,40 @@ namespace WoTB_Voice_Mod_Creater
                 stream.Close();
             }
         }
-        public static void Fmod_Android_Create_Extract()
+        public static void LAME_DLL_Extract()
         {
-            try
+            if (!Directory.Exists(Directory.GetCurrentDirectory() + "/dll"))
             {
-                if (Directory.Exists(Voice_Set.Special_Path + "/Fmod_Android_Create"))
-                {
-                    Directory.Delete(Voice_Set.Special_Path + "/Fmod_Android_Create", true);
-                }
-                using (Stream stream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("WoTB_Voice_Mod_Creater.Resources.Fmod_Android_Create.zip"))
-                {
-                    using (FileStream bw = new FileStream(Voice_Set.Special_Path + "/Temp_Fmod_Android_Create.zip", FileMode.Create))
-                    {
-                        while (stream.Position < stream.Length)
-                        {
-                            byte[] bits = new byte[stream.Length];
-                            stream.Read(bits, 0, (int)stream.Length);
-                            bw.Write(bits, 0, (int)stream.Length);
-                        }
-                    }
-                    stream.Close();
-                }
-                ZipFile.ExtractToDirectory(Voice_Set.Special_Path + "/Temp_Fmod_Android_Create.zip", Voice_Set.Special_Path + "/Fmod_Android_Create");
-                File.Delete(Voice_Set.Special_Path + "/Temp_Fmod_Android_Create.zip");
+                Directory.CreateDirectory(Directory.GetCurrentDirectory() + "/dll");
             }
-            catch (Exception e)
+            using (Stream stream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("WoTB_Voice_Mod_Creater.Resources.libmp3lame.32.dll"))
             {
-                MessageBox.Show(e.Message);
-                Sub_Code.Error_Log_Write(e.Message);
+                using (FileStream bw = new FileStream(Directory.GetCurrentDirectory() + "/dll/libmp3lame.32.dll", FileMode.Create))
+                {
+                    while (stream.Position < stream.Length)
+                    {
+                        byte[] bits = new byte[stream.Length];
+                        stream.Read(bits, 0, (int)stream.Length);
+                        bw.Write(bits, 0, (int)stream.Length);
+                    }
+                }
+                stream.Close();
             }
         }
-        public static void Wwise_Extract()
+        public static void BASS_DLL_Extract()
         {
-            try
+            using (Stream stream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("WoTB_Voice_Mod_Creater.Resources.bassenc.dll"))
             {
-                if (Directory.Exists(Voice_Set.Special_Path + "/Wwise"))
+                using (FileStream bw = new FileStream(Directory.GetCurrentDirectory() + "/dll/bassenc.dll", FileMode.Create))
                 {
-                    Directory.Delete(Voice_Set.Special_Path + "/Wwise", true);
-                }
-                using (Stream stream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("WoTB_Voice_Mod_Creater.Resources.Wwise.zip"))
-                {
-                    using (FileStream bw = new FileStream(Voice_Set.Special_Path + "/Temp_Wwise.zip", FileMode.Create))
+                    while (stream.Position < stream.Length)
                     {
-                        while (stream.Position < stream.Length)
-                        {
-                            byte[] bits = new byte[stream.Length];
-                            stream.Read(bits, 0, (int)stream.Length);
-                            bw.Write(bits, 0, (int)stream.Length);
-                        }
+                        byte[] bits = new byte[stream.Length];
+                        stream.Read(bits, 0, (int)stream.Length);
+                        bw.Write(bits, 0, (int)stream.Length);
                     }
-                    stream.Close();
                 }
-                ZipFile.ExtractToDirectory(Voice_Set.Special_Path + "/Temp_Wwise.zip", Voice_Set.Special_Path + "/Wwise");
-                File.Delete(Voice_Set.Special_Path + "/Temp_Wwise.zip");
-            }
-            catch (Exception e)
-            {
-                MessageBox.Show(e.Message);
-                Sub_Code.Error_Log_Write(e.Message);
+                stream.Close();
             }
         }
         //.dvplを解除する
@@ -300,8 +126,56 @@ namespace WoTB_Voice_Mod_Creater
             {
                 return false;
             }
-            CREATE_DVPL(LZ4Level.L03_HC, From_File, To_File, IsFromFileDelete);
+            FileInfo file = new FileInfo(From_File);
+            long size = file.Length;
+            if (size >= 50000000)
+            {
+                return DVPL_Pack_V2(From_File, To_File, IsFromFileDelete);
+            }
+            else
+            {
+                if (Path.GetExtension(From_File) == ".tex")
+                {
+                    CREATE_DVPL(LZ4Level.L00_FAST, From_File, To_File, IsFromFileDelete);
+                }
+                else
+                {
+                    CREATE_DVPL(LZ4Level.L03_HC, From_File, To_File, IsFromFileDelete);
+                }
+            }
             return true;
+        }
+        static bool DVPL_Pack_V2(string From_File, string To_File, bool IsFromFileDelete)
+        {
+            if (!Environment.Is64BitOperatingSystem)
+            {
+                MessageBox.Show("50MB以上のファイルをdvpl化する場合64BitのOSを使用する必要があります。");
+                return false;
+            }
+            StreamWriter DVPL_Unpack = File.CreateText(Voice_Set.Special_Path + "/DVPL/DVPL_Pack.bat");
+            DVPL_Unpack.WriteLine("chcp 65001");
+            DVPL_Unpack.Write("\"" + Voice_Set.Special_Path + "/DVPL/DVPL_Convert.exe\" \"" + From_File + "\" \"" + To_File + "\"");
+            DVPL_Unpack.Close();
+            ProcessStartInfo processStartInfo = new ProcessStartInfo
+            {
+                FileName = Voice_Set.Special_Path + "/DVPL/DVPL_Pack.bat",
+                CreateNoWindow = true,
+                UseShellExecute = false
+            };
+            Process p2 = Process.Start(processStartInfo);
+            p2.WaitForExit();
+            p2.Close();
+            p2.Dispose();
+            File.Delete(Voice_Set.Special_Path + "/DVPL/DVPL_Pack.bat");
+            if (IsFromFileDelete)
+            {
+                File.Delete(From_File);
+            }
+            if (File.Exists(To_File))
+            {
+                return true;
+            }
+            return false;
         }
         static void CREATE_DVPL(LZ4Level COMPRESSION_TYPE, string From_File, string ToFile, bool IsFromFileDelete)
         {

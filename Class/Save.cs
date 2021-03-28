@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using System.Windows;
@@ -12,7 +11,7 @@ namespace WoTB_Voice_Mod_Creater
     {
         private async void Save_B_Click(object sender, RoutedEventArgs e)
         {
-            Save_Window.Window_Show();
+            Save_Window.Window_Show(true);
             Save_Window.Visibility = Visibility.Visible;
             while (Save_Window.Opacity < 1)
             {
@@ -49,18 +48,7 @@ public class Voice_Mod_Create
             }
             if (File.Exists(Voice_Set.WoTB_Path + "/Data/sounds.yaml.dvpl"))
             {
-                StreamWriter DVPL_Unpack = File.CreateText(Voice_Set.Special_Path + "/DVPL/UnPack.bat");
-                DVPL_Unpack.Write("\"" + Voice_Set.Special_Path + "/DVPL/Python/python.exe\" \"" + Voice_Set.Special_Path + "/DVPL/UnPack.py\" \"" + Voice_Set.WoTB_Path + "/Data/sounds.yaml.dvpl\" \"" + Voice_Set.Special_Path + "/Temp_Sounds.yaml\"");
-                DVPL_Unpack.Close();
-                ProcessStartInfo processStartInfo = new ProcessStartInfo
-                {
-                    FileName = Voice_Set.Special_Path + "/DVPL/UnPack.bat",
-                    CreateNoWindow = true,
-                    UseShellExecute = false
-                };
-                Process p = Process.Start(processStartInfo);
-                p.WaitForExit();
-                File.Delete(Voice_Set.Special_Path + "/DVPL/UnPack.bat");
+                DVPL.DVPL_UnPack(Voice_Set.WoTB_Path + "/Data/sounds.yaml.dvpl", Voice_Set.Special_Path + "/Temp_Sounds.yaml", false);
             }
             else
             {
@@ -128,7 +116,7 @@ public class Voice_Mod_Create
             int Voice_Name_Number = 0;
             foreach (string Name_Now in Set_Voice_List)
             {
-                string Voice_Type_Now = Get_Voice_Type(Name_Now);
+                string Voice_Type_Now = Get_Voice_Type_V1(Name_Now);
                 if (Voice_Type_Now != Voice_Now)
                 {
                     Voice_Now = Voice_Type_Now;
@@ -143,7 +131,7 @@ public class Voice_Mod_Create
                     int Spawn_Time_Delay = 0;
                     if (Voice_Type_Now == "kantuu" || Voice_Type_Now == "gekiha")
                     {
-                        if (Voice_Set.SE_Enable_List[4])
+                        if (Voice_Set.SE_Enable_Disable[4])
                         {
                             Spawn_Time_Delay = 400;
                         }
@@ -192,7 +180,7 @@ public class Voice_Mod_Create
             Set_SE_List.AddRange(Directory.GetFiles(SE_Dir, "*", SearchOption.TopDirectoryOnly));
             foreach (string Name_Now in Set_SE_List)
             {
-                string SE_Type_Now = Get_Voice_Type(Name_Now);
+                string SE_Type_Now = Get_Voice_Type_V1(Name_Now);
                 if (SE_Type_Now != SE_Now)
                 {
                     SE_Now = SE_Type_Now;
@@ -292,74 +280,74 @@ public class Voice_Mod_Create
                           "<_IOS_enable>1</_IOS_enable>\n" +
                           "<_BB10_enable>1</_BB10_enable>\n" +
                           "</layer>\n");
-                if (Type_Now == "danyaku" && Voice_Set.SE_Enable_List[2])
+                if (Type_Now == "danyaku" && Voice_Set.SE_Enable_Disable[2])
                 {
                     stw.Write(Set_Layer_By_Name("Danyaku_SE", false));
                 }
-                else if (Type_Now == "gekiha" && Voice_Set.SE_Enable_List[4])
+                else if (Type_Now == "gekiha" && Voice_Set.SE_Enable_Disable[4])
                 {
                     stw.Write(Set_Layer_By_Name("Enable", false));
                 }
-                else if (Type_Now == "hakken" && Voice_Set.SE_Enable_List[11])
+                else if (Type_Now == "hakken" && Voice_Set.SE_Enable_Disable[11])
                 {
                     stw.Write(Set_Layer_By_Name("Spot", false));
                 }
-                else if (Type_Now == "hikantuu" && Voice_Set.SE_Enable_List[8])
+                else if (Type_Now == "hikantuu" && Voice_Set.SE_Enable_Disable[8])
                 {
                     stw.Write(Set_Layer_By_Name("Not_Enable", false));
                 }
-                else if (Type_Now == "kantuu" && Voice_Set.SE_Enable_List[4])
+                else if (Type_Now == "kantuu" && Voice_Set.SE_Enable_Disable[4])
                 {
                     stw.Write(Set_Layer_By_Name("Enable", false));
                 }
-                else if (Type_Now == "tokusyu" && Voice_Set.SE_Enable_List[5])
+                else if (Type_Now == "tokusyu" && Voice_Set.SE_Enable_Disable[5])
                 {
                     stw.Write(Set_Layer_By_Name("Enable_Special", false));
                 }
-                else if (Type_Now == "tyoudan" && Voice_Set.SE_Enable_List[8])
+                else if (Type_Now == "tyoudan" && Voice_Set.SE_Enable_Disable[8])
                 {
                     stw.Write(Set_Layer_By_Name("Not_Enable", false));
                 }
-                else if (Type_Now == "lock" && Voice_Set.SE_Enable_List[13])
+                else if (Type_Now == "lock" && Voice_Set.SE_Enable_Disable[13])
                 {
                     stw.Write(Set_Layer_By_Name("Lock", false));
                 }
-                else if (Type_Now == "musen" && Voice_Set.SE_Enable_List[6])
+                else if (Type_Now == "musen" && Voice_Set.SE_Enable_Disable[6])
                 {
                     stw.Write(Set_Layer_By_Name("Musenki", false));
                 }
-                else if (Type_Now == "nenryou" && Voice_Set.SE_Enable_List[7])
+                else if (Type_Now == "nenryou" && Voice_Set.SE_Enable_Disable[7])
                 {
                     stw.Write(Set_Layer_By_Name("Nenryou_SE", false));
                 }
-                else if (Type_Now == "battle" && Voice_Set.SE_Enable_List[12])
+                else if (Type_Now == "battle" && Voice_Set.SE_Enable_Disable[12])
                 {
                     stw.Write(Set_Layer_By_Name("Timer", true));
                 }
-                else if (Type_Now == "taiha" && Voice_Set.SE_Enable_List[3])
+                else if (Type_Now == "taiha" && Voice_Set.SE_Enable_Disable[3])
                 {
                     stw.Write(Set_Layer_By_Name("Destroy", false));
                 }
-                else if (Type_Now == "lamp" && Voice_Set.SE_Enable_List[10])
+                else if (Type_Now == "lamp" && Voice_Set.SE_Enable_Disable[10])
                 {
                     stw.Write(Set_Layer_By_Name("Sixth", false));
                 }
                 else if (Type_Now == "ryoukai" || Type_Now == "kyohi" || Type_Now == "help" || Type_Now == "attack" || Type_Now == "attack_now" || Type_Now == "capture" || Type_Now == "defence" || Type_Now == "keep" || Type_Now == "map")
                 {
-                    if (Voice_Set.SE_Enable_List[1])
+                    if (Voice_Set.SE_Enable_Disable[1])
                     {
                         stw.Write(Set_Layer_By_Name("Command", false));
                     }
                 }
-                else if (Type_Now == "unlock" && Voice_Set.SE_Enable_List[14])
+                else if (Type_Now == "unlock" && Voice_Set.SE_Enable_Disable[14])
                 {
                     stw.Write(Set_Layer_By_Name("Unlock", false));
                 }
-                else if (Type_Now == "reload" && Voice_Set.SE_Enable_List[9])
+                else if (Type_Now == "reload" && Voice_Set.SE_Enable_Disable[9])
                 {
                     stw.Write(Set_Layer_By_Name("Reload", false));
                 }
-                else if (Type_Now == "battle_end" && Voice_Set.SE_Enable_List[0])
+                else if (Type_Now == "battle_end" && Voice_Set.SE_Enable_Disable[0])
                 {
                     stw.Write(Set_Layer_By_Name("Capture_End", false));
                 }
@@ -470,99 +458,99 @@ public class Voice_Mod_Create
                           "<_BB10_enabled>1</_BB10_enabled>\n" +
                           "</event>\n");
             }
-            if (!Sub_Code.File_Exist_Voice_Type(Voice_Dir, "danyaku") && Voice_Set.SE_Enable_List[2])
+            if (!Sub_Code.File_Exist_Voice_Type(Voice_Dir, "danyaku") && Voice_Set.SE_Enable_Disable[2])
             {
                 stw.Write(Not_Voice_Exist_SE_Add("danyaku", "Danyaku_SE", false));
             }
-            if (!Sub_Code.File_Exist_Voice_Type(Voice_Dir, "gekiha") && Voice_Set.SE_Enable_List[4])
+            if (!Sub_Code.File_Exist_Voice_Type(Voice_Dir, "gekiha") && Voice_Set.SE_Enable_Disable[4])
             {
                 stw.Write(Not_Voice_Exist_SE_Add("gekiha", "Enable", false));
             }
-            if (!Sub_Code.File_Exist_Voice_Type(Voice_Dir, "hakken") && Voice_Set.SE_Enable_List[11])
+            if (!Sub_Code.File_Exist_Voice_Type(Voice_Dir, "hakken") && Voice_Set.SE_Enable_Disable[11])
             {
                 stw.Write(Not_Voice_Exist_SE_Add("hakken", "Spot", false));
             }
-            if (!Sub_Code.File_Exist_Voice_Type(Voice_Dir, "hikantuu") && Voice_Set.SE_Enable_List[8])
+            if (!Sub_Code.File_Exist_Voice_Type(Voice_Dir, "hikantuu") && Voice_Set.SE_Enable_Disable[8])
             {
                 stw.Write(Not_Voice_Exist_SE_Add("hikantuu", "Not_Enable", false));
             }
-            if (!Sub_Code.File_Exist_Voice_Type(Voice_Dir, "kantuu") && Voice_Set.SE_Enable_List[4])
+            if (!Sub_Code.File_Exist_Voice_Type(Voice_Dir, "kantuu") && Voice_Set.SE_Enable_Disable[4])
             {
                 stw.Write(Not_Voice_Exist_SE_Add("kantuu", "Enable", false));
             }
-            if (!Sub_Code.File_Exist_Voice_Type(Voice_Dir, "tokusyu") && Voice_Set.SE_Enable_List[5])
+            if (!Sub_Code.File_Exist_Voice_Type(Voice_Dir, "tokusyu") && Voice_Set.SE_Enable_Disable[5])
             {
                 stw.Write(Not_Voice_Exist_SE_Add("tokusyu", "Enable_Special", false));
             }
-            if (!Sub_Code.File_Exist_Voice_Type(Voice_Dir, "tyoudan") && Voice_Set.SE_Enable_List[8])
+            if (!Sub_Code.File_Exist_Voice_Type(Voice_Dir, "tyoudan") && Voice_Set.SE_Enable_Disable[8])
             {
                 stw.Write(Not_Voice_Exist_SE_Add("tyoudan", "Not_Enable", false));
             }
-            if (!Sub_Code.File_Exist_Voice_Type(Voice_Dir, "lock") && Voice_Set.SE_Enable_List[13])
+            if (!Sub_Code.File_Exist_Voice_Type(Voice_Dir, "lock") && Voice_Set.SE_Enable_Disable[13])
             {
                 stw.Write(Not_Voice_Exist_SE_Add("lock", "Lock", false));
             }
-            if (!Sub_Code.File_Exist_Voice_Type(Voice_Dir, "musen") && Voice_Set.SE_Enable_List[6])
+            if (!Sub_Code.File_Exist_Voice_Type(Voice_Dir, "musen") && Voice_Set.SE_Enable_Disable[6])
             {
                 stw.Write(Not_Voice_Exist_SE_Add("musen", "Musenki", false));
             }
-            if (!Sub_Code.File_Exist_Voice_Type(Voice_Dir, "nenryou") && Voice_Set.SE_Enable_List[7])
+            if (!Sub_Code.File_Exist_Voice_Type(Voice_Dir, "nenryou") && Voice_Set.SE_Enable_Disable[7])
             {
                 stw.Write(Not_Voice_Exist_SE_Add("nenryou", "Nenryou_SE", false));
             }
-            if (!Sub_Code.File_Exist_Voice_Type(Voice_Dir, "battle") && Voice_Set.SE_Enable_List[12])
+            if (!Sub_Code.File_Exist_Voice_Type(Voice_Dir, "battle") && Voice_Set.SE_Enable_Disable[12])
             {
                 stw.Write(Not_Voice_Exist_SE_Add("battle", "Timer", true));
             }
-            if (!Sub_Code.File_Exist_Voice_Type(Voice_Dir, "taiha") && Voice_Set.SE_Enable_List[3])
+            if (!Sub_Code.File_Exist_Voice_Type(Voice_Dir, "taiha") && Voice_Set.SE_Enable_Disable[3])
             {
                 stw.Write(Not_Voice_Exist_SE_Add("taiha", "Destroy", false));
             }
-            if (!Sub_Code.File_Exist_Voice_Type(Voice_Dir, "lamp") && Voice_Set.SE_Enable_List[10])
+            if (!Sub_Code.File_Exist_Voice_Type(Voice_Dir, "lamp") && Voice_Set.SE_Enable_Disable[10])
             {
                 stw.Write(Not_Voice_Exist_SE_Add("lamp", "Sixth", false));
             }
-            if (!Sub_Code.File_Exist_Voice_Type(Voice_Dir, "ryoukai") && Voice_Set.SE_Enable_List[1])
+            if (!Sub_Code.File_Exist_Voice_Type(Voice_Dir, "ryoukai") && Voice_Set.SE_Enable_Disable[1])
             {
                 stw.Write(Not_Voice_Exist_SE_Add("ryoukai", "Command", false));
             }
-            if (!Sub_Code.File_Exist_Voice_Type(Voice_Dir, "kyohi") && Voice_Set.SE_Enable_List[1])
+            if (!Sub_Code.File_Exist_Voice_Type(Voice_Dir, "kyohi") && Voice_Set.SE_Enable_Disable[1])
             {
                 stw.Write(Not_Voice_Exist_SE_Add("kyohi", "Command", false));
             }
-            if (!Sub_Code.File_Exist_Voice_Type(Voice_Dir, "help") && Voice_Set.SE_Enable_List[1])
+            if (!Sub_Code.File_Exist_Voice_Type(Voice_Dir, "help") && Voice_Set.SE_Enable_Disable[1])
             {
                 stw.Write(Not_Voice_Exist_SE_Add("help", "Command", false));
             }
-            if (!Sub_Code.File_Exist_Voice_Type(Voice_Dir, "attack") && Voice_Set.SE_Enable_List[1])
+            if (!Sub_Code.File_Exist_Voice_Type(Voice_Dir, "attack") && Voice_Set.SE_Enable_Disable[1])
             {
                 stw.Write(Not_Voice_Exist_SE_Add("attack", "Command", false));
             }
-            if (!Sub_Code.File_Exist_Voice_Type(Voice_Dir, "attack_now") && Voice_Set.SE_Enable_List[1])
+            if (!Sub_Code.File_Exist_Voice_Type(Voice_Dir, "attack_now") && Voice_Set.SE_Enable_Disable[1])
             {
                 stw.Write(Not_Voice_Exist_SE_Add("attack_now", "Command", false));
             }
-            if (!Sub_Code.File_Exist_Voice_Type(Voice_Dir, "defence") && Voice_Set.SE_Enable_List[1])
+            if (!Sub_Code.File_Exist_Voice_Type(Voice_Dir, "defence") && Voice_Set.SE_Enable_Disable[1])
             {
                 stw.Write(Not_Voice_Exist_SE_Add("defence", "Command", false));
             }
-            if (!Sub_Code.File_Exist_Voice_Type(Voice_Dir, "keep") && Voice_Set.SE_Enable_List[1])
+            if (!Sub_Code.File_Exist_Voice_Type(Voice_Dir, "keep") && Voice_Set.SE_Enable_Disable[1])
             {
                 stw.Write(Not_Voice_Exist_SE_Add("keep", "Command", false));
             }
-            if (!Sub_Code.File_Exist_Voice_Type(Voice_Dir, "map") && Voice_Set.SE_Enable_List[1])
+            if (!Sub_Code.File_Exist_Voice_Type(Voice_Dir, "map") && Voice_Set.SE_Enable_Disable[1])
             {
                 stw.Write(Not_Voice_Exist_SE_Add("map", "Command", false));
             }
-            if (!Sub_Code.File_Exist_Voice_Type(Voice_Dir, "unlock") && Voice_Set.SE_Enable_List[14])
+            if (!Sub_Code.File_Exist_Voice_Type(Voice_Dir, "unlock") && Voice_Set.SE_Enable_Disable[14])
             {
                 stw.Write(Not_Voice_Exist_SE_Add("unlock", "Unlock", false));
             }
-            if (!Sub_Code.File_Exist_Voice_Type(Voice_Dir, "reload") && Voice_Set.SE_Enable_List[9])
+            if (!Sub_Code.File_Exist_Voice_Type(Voice_Dir, "reload") && Voice_Set.SE_Enable_Disable[9])
             {
                 stw.Write(Not_Voice_Exist_SE_Add("reload", "Reload", false));
             }
-            if (!Sub_Code.File_Exist_Voice_Type(Voice_Dir, "battle_end") && Voice_Set.SE_Enable_List[0])
+            if (!Sub_Code.File_Exist_Voice_Type(Voice_Dir, "battle_end") && Voice_Set.SE_Enable_Disable[0])
             {
                 stw.Write(Not_Voice_Exist_SE_Add("battle_end", "Capture_End", false));
             }
@@ -878,7 +866,7 @@ public class Voice_Mod_Create
     }
     //どの音声かを取得
     //例:"battle_01.mp3"->"battle"
-    public static string Get_Voice_Type(string FilePath)
+    public static string Get_Voice_Type_V1(string FilePath)
     {
         string NameOnly = System.IO.Path.GetFileName(FilePath);
         if (!NameOnly.Contains("_"))
@@ -887,6 +875,15 @@ public class Voice_Mod_Create
         }
         return NameOnly.Substring(0, NameOnly.LastIndexOf('_'));
     }
+    public static string Get_Voice_Type_V2(string FilePath)
+    {
+        string NameOnly = System.IO.Path.GetFileName(FilePath);
+        if (!NameOnly.Contains("_"))
+        {
+            return NameOnly;
+        }
+        return NameOnly.Substring(0, NameOnly.IndexOf('_'));
+    }
     //音声の種類のみを抽出
     //種類が被っていたらスキップ
     public static string[] Get_Voice_Type_Only(string[] Voices)
@@ -894,7 +891,7 @@ public class Voice_Mod_Create
         List<string> Type_List = new List<string>();
         foreach (string Type in Voices)
         {
-            string Type_Name = Get_Voice_Type(Type);
+            string Type_Name = Get_Voice_Type_V1(Type);
             bool IsOK = true;
             for (int Number = 0; Number <= Type_List.Count - 1; Number++)
             {
@@ -1216,27 +1213,27 @@ public class Voice_Mod_Create
         try
         {
             Read = File.ReadAllText(Voice_Set.Special_Path + "/Temp_Sounds.yaml", System.Text.Encoding.UTF8);
-            if (Voice_Set.SE_Enable_List[9] || Sub_Code.File_Exist_Voice_Type(Voice_Dir, "reload"))
+            if (Voice_Set.SE_Enable_Disable[9] || Sub_Code.File_Exist_Voice_Type(Voice_Dir, "reload"))
             {
                 Replace_Voice_Line(Project_Name, "GUN_RELOAD", "reload");
             }
-            if (Voice_Set.SE_Enable_List[11] || Sub_Code.File_Exist_Voice_Type(Voice_Dir, "hakken"))
+            if (Voice_Set.SE_Enable_Disable[11] || Sub_Code.File_Exist_Voice_Type(Voice_Dir, "hakken"))
             {
                 Replace_Voice_Line(Project_Name, "ENEMY_SIGHTED", "hakken");
             }
-            if (Voice_Set.SE_Enable_List[10] || Sub_Code.File_Exist_Voice_Type(Voice_Dir, "lamp"))
+            if (Voice_Set.SE_Enable_Disable[10] || Sub_Code.File_Exist_Voice_Type(Voice_Dir, "lamp"))
             {
                 Replace_Voice_Line(Project_Name, "PLAYER_SIGHTED", "lamp");
             }
-            if (Voice_Set.SE_Enable_List[0] || Sub_Code.File_Exist_Voice_Type(Voice_Dir, "battle_end"))
+            if (Voice_Set.SE_Enable_Disable[0] || Sub_Code.File_Exist_Voice_Type(Voice_Dir, "battle_end"))
             {
                 Replace_Voice_Line(Project_Name, "BASE_CAPTURE_FINISH", "battle_end");
             }
-            if (Voice_Set.SE_Enable_List[13] || Sub_Code.File_Exist_Voice_Type(Voice_Dir, "lock"))
+            if (Voice_Set.SE_Enable_Disable[13] || Sub_Code.File_Exist_Voice_Type(Voice_Dir, "lock"))
             {
                 Replace_Voice_Line(Project_Name, "AUTO_ON", "lock");
             }
-            if (Voice_Set.SE_Enable_List[14] || Sub_Code.File_Exist_Voice_Type(Voice_Dir, "unlock"))
+            if (Voice_Set.SE_Enable_Disable[14] || Sub_Code.File_Exist_Voice_Type(Voice_Dir, "unlock"))
             {
                 Replace_Voice_Line(Project_Name, "AUTO_OFF", "unlock");
             }
@@ -1244,19 +1241,19 @@ public class Voice_Mod_Create
             {
                 Replace_Voice_Line(Project_Name, "VOICE_ALLY_KILLED", "mikata");
             }
-            if (Voice_Set.SE_Enable_List[3] || Sub_Code.File_Exist_Voice_Type(Voice_Dir, "taiha"))
+            if (Voice_Set.SE_Enable_Disable[3] || Sub_Code.File_Exist_Voice_Type(Voice_Dir, "taiha"))
             {
                 Replace_Voice_Line(Project_Name, "VOICE_VEHICLE_DESTROYED", "taiha");
             }
-            if (Voice_Set.SE_Enable_List[1] || Sub_Code.File_Exist_Voice_Type(Voice_Dir, "map"))
+            if (Voice_Set.SE_Enable_Disable[1] || Sub_Code.File_Exist_Voice_Type(Voice_Dir, "map"))
             {
                 Replace_Voice_Line(Project_Name, "CHAT_NOTIFICATION", "map");
             }
-            if (Voice_Set.SE_Enable_List[4] || Sub_Code.File_Exist_Voice_Type(Voice_Dir, "kantuu"))
+            if (Voice_Set.SE_Enable_Disable[4] || Sub_Code.File_Exist_Voice_Type(Voice_Dir, "kantuu"))
             {
                 Replace_Voice_Line(Project_Name, "ENEMY_HP_DAMAGED_BY_PROJECTILE_BY_PLAYER", "kantuu");
             }
-            if (Voice_Set.SE_Enable_List[5] || Sub_Code.File_Exist_Voice_Type(Voice_Dir, "tokusyu"))
+            if (Voice_Set.SE_Enable_Disable[5] || Sub_Code.File_Exist_Voice_Type(Voice_Dir, "tokusyu"))
             {
                 Replace_Voice_Line(Project_Name, "ENEMY_HP_DAMAGED_BY_PROJECTILE_AND_CHASSIS_DAMAGED_BY_PLAYER", "tokusyu");
                 Replace_Voice_Line(Project_Name, "ENEMY_HP_DAMAGED_BY_PROJECTILE_AND_GUN_DAMAGED_BY_PLAYER", "tokusyu");
@@ -1267,7 +1264,7 @@ public class Voice_Mod_Create
                 Replace_Voice_Line(Project_Name, "ENEMY_NO_HP_DAMAGE_AT_NO_ATTEMPT_AND_CHASSIS_DAMAGED_BY_PLAYER", "tokusyu");
                 Replace_Voice_Line(Project_Name, "ENEMY_NO_HP_DAMAGE_AT_NO_ATTEMPT_AND_GUN_DAMAGED_BY_PLAYER", "tokusyu");
             }
-            if (Voice_Set.SE_Enable_List[8] || Sub_Code.File_Exist_Voice_Type(Voice_Dir, "hikantuu"))
+            if (Voice_Set.SE_Enable_Disable[8] || Sub_Code.File_Exist_Voice_Type(Voice_Dir, "hikantuu"))
             {
                 Replace_Voice_Line(Project_Name, "ENEMY_RICOCHET_BY_PLAYER", "hikantuu");
                 Replace_Voice_Line(Project_Name, "ENEMY_NO_HP_DAMAGE_AT_ATTEMPT_BY_PLAYER", "hikantuu");
@@ -1277,39 +1274,39 @@ public class Voice_Mod_Create
             {
                 Replace_Voice_Line(Project_Name, "ENEMY_FIRE_STARTED_BY_PLAYER", "tekikasai");
             }
-            if (Voice_Set.SE_Enable_List[1] || Sub_Code.File_Exist_Voice_Type(Voice_Dir, "battle"))
+            if (Voice_Set.SE_Enable_Disable[1] || Sub_Code.File_Exist_Voice_Type(Voice_Dir, "battle"))
             {
                 Replace_Voice_Line(Project_Name, "PREBATTLE_TIMER", "battle");
             }
-            if (Voice_Set.SE_Enable_List[1] || Sub_Code.File_Exist_Voice_Type(Voice_Dir, "ryoukai"))
+            if (Voice_Set.SE_Enable_Disable[1] || Sub_Code.File_Exist_Voice_Type(Voice_Dir, "ryoukai"))
             {
                 Replace_Voice_Line(Project_Name, "QCOMMAND_POSITIVE", "ryoukai");
             }
-            if (Voice_Set.SE_Enable_List[1] || Sub_Code.File_Exist_Voice_Type(Voice_Dir, "kyohi"))
+            if (Voice_Set.SE_Enable_Disable[1] || Sub_Code.File_Exist_Voice_Type(Voice_Dir, "kyohi"))
             {
                 Replace_Voice_Line(Project_Name, "QCOMMAND_NEGATIVE", "kyohi");
             }
-            if (Voice_Set.SE_Enable_List[1] || Sub_Code.File_Exist_Voice_Type(Voice_Dir, "keep"))
+            if (Voice_Set.SE_Enable_Disable[1] || Sub_Code.File_Exist_Voice_Type(Voice_Dir, "keep"))
             {
                 Replace_Voice_Line(Project_Name, "QCOMMAND_HOLD_POSITION", "keep");
             }
-            if (Voice_Set.SE_Enable_List[1] || Sub_Code.File_Exist_Voice_Type(Voice_Dir, "help"))
+            if (Voice_Set.SE_Enable_Disable[1] || Sub_Code.File_Exist_Voice_Type(Voice_Dir, "help"))
             {
                 Replace_Voice_Line(Project_Name, "QCOMMAND_HELP_ME", "help");
             }
-            if (Voice_Set.SE_Enable_List[1] || Sub_Code.File_Exist_Voice_Type(Voice_Dir, "capture"))
+            if (Voice_Set.SE_Enable_Disable[1] || Sub_Code.File_Exist_Voice_Type(Voice_Dir, "capture"))
             {
                 Replace_Voice_Line(Project_Name, "QCOMMAND_CAPTURE_BASE", "capture");
             }
-            if (Voice_Set.SE_Enable_List[1] || Sub_Code.File_Exist_Voice_Type(Voice_Dir, "defence"))
+            if (Voice_Set.SE_Enable_Disable[1] || Sub_Code.File_Exist_Voice_Type(Voice_Dir, "defence"))
             {
                 Replace_Voice_Line(Project_Name, "QCOMMAND_DEFEND_BASE", "defence");
             }
-            if (Voice_Set.SE_Enable_List[1] || Sub_Code.File_Exist_Voice_Type(Voice_Dir, "attack"))
+            if (Voice_Set.SE_Enable_Disable[1] || Sub_Code.File_Exist_Voice_Type(Voice_Dir, "attack"))
             {
                 Replace_Voice_Line(Project_Name, "QCOMMAND_ATTACK", "attack");
             }
-            if (Voice_Set.SE_Enable_List[1] || Sub_Code.File_Exist_Voice_Type(Voice_Dir, "attack_now"))
+            if (Voice_Set.SE_Enable_Disable[1] || Sub_Code.File_Exist_Voice_Type(Voice_Dir, "attack_now"))
             {
                 Replace_Voice_Line(Project_Name, "QCOMMAND_ATTACK_TARGET", "attack_now");
             }
@@ -1346,7 +1343,7 @@ public class Voice_Mod_Create
             {
                 Replace_Voice_Line(Project_Name, "gun_functional", "housinhukkyuu");
             }
-            if (Voice_Set.SE_Enable_List[6] || Sub_Code.File_Exist_Voice_Type(Voice_Dir, "musen"))
+            if (Voice_Set.SE_Enable_Disable[6] || Sub_Code.File_Exist_Voice_Type(Voice_Dir, "musen"))
             {
                 Replace_Voice_Line(Project_Name, "radio_damaged", "musen");
             }
@@ -1414,7 +1411,7 @@ public class Voice_Mod_Create
             {
                 Replace_Voice_Line(Project_Name, "commander_killed", "syatyou");
             }
-            if (Voice_Set.SE_Enable_List[4] || Sub_Code.File_Exist_Voice_Type(Voice_Dir, "gekiha"))
+            if (Voice_Set.SE_Enable_Disable[4] || Sub_Code.File_Exist_Voice_Type(Voice_Dir, "gekiha"))
             {
                 Replace_Voice_Line(Project_Name, "VOICE_ENEMY_KILLED", "gekiha");
             }

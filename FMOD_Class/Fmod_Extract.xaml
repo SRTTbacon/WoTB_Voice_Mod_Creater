@@ -1,14 +1,14 @@
 ﻿<UserControl x:Class="WoTB_Voice_Mod_Creater.FMOD.Fmod_Extract"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             mc:Ignorable="d" 
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
              d:DesignHeight="1080" d:DesignWidth="1920">
     <UserControl.Resources>
-        <SolidColorBrush x:Key="CyanBrush" Color="Gray" />
-        <SolidColorBrush x:Key="PinkBrush" Color="Gray" />
-        <SolidColorBrush x:Key="LimeBrush" Color="Gray" />
+        <SolidColorBrush x:Key="CyanBrush" Color="Gray"/>
+        <SolidColorBrush x:Key="PinkBrush" Color="Gray"/>
+        <SolidColorBrush x:Key="LimeBrush" Color="Gray"/>
         <Style x:Key="SliderThumbStyle" TargetType="{x:Type Thumb}">
             <Setter Property="Template">
                 <Setter.Value>
@@ -26,12 +26,12 @@
                             <ControlTemplate>
                                 <Grid>
                                     <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto" />
-                                        <RowDefinition Height="25" />
-                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="25"/>
+                                        <RowDefinition Height="Auto"/>
                                     </Grid.RowDefinitions>
-                                    <TickBar Grid.Row="0" x:Name="TopTick" Placement="Top" Visibility="Collapsed" Fill="{TemplateBinding Foreground}" Height="8" Opacity="0.64" Margin="0,0,0,2" />
-                                    <TickBar Grid.Row="2" x:Name="BottomTick" Placement="Bottom" Visibility="Collapsed" Fill="{TemplateBinding Foreground}" Height="8" Opacity="0.64" Margin="0,2,0,0" />
+                                    <TickBar Grid.Row="0" x:Name="TopTick" Placement="Top" Visibility="Collapsed" Fill="{TemplateBinding Foreground}" Height="8" Opacity="0.64" Margin="0,0,0,2"/>
+                                    <TickBar Grid.Row="2" x:Name="BottomTick" Placement="Bottom" Visibility="Collapsed" Fill="{TemplateBinding Foreground}" Height="8" Opacity="0.64" Margin="0,2,0,0"/>
                                     <Track Grid.Row="1" x:Name="PART_Track">
                                         <Track.DecreaseRepeatButton>
                                             <RepeatButton Command="Slider.DecreaseLarge" Background="Aqua" Height="5" BorderBrush="{x:Null}" Opacity="0.2"/>
@@ -46,14 +46,14 @@
                                 </Grid>
                                 <ControlTemplate.Triggers>
                                     <Trigger Property="Slider.TickPlacement" Value="TopLeft">
-                                        <Setter TargetName="TopTick" Property="Visibility" Value="Visible" />
+                                        <Setter TargetName="TopTick" Property="Visibility" Value="Visible"/>
                                     </Trigger>
                                     <Trigger Property="Slider.TickPlacement" Value="BottomRight">
-                                        <Setter TargetName="BottomTick" Property="Visibility" Value="Visible" />
+                                        <Setter TargetName="BottomTick" Property="Visibility" Value="Visible"/>
                                     </Trigger>
                                     <Trigger Property="Slider.TickPlacement" Value="Both">
-                                        <Setter TargetName="TopTick" Property="Visibility" Value="Visible" />
-                                        <Setter TargetName="BottomTick" Property="Visibility" Value="Visible" />
+                                        <Setter TargetName="TopTick" Property="Visibility" Value="Visible"/>
+                                        <Setter TargetName="BottomTick" Property="Visibility" Value="Visible"/>
                                     </Trigger>
                                 </ControlTemplate.Triggers>
                             </ControlTemplate>
@@ -70,12 +70,12 @@
                             <ControlTemplate>
                                 <Grid>
                                     <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto" />
-                                        <RowDefinition Height="25" />
-                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="25"/>
+                                        <RowDefinition Height="Auto"/>
                                     </Grid.RowDefinitions>
-                                    <TickBar Grid.Row="0" x:Name="TopTick" Placement="Top" Visibility="Collapsed" Fill="{TemplateBinding Foreground}" Height="8" Opacity="0.64" Margin="0,0,0,2" />
-                                    <TickBar Grid.Row="2" x:Name="BottomTick" Placement="Bottom" Visibility="Collapsed" Fill="{TemplateBinding Foreground}" Height="8" Opacity="0.64" Margin="0,2,0,0" />
+                                    <TickBar Grid.Row="0" x:Name="TopTick" Placement="Top" Visibility="Collapsed" Fill="{TemplateBinding Foreground}" Height="8" Opacity="0.64" Margin="0,0,0,2"/>
+                                    <TickBar Grid.Row="2" x:Name="BottomTick" Placement="Bottom" Visibility="Collapsed" Fill="{TemplateBinding Foreground}" Height="8" Opacity="0.64" Margin="0,2,0,0"/>
                                     <Track Grid.Row="1" x:Name="PART_Track">
                                         <Track.DecreaseRepeatButton>
                                             <RepeatButton Command="Slider.DecreaseLarge" Background="Purple" Height="5" BorderBrush="{x:Null}" Opacity="1"/>
@@ -90,14 +90,14 @@
                                 </Grid>
                                 <ControlTemplate.Triggers>
                                     <Trigger Property="Slider.TickPlacement" Value="TopLeft">
-                                        <Setter TargetName="TopTick" Property="Visibility" Value="Visible" />
+                                        <Setter TargetName="TopTick" Property="Visibility" Value="Visible"/>
                                     </Trigger>
                                     <Trigger Property="Slider.TickPlacement" Value="BottomRight">
-                                        <Setter TargetName="BottomTick" Property="Visibility" Value="Visible" />
+                                        <Setter TargetName="BottomTick" Property="Visibility" Value="Visible"/>
                                     </Trigger>
                                     <Trigger Property="Slider.TickPlacement" Value="Both">
-                                        <Setter TargetName="TopTick" Property="Visibility" Value="Visible" />
-                                        <Setter TargetName="BottomTick" Property="Visibility" Value="Visible" />
+                                        <Setter TargetName="TopTick" Property="Visibility" Value="Visible"/>
+                                        <Setter TargetName="BottomTick" Property="Visibility" Value="Visible"/>
                                     </Trigger>
                                 </ControlTemplate.Triggers>
                             </ControlTemplate>
@@ -128,7 +128,7 @@
             <Button x:Name="Pause_B" Content="停止" Height="75" Margin="-2055,610,0,0" VerticalAlignment="Top" Width="200" Background="Transparent" Foreground="Aqua" FontSize="40" BorderBrush="Aqua" Click="Pause_B_Click"/>
             <TextBlock x:Name="Location_T" Height="50" Width="300" FontSize="40" Foreground="Aqua" TextWrapping="Wrap" Text="00:00" Margin="-1850,705,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
             <Border x:Name="Location_Board" BorderBrush="Aqua" BorderThickness="1" Background="Black" Height="27" Margin="-1850,775,0,0" VerticalAlignment="Top" Width="410" Opacity="0.001" MouseDown="Location_Board_MouseDown"/>
-            <Slider x:Name="Location_S" Height="27" VerticalAlignment="Top"  Width="410" Margin="-1850,775,0,0" Style="{StaticResource CustomSliderStyle}" SmallChange="0.0001" LargeChange="0.0001" Maximum="0" ValueChanged="Location_S_ValueChanged"/>
+            <Slider x:Name="Location_S" Height="27" VerticalAlignment="Top"  Width="410" Margin="-1850,775,0,0" Style="{StaticResource CustomSliderStyle}" SmallChange="0" LargeChange="0" Maximum="0" ValueChanged="Location_S_ValueChanged"/>
             <Button x:Name="Minus_B" Content="-5秒" Height="75" Margin="-1055,610,0,0" VerticalAlignment="Top" Width="200" Background="Transparent" Foreground="Aqua" FontSize="40" BorderBrush="Aqua" Click="Minus_B_Click"/>
             <Button x:Name="Plus_B" Content="+5秒" Height="75" Margin="-645,610,0,0" VerticalAlignment="Top" Width="200" Background="Transparent" Foreground="Aqua" FontSize="40" BorderBrush="Aqua" Click="Plus_B_Click"/>
             <Button x:Name="Extract_B" Content="抽出開始" Height="75" Margin="-880,750,0,0" VerticalAlignment="Top" Width="300" Background="Transparent" Foreground="Aqua" FontSize="40" BorderBrush="Aqua" Click="Extract_B_Click"/>

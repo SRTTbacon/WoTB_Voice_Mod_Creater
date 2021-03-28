@@ -37,6 +37,31 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         //画面を表示
         public async void Window_Show()
         {
+            if (File.Exists(Voice_Set.Special_Path + "/Configs/Change_To_Wwise.conf"))
+            {
+                try
+                {
+                    using (var eifs = new FileStream(Voice_Set.Special_Path + "/Configs/Change_To_Wwise.conf", FileMode.Open, FileAccess.Read))
+                    {
+                        using (var eofs = new FileStream(Voice_Set.Special_Path + "/Configs/Change_To_Wwise.tmp", FileMode.Create, FileAccess.Write))
+                        {
+                            FileEncode.FileEncryptor.Decrypt(eifs, eofs, "Wwise_Setting_Configs_Save");
+                        }
+                    }
+                    StreamReader str = new StreamReader(Voice_Set.Special_Path + "/Configs/Change_To_Wwise.tmp");
+                    DVPL_C.IsChecked = bool.Parse(str.ReadLine());
+                    Install_C.IsChecked = bool.Parse(str.ReadLine());
+                    str.Close();
+                    File.Delete(Voice_Set.Special_Path + "/Configs/Change_To_Wwise.tmp");
+                }
+                catch (Exception e)
+                {
+                    System.Windows.MessageBox.Show("設定を読み込めませんでした。。\nエラー回避のため設定は削除されます。");
+                    File.Delete(Voice_Set.Special_Path + "/Configs/Change_To_Wwise.conf");
+                    File.Delete(Voice_Set.Special_Path + "/Configs/Change_To_Wwise.tmp");
+                    Sub_Code.Error_Log_Write(e.Message);
+                }
+            }
             Opacity = 0;
             Visibility = Visibility.Visible;
             while (Opacity < 1 && !IsClosing)
@@ -66,7 +91,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             if (IsMessageShowing)
             {
                 IsMessageShowing = false;
-                await Task.Delay(1000 / 59);
+                await Task.Delay(1000 / 30);
             }
             Message_T.Text = Message;
             IsMessageShowing = true;
@@ -363,16 +388,38 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                     Wwise.Save();
                     Directory.Delete(Voice_Set.Special_Path + "/Wwise/FSB_Extract_Voices", true);
                     Wwise.Project_Build("voiceover_crew", sfd.SelectedFolder + "/voiceover_crew.bnk");
-                    await Task.Delay(1000);
+                    await Task.Delay(500);
                     Wwise.Project_Build("ui_battle", sfd.SelectedFolder + "/ui_battle.bnk");
-                    await Task.Delay(1000);
+                    await Task.Delay(500);
                     Wwise.Project_Build("ui_chat_quick_commands", sfd.SelectedFolder + "/ui_chat_quick_commands.bnk");
-                    await Task.Delay(1000);
+                    await Task.Delay(500);
                     Wwise.Project_Build("reload", sfd.SelectedFolder + "/reload.bnk");
                     Wwise.Clear();
                     if (File.Exists(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Backup.tmp"))
                     {
                         File.Copy(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Backup.tmp", Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Default Work Unit.wwu", true);
+                    }
+                    if (DVPL_C.IsChecked.Value)
+                    {
+                        Message_T.Text = "DVPL化しています...";
+                        await Task.Delay(50);
+                        DVPL.DVPL_Pack(sfd.SelectedFolder + "/voiceover_crew.bnk", sfd.SelectedFolder + "/voiceover_crew.bnk.dvpl", true);
+                        DVPL.DVPL_Pack(sfd.SelectedFolder + "/ui_battle.bnk", sfd.SelectedFolder + "/ui_battle.bnk.dvpl", true);
+                        DVPL.DVPL_Pack(sfd.SelectedFolder + "/ui_chat_quick_commands.bnk", sfd.SelectedFolder + "/ui_chat_quick_commands.bnk.dvpl", true);
+                        DVPL.DVPL_Pack(sfd.SelectedFolder + "/reload.bnk", sfd.SelectedFolder + "/reload.bnk.dvpl", true);
+                    }
+                    if (Install_C.IsChecked.Value)
+                    {
+                        Message_T.Text = "WoTBに適応しています...";
+                        await Task.Delay(50);
+                        Sub_Code.DVPL_File_Delete(Voice_Set.WoTB_Path + "/Data/WwiseSound/ja/voiceover_crew.bnk");
+                        Sub_Code.DVPL_File_Delete(Voice_Set.WoTB_Path + "/Data/WwiseSound/ui_battle.bnk");
+                        Sub_Code.DVPL_File_Delete(Voice_Set.WoTB_Path + "/Data/WwiseSound/ui_chat_quick_commands.bnk");
+                        Sub_Code.DVPL_File_Delete(Voice_Set.WoTB_Path + "/Data/WwiseSound/reload.bnk");
+                        Sub_Code.DVPL_File_Copy(sfd.SelectedFolder + "/voiceover_crew.bnk", Voice_Set.WoTB_Path + "/Data/WwiseSound/ja/voiceover_crew.bnk", true);
+                        Sub_Code.DVPL_File_Copy(sfd.SelectedFolder + "/ui_battle.bnk", Voice_Set.WoTB_Path + "/Data/WwiseSound/ui_battle.bnk", true);
+                        Sub_Code.DVPL_File_Copy(sfd.SelectedFolder + "/ui_chat_quick_commands.bnk", Voice_Set.WoTB_Path + "/Data/WwiseSound/ui_chat_quick_commands.bnk", true);
+                        Sub_Code.DVPL_File_Copy(sfd.SelectedFolder + "/reload.bnk", Voice_Set.WoTB_Path + "/Data/WwiseSound/reload.bnk", true);
                     }
                     Message_Feed_Out("完了しました。\nファイル容量が極端に少ない場合は失敗している可能性があります。");
                 }
@@ -383,6 +430,43 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 Message_Feed_Out("エラーが発生しました。詳しくはLog.txtを参照してください。");
             }
             IsClosing = false;
+        }
+        private void Install_Help_B_Click(object sender, RoutedEventArgs e)
+        {
+            string Message_01 = "・音声ファイル(voiceover_crew.bnk)は、'/Data/WwiseSound/ja'に配置されるため、国籍音声を有効化している場合は、日本の車両でしか再生されません。\n";
+            string Message_02 = "・音声を再生するには、ゲーム内の言語を日本語にする必要があります。音声ファイル以外のファイルは言語を問わず再生されるはずです。\n";
+            string Message_03 = "・WoTB内のファイルは上書きされるため、事前にバックアップを取っておくと良いかもしれません。";
+            System.Windows.MessageBox.Show(Message_01 + Message_02 + Message_03);
+        }
+        private void DVPL_C_Click(object sender, RoutedEventArgs e)
+        {
+            Configs_Save();
+        }
+        private void Install_C_Click(object sender, RoutedEventArgs e)
+        {
+            Configs_Save();
+        }
+        void Configs_Save()
+        {
+            try
+            {
+                StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Configs/Change_To_Wwise.tmp");
+                stw.WriteLine(DVPL_C.IsChecked.Value);
+                stw.Write(Install_C.IsChecked.Value);
+                stw.Close();
+                using (var eifs = new FileStream(Voice_Set.Special_Path + "/Configs/Change_To_Wwise.tmp", FileMode.Open, FileAccess.Read))
+                {
+                    using (var eofs = new FileStream(Voice_Set.Special_Path + "/Configs/Change_To_Wwise.conf", FileMode.Create, FileAccess.Write))
+                    {
+                        FileEncode.FileEncryptor.Encrypt(eifs, eofs, "Wwise_Setting_Configs_Save");
+                    }
+                }
+                File.Delete(Voice_Set.Special_Path + "/Configs/Change_To_Wwise.tmp");
+            }
+            catch (Exception e)
+            {
+                Sub_Code.Error_Log_Write(e.Message);
+            }
         }
     }
 }

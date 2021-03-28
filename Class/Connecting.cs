@@ -13,7 +13,7 @@ namespace WoTB_Voice_Mod_Creater
         {
             while (true)
             {
-                if (Connectiong != Voice_Set.FTP_Server.IsConnected)
+                if (Connectiong != Voice_Set.FTP_Server.IsConnected && !IsClosing)
                 {
                     Connectiong = Voice_Set.FTP_Server.IsConnected;
                     Connect_Mode_Layout();
@@ -24,7 +24,7 @@ namespace WoTB_Voice_Mod_Creater
             }
         }
         //アカウントが存在するか
-        bool Account_Exist(string UserName,string Password)
+        bool Account_Exist(string UserName, string Password)
         {
             Stream stream = Voice_Set.FTP_Server.OpenRead("/WoTB_Voice_Mod/Accounts.dat");
             StreamReader streamReader = new StreamReader(stream);

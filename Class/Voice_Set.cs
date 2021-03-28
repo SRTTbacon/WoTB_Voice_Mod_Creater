@@ -12,7 +12,7 @@ namespace WoTB_Voice_Mod_Creater
     {
         static List<List<string>> Voice_BGM_Change_List = new List<List<string>>();
         static List<string> Voice_Lists = new List<string>();
-        static List<bool> SE_Enable_Disable = new List<bool>();
+        public static List<bool> SE_Enable_Disable = new List<bool>();
         static string Special_Path_Dir = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "/WoTB_Voice_Mod_Creater";
         static string Server_Name = "";
         static string User_Name = "";
@@ -50,11 +50,6 @@ namespace WoTB_Voice_Mod_Creater
         {
             get { return User_Name; }
             set { User_Name = value; }
-        }
-        public static List<bool> SE_Enable_List
-        {
-            get { return SE_Enable_Disable; }
-            set { SE_Enable_Disable = value; }
         }
         public static bool App_Busy
         {
@@ -172,6 +167,7 @@ namespace WoTB_Voice_Mod_Creater
                 }
                 catch (Exception e)
                 {
+                    Sub_Code.Error_Log_Write(e.Message);
                     MessageBox.Show("エラー:" + e.Message);
                 }
             }
@@ -870,6 +866,180 @@ namespace WoTB_Voice_Mod_Creater
                         }
                     }
                 }
+            }
+        }
+        public static void Set_SE_Change_Name()
+        {
+            string SE_Dir = Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Originals/Voices/ja";
+            if (SE_Enable_Disable[0])
+            {
+                Sub_Code.File_Move(SE_Dir + "/Capture_Finish_SE.wav", SE_Dir + "/Capture_Finish_SE_tmp.wav", true);
+                Sub_Code.File_Move(SE_Dir + "/capture_end_tmp.wav", SE_Dir + "/capture_end.wav", true);
+                Sub_Code.File_Move(SE_Dir + "/capture_end_01_tmp.wav", SE_Dir + "/capture_end_01.wav", true);
+            }
+            else
+            {
+                Sub_Code.File_Move(SE_Dir + "/capture_end.wav", SE_Dir + "/capture_end_tmp.wav", true);
+                Sub_Code.File_Move(SE_Dir + "/capture_end_01.wav", SE_Dir + "/capture_end_01_tmp.wav", true);
+                Sub_Code.File_Move(SE_Dir + "/Capture_Finish_SE_tmp.wav", SE_Dir + "/Capture_Finish_SE.wav", true);
+            }
+            if (SE_Enable_Disable[1])
+            {
+                Sub_Code.File_Move(SE_Dir + "/quick_commands_attack.wav", SE_Dir + "/quick_commands_attack_tmp.wav", true);
+                Sub_Code.File_Move(SE_Dir + "/quick_commands_attack_target.wav", SE_Dir + "/quick_commands_attack_target_tmp.wav", true);
+                Sub_Code.File_Move(SE_Dir + "/quick_commands_capture_base.wav", SE_Dir + "/quick_commands_capture_base_tmp.wav", true);
+                Sub_Code.File_Move(SE_Dir + "/quick_commands_positive.wav", SE_Dir + "/quick_commands_positive_tmp.wav", true);
+                Sub_Code.File_Move(SE_Dir + "/quick_commands_defend_base.wav", SE_Dir + "/quick_commands_defend_base_tmp.wav", true);
+                Sub_Code.File_Move(SE_Dir + "/quick_commands_help_me.wav", SE_Dir + "/quick_commands_help_me_tmp.wav", true);
+                Sub_Code.File_Move(SE_Dir + "/quick_commands_negative.wav", SE_Dir + "/quick_commands_negative_tmp.wav", true);
+                Sub_Code.File_Move(SE_Dir + "/quick_commands_reloading.wav", SE_Dir + "/quick_commands_reloading_tmp.wav", true);
+                Sub_Code.File_Move(SE_Dir + "/command_tmp.wav", SE_Dir + "/command.wav", true);
+            }
+            else
+            {
+                Sub_Code.File_Move(SE_Dir + "/quick_commands_attack_tmp.wav", SE_Dir + "/quick_commands_attack.wav", true);
+                Sub_Code.File_Move(SE_Dir + "/quick_commands_attack_target_tmp.wav", SE_Dir + "/quick_commands_attack_target.wav", true);
+                Sub_Code.File_Move(SE_Dir + "/quick_commands_capture_base_tmp.wav", SE_Dir + "/quick_commands_capture_base.wav", true);
+                Sub_Code.File_Move(SE_Dir + "/quick_commands_positive_tmp.wav", SE_Dir + "/quick_commands_positive.wav", true);
+                Sub_Code.File_Move(SE_Dir + "/quick_commands_defend_base_tmp.wav", SE_Dir + "/quick_commands_defend_base.wav", true);
+                Sub_Code.File_Move(SE_Dir + "/quick_commands_help_me_tmp.wav", SE_Dir + "/quick_commands_help_me.wav", true);
+                Sub_Code.File_Move(SE_Dir + "/quick_commands_negative_tmp.wav", SE_Dir + "/quick_commands_negative.wav", true);
+                Sub_Code.File_Move(SE_Dir + "/quick_commands_reloading_tmp.wav", SE_Dir + "/quick_commands_reloading.wav", true);
+                Sub_Code.File_Move(SE_Dir + "/command.wav", SE_Dir + "/command_tmp.wav", true);
+            }
+            if (SE_Enable_Disable[2])
+            {
+                Sub_Code.File_Move(SE_Dir + "/danyaku_SE_tmp.wav", SE_Dir + "/danyaku_SE.wav", true);
+            }
+            else
+            {
+                Sub_Code.File_Move(SE_Dir + "/danyaku_SE.wav", SE_Dir + "/danyaku_SE_tmp.wav", true);
+            }
+            if (SE_Enable_Disable[3])
+            {
+                Sub_Code.File_Move(SE_Dir + "/destroy_tmp.wav", SE_Dir + "/destroy.wav", true);
+            }
+            else
+            {
+                Sub_Code.File_Move(SE_Dir + "/destroy.wav", SE_Dir + "/destroy_tmp.wav", true);
+            }
+            if (SE_Enable_Disable[4])
+            {
+                Sub_Code.File_Move(SE_Dir + "/trung_dich_tmp.wav", SE_Dir + "/trung_dich.wav", true);
+                Sub_Code.File_Move(SE_Dir + "/trung_dich_2_tmp.wav", SE_Dir + "/trung_dich_2.wav", true);
+                Sub_Code.File_Move(SE_Dir + "/trung_dich_3_tmp.wav", SE_Dir + "/trung_dich_3.wav", true);
+            }
+            else
+            {
+                Sub_Code.File_Move(SE_Dir + "/trung_dich.wav", SE_Dir + "/trung_dich_tmp.wav", true);
+                Sub_Code.File_Move(SE_Dir + "/trung_dich_2.wav", SE_Dir + "/trung_dich_2_tmp.wav", true);
+                Sub_Code.File_Move(SE_Dir + "/trung_dich_3.wav", SE_Dir + "/trung_dich_3_tmp.wav", true);
+            }
+            if (SE_Enable_Disable[5])
+            {
+                Sub_Code.File_Move(SE_Dir + "/kantuu_specia_02_tmp.wav", SE_Dir + "/kantuu_specia_02.wav", true);
+            }
+            else
+            {
+                Sub_Code.File_Move(SE_Dir + "/kantuu_specia_02.wav", SE_Dir + "/kantuu_specia_02_tmp.wav", true);
+            }
+            if (SE_Enable_Disable[7])
+            {
+                Sub_Code.File_Move(SE_Dir + "/nenryou_SE_tmp.wav", SE_Dir + "/nenryou_SE.wav", true);
+            }
+            else
+            {
+                Sub_Code.File_Move(SE_Dir + "/nenryou_SE.wav", SE_Dir + "/nenryou_SE_tmp.wav", true);
+            }
+            if (SE_Enable_Disable[8])
+            {
+                Sub_Code.File_Move(SE_Dir + "/not_enable_tmp.wav", SE_Dir + "/not_enable.wav", true);
+            }
+            else
+            {
+                Sub_Code.File_Move(SE_Dir + "/not_enable.wav", SE_Dir + "/not_enable_tmp.wav", true);
+            }
+            if (SE_Enable_Disable[9])
+            {
+                Sub_Code.File_Move(SE_Dir + "/reload_se_01_tmp.wav", SE_Dir + "/reload_se_01.wav", true);
+                Sub_Code.File_Move(SE_Dir + "/reload_se_02_tmp.wav", SE_Dir + "/reload_se_02.wav", true);
+                Sub_Code.File_Move(SE_Dir + "/reload_se_03_tmp.wav", SE_Dir + "/reload_se_03.wav", true);
+                Sub_Code.File_Move(SE_Dir + "/reload_se_04_tmp.wav", SE_Dir + "/reload_se_04.wav", true);
+                Sub_Code.File_Move(SE_Dir + "/reload_se_05_tmp.wav", SE_Dir + "/reload_se_05.wav", true);
+                Sub_Code.File_Move(SE_Dir + "/reload_se_06_tmp.wav", SE_Dir + "/reload_se_06.wav", true);
+                Sub_Code.File_Move(SE_Dir + "/howitzer_load_01.wav", SE_Dir + "/howitzer_load_01_tmp.wav", true);
+                Sub_Code.File_Move(SE_Dir + "/howitzer_load_03.wav", SE_Dir + "/howitzer_load_03_tmp.wav", true);
+                Sub_Code.File_Move(SE_Dir + "/howitzer_load_04.wav", SE_Dir + "/howitzer_load_04_tmp.wav", true);
+                Sub_Code.File_Move(SE_Dir + "/howitzer_load_05.wav", SE_Dir + "/howitzer_load_05_tmp.wav", true);
+            }
+            else
+            {
+                Sub_Code.File_Move(SE_Dir + "/reload_se_01.wav", SE_Dir + "/reload_se_01_tmp.wav", true);
+                Sub_Code.File_Move(SE_Dir + "/reload_se_02.wav", SE_Dir + "/reload_se_02_tmp.wav", true);
+                Sub_Code.File_Move(SE_Dir + "/reload_se_03.wav", SE_Dir + "/reload_se_03_tmp.wav", true);
+                Sub_Code.File_Move(SE_Dir + "/reload_se_04.wav", SE_Dir + "/reload_se_04_tmp.wav", true);
+                Sub_Code.File_Move(SE_Dir + "/reload_se_05.wav", SE_Dir + "/reload_se_05_tmp.wav", true);
+                Sub_Code.File_Move(SE_Dir + "/reload_se_06.wav", SE_Dir + "/reload_se_06_tmp.wav", true);
+                Sub_Code.File_Move(SE_Dir + "/howitzer_load_01_tmp.wav", SE_Dir + "/howitzer_load_01.wav", true);
+                Sub_Code.File_Move(SE_Dir + "/howitzer_load_03_tmp.wav", SE_Dir + "/howitzer_load_03.wav", true);
+                Sub_Code.File_Move(SE_Dir + "/howitzer_load_04_tmp.wav", SE_Dir + "/howitzer_load_04.wav", true);
+                Sub_Code.File_Move(SE_Dir + "/howitzer_load_05_tmp.wav", SE_Dir + "/howitzer_load_05.wav", true);
+            }
+            if (SE_Enable_Disable[10])
+            {
+                Sub_Code.File_Move(SE_Dir + "/sixth_01_tmp.wav", SE_Dir + "/sixth_01.wav", true);
+                Sub_Code.File_Move(SE_Dir + "/sixth_02_tmp.wav", SE_Dir + "/sixth_02.wav", true);
+                Sub_Code.File_Move(SE_Dir + "/sixth_03_tmp.wav", SE_Dir + "/sixth_03.wav", true);
+                Sub_Code.File_Move(SE_Dir + "/lamp_SE_01.wav", SE_Dir + "/lamp_SE_01_tmp.wav", true);
+            }
+            else
+            {
+                Sub_Code.File_Move(SE_Dir + "/sixth_01.wav", SE_Dir + "/sixth_01_tmp.wav", true);
+                Sub_Code.File_Move(SE_Dir + "/sixth_02.wav", SE_Dir + "/sixth_02_tmp.wav", true);
+                Sub_Code.File_Move(SE_Dir + "/sixth_03.wav", SE_Dir + "/sixth_03_tmp.wav", true);
+                Sub_Code.File_Move(SE_Dir + "/lamp_SE_01_tmp.wav", SE_Dir + "/lamp_SE_01.wav", true);
+            }
+            if (SE_Enable_Disable[11])
+            {
+                Sub_Code.File_Move(SE_Dir + "/spot_tmp.wav", SE_Dir + "/spot.wav", true);
+                Sub_Code.File_Move(SE_Dir + "/enemy_sight.wav", SE_Dir + "/enemy_sight_tmp.wav", true);
+            }
+            else
+            {
+                Sub_Code.File_Move(SE_Dir + "/spot.wav", SE_Dir + "/spot_tmp.wav", true);
+                Sub_Code.File_Move(SE_Dir + "/enemy_sight_tmp.wav", SE_Dir + "/enemy_sight.wav", true);
+            }
+            if (SE_Enable_Disable[12])
+            {
+                Sub_Code.File_Move(SE_Dir + "/timer_tmp.wav", SE_Dir + "/timer.wav", true);
+                Sub_Code.File_Move(SE_Dir + "/timer1_tmp.wav", SE_Dir + "/timer1.wav", true);
+                Sub_Code.File_Move(SE_Dir + "/Timer_SE.wav", SE_Dir + "/Timer_SE_tmp.wav", true);
+            }
+            else
+            {
+                Sub_Code.File_Move(SE_Dir + "/timer.wav", SE_Dir + "/timer_tmp.wav", true);
+                Sub_Code.File_Move(SE_Dir + "/timer1.wav", SE_Dir + "/timer1_tmp.wav", true);
+                Sub_Code.File_Move(SE_Dir + "/Timer_SE_tmp.wav", SE_Dir + "/Timer_SE.wav", true);
+            }
+            if (SE_Enable_Disable[13])
+            {
+                Sub_Code.File_Move(SE_Dir + "/lock_on_tmp.wav", SE_Dir + "/lock_on.wav", true);
+                Sub_Code.File_Move(SE_Dir + "/target_on_SE_01.wav", SE_Dir + "/target_on_SE_01_tmp.wav", true);
+            }
+            else
+            {
+                Sub_Code.File_Move(SE_Dir + "/lock_on.wav", SE_Dir + "/lock_on_tmp.wav", true);
+                Sub_Code.File_Move(SE_Dir + "/target_on_SE_01_tmp.wav", SE_Dir + "/target_on_SE_01.wav", true);
+            }
+            if (SE_Enable_Disable[14])
+            {
+                Sub_Code.File_Move(SE_Dir + "/unlock_tmp.wav", SE_Dir + "/unlock.wav", true);
+                Sub_Code.File_Move(SE_Dir + "/target_off_SE_01.wav", SE_Dir + "/target_off_SE_01_tmp.wav", true);
+            }
+            else
+            {
+                Sub_Code.File_Move(SE_Dir + "/unlock.wav", SE_Dir + "/unlock_tmp.wav", true);
+                Sub_Code.File_Move(SE_Dir + "/target_off_SE_01_tmp.wav", SE_Dir + "/target_off_SE_01.wav", true);
             }
         }
     }

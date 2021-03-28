@@ -1,15 +1,17 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using WMPLib;
+using Un4seen.Bass;
+using Un4seen.Bass.AddOn.Fx;
 
 namespace WoTB_Voice_Mod_Creater.Class
 {
     public partial class Save_Configs : UserControl
     {
-        readonly WindowsMediaPlayer Player = new WindowsMediaPlayer();
         readonly BrushConverter bc = new BrushConverter();
         List<string> Voice_Type = new List<string>();
         List<int> Voice_Type_Number = new List<int>();
@@ -19,8 +21,9 @@ namespace WoTB_Voice_Mod_Creater.Class
         int Select_SE_File_Count = 0;
         int SE_Play_Index = 1;
         int Select_Language = 10;
+        int Stream;
+        double Wwise_Version = 1.0;
         bool IsBusy = false;
-        bool IsSEStop = false;
         bool IsNewMode = false;
         bool IsMessageShowing = false;
         public Save_Configs()
@@ -43,16 +46,15 @@ namespace WoTB_Voice_Mod_Creater.Class
             SE_Lists.Items.Add("アンロック | 有効");
             for (int Number = 0; Number <= 14; Number++)
             {
-                Voice_Set.SE_Enable_List.Add(true);
+                Voice_Set.SE_Enable_Disable.Add(true);
             }
-            Player.settings.volume = 100;
         }
         async void Message_Feed_Out(string Message)
         {
             if (IsMessageShowing)
             {
                 IsMessageShowing = false;
-                await Task.Delay(1000 / 59);
+                await Task.Delay(1000 / 30);
             }
             Message_T.Text = Message;
             IsMessageShowing = true;
@@ -63,7 +65,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Number++;
                 if (Number >= 120)
                 {
-                    Message_T.Opacity -= 0.025;
+                    Message_T.Opacity -= Sub_Code.Window_Feed_Time;
                 }
                 await Task.Delay(1000 / 60);
             }
@@ -74,6 +76,10 @@ namespace WoTB_Voice_Mod_Creater.Class
         public void Window_Show(bool IsNewMode)
         {
             //画面を表示(マルチで行った場合)
+            Volume_Set_C.Visibility = Visibility.Visible;
+            Volume_Set_T.Visibility = Visibility.Visible;
+            Exit_B.Visibility = Visibility.Visible;
+            Save_B.Content = "作成";
             if (IsNewMode)
             {
                 Android_C.Visibility = Visibility.Hidden;
@@ -86,6 +92,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Android_T.Visibility = Visibility.Visible;
                 Android_Help_B.Visibility = Visibility.Visible;
             }
+            Configs_Load();
             SE_Dir = Voice_Set.Special_Path + "/Server/" + Voice_Set.SRTTbacon_Server_Name + "/Voices/SE";
             Project_T.Text = "プロジェクト名:" + Voice_Set.SRTTbacon_Server_Name;
             Sub_Code.Get_Voice_Type_And_Index(Voice_Set.Special_Path + "/Server/" + Voice_Set.SRTTbacon_Server_Name + "/Voices", ref Voice_Type, ref Voice_Type_Number);
@@ -97,6 +104,10 @@ namespace WoTB_Voice_Mod_Creater.Class
         public void Window_Show_V2(string Project_Name, List<List<string>> Lists, bool IsNewMode)
         {
             //画面を表示(オフラインモードで行った場合)
+            Volume_Set_C.Visibility = Visibility.Visible;
+            Volume_Set_T.Visibility = Visibility.Visible;
+            Exit_B.Visibility = Visibility.Visible;
+            Save_B.Content = "作成";
             if (IsNewMode)
             {
                 Android_C.Visibility = Visibility.Hidden;
@@ -113,6 +124,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Android_T.Text = "Android用";
                 Android_Help_B.Margin = new Thickness(-1525, 892, 0, 0);
             }
+            Configs_Load();
             this.IsNewMode = IsNewMode;
             SE_Dir = Voice_Set.Special_Path + "/SE";
             Project_T.Text = "プロジェクト名:" + Project_Name;
@@ -125,6 +137,91 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Voice_Lists.Items.Add(Name + ":" + Number_01 + "個");
             }
         }
+        public async void Window_Show_V3(string BNK_Name, List<List<string>> Lists)
+        {
+            Opacity = 0;
+            Visibility = Visibility.Visible;
+            Android_C.Visibility = Visibility.Hidden;
+            Language_Left_B.Visibility = Visibility.Hidden;
+            Language_Right_B.Visibility = Visibility.Hidden;
+            Android_T.Visibility = Visibility.Hidden;
+            Android_Help_B.Visibility = Visibility.Hidden;
+            Volume_Set_C.Visibility = Visibility.Hidden;
+            Volume_Set_T.Visibility = Visibility.Hidden;
+            DVPL_C.Visibility = Visibility.Hidden;
+            DVPL_T.Visibility = Visibility.Hidden;
+            Exit_B.Visibility = Visibility.Hidden;
+            Save_B.Content = "保存";
+            Configs_Load();
+            SE_Dir = Voice_Set.Special_Path + "/SE";
+            Project_T.Text = "プロジェクト名:" + BNK_Name;
+            for (int Number = 0; Number <= Lists.Count - 1; Number++)
+            {
+                string Name = Voice_Set.Get_Voice_Type_Japanese_Name_V2(Number);
+                int Number_01 = Lists[Number].Count;
+                Voice_Type.Add(Name);
+                Voice_Type_Number.Add(Number_01);
+                Voice_Lists.Items.Add(Name + ":" + Number_01 + "個");
+            }
+            while (Opacity < 1)
+            {
+                Opacity += Sub_Code.Window_Feed_Time;
+                await Task.Delay(1000 / 60);
+            }
+        }
+        void Configs_Load()
+        {
+            if (File.Exists(Voice_Set.Special_Path + "/Configs/Save_Configs.conf"))
+            {
+                try
+                {
+                    using (var eifs = new FileStream(Voice_Set.Special_Path + "/Configs/Save_Configs.conf", FileMode.Open, FileAccess.Read))
+                    {
+                        using (var eofs = new FileStream(Voice_Set.Special_Path + "/Configs/Save_Configs.tmp", FileMode.Create, FileAccess.Write))
+                        {
+                            FileEncode.FileEncryptor.Decrypt(eifs, eofs, "Save_Configs_Configs_Save");
+                        }
+                    }
+                    StreamReader str = new StreamReader(Voice_Set.Special_Path + "/Configs/Save_Configs.tmp");
+                    Volume_Set_C.IsChecked = bool.Parse(str.ReadLine());
+                    DVPL_C.IsChecked = bool.Parse(str.ReadLine());
+                    for (int Number = 0; Number <= 14; Number++)
+                    {
+                        Voice_Set.SE_Enable_Disable[Number] = bool.Parse(str.ReadLine());
+                        if (Voice_Set.SE_Enable_Disable[Number])
+                        {
+                            SE_Lists.Items[Number] = SE_Lists.Items[Number].ToString().Replace("| 無効", "| 有効");
+                        }
+                        else
+                        {
+                            SE_Lists.Items[Number] = SE_Lists.Items[Number].ToString().Replace("| 有効", "| 無効");
+                        }
+                    }
+                    str.Close();
+                    File.Delete(Voice_Set.Special_Path + "/Configs/Save_Configs.tmp");
+                }
+                catch (Exception e)
+                {
+                    System.Windows.MessageBox.Show("設定を読み込めませんでした。。\nエラー回避のため設定は削除されます。");
+                    File.Delete(Voice_Set.Special_Path + "/Configs/Save_Configs.conf");
+                    Sub_Code.Error_Log_Write(e.Message);
+                }
+            }
+            try
+            {
+                if (File.Exists(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Version.dat"))
+                {
+                    StreamReader str = new StreamReader(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Version.dat");
+                    Wwise_Version = double.Parse(str.ReadLine());
+                    str.Close();
+                }
+            }
+            catch (Exception e)
+            {
+                Sub_Code.Error_Log_Write(e.Message);
+                Message_Feed_Out("Wwiseプロジェクトのバージョンを取得できませんでした。");
+            }
+        }
         private void SE_Lists_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (IsBusy || SE_Lists.SelectedIndex == -1)
@@ -133,7 +230,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             }
             SE_Play_Index = 1;
             //選択したSEの状態によって色を変更
-            if (Voice_Set.SE_Enable_List[SE_Lists.SelectedIndex])
+            if (Voice_Set.SE_Enable_Disable[SE_Lists.SelectedIndex])
             {
                 SE_Disable_B.Background = Brushes.Transparent;
                 SE_Disable_B.BorderBrush = Brushes.Aqua;
@@ -218,52 +315,35 @@ namespace WoTB_Voice_Mod_Creater.Class
                 SE_Play();
             }
         }
-        async void SE_Play()
+        void SE_Play()
         {
-            if (Player.playState != WMPPlayState.wmppsPlaying)
+            //選択しているSEを再生
+            if (IsBusy)
             {
-                //選択しているSEを再生
-                if (IsBusy)
-                {
-                    return;
-                }
-                IsSEStop = false;
-                //SEの拡張子がわからないためFile_Get_FileName_No_Extension()で取得して指定
-                if (SE_Play_Index < 10)
-                {
-                    Player.URL = Sub_Code.File_Get_FileName_No_Extension(SE_Dir + "/" + Select_SE_Name + "_0" + SE_Play_Index);
-                }
-                else
-                {
-                    Player.URL = Sub_Code.File_Get_FileName_No_Extension(SE_Dir + "/" + Select_SE_Name + "_" + SE_Play_Index);
-                }
-                Player.controls.play();
-                while (!IsSEStop)
-                {
-                    await Task.Delay(100);
-                    if (Player.playState != WMPPlayState.wmppsPlaying)
-                    {
-                        break;
-                    }
-                }
-                //再生が止まったかつそのSEが複数個ある場合SEのインデックスを進める
-                Player.controls.stop();
-                if (SE_Play_Index < Select_SE_File_Count)
-                {
-                    SE_Play_Index++;
-                    SE_Play_Number_T.Text = SE_Play_Index + "/" + Select_SE_File_Count;
-                }
-                else if (Select_SE_File_Count != 1 && SE_Play_Index == Select_SE_File_Count)
-                {
-                    SE_Play_Index = 1;
-                    SE_Play_Number_T.Text = SE_Play_Index + "/" + Select_SE_File_Count;
-                }
+                return;
+            }
+            //SEの拡張子がわからないためFile_Get_FileName_No_Extension()で取得して指定
+            if (SE_Play_Index < 10)
+            {
+                int StreamHandle = Bass.BASS_StreamCreateFile(Sub_Code.File_Get_FileName_No_Extension(SE_Dir + "/" + Select_SE_Name + "_0" + SE_Play_Index), 0, 0, BASSFlag.BASS_STREAM_DECODE);
+                Stream = BassFx.BASS_FX_TempoCreate(StreamHandle, BASSFlag.BASS_FX_FREESOURCE);
             }
             else
             {
-                IsSEStop = true;
-                await Task.Delay(101);
-                SE_Play();
+                int StreamHandle = Bass.BASS_StreamCreateFile(Sub_Code.File_Get_FileName_No_Extension(SE_Dir + "/" + Select_SE_Name + "_" + SE_Play_Index), 0, 0, BASSFlag.BASS_STREAM_DECODE);
+                Stream = BassFx.BASS_FX_TempoCreate(StreamHandle, BASSFlag.BASS_FX_FREESOURCE);
+            }
+            Bass.BASS_ChannelSetAttribute(Stream, BASSAttribute.BASS_ATTRIB_VOL, 1f);
+            Bass.BASS_ChannelPlay(Stream, true);
+            if (SE_Play_Index < Select_SE_File_Count)
+            {
+                SE_Play_Index++;
+                SE_Play_Number_T.Text = SE_Play_Index + "/" + Select_SE_File_Count;
+            }
+            else if (Select_SE_File_Count != 1 && SE_Play_Index == Select_SE_File_Count)
+            {
+                SE_Play_Index = 1;
+                SE_Play_Number_T.Text = SE_Play_Index + "/" + Select_SE_File_Count;
             }
         }
         //指定したファイル名のSEの数を取得
@@ -301,11 +381,13 @@ namespace WoTB_Voice_Mod_Creater.Class
                 IsBusy = true;
                 Sub_Code.CreatingProject = false;
                 Sub_Code.DVPL_Encode = false;
+                Configs_Save();
                 while (Opacity > 0)
                 {
                     Opacity -= Sub_Code.Window_Feed_Time;
                     await Task.Delay(1000 / 60);
                 }
+                SE_Lists.SelectedIndex = -1;
                 Visibility = Visibility.Hidden;
                 Voice_Lists.Items.Clear();
                 Voice_Type.Clear();
@@ -318,15 +400,15 @@ namespace WoTB_Voice_Mod_Creater.Class
             //選択しているSEを無効化
             if (SE_Lists.SelectedIndex != -1)
             {
-                if (Voice_Set.SE_Enable_List[SE_Lists.SelectedIndex])
+                if (Voice_Set.SE_Enable_Disable[SE_Lists.SelectedIndex])
                 {
-                    if (IsNewMode)
+                    if (Wwise_Version < 1.1)
                     {
-                        Message_Feed_Out("このバージョンではSEを無効化できません。");
+                        Message_Feed_Out("この機能を有効にするには、Wwiseプロジェクトをアップデートする必要があります。");
                         return;
                     }
                     int Number = SE_Lists.SelectedIndex;
-                    Voice_Set.SE_Enable_List[SE_Lists.SelectedIndex] = false;
+                    Voice_Set.SE_Enable_Disable[SE_Lists.SelectedIndex] = false;
                     SE_Disable_B.Background = (Brush)bc.ConvertFrom("#59999999");
                     SE_Disable_B.BorderBrush = Brushes.Red;
                     SE_Enable_B.Background = Brushes.Transparent;
@@ -341,10 +423,10 @@ namespace WoTB_Voice_Mod_Creater.Class
             //選択しているSEを有効化
             if (SE_Lists.SelectedIndex != -1)
             {
-                if (!Voice_Set.SE_Enable_List[SE_Lists.SelectedIndex])
+                if (!Voice_Set.SE_Enable_Disable[SE_Lists.SelectedIndex])
                 {
                     int Number = SE_Lists.SelectedIndex;
-                    Voice_Set.SE_Enable_List[SE_Lists.SelectedIndex] = true;
+                    Voice_Set.SE_Enable_Disable[SE_Lists.SelectedIndex] = true;
                     SE_Disable_B.Background = Brushes.Transparent;
                     SE_Disable_B.BorderBrush = Brushes.Aqua;
                     SE_Enable_B.Background = (Brush)bc.ConvertFrom("#59999999");
@@ -379,11 +461,16 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Sub_Code.DVPL_Encode = DVPL_C.IsChecked.Value;
                 Sub_Code.AndroidMode = Android_C.IsChecked.Value;
                 Sub_Code.SetLanguage = Languages[Select_Language];
+                Configs_Save();
                 while (Opacity > 0)
                 {
-                    Opacity -= 0.025;
+                    Opacity -= Sub_Code.Window_Feed_Time;
                     await Task.Delay(1000 / 60);
                 }
+                Voice_Lists.Items.Clear();
+                Voice_Select_T.Text = "";
+                Voice_Type.Clear();
+                Voice_Type_Number.Clear();
                 IsBusy = false;
                 Visibility = Visibility.Hidden;
             }
@@ -452,6 +539,65 @@ namespace WoTB_Voice_Mod_Creater.Class
             }
             Select_Language++;
             Android_T.Text = "言語:" + Languages[Select_Language];
+        }
+        void Configs_Save()
+        {
+            try
+            {
+                StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Configs/Save_Configs.tmp");
+                stw.WriteLine(Volume_Set_C.IsChecked.Value);
+                stw.WriteLine(DVPL_C.IsChecked.Value);
+                foreach (bool Value in Voice_Set.SE_Enable_Disable)
+                {
+                    stw.WriteLine(Value);
+                }
+                stw.Close();
+                using (var eifs = new FileStream(Voice_Set.Special_Path + "/Configs/Save_Configs.tmp", FileMode.Open, FileAccess.Read))
+                {
+                    using (var eofs = new FileStream(Voice_Set.Special_Path + "/Configs/Save_Configs.conf", FileMode.Create, FileAccess.Write))
+                    {
+                        FileEncode.FileEncryptor.Encrypt(eifs, eofs, "Save_Configs_Configs_Save");
+                    }
+                }
+                File.Delete(Voice_Set.Special_Path + "/Configs/Save_Configs.tmp");
+            }
+            catch (Exception e)
+            {
+                Sub_Code.Error_Log_Write(e.Message);
+            }
+        }
+        private void SE_All_Enable_B_Click(object sender, RoutedEventArgs e)
+        {
+            int SelectedIndex = SE_Lists.SelectedIndex;
+            for (int Number = 0; Number < SE_Lists.Items.Count; Number++)
+            {
+                Voice_Set.SE_Enable_Disable[Number] = true;
+                SE_Disable_B.Background = Brushes.Transparent;
+                SE_Disable_B.BorderBrush = Brushes.Aqua;
+                SE_Enable_B.Background = (Brush)bc.ConvertFrom("#59999999");
+                SE_Enable_B.BorderBrush = Brushes.Red;
+                SE_Lists.Items[Number] = SE_Lists.Items[Number].ToString().Replace("| 無効", "| 有効");
+            }
+            SE_Lists.SelectedIndex = SelectedIndex;
+        }
+        private void SE_All_Disable_B_Click(object sender, RoutedEventArgs e)
+        {
+            if (Wwise_Version < 1.1)
+            {
+                Message_Feed_Out("この機能を有効にするには、Wwiseプロジェクトをアップデートする必要があります。");
+                return;
+            }
+            int SelectedIndex = SE_Lists.SelectedIndex;
+            for (int Number = 0; Number < SE_Lists.Items.Count; Number++)
+            {
+                Voice_Set.SE_Enable_Disable[Number] = false;
+                SE_Disable_B.Background = (Brush)bc.ConvertFrom("#59999999");
+                SE_Disable_B.BorderBrush = Brushes.Red;
+                SE_Enable_B.Background = Brushes.Transparent;
+                SE_Enable_B.BorderBrush = Brushes.Aqua;
+                SE_Lists.Items[Number] = SE_Lists.Items[Number].ToString().Replace("| 有効", "| 無効");
+            }
+            SE_Lists.SelectedIndex = SelectedIndex;
         }
     }
 }
