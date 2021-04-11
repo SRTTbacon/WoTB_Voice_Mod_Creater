@@ -31,11 +31,11 @@ public static partial class StringExtensions
 }
 public class SRTTbacon_Server
 {
-    public const string IP_Local = "192.168.3.12";
-    public const string IP_Global = "60.151.34.219";
-    public const string Name = "SRTTbacon_Server";
-    public const string Password = "SRTTbacon";
-    public const int Port = 50000;
+    public const string IP_Local = "非公開";
+    public const string IP_Global = "非公開";
+    public const string Name = "非公開";
+    public const string Password = "非公開";
+    public const int Port = -1;
     public static bool IsSRTTbaconOwnerMode = false;
     public static string IP = "";
 }
