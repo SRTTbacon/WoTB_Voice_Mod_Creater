@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -24,6 +23,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         int Stream;
         int Max_Stream_Count = 0;
         int Available_Stream_Count = 0;
+        Random r = new Random((int)DateTime.Now.Ticks & 0x0000FFFF);
         List<List<string>> BNK_Voices = new List<List<string>>();
         List<string> BGM_Add = new List<string>();
         Wwise_Class.Wwise_File_Extract_V1 Wwise_PCK;
@@ -199,67 +199,98 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                     Sub_Code.Error_Log_Write(e1.Message);
                 }
                 IsBusy = true;
-                Message_T.Text = ".bnkファイルを解析しています...";
-                await Task.Delay(50);
-                Wwise_Class.BNK_Parse p = new Wwise_Class.BNK_Parse(ofd.FileName);
-                if (!p.IsVoiceFile())
+                try
                 {
-                    Message_Feed_Out("選択されたbnkファイルは音声データではありません。");
-                    IsBusy = false;
-                    return;
-                }
-                BNK_Voices = p.Get_Voices();
-                Get_Available_Voice_Count();
-                Voices_L.Items.Clear();
-                for (int Number = 0; Number < BNK_Voices.Count; Number++)
-                {
-                    Voices_L.Items.Add(Voice_Set.Get_Voice_Type_Japanese_Name_V2(Number) + " : " + BNK_Voices[Number].Count + "個");
-                }
-                BGM_Count_Change();
-                if (PCK_Mode_C.IsChecked.Value)
-                {
-                    Message_T.Text = ".wemファイルに変換しています...";
+                    Message_T.Text = ".bnkファイルを解析しています...";
                     await Task.Delay(50);
-                    Wwise_PCK = new Wwise_File_Extract_V1(PCK_File_Path);
-                    Max_Stream_Count = Wwise_PCK.Wwise_Get_File_Count();
-                    await Wwise_PCK.Async_Wwise_Extract_To_WEM_Directory(Voice_Set.Special_Path + "/Wwise/BNK_WAV");
-                    Message_T.Text = ".wemファイルを.oggに変換しています...";
-                    await Task.Delay(50);
-                    await Wwise_PCK.Async_Wwise_Extract_To_OGG_Directory(Voice_Set.Special_Path + "/Wwise/BNK_WAV");
-                }
-                else
-                {
-                    Message_T.Text = ".wavまたは.oggに変換しています...";
-                    await Task.Delay(50);
-                    Wwise_BNK = new Wwise_File_Extract_V2(ofd.FileName);
-                    Max_Stream_Count = Wwise_BNK.Wwise_Get_Numbers();
-                    Wwise_BNK.Wwise_Extract_To_WEM_Directory_V2(Voice_Set.Special_Path + "/Wwise/BNK_WAV");
-                }
-                string[] Files = Directory.GetFiles(Voice_Set.Special_Path + "/Wwise/BNK_WAV", "*.wem", SearchOption.TopDirectoryOnly);
-                foreach (string File_Now in Files)
-                {
-                    Sub_Code.File_Delete_V2(File_Now);
-                }
-                Message_T.Text = "不要な音声ファイルを削除しています...";
-                await Task.Delay(50);
-                List<string> Need_Files = new List<string>();
-                foreach (List<string> Types in BNK_Voices)
-                {
-                    foreach (string File_Now in Types)
+                    Wwise_Class.BNK_Parse p = new Wwise_Class.BNK_Parse(ofd.FileName);
+                    if (!p.IsVoiceFile())
                     {
-                        Need_Files.Add(File_Now);
+                        Message_Feed_Out("選択されたbnkファイルは音声データではありません。");
+                        IsBusy = false;
+                        return;
                     }
-                }
-                string[] All_Files = Directory.GetFiles(Voice_Set.Special_Path + "/Wwise/BNK_WAV", "*", SearchOption.TopDirectoryOnly);
-                foreach (string File_Now in All_Files)
-                {
-                    if (!Need_Files.Contains(Path.GetFileNameWithoutExtension(File_Now)))
+                    BNK_Voices = p.Get_Voices(false);
+                    List<string> Need_Files = new List<string>();
+                    foreach (List<string> Types in BNK_Voices)
+                    {
+                        foreach (string File_Now in Types)
+                        {
+                            Need_Files.Add(File_Now);
+                        }
+                    }
+                    if (Need_Files.Count == 0)
+                    {
+                        Message_T.Text = "移植できるファイルが見つからなかったため、特殊な方法で解析しています...";
+                        await Task.Delay(50);
+                        p.IsSpecialBNKFileMode = true;
+                        BNK_Voices = p.Get_Voices(false);
+                        foreach (List<string> Types in BNK_Voices)
+                        {
+                            foreach (string File_Now in Types)
+                            {
+                                Need_Files.Add(File_Now);
+                            }
+                        }
+                        if (Need_Files.Count == 0)
+                        {
+                            p.Clear();
+                            BNK_Voices.Clear();
+                            Message_Feed_Out("移植できる音声が見つかりませんでした。");
+                            IsBusy = false;
+                            return;
+                        }
+                    }
+                    p.Clear();
+                    Get_Available_Voice_Count();
+                    Voices_L.Items.Clear();
+                    for (int Number = 0; Number < BNK_Voices.Count; Number++)
+                    {
+                        Voices_L.Items.Add(Voice_Set.Get_Voice_Type_Japanese_Name_V2(Number) + " : " + BNK_Voices[Number].Count + "個");
+                    }
+                    BGM_Count_Change();
+                    if (PCK_Mode_C.IsChecked.Value)
+                    {
+                        Message_T.Text = ".wemファイルに変換しています...";
+                        await Task.Delay(50);
+                        Wwise_PCK = new Wwise_File_Extract_V1(PCK_File_Path);
+                        Max_Stream_Count = Wwise_PCK.Wwise_Get_File_Count();
+                        await Wwise_PCK.Async_Wwise_Extract_To_WEM_Directory(Voice_Set.Special_Path + "/Wwise/BNK_WAV");
+                        Message_T.Text = ".wemファイルを.oggに変換しています...";
+                        await Task.Delay(50);
+                        await Wwise_PCK.Async_Wwise_Extract_To_OGG_Directory(Voice_Set.Special_Path + "/Wwise/BNK_WAV");
+                    }
+                    else
+                    {
+                        Message_T.Text = ".wavまたは.oggに変換しています...";
+                        await Task.Delay(50);
+                        Wwise_BNK = new Wwise_File_Extract_V2(ofd.FileName);
+                        Max_Stream_Count = Wwise_BNK.Wwise_Get_Numbers();
+                        Wwise_BNK.Wwise_Extract_To_WEM_Directory_V2(Voice_Set.Special_Path + "/Wwise/BNK_WAV");
+                    }
+                    string[] Files = Directory.GetFiles(Voice_Set.Special_Path + "/Wwise/BNK_WAV", "*.wem", SearchOption.TopDirectoryOnly);
+                    foreach (string File_Now in Files)
                     {
                         Sub_Code.File_Delete_V2(File_Now);
                     }
+                    Message_T.Text = "不要な音声ファイルを削除しています...";
+                    await Task.Delay(50);
+                    string[] All_Files = Directory.GetFiles(Voice_Set.Special_Path + "/Wwise/BNK_WAV", "*", SearchOption.TopDirectoryOnly);
+                    foreach (string File_Now in All_Files)
+                    {
+                        if (!Need_Files.Contains(Path.GetFileNameWithoutExtension(File_Now)))
+                        {
+                            Sub_Code.File_Delete_V2(File_Now);
+                        }
+                    }
+                    File_Name_T.Text = Path.GetFileName(ofd.FileName);
+                    Message_Feed_Out(".bnkファイルをロードしました。");
                 }
-                File_Name_T.Text = Path.GetFileName(ofd.FileName);
-                Message_Feed_Out(".bnkファイルをロードしました。");
+                catch (Exception e1)
+                {
+                    Sub_Code.Error_Log_Write(e1.Message);
+                    Message_Feed_Out("解析に失敗しました。Error_Log.txtを参照してください。");
+                }
                 IsBusy = false;
             }
         }
@@ -358,8 +389,6 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             {
                 Bass.BASS_ChannelStop(Stream);
                 Bass.BASS_StreamFree(Stream);
-                Wwise_PCK.Pck_Clear();
-                Wwise_BNK.Bank_Clear();
                 BGM_Add_List.Items.Clear();
                 BGM_Add.Clear();
                 Voices_L.Items.Clear();
@@ -382,6 +411,10 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 {
                     Sub_Code.Error_Log_Write(e1.Message);
                 }
+                if (Wwise_PCK != null)
+                    Wwise_PCK.Pck_Clear();
+                if (Wwise_BNK != null)
+                    Wwise_BNK.Bank_Clear();
             }
         }
         //指定した音声を変換して再生
@@ -401,7 +434,6 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 Location_T.Text = "00:00";
                 return;
             }
-            Random r = new Random((int)DateTime.Now.Ticks & 0x0000FFFF);
             string Get_Number = BNK_Voices[Voices_L.SelectedIndex][r.Next(0, Voice_Count)];
             BGM_Add_List.SelectedIndex = -1;
             Load_Sound(Sub_Code.File_Get_FileName_No_Extension(Voice_Set.Special_Path + "/Wwise/BNK_WAV/" + Get_Number));
@@ -548,6 +580,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             catch (Exception e)
             {
                 Sub_Code.Error_Log_Write(e.Message);
+                Message_Feed_Out("設定を保存できませんでした。");
             }
         }
         private void Voices_L_MouseDown(object sender, MouseButtonEventArgs e)
@@ -601,6 +634,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 if (!Sub_Code.CanDirectoryAccess(SetPath))
                 {
                     Message_Feed_Out("指定したフォルダにアクセスできませんでした。");
+                    IsBusy = false;
                     return;
                 }
                 try
@@ -636,7 +670,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                     }
                     Message_T.Text = ".wavに変換しています...";
                     await Task.Delay(50);
-                    await Multithread.Convert_To_Wav(Directory.GetFiles(Voice_Set.Special_Path + "/Wwise/BNK_WAV", "*", SearchOption.TopDirectoryOnly), Voice_Set.Special_Path + "/Wwise/BNK_WAV", true);
+                    await Multithread.Convert_To_Wav(Directory.GetFiles(Voice_Set.Special_Path + "/Wwise/BNK_WAV", "*", SearchOption.TopDirectoryOnly), Voice_Set.Special_Path + "/Wwise/BNK_WAV", true, true);
                     Message_T.Text = "ファイルをコピーしています...";
                     if (Directory.Exists(Voice_Set.Special_Path + "/Wwise/BNK_WAV/Voices"))
                     {
@@ -792,7 +826,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 Message_Feed_Out("音声ファイルが指定されていないため、表示できる情報がありません。");
                 return;
             }
-            Message_Feed_Out("ファイル内の音声ファイル数:" + Max_Stream_Count + "\n" + "移植できる音声数:" + Available_Stream_Count);
+            Message_Feed_Out("ファイル内の音声ファイル数:" + Max_Stream_Count + "\n" + "移植後の音声数:" + Available_Stream_Count);
         }
         private void Configs_B_Click(object sender, RoutedEventArgs e)
         {

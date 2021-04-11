@@ -48,6 +48,8 @@ namespace WoTB_Voice_Mod_Creater.Class
         float Music_Frequency = 44100f;
         double X_Move = 0;
         double Y_Move = 0;
+        double Start_Time = -1;
+        double End_Time = -1;
         SYNCPROC IsMusicEnd;
         public Other()
         {
@@ -203,6 +205,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                     Video_V.Pause();
                 }
             }
+            //キーイベントを使用できるようにするため、何でも良いのでフォーカスを与える
             IsSaveOK = true;
             while (Opacity < 1 && !IsBusy)
             {
@@ -226,6 +229,22 @@ namespace WoTB_Voice_Mod_Creater.Class
                         }
                         long position = Bass.BASS_ChannelGetPosition(Stream);
                         Location_S.Value = Bass.BASS_ChannelBytes2Seconds(Stream, position);
+                        if (Loop_C.IsChecked.Value && Start_Time != -1 && Location_S.Value >= End_Time)
+                        {
+                            Music_Pos_Change(Start_Time, true);
+                            long position2 = Bass.BASS_ChannelGetPosition(Stream);
+                            Location_S.Value = Bass.BASS_ChannelBytes2Seconds(Stream, position2);
+                            TimeSpan time = TimeSpan.FromSeconds(Location_S.Value);
+                            Video_V.Position = time;
+                        }
+                        else if (Loop_C.IsChecked.Value && Start_Time != -1 && Location_S.Value < Start_Time)
+                        {
+                            Music_Pos_Change(Start_Time, true);
+                            long position2 = Bass.BASS_ChannelGetPosition(Stream);
+                            Location_S.Value = Bass.BASS_ChannelBytes2Seconds(Stream, position2);
+                            TimeSpan time = TimeSpan.FromSeconds(Location_S.Value);
+                            Video_V.Position = time;
+                        }
                         if (WAVEForm_Color_Image.Visibility == Visibility.Visible)
                         {
                             WAVEForm_Color_Image.Width = (Location_S.Value / Location_S.Maximum) * WAVEForm_Image_Width;
@@ -293,7 +312,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                     }
                     IsEnded = false;
                 }
-                await Task.Delay(500);
+                await Task.Delay(1000 / 15);
             }
         }
         //動画の位置を変更中の間ループさせる
@@ -529,6 +548,10 @@ namespace WoTB_Voice_Mod_Creater.Class
                     Bass.BASS_ChannelSetAttribute(Stream, BASSAttribute.BASS_ATTRIB_TEMPO_PITCH, (float)Pitch_S.Value);
                     Bass.BASS_ChannelSetAttribute(Stream, BASSAttribute.BASS_ATTRIB_TEMPO, (float)Speed_S.Value);
                 }
+                Location_S.Maximum = Bass.BASS_ChannelBytes2Seconds(Stream, Bass.BASS_ChannelGetLength(Stream, BASSMode.BASS_POS_BYTES));
+                Start_Time = 0;
+                End_Time = Location_S.Maximum;
+                Loop_Time_T.Text = "再生時間:" + (int)Start_Time + "～" + (int)End_Time;
                 Bass.BASS_ChannelPlay(Stream, false);
                 if (Device_L.SelectedIndex != -1)
                 {
@@ -600,7 +623,6 @@ namespace WoTB_Voice_Mod_Creater.Class
                     WF_Color.ColorRightEnvelope = Color.Transparent;
                     WF_Color.RenderStart(true, BASSFlag.BASS_DEFAULT);
                 }
-                Location_S.Maximum = Bass.BASS_ChannelBytes2Seconds(Stream, Bass.BASS_ChannelGetLength(Stream, BASSMode.BASS_POS_BYTES));
             }
             else
             {
@@ -660,6 +682,10 @@ namespace WoTB_Voice_Mod_Creater.Class
         }
         void Location_MouseDown(object sender, MouseButtonEventArgs e)
         {
+            if (IsBusy)
+            {
+                return;
+            }
             IsLocationChanging = true;
             IsPaused = true;
             Bass.BASS_ChannelPause(Stream);
@@ -822,7 +848,12 @@ namespace WoTB_Voice_Mod_Creater.Class
                 return;
             }
             long position = Bass.BASS_ChannelGetPosition(Stream);
-            if (Bass.BASS_ChannelBytes2Seconds(Stream, position) > 5)
+            double Time_Temp = Bass.BASS_ChannelBytes2Seconds(Stream, position);
+            if (Loop_C.IsChecked.Value && Time_Temp - 5 < Start_Time)
+            {
+                Music_Pos_Change(Start_Time, true);
+            }
+            else if (Bass.BASS_ChannelBytes2Seconds(Stream, position) > 5)
             {
                 Music_Pos_Change(Bass.BASS_ChannelBytes2Seconds(Stream, position) - 5, true);
             }
@@ -896,6 +927,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Device_T.Visibility = Visibility.Hidden;
                 Device_L.Visibility = Visibility.Hidden;
                 Youtube_Link_B.Visibility = Visibility.Hidden;
+                Loop_Time_T.Visibility = Visibility.Hidden;
                 Ex_Sort_C.Visibility = Visibility.Hidden;
                 Ex_Sort_T.Visibility = Visibility.Hidden;
                 WAVEForm_Gray_Image.Visibility = Visibility.Hidden;
@@ -939,6 +971,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Device_T.Visibility = Visibility.Visible;
                 Device_L.Visibility = Visibility.Visible;
                 Youtube_Link_B.Visibility = Visibility.Visible;
+                Loop_Time_T.Visibility = Visibility.Visible;
                 Ex_Sort_C.Visibility = Visibility.Visible;
                 Ex_Sort_T.Visibility = Visibility.Visible;
                 if (IsShowWAVEForm)
@@ -994,45 +1027,56 @@ namespace WoTB_Voice_Mod_Creater.Class
         }
         private void Music_Fix_B_Click(object sender, RoutedEventArgs e)
         {
+            if (IsBusy)
+            {
+                return;
+            }
             long position = Bass.BASS_ChannelGetPosition(Stream);
             TimeSpan time = TimeSpan.FromSeconds(Bass.BASS_ChannelBytes2Seconds(Stream, position) + 0.1);
             Video_V.Position = time;
         }
         private async void Exit_B_Click(object sender, RoutedEventArgs e)
         {
-            if (!Background_C.IsChecked.Value)
+            if (!IsBusy)
             {
-                Pause_Volume_Animation(false);
-            }
-            IsBusy = true;
-            while (Opacity > 0)
-            {
-                Opacity -= Sub_Code.Window_Feed_Time;
-                await Task.Delay(1000 / 60);
-            }
-            if (!Background_C.IsChecked.Value)
-            {
-                Pause_Volume_Animation(true);
-                Video_Mode_Change(false);
-                Video_V.Visibility = Visibility.Hidden;
-                Video_Change_B.Visibility = Visibility.Hidden;
-                X_Move = 0;
-                Y_Move = 0;
-                Zoom_S.Value = 1;
-                if (Music_List.Items.Count > 0)
+                IsBusy = true;
+                bool IsPaused_Now = IsPaused;
+                if (!Background_C.IsChecked.Value)
                 {
-                    Music_List.ScrollIntoView(Music_List.Items[0]);
+                    Pause_Volume_Animation(false, 25);
                 }
-                WAVEForm_Gray_Image.Source = null;
-                WAVEForm_Color_Image.Source = null;
+                while (Opacity > 0)
+                {
+                    Opacity -= Sub_Code.Window_Feed_Time;
+                    await Task.Delay(1000 / 60);
+                }
+                if (!Background_C.IsChecked.Value)
+                {
+                    Pause_Volume_Animation(true);
+                    Video_Mode_Change(false);
+                    Video_V.Visibility = Visibility.Hidden;
+                    Video_Change_B.Visibility = Visibility.Hidden;
+                    X_Move = 0;
+                    Y_Move = 0;
+                    Zoom_S.Value = 1;
+                    if (Music_List.Items.Count > 0)
+                    {
+                        Music_List.ScrollIntoView(Music_List.Items[0]);
+                    }
+                    WAVEForm_Gray_Image.Source = null;
+                    WAVEForm_Color_Image.Source = null;
+                }
+                else if (Video_V.Source != null)
+                {
+                    Video_V.Pause();
+                    Video_V.Visibility = Visibility.Hidden;
+                }
+                IsVideoClicked = false;
+                Video_Mode.IsVideoClicked = false;
+                IsBusy = false;
+                Visibility = Visibility.Hidden;
+                IsPaused = IsPaused_Now;
             }
-            else if (Video_V.Source != null)
-            {
-                Video_V.Pause();
-                Video_V.Visibility = Visibility.Hidden;
-            }
-            IsBusy = false;
-            Visibility = Visibility.Hidden;
         }
         private void Loop_C_Click(object sender, RoutedEventArgs e)
         {
@@ -1073,6 +1117,10 @@ namespace WoTB_Voice_Mod_Creater.Class
         }
         private void Video_V_MouseDown(object sender, MouseButtonEventArgs e)
         {
+            if (IsBusy)
+            {
+                return;
+            }
             Mouse_Point.X = System.Windows.Forms.Cursor.Position.X;
             Mouse_Point.Y = System.Windows.Forms.Cursor.Position.Y;
             Video_Point.X = Video_V.Margin.Left;
@@ -1146,6 +1194,10 @@ namespace WoTB_Voice_Mod_Creater.Class
         }
         private void Message_B_Click(object sender, RoutedEventArgs e)
         {
+            if (IsBusy)
+            {
+                return;
+            }
             string Message_01 = "・音楽ファイル、リストはサーバーに送信されません。\n";
             string Message_02 = "・一時フォルダの\"Other_Music_List.dat\"を削除するとリストが初期化されます。(ソフトの再起動が必要)\n";
             string Message_03 = "・音楽ファイルが見つからない場合はリストから削除されます。\n";
@@ -1155,6 +1207,10 @@ namespace WoTB_Voice_Mod_Creater.Class
         }
         private async void Youtube_Link_B_Click(object sender, RoutedEventArgs e)
         {
+            if (IsBusy)
+            {
+                return;
+            }
             Youtube_Link_Window.Window_Show();
             while (Youtube_Link_Window.Visibility == Visibility.Visible)
             {
@@ -1430,9 +1486,17 @@ namespace WoTB_Voice_Mod_Creater.Class
             Bass.BASS_ChannelSetAttribute(Stream, BASSAttribute.BASS_ATTRIB_TEMPO_FREQ, Music_Frequency * (float)(Pitch_Speed_S.Value / 50));
             Pitch_Speed_T.Text = "音程と速度:" + (int)Pitch_Speed_S.Value;
         }
-        private void Pitch_Speed_S_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
+        private async void Pitch_Speed_S_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
             Pitch_Speed_S.Value = 50;
+            await Task.Delay(500);
+            if (Music_List_T.Visibility != Visibility.Visible)
+            {
+                long position = Bass.BASS_ChannelGetPosition(Stream);
+                TimeSpan time = TimeSpan.FromSeconds(Bass.BASS_ChannelBytes2Seconds(Stream, position) + 0.1);
+                Video_V.Position = time;
+            }
+            Video_V.SpeedRatio = Pitch_Speed_S.Value / 50;
         }
         private async void Pitch_Speed_S_MouseUp(object sender, MouseButtonEventArgs e)
         {
@@ -1444,6 +1508,40 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Video_V.Position = time;
             }
             Video_V.SpeedRatio = Pitch_Speed_S.Value / 50;
+        }
+        //キーイベント
+        public void RootWindow_KeyDown(System.Windows.Input.KeyEventArgs e)
+        {
+            if (Loop_C.IsChecked.Value)
+            {
+                //再生開始時間を保存
+                if ((System.Windows.Forms.Control.ModifierKeys & Keys.Shift) == Keys.Shift && e.Key == Key.S)
+                {
+                    Start_Time = Location_S.Value;
+                    if (Start_Time > End_Time)
+                    {
+                        End_Time = Location_S.Maximum;
+                    }
+                    Loop_Time_T.Text = "再生時間:" + (int)Start_Time + "～" + (int)End_Time;
+                }
+                //再生終了時間を保存
+                if ((System.Windows.Forms.Control.ModifierKeys & Keys.Shift) == Keys.Shift && e.Key == Key.E)
+                {
+                    End_Time = Location_S.Value;
+                    if (End_Time < Start_Time)
+                    {
+                        Start_Time = 0;
+                    }
+                    Loop_Time_T.Text = "再生時間:" + (int)Start_Time + "～" + (int)End_Time;
+                }
+                //保存した時間を取り消す
+                if ((System.Windows.Forms.Control.ModifierKeys & Keys.Shift) == Keys.Shift && e.Key == Key.C)
+                {
+                    Start_Time = 0;
+                    End_Time = Location_S.Maximum;
+                    Loop_Time_T.Text = "再生時間:" + (int)Start_Time + "～" + (int)End_Time;
+                }
+            }
         }
     }
 }

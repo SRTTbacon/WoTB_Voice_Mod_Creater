@@ -13,8 +13,8 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
     {
         WwiseBank WB;
         List<LoLSoundBank> LL = new List<LoLSoundBank>();
-        LoLSoundBankManager LOL;
-        List<LoLSoundBankManager.WEMFile> WEML;
+        LoLSoundBankManager LOL = null;
+        List<LoLSoundBankManager.WEMFile> WEML = null;
         public bool IsClear = false;
         public string Selected_BNK_File = "";
         public Wwise_File_Extract_V2(string Bank_File)
@@ -324,11 +324,13 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             {
                 return;
             }
-            LOL.banksList.Clear();
-            WEML.Clear();
+            if (LOL != null && LOL.banksList != null)
+                LOL.banksList.Clear();
+            if (WEML != null)
+                WEML.Clear();
             LL.Clear();
-            IsClear = true;
             Selected_BNK_File = "";
+            IsClear = true;
         }
     }
 }

@@ -322,6 +322,8 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 return;
             }
+            Bass.BASS_ChannelStop(Stream);
+            Bass.BASS_StreamFree(Stream);
             //SEの拡張子がわからないためFile_Get_FileName_No_Extension()で取得して指定
             if (SE_Play_Index < 10)
             {

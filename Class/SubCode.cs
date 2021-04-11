@@ -503,7 +503,7 @@ namespace WoTB_Voice_Mod_Creater
             return "";
         }
         //↑の拡張子もフォルダ名もいらないバージョン
-        public static string Set_Voice_Type_Change_Name_By_Index(string From_Dir, string To_Dir, List<List<string>> Lists)
+        public static string Set_Voice_Type_Change_Name_By_Index(string From_Dir, string To_Dir, List<List<string>> Lists, List<List<bool>> Lists_Enable = null)
         {
             if (!Directory.Exists(To_Dir))
             {
@@ -512,31 +512,78 @@ namespace WoTB_Voice_Mod_Creater
             int Romaji_Number = 0;
             foreach (List<string> Index in Lists)
             {
-                int File_Number = 1;
-                foreach (string File_Path in Index)
+                if (Romaji_Number == 5 && Index.Count == 0)
                 {
-                    try
+                    Change_Name_01(Lists, Lists_Enable, 5, 2, From_Dir, To_Dir);
+                }
+                else if (Romaji_Number == 4 && Index.Count == 0)
+                {
+                    Change_Name_01(Lists, Lists_Enable, 4, 3, From_Dir, To_Dir);
+                }
+                else
+                {
+                    int File_Number = 1;
+                    int File_Number_01 = -1;
+                    foreach (string File_Path in Index)
                     {
-                        string File_Path_01 = File_Get_FileName_No_Extension(From_Dir + "/" + File_Path);
-                        if (File_Number < 10)
+                        try
                         {
-                            File.Copy(File_Path_01, To_Dir + "/" + Voice_Set.Get_Voice_Type_Romaji_Name(Romaji_Number) + "_0" + File_Number + Path.GetExtension(File_Path_01), true);
+                            File_Number_01++;
+                            if (Lists_Enable != null && !Lists_Enable[Romaji_Number][File_Number_01])
+                            {
+                                continue;
+                            }
+                            string File_Path_01 = File_Get_FileName_No_Extension(From_Dir + "/" + File_Path);
+                            if (File_Number < 10)
+                            {
+                                File.Copy(File_Path_01, To_Dir + "/" + Voice_Set.Get_Voice_Type_Romaji_Name(Romaji_Number) + "_0" + File_Number + Path.GetExtension(File_Path_01), true);
+                            }
+                            else
+                            {
+                                File.Copy(File_Path_01, To_Dir + "/" + Voice_Set.Get_Voice_Type_Romaji_Name(Romaji_Number) + "_" + File_Number + Path.GetExtension(File_Path_01), true);
+                            }
+                            File_Number++;
                         }
-                        else
+                        catch (Exception e)
                         {
-                            File.Copy(File_Path_01, To_Dir + "/" + Voice_Set.Get_Voice_Type_Romaji_Name(Romaji_Number) + "_" + File_Number + Path.GetExtension(File_Path_01), true);
+                            Sub_Code.Error_Log_Write(e.Message);
+                            return "ファイルをコピーできませんでした。";
                         }
-                        File_Number++;
-                    }
-                    catch (Exception e)
-                    {
-                        Sub_Code.Error_Log_Write(e.Message);
-                        return "ファイルをコピーできませんでした。";
                     }
                 }
                 Romaji_Number++;
             }
             return "";
+        }
+        static void Change_Name_01(List<List<string>> Lists, List<List<bool>> Lists_Enable, int FromIndexNumber, int ToIndexNumber, string From_Dir, string To_Dir)
+        {
+            int File_Number = 1;
+            int File_Number_01 = -1;
+            foreach (string File_Path in Lists[ToIndexNumber])
+            {
+                try
+                {
+                    File_Number_01++;
+                    if (Lists_Enable != null && !Lists_Enable[ToIndexNumber][File_Number_01])
+                    {
+                        continue;
+                    }
+                    string File_Path_01 = File_Get_FileName_No_Extension(From_Dir + "/" + File_Path);
+                    if (File_Number < 10)
+                    {
+                        File.Copy(File_Path_01, To_Dir + "/" + Voice_Set.Get_Voice_Type_Romaji_Name(FromIndexNumber) + "_0" + File_Number + Path.GetExtension(File_Path_01), true);
+                    }
+                    else
+                    {
+                        File.Copy(File_Path_01, To_Dir + "/" + Voice_Set.Get_Voice_Type_Romaji_Name(FromIndexNumber) + "_" + File_Number + Path.GetExtension(File_Path_01), true);
+                    }
+                    File_Number++;
+                }
+                catch (Exception e)
+                {
+                    Sub_Code.Error_Log_Write(e.Message);
+                }
+            }
         }
         //音声がMP3でない場合MP3に変換する(拡張子も変更される)
         //例:Test.wav->Test.mp3
@@ -1692,7 +1739,7 @@ namespace WoTB_Voice_Mod_Creater
                             Directory.Delete(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod", true);
                         }
                         File.Delete(Voice_Set.Special_Path + "/Wwise_Project.dat");
-                        StreamReader str = new StreamReader(Voice_Set.FTP_Server.OpenRead("/WoTB_Voice_Mod/Update/Wwise/Version.txt"));
+                        StreamReader str = new StreamReader(Voice_Set.FTP_Server.OpenRead("/WoTB_Voice_Mod/Update/Wwise/Version_01.txt"));
                         string Line = str.ReadLine();
                         str.Close();
                         double SizeMB = (double)(Voice_Set.FTP_Server.GetFileSize("/WoTB_Voice_Mod/Update/Wwise/Wwise_Project.zip") / 1024.0 / 1024.0);
@@ -1768,6 +1815,178 @@ namespace WoTB_Voice_Mod_Creater
             }
             return 0;
         }
+        public static async Task<int> Wwise_WoT_Project_Update(TextBlock Message_T, ProgressBar Download_P, TextBlock Download_T, Border Download_Border)
+        {
+            try
+            {
+                if (File.Exists(Voice_Set.Special_Path + "/Wwise/WoT_Sound_Mod/Version.dat"))
+                {
+                    if (Voice_Set.FTP_Server.IsConnected)
+                    {
+                        StreamReader str = new StreamReader(Voice_Set.FTP_Server.OpenRead("/WoTB_Voice_Mod/Update/Wwise/Version_02.txt"));
+                        string Line = str.ReadLine();
+                        str.Close();
+                        StreamReader str2 = new StreamReader(Voice_Set.Special_Path + "/Wwise/WoT_Sound_Mod/Version.dat");
+                        string Version = str2.ReadLine();
+                        str2.Close();
+                        if (Version != Line)
+                        {
+                            MessageBoxResult result = MessageBox.Show("プロジェクトデータのアップデートがあります。アップデートしますか？", "確認", MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.Yes);
+                            if (result == MessageBoxResult.Yes)
+                            {
+                                if (Directory.Exists(Voice_Set.Special_Path + "/Wwise/WoT_Sound_Mod"))
+                                {
+                                    Directory.Delete(Voice_Set.Special_Path + "/Wwise/WoT_Sound_Mod", true);
+                                }
+                                File.Delete(Voice_Set.Special_Path + "/WoT_Sound_Mod.dat");
+                                string Path = Directory.GetCurrentDirectory();
+                                double SizeMB = (double)(Voice_Set.FTP_Server.GetFileSize("/WoTB_Voice_Mod/Update/Wwise/WoT_Sound_Mod.zip") / 1024.0 / 1024.0);
+                                SizeMB = (Math.Floor(SizeMB * 10)) / 10;
+                                Message_T.Text = "サーバーからプロジェクトデータをダウンロードしています...\nダウンロードサイズ:約" + SizeMB + "MB";
+                                await Task.Delay(50);
+                                Voice_Set.App_Busy = true;
+                                Download_P.Visibility = Visibility.Visible;
+                                Download_T.Visibility = Visibility.Visible;
+                                Download_Border.Visibility = Visibility.Visible;
+                                try
+                                {
+                                    long File_Size_Full = Voice_Set.FTP_Server.GetFileSize("/WoTB_Voice_Mod/Update/Wwise/WoT_Sound_Mod.zip");
+                                    Task task = Task.Run(() =>
+                                    {
+                                        Voice_Set.FTP_Server.DownloadFile(Voice_Set.Special_Path + "/WoT_Sound_Mod.dat", "/WoTB_Voice_Mod/Update/Wwise/WoT_Sound_Mod.zip");
+                                    });
+                                    while (true)
+                                    {
+                                        long File_Size_Now = 0;
+                                        if (File.Exists(Voice_Set.Special_Path + "/WoT_Sound_Mod.dat"))
+                                        {
+                                            FileInfo fi = new FileInfo(Voice_Set.Special_Path + "/WoT_Sound_Mod.dat");
+                                            File_Size_Now = fi.Length;
+                                        }
+                                        double Download_Percent = (double)File_Size_Now / File_Size_Full * 100;
+                                        int Percent_INT = (int)Math.Round(Download_Percent, MidpointRounding.AwayFromZero);
+                                        Download_P.Value = Percent_INT;
+                                        Download_T.Text = "進捗:" + Percent_INT + "%";
+                                        if (File_Size_Now >= File_Size_Full)
+                                        {
+                                            Download_P.Value = 0;
+                                            Download_T.Text = "進捗:0%";
+                                            break;
+                                        }
+                                        await Task.Delay(100);
+                                    }
+                                }
+                                catch (Exception e1)
+                                {
+                                    Sub_Code.Error_Log_Write(e1.Message);
+                                    Download_P.Visibility = Visibility.Hidden;
+                                    Download_T.Visibility = Visibility.Hidden;
+                                    Download_Border.Visibility = Visibility.Hidden;
+                                    Voice_Set.App_Busy = false;
+                                    return 1;
+                                }
+                                System.IO.Compression.ZipFile.ExtractToDirectory(Voice_Set.Special_Path + "/WoT_Sound_Mod.dat", Voice_Set.Special_Path + "/Wwise/WoT_Sound_Mod");
+                                File.Delete(Voice_Set.Special_Path + "/WoT_Sound_Mod.dat");
+                                File.WriteAllText(Voice_Set.Special_Path + "/Wwise/WoT_Sound_Mod/Version.dat", Line);
+                                Download_P.Visibility = Visibility.Hidden;
+                                Download_T.Visibility = Visibility.Hidden;
+                                Download_Border.Visibility = Visibility.Hidden;
+                                Voice_Set.App_Busy = false;
+                                return 0;
+                            }
+                            else
+                            {
+                                return 2;
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    MessageBoxResult result = MessageBox.Show("サーバーからプロジェクトデータをダウンロードしますか？", "確認", MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.Yes);
+                    if (result == MessageBoxResult.Yes)
+                    {
+                        if (Directory.Exists(Voice_Set.Special_Path + "/Wwise/WoT_Sound_Mod"))
+                        {
+                            Directory.Delete(Voice_Set.Special_Path + "/Wwise/WoT_Sound_Mod", true);
+                        }
+                        File.Delete(Voice_Set.Special_Path + "/WoT_Sound_Mod.dat");
+                        StreamReader str = new StreamReader(Voice_Set.FTP_Server.OpenRead("/WoTB_Voice_Mod/Update/Wwise/Version_02.txt"));
+                        string Line = str.ReadLine();
+                        str.Close();
+                        double SizeMB = (double)(Voice_Set.FTP_Server.GetFileSize("/WoTB_Voice_Mod/Update/Wwise/WoT_Sound_Mod.zip") / 1024.0 / 1024.0);
+                        SizeMB = (Math.Floor(SizeMB * 10)) / 10;
+                        Message_T.Text = "サーバーからプロジェクトデータをダウンロードしています...\nダウンロードサイズ:約" + SizeMB + "MB";
+                        await Task.Delay(50);
+                        Voice_Set.App_Busy = true;
+                        Download_P.Visibility = Visibility.Visible;
+                        Download_T.Visibility = Visibility.Visible;
+                        Download_Border.Visibility = Visibility.Visible;
+                        try
+                        {
+                            long File_Size_Full = Voice_Set.FTP_Server.GetFileSize("/WoTB_Voice_Mod/Update/Wwise/WoT_Sound_Mod.zip");
+                            Task task = Task.Run(() =>
+                            {
+                                Voice_Set.FTP_Server.DownloadFile(Voice_Set.Special_Path + "/WoT_Sound_Mod.dat", "/WoTB_Voice_Mod/Update/Wwise/WoT_Sound_Mod.zip");
+                            });
+                            while (true)
+                            {
+                                long File_Size_Now = 0;
+                                if (File.Exists(Voice_Set.Special_Path + "/WoT_Sound_Mod.dat"))
+                                {
+                                    FileInfo fi = new FileInfo(Voice_Set.Special_Path + "/WoT_Sound_Mod.dat");
+                                    File_Size_Now = fi.Length;
+                                }
+                                double Download_Percent = (double)File_Size_Now / File_Size_Full * 100;
+                                int Percent_INT = (int)Math.Round(Download_Percent, MidpointRounding.AwayFromZero);
+                                Download_P.Value = Percent_INT;
+                                Download_T.Text = "進捗:" + Percent_INT + "%";
+                                if (File_Size_Now >= File_Size_Full)
+                                {
+                                    Download_P.Value = 0;
+                                    Download_T.Text = "進捗:0%";
+                                    break;
+                                }
+                                await Task.Delay(100);
+                            }
+                        }
+                        catch (Exception e1)
+                        {
+                            Sub_Code.Error_Log_Write(e1.Message);
+                            Download_P.Visibility = Visibility.Hidden;
+                            Download_T.Visibility = Visibility.Hidden;
+                            Download_Border.Visibility = Visibility.Hidden;
+                            Voice_Set.App_Busy = false;
+                            return 1;
+                        }
+                        Message_T.Text = "ファイルを展開しています...";
+                        await Task.Delay(50);
+                        System.IO.Compression.ZipFile.ExtractToDirectory(Voice_Set.Special_Path + "/WoT_Sound_Mod.dat", Voice_Set.Special_Path + "/Wwise/WoT_Sound_Mod");
+                        File.Delete(Voice_Set.Special_Path + "/WoT_Sound_Mod.dat");
+                        File.WriteAllText(Voice_Set.Special_Path + "/Wwise/WoT_Sound_Mod/Version.dat", Line);
+                        Download_P.Visibility = Visibility.Hidden;
+                        Download_T.Visibility = Visibility.Hidden;
+                        Download_Border.Visibility = Visibility.Hidden;
+                        Voice_Set.App_Busy = false;
+                        return 0;
+                    }
+                    else
+                    {
+                        return 4;
+                    }
+                }
+            }
+            catch (Exception e1)
+            {
+                Sub_Code.Error_Log_Write(e1.Message);
+                Download_P.Visibility = Visibility.Hidden;
+                Download_T.Visibility = Visibility.Hidden;
+                Download_Border.Visibility = Visibility.Hidden;
+                Voice_Set.App_Busy = false;
+                return 5;
+            }
+            return 0;
+        }
         //指定した文字の後に数字があるか(含まれていたらtrue)
         public static bool IsIncludeInt_From_String(string All_String, string Where)
         {
@@ -1778,6 +1997,26 @@ namespace WoTB_Voice_Mod_Creater
             for (int Number = 0; Number < 10; Number++)
             {
                 if (All_String.Contains(Where + Number))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+        public static bool IsIncludeInt_From_String_V2(string All_String, string LastString)
+        {
+            if (!All_String.Contains(LastString))
+            {
+                return false;
+            }
+            if (All_String.Length < All_String.LastIndexOf(LastString) + 2)
+            {
+                return false;
+            }
+            All_String = All_String.Substring(All_String.LastIndexOf(LastString) + 1, 1);
+            for (int Number = 0; Number < 10; Number++)
+            {
+                if (All_String == Number.ToString())
                 {
                     return true;
                 }

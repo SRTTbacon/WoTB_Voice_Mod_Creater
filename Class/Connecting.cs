@@ -43,6 +43,7 @@ namespace WoTB_Voice_Mod_Creater
                 }
             }
             streamReader.Close();
+            streamReader.Dispose();
             stream.Close();
             stream.Dispose();
             return false;
@@ -66,6 +67,7 @@ namespace WoTB_Voice_Mod_Creater
                 }
             }
             streamReader.Close();
+            streamReader.Dispose();
             stream.Close();
             stream.Dispose();
             return false;
@@ -87,6 +89,7 @@ namespace WoTB_Voice_Mod_Creater
                     StreamReader str = new StreamReader(stream);
                     string[] Read = str.ReadToEnd().Split('\n');
                     str.Close();
+                    str.Dispose();
                     stream.Close();
                     stream.Dispose();
                     foreach (string Line in Read)
@@ -110,6 +113,7 @@ namespace WoTB_Voice_Mod_Creater
                     StreamReader str = new StreamReader(stream);
                     string[] Read = str.ReadToEnd().Split('\n');
                     str.Close();
+                    str.Dispose();
                     stream.Close();
                     stream.Dispose();
                     foreach (string Line in Read)
@@ -138,12 +142,6 @@ namespace WoTB_Voice_Mod_Creater
                             }
                         }
                         Voice_Set.Voice_Files = Temp_01;
-                        Dispatcher.Invoke(() =>
-                        {
-                            Voice_S.Maximum = Voice_Set.Voice_Files.Count - 1;
-                            Voice_T.Text = Voice_Set.Voice_Files[(int)Voice_S.Value];
-                            Voice_All_Number_T.Text = Voice_Set.Voice_Files_Number + "|" + (Voice_Set.Voice_Files.Count - 1);
-                        });
                     }
                 }
             }

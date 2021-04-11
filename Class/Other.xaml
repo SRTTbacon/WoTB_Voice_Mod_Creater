@@ -5,9 +5,12 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:local="clr-namespace:WoTB_Voice_Mod_Creater.Class"
     x:Class="WoTB_Voice_Mod_Creater.Class.Other"
-             mc:Ignorable="d"
-             x:Name="RootWindow"
-             d:DesignHeight="1080" d:DesignWidth="1920">
+    mc:Ignorable="d"
+    x:Name="RootWindow"
+    KeyboardNavigation.TabNavigation="None"
+    KeyboardNavigation.ControlTabNavigation="None"
+    KeyboardNavigation.DirectionalNavigation="None"
+    d:DesignHeight="1080" d:DesignWidth="1920">
     <UserControl.Resources>
         <SolidColorBrush x:Key="CyanBrush" Color="Gray"/>
         <SolidColorBrush x:Key="PinkBrush" Color="Gray"/>
@@ -158,6 +161,7 @@
             <Button x:Name="Message_B" Content="注意事項" Height="70" VerticalAlignment="Top" Width="250" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Margin="-250,0,0,0" Click="Message_B_Click"/>
             <CheckBox x:Name="Ex_Sort_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-1425,90,0,0" Click="Ex_Sort_C_Click"/>
             <TextBlock x:Name="Ex_Sort_T" FontSize="37" Height="45" Width="196" TextWrapping="Wrap" Text="拡張子順" VerticalAlignment="Top" Margin="-1200,72,0,0" Foreground="Aqua"/>
+            <TextBlock x:Name="Loop_Time_T" FontSize="37" Height="50" Width="550" TextWrapping="Wrap" Text="再生時間:0～0" VerticalAlignment="Top" Margin="-1900,1025,0,0" Foreground="Aqua"/>
             <Button x:Name="Exit_B" Content="戻る" Height="85" VerticalAlignment="Top" Width="325" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Margin="-3513,995,0,0" Click="Exit_B_Click"/>
             <local:Youtube_Link x:Name="Youtube_Link_Window" Height="1080" VerticalAlignment="Top" Width="1920" Margin="-1920,0,0,0" Visibility="Hidden"/>
             <local:Load_Data x:Name="Load_Window" Width="1920" Height="1080" Margin="-1920,0,0,0" Visibility="Hidden"/>

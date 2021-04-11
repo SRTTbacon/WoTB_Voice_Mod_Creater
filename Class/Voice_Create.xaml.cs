@@ -56,7 +56,6 @@ namespace WoTB_Voice_Mod_Creater.Class
                 }
                 catch
                 {
-
                 }
             }
             List_Text_Reset();
@@ -167,7 +166,6 @@ namespace WoTB_Voice_Mod_Creater.Class
                     }
                     catch
                     {
-
                     }
                     str.Close();
                     File.Delete(Voice_Set.Special_Path + "/Configs/Temp_Voice_Create.tmp");
@@ -763,6 +761,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                     {
                         Message_Feed_Out("ファイルをコピーできませんでした。詳しくは\"Error_Log.txt\"を参照してください。");
                         Directory.Delete(Dir_Name, true);
+                        IsCreating = false;
                         return;
                     }
                     if (Sub_Code.VolumeSet)
@@ -809,12 +808,14 @@ namespace WoTB_Voice_Mod_Creater.Class
                         {
                             Message_Feed_Out("DVPL化できませんでした。");
                             Sub_Code.Error_Log_Write(e1.Message);
+                            IsCreating = false;
                             return;
                         }
                         if (!File.Exists(Dir_Name + "/ingame_voice_ja.fsb.dvpl"))
                         {
                             Message_Feed_Out("正常に作成できませんでした。もう一度お試しください。");
                             Sub_Code.Error_Log_Write("ingame_voice_ja.fsb.dvplが作成されませんでした。");
+                            IsCreating = false;
                             return;
                         }
                     }
@@ -915,6 +916,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                             {
                                 Message_Feed_Out("エラー:DVPL化できませんでした。");
                                 Sub_Code.Error_Log_Write(e1.Message);
+                                IsCreating = false;
                                 return;
                             }
                         }
@@ -948,6 +950,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                         if (Voice_Set.WoTB_Path == "")
                         {
                             Message_Feed_Out("WoTBのインストール場所を取得できませんでした。");
+                            IsCreating = false;
                             return;
                         }
                         try
@@ -996,6 +999,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                         {
                             Message_Feed_Out("WoTBに適応できませんでした。");
                             Sub_Code.Error_Log_Write(e1.Message);
+                            IsCreating = false;
                             return;
                         }
                     }

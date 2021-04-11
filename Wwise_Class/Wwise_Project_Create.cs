@@ -39,7 +39,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         //取得したデータから指定したイベントにサウンドを追加(Save()が呼ばれるまで保存しない)
         public bool Add_Sound(string Container_ShortID, string Audio_File, string Language)
         {
-            if (!File.Exists(Audio_File) || Path.GetExtension(Audio_File) != ".wav" || Project_Dir == "")
+            if (Path.GetExtension(Audio_File) != ".wav" || Project_Dir == "")
             {
                 return false;
             }
@@ -47,13 +47,19 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             {
                 if (Language == "SFX")
                 {
-                    File.Copy(Audio_File, Project_Dir + "/Originals/SFX/" + Path.GetFileName(Audio_File), true);
-                    Add_Wav_Files.Add(Project_Dir + "/Originals/SFX/" + Path.GetFileName(Audio_File));
+                    if (File.Exists(Audio_File))
+                    {
+                        File.Copy(Audio_File, Project_Dir + "/Originals/SFX/" + Path.GetFileName(Audio_File), true);
+                        Add_Wav_Files.Add(Project_Dir + "/Originals/SFX/" + Path.GetFileName(Audio_File));
+                    }
                 }
                 else
                 {
-                    File.Copy(Audio_File, Project_Dir + "/Originals/Voices/" + Language + "/" + Path.GetFileName(Audio_File), true);
-                    Add_Wav_Files.Add(Project_Dir + "/Originals/Voices/" + Language + "/" + Path.GetFileName(Audio_File));
+                    if (File.Exists(Audio_File))
+                    {
+                        File.Copy(Audio_File, Project_Dir + "/Originals/Voices/" + Language + "/" + Path.GetFileName(Audio_File), true);
+                        Add_Wav_Files.Add(Project_Dir + "/Originals/Voices/" + Language + "/" + Path.GetFileName(Audio_File));
+                    }
                 }
                 int ShortID_Line = 0;
                 for (int Number = 0; Number < Actor_Mixer_Hierarchy.Count; Number++)
@@ -126,7 +132,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             }
         }
         //保存されたデータをもとに.bnkファイルをビルド(内容によって時間がかかります)
-        public void Project_Build(string BankName, string OutputFilePath)
+        public void Project_Build(string BankName, string OutputFilePath, string GeneratedSoundBanksPath = null)
         {
             if (Project_Dir == "" || !Directory.Exists(Path.GetDirectoryName(OutputFilePath)))
             {
@@ -150,7 +156,15 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 Process p = Process.Start(processStartInfo);
                 p.WaitForExit();
                 File.Delete(Voice_Set.Special_Path + "/Wwise/Project_Build.bat");
-                string GeneratedFile = Directory.GetFiles(Project_Dir + "/GeneratedSoundBanks/Windows", BankName + ".bnk", SearchOption.AllDirectories)[0];
+                string GeneratedFile;
+                if (GeneratedSoundBanksPath == null)
+                {
+                    GeneratedFile = Directory.GetFiles(Project_Dir + "/GeneratedSoundBanks/Windows", BankName + ".bnk", SearchOption.AllDirectories)[0];
+                }
+                else
+                {
+                    GeneratedFile = Directory.GetFiles(Project_Dir + "/GeneratedSoundBanks/" + GeneratedSoundBanksPath, BankName + ".bnk", SearchOption.AllDirectories)[0];
+                }
                 Sub_Code.File_Move(GeneratedFile, OutputFilePath, true);
             }
             catch (Exception e)
@@ -160,7 +174,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         }
         //使わなくなったら必ず実行させる
         //一時ファイルを削除
-        public void Clear()
+        public void Clear(string CachePath = null)
         {
             try
             {
@@ -169,7 +183,15 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                     Sub_Code.File_Delete_V2(File_Now);
                     Sub_Code.File_Delete_V2(File_Now.Replace(".wav", ".akd"));
                 }
-                string[] GetWEMFiles = Directory.GetFiles(Project_Dir + "/.cache/Windows", "*.wem", SearchOption.AllDirectories);
+                string[] GetWEMFiles;
+                if (CachePath == null)
+                {
+                    GetWEMFiles = Directory.GetFiles(Project_Dir + "/.cache/Windows", "*.wem", SearchOption.AllDirectories);
+                }
+                else
+                {
+                    GetWEMFiles = Directory.GetFiles(Project_Dir + "/.cache/" + CachePath, "*.wem", SearchOption.AllDirectories);
+                }
                 foreach (string File_Now in GetWEMFiles)
                 {
                     Sub_Code.File_Delete_V2(File_Now);
@@ -239,7 +261,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 return false;
             }
         }
-        public void Sound_Add_Wwise(string Dir_Name)
+        public void Sound_Add_Wwise(string Dir_Name, bool IsWoT_Project = false)
         {
             bool IsIncludeBGM = false;
             string[] Voice_Files_01 = Directory.GetFiles(Dir_Name, "*.wav", SearchOption.TopDirectoryOnly);
@@ -254,162 +276,284 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 {
                     Name_Only = Voice_Mod_Create.Get_Voice_Type_V1(Voice_Now);
                 }
-                switch (Name_Only)
+                if (IsWoT_Project)
                 {
-                    case "mikata":
-                        Add_Sound("170029050", Voice_Now, "ja");
-                        break;
-                    case "danyaku":
-                        Add_Sound("95559763", Voice_Now, "ja");
-                        break;
-                    case "hikantuu":
-                        Add_Sound("766083947", Voice_Now, "ja");
-                        break;
-                    case "kantuu":
-                        Add_Sound("569784404", Voice_Now, "ja");
-                        break;
-                    case "tokusyu":
-                        Add_Sound("266422868", Voice_Now, "ja");
-                        break;
-                    case "tyoudan":
-                        Add_Sound("1052258113", Voice_Now, "ja");
-                        break;
-                    case "syatyou":
-                        Add_Sound("242302464", Voice_Now, "ja");
-                        break;
-                    case "souzyuusyu":
-                        Add_Sound("334837201", Voice_Now, "ja");
-                        break;
-                    case "tekikasai":
-                        Add_Sound("381780774", Voice_Now, "ja");
-                        break;
-                    case "gekiha":
-                        Add_Sound("489572734", Voice_Now, "ja");
-                        break;
-                    case "enjinhason":
-                        Add_Sound("210078142", Voice_Now, "ja");
-                        break;
-                    case "enjintaiha":
-                        Add_Sound("249535989", Voice_Now, "ja");
-                        break;
-                    case "enjinhukkyuu":
-                        Add_Sound("908710042", Voice_Now, "ja");
-                        break;
-                    case "kasai":
-                        Add_Sound("1057023960", Voice_Now, "ja");
-                        break;
-                    case "syouka":
-                        Add_Sound("953778289", Voice_Now, "ja");
-                        break;
-                    case "nenryou":
-                        Add_Sound("121897540", Voice_Now, "ja");
-                        break;
-                    case "housinhason":
-                        Add_Sound("127877647", Voice_Now, "ja");
-                        break;
-                    case "housintaiha":
-                        Add_Sound("462397017", Voice_Now, "ja");
-                        break;
-                    case "housinhukkyuu":
-                        Add_Sound("651656679", Voice_Now, "ja");
-                        break;
-                    case "housyu":
-                        Add_Sound("739086111", Voice_Now, "ja");
-                        break;
-                    case "soutensyu":
-                        Add_Sound("363753108", Voice_Now, "ja");
-                        break;
-                    case "musen":
-                        Add_Sound("91697210", Voice_Now, "ja");
-                        break;
-                    case "musensyu":
-                        Add_Sound("987172940", Voice_Now, "ja");
-                        break;
-                    case "battle":
-                        Add_Sound("518589126", Voice_Now, "ja");
-                        break;
-                    case "kansokuhason":
-                        Add_Sound("330491031", Voice_Now, "ja");
-                        break;
-                    case "kansokutaiha":
-                        Add_Sound("792301846", Voice_Now, "ja");
-                        break;
-                    case "kansokuhukkyuu":
-                        Add_Sound("539730785", Voice_Now, "ja");
-                        break;
-                    case "ritaihason":
-                        Add_Sound("38261315", Voice_Now, "ja");
-                        break;
-                    case "ritaitaiha":
-                        Add_Sound("37535832", Voice_Now, "ja");
-                        break;
-                    case "ritaihukkyuu":
-                        Add_Sound("558576963", Voice_Now, "ja");
-                        break;
-                    case "houtouhason":
-                        Add_Sound("1014565012", Voice_Now, "ja");
-                        break;
-                    case "houtoutaiha":
-                        Add_Sound("135817430", Voice_Now, "ja");
-                        break;
-                    case "houtouhukkyuu":
-                        Add_Sound("985679417", Voice_Now, "ja");
-                        break;
-                    case "taiha":
-                        Add_Sound("164671745", Voice_Now, "ja");
-                        break;
-                    case "hakken":
-                        Add_Sound("447063394", Voice_Now, "ja");
-                        break;
-                    case "lamp":
-                        Add_Sound("154835998", Voice_Now, "ja");
-                        break;
-                    case "ryoukai":
-                        Add_Sound("607694618", Voice_Now, "ja");
-                        break;
-                    case "kyohi":
-                        Add_Sound("391276124", Voice_Now, "ja");
-                        break;
-                    case "help":
-                        Add_Sound("840378218", Voice_Now, "ja");
-                        break;
-                    case "attack":
-                        Add_Sound("549968154", Voice_Now, "ja");
-                        break;
-                    case "attack_now":
-                        Add_Sound("1015337424", Voice_Now, "ja");
-                        break;
-                    case "capture":
-                        Add_Sound("271044645", Voice_Now, "ja");
-                        break;
-                    case "defence":
-                        Add_Sound("310153012", Voice_Now, "ja");
-                        break;
-                    case "keep":
-                        Add_Sound("379548034", Voice_Now, "ja");
-                        break;
-                    case "lock":
-                        Add_Sound("839607605", Voice_Now, "ja");
-                        break;
-                    case "unlock":
-                        Add_Sound("233444430", Voice_Now, "ja");
-                        break;
-                    case "reload":
-                        Add_Sound("299739777", Voice_Now, "ja");
-                        break;
-                    case "map":
-                        Add_Sound("120795627", Voice_Now, "ja");
-                        break;
-                    case "battle_end":
-                        Add_Sound("924876614", Voice_Now, "ja");
-                        break;
-                    case "battle_bgm":
-                        Add_Sound("649358221", Voice_Now, "ja");
-                        IsIncludeBGM = true;
-                        break;
-                    case "load_bgm":
-                        Add_Sound("915105627", Voice_Now, "ja");
-                        break;
+                    switch (Name_Only)
+                    {
+                        case "mikata":
+                            Add_Sound("496744290", Voice_Now, "Japanese");
+                            break;
+                        case "danyaku":
+                            Add_Sound("80768846", Voice_Now, "Japanese");
+                            break;
+                        case "hikantuu":
+                            Add_Sound("611225375", Voice_Now, "Japanese");
+                            Add_Sound("894898226", Voice_Now, "Japanese");
+                            Add_Sound("91710501", Voice_Now, "Japanese");
+                            Add_Sound("904946415", Voice_Now, "Japanese");
+                            break;
+                        case "kantuu":
+                            Add_Sound("569021006", Voice_Now, "Japanese");
+                            Add_Sound("586836082", Voice_Now, "Japanese");
+                            Add_Sound("198894981", Voice_Now, "Japanese");
+                            break;
+                        case "tokusyu":
+                            Add_Sound("114246473", Voice_Now, "Japanese");
+                            Add_Sound("758697169", Voice_Now, "Japanese");
+                            Add_Sound("544988916", Voice_Now, "Japanese");
+                            Add_Sound("315035946", Voice_Now, "Japanese");
+                            break;
+                        case "tyoudan":
+                            Add_Sound("976240215", Voice_Now, "Japanese");
+                            break;
+                        case "syatyou":
+                            Add_Sound("694419949", Voice_Now, "Japanese");
+                            break;
+                        case "souzyuusyu":
+                            Add_Sound("750503602", Voice_Now, "Japanese");
+                            break;
+                        case "tekikasai":
+                            Add_Sound("675832160", Voice_Now, "Japanese");
+                            break;
+                        case "gekiha":
+                            Add_Sound("961047801", Voice_Now, "Japanese");
+                            Add_Sound("921878250", Voice_Now, "Japanese");
+                            break;
+                        case "enjinhason":
+                            Add_Sound("156949684", Voice_Now, "Japanese");
+                            break;
+                        case "enjintaiha":
+                            Add_Sound("779775207", Voice_Now, "Japanese");
+                            break;
+                        case "enjinhukkyuu":
+                            Add_Sound("153685024", Voice_Now, "Japanese");
+                            break;
+                        case "kasai":
+                            Add_Sound("55455728", Voice_Now, "Japanese");
+                            break;
+                        case "syouka":
+                            Add_Sound("108269930", Voice_Now, "Japanese");
+                            break;
+                        case "nenryou":
+                            Add_Sound("518449764", Voice_Now, "Japanese");
+                            break;
+                        case "housinhason":
+                            Add_Sound("396042361", Voice_Now, "Japanese");
+                            break;
+                        case "housintaiha":
+                            Add_Sound("111157803", Voice_Now, "Japanese");
+                            break;
+                        case "housinhukkyuu":
+                            Add_Sound("468738015", Voice_Now, "Japanese");
+                            break;
+                        case "housyu":
+                            Add_Sound("290791237", Voice_Now, "Japanese");
+                            break;
+                        case "soutensyu":
+                            Add_Sound("574952129", Voice_Now, "Japanese");
+                            break;
+                        case "musen":
+                            Add_Sound("947428834", Voice_Now, "Japanese");
+                            break;
+                        case "musensyu":
+                            Add_Sound("557399837", Voice_Now, "Japanese");
+                            break;
+                        case "battle":
+                            Add_Sound("629260003", Voice_Now, "Japanese");
+                            break;
+                        case "kansokuhason":
+                            Add_Sound("223610709", Voice_Now, "Japanese");
+                            Add_Sound("60412176", Voice_Now, "Japanese");
+                            break;
+                        case "kansokutaiha":
+                            Add_Sound("693388069", Voice_Now, "Japanese");
+                            break;
+                        case "kansokuhukkyuu":
+                            Add_Sound("407686850", Voice_Now, "Japanese");
+                            break;
+                        case "ritaihason":
+                            Add_Sound("189198188", Voice_Now, "Japanese");
+                            break;
+                        case "ritaitaiha":
+                            Add_Sound("113684286", Voice_Now, "Japanese");
+                            break;
+                        case "ritaihukkyuu":
+                            Add_Sound("764683321", Voice_Now, "Japanese");
+                            Add_Sound("1035064657", Voice_Now, "Japanese");
+                            break;
+                        case "houtouhason":
+                            Add_Sound("755962743", Voice_Now, "Japanese");
+                            break;
+                        case "houtoutaiha":
+                            Add_Sound("464113292", Voice_Now, "Japanese");
+                            break;
+                        case "houtouhukkyuu":
+                            Add_Sound("230672484", Voice_Now, "Japanese");
+                            break;
+                        case "taiha":
+                            Add_Sound("1015146434", Voice_Now, "Japanese");
+                            break;
+                    }
+                }
+                else
+                {
+                    switch (Name_Only)
+                    {
+                        case "mikata":
+                            Add_Sound("170029050", Voice_Now, "ja");
+                            break;
+                        case "danyaku":
+                            Add_Sound("95559763", Voice_Now, "ja");
+                            break;
+                        case "hikantuu":
+                            Add_Sound("766083947", Voice_Now, "ja");
+                            break;
+                        case "kantuu":
+                            Add_Sound("569784404", Voice_Now, "ja");
+                            break;
+                        case "tokusyu":
+                            Add_Sound("266422868", Voice_Now, "ja");
+                            break;
+                        case "tyoudan":
+                            Add_Sound("1052258113", Voice_Now, "ja");
+                            break;
+                        case "syatyou":
+                            Add_Sound("242302464", Voice_Now, "ja");
+                            break;
+                        case "souzyuusyu":
+                            Add_Sound("334837201", Voice_Now, "ja");
+                            break;
+                        case "tekikasai":
+                            Add_Sound("381780774", Voice_Now, "ja");
+                            break;
+                        case "gekiha":
+                            Add_Sound("489572734", Voice_Now, "ja");
+                            break;
+                        case "enjinhason":
+                            Add_Sound("210078142", Voice_Now, "ja");
+                            break;
+                        case "enjintaiha":
+                            Add_Sound("249535989", Voice_Now, "ja");
+                            break;
+                        case "enjinhukkyuu":
+                            Add_Sound("908710042", Voice_Now, "ja");
+                            break;
+                        case "kasai":
+                            Add_Sound("1057023960", Voice_Now, "ja");
+                            break;
+                        case "syouka":
+                            Add_Sound("953778289", Voice_Now, "ja");
+                            break;
+                        case "nenryou":
+                            Add_Sound("121897540", Voice_Now, "ja");
+                            break;
+                        case "housinhason":
+                            Add_Sound("127877647", Voice_Now, "ja");
+                            break;
+                        case "housintaiha":
+                            Add_Sound("462397017", Voice_Now, "ja");
+                            break;
+                        case "housinhukkyuu":
+                            Add_Sound("651656679", Voice_Now, "ja");
+                            break;
+                        case "housyu":
+                            Add_Sound("739086111", Voice_Now, "ja");
+                            break;
+                        case "soutensyu":
+                            Add_Sound("363753108", Voice_Now, "ja");
+                            break;
+                        case "musen":
+                            Add_Sound("91697210", Voice_Now, "ja");
+                            break;
+                        case "musensyu":
+                            Add_Sound("987172940", Voice_Now, "ja");
+                            break;
+                        case "battle":
+                            Add_Sound("518589126", Voice_Now, "ja");
+                            break;
+                        case "kansokuhason":
+                            Add_Sound("330491031", Voice_Now, "ja");
+                            break;
+                        case "kansokutaiha":
+                            Add_Sound("792301846", Voice_Now, "ja");
+                            break;
+                        case "kansokuhukkyuu":
+                            Add_Sound("539730785", Voice_Now, "ja");
+                            break;
+                        case "ritaihason":
+                            Add_Sound("38261315", Voice_Now, "ja");
+                            break;
+                        case "ritaitaiha":
+                            Add_Sound("37535832", Voice_Now, "ja");
+                            break;
+                        case "ritaihukkyuu":
+                            Add_Sound("558576963", Voice_Now, "ja");
+                            break;
+                        case "houtouhason":
+                            Add_Sound("1014565012", Voice_Now, "ja");
+                            break;
+                        case "houtoutaiha":
+                            Add_Sound("135817430", Voice_Now, "ja");
+                            break;
+                        case "houtouhukkyuu":
+                            Add_Sound("985679417", Voice_Now, "ja");
+                            break;
+                        case "taiha":
+                            Add_Sound("164671745", Voice_Now, "ja");
+                            break;
+                        case "hakken":
+                            Add_Sound("447063394", Voice_Now, "ja");
+                            break;
+                        case "lamp":
+                            Add_Sound("154835998", Voice_Now, "ja");
+                            break;
+                        case "ryoukai":
+                            Add_Sound("607694618", Voice_Now, "ja");
+                            break;
+                        case "kyohi":
+                            Add_Sound("391276124", Voice_Now, "ja");
+                            break;
+                        case "help":
+                            Add_Sound("840378218", Voice_Now, "ja");
+                            break;
+                        case "attack":
+                            Add_Sound("549968154", Voice_Now, "ja");
+                            break;
+                        case "attack_now":
+                            Add_Sound("1015337424", Voice_Now, "ja");
+                            break;
+                        case "capture":
+                            Add_Sound("271044645", Voice_Now, "ja");
+                            break;
+                        case "defence":
+                            Add_Sound("310153012", Voice_Now, "ja");
+                            break;
+                        case "keep":
+                            Add_Sound("379548034", Voice_Now, "ja");
+                            break;
+                        case "lock":
+                            Add_Sound("839607605", Voice_Now, "ja");
+                            break;
+                        case "unlock":
+                            Add_Sound("233444430", Voice_Now, "ja");
+                            break;
+                        case "reload":
+                            Add_Sound("299739777", Voice_Now, "ja");
+                            break;
+                        case "map":
+                            Add_Sound("120795627", Voice_Now, "ja");
+                            break;
+                        case "battle_end":
+                            Add_Sound("924876614", Voice_Now, "ja");
+                            break;
+                        case "battle_bgm":
+                            Add_Sound("649358221", Voice_Now, "ja");
+                            IsIncludeBGM = true;
+                            break;
+                        case "load_bgm":
+                            Add_Sound("915105627", Voice_Now, "ja");
+                            break;
+                    }
                 }
             }
             //BGMが含まれていなければ強制的に追加

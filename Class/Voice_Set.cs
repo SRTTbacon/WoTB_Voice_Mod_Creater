@@ -868,6 +868,52 @@ namespace WoTB_Voice_Mod_Creater
                 }
             }
         }
+        public static List<List<string>> Voice_BGM_Name_Change_From_FSB_To_Index(string Dir_Path)
+        {
+            if (!Directory.Exists(Dir_Path))
+            {
+                return new List<List<string>>();
+            }
+            List<List<string>> Temp = new List<List<string>>();
+            for (int Number_01 = 0; Number_01 < 34; Number_01++)
+            {
+                Temp.Add(new List<string>());
+            }
+            List<string> To_File_Name = new List<string>();To_File_Name.AddRange(new string[]{ "mikata", "danyaku", "hikantuu", "kantuu", "tokusyu", "tyoudan", "syatyou", "souzyuusyu", "tekikasai", "gekiha", "enjinhason", "enjintaiha", "enjinhukkyuu"
+            ,"kasai","syouka","nenryou","housinhason","housintaiha","housinhukkyuu","housyu","soutensyu","musen","musensyu","battle","kansokuhason","kansokutaiha"
+            ,"kansokuhukkyuu","ritaihason","ritaitaiha","ritaihukkyuu","houtouhason","houtoutaiha","houtouhukkyuu","taiha"});
+            string[] Files = Directory.GetFiles(Dir_Path, "*.wav", SearchOption.TopDirectoryOnly);
+            foreach (string File_Now in Files)
+            {
+                string Name_Temp = Path.GetFileNameWithoutExtension(File_Now);
+                if (!Sub_Code.IsIncludeInt_From_String_V2(Name_Temp, "_"))
+                {
+                    continue;
+                }
+                if (Name_Temp.Contains("_"))
+                {
+                    string Name = Name_Temp.Substring(0, Name_Temp.LastIndexOf('_'));
+                    Name = Name.Trim();
+                    for (int Number = 0; Number < 34; Number++)
+                    {
+                        if (To_File_Name[Number] == Name)
+                        {
+                            Temp[Number].Add(Name_Temp);
+                            break;
+                        }
+                        foreach (string Voice_Name in Voice_BGM_Change_List[Number])
+                        {
+                            if (Name.Contains(Voice_Name))
+                            {
+                                Temp[Number].Add(Name_Temp);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            return Temp;
+        }
         public static void Set_SE_Change_Name()
         {
             string SE_Dir = Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Originals/Voices/ja";

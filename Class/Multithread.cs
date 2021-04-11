@@ -8,6 +8,7 @@ using System.IO;
 using System.Threading.Tasks;
 using System.Windows;
 using Un4seen.Bass;
+using Un4seen.Bass.AddOn.Enc;
 using Un4seen.Bass.Misc;
 
 namespace WoTB_Voice_Mod_Creater.Class
@@ -43,7 +44,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 var tasks = new List<Task>();
                 for (int i = 0; i < From_Files.Count; i++)
                 {
-                    tasks.Add(To_WAV(i, To_Dir, IsFromFileDelete, IsUseFFmpeg));
+                    tasks.Add(To_WAV(i, To_Dir, IsFromFileDelete, IsUseFFmpeg, BassEncode = false));
                 }
                 await Task.WhenAll(tasks);
                 From_Files.Clear();
@@ -54,7 +55,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Sub_Code.Error_Log_Write(ex.Message);
             }
         }
-        public static async Task Convert_To_Wav(string[] Files, string To_Dir, bool IsFromFileDelete)
+        public static async Task Convert_To_Wav(string[] Files, string To_Dir, bool IsFromFileDelete, bool BassEncode = false)
         {
             try
             {
@@ -65,9 +66,26 @@ namespace WoTB_Voice_Mod_Creater.Class
                 {
                     if (!Sub_Code.Audio_IsWAV(Files[i]))
                     {
-                        tasks.Add(To_WAV(i, To_Dir, IsFromFileDelete, false));
+                        tasks.Add(To_WAV(i, To_Dir, IsFromFileDelete, false, BassEncode));
                     }
                 }
+                await Task.WhenAll(tasks);
+                From_Files.Clear();
+            }
+            catch (Exception ex)
+            {
+                From_Files.Clear();
+                Sub_Code.Error_Log_Write(ex.Message);
+            }
+        }
+        public static async Task Convert_To_Wav(string FilePath, bool IsFromFileDelete, bool BassEncode)
+        {
+            try
+            {
+                From_Files.Clear();
+                From_Files.Add(FilePath);
+                var tasks = new List<Task>();
+                tasks.Add(To_WAV(0, Path.GetDirectoryName(FilePath), IsFromFileDelete, false, BassEncode));
                 await Task.WhenAll(tasks);
                 From_Files.Clear();
             }
@@ -141,7 +159,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             }
             return true;
         }
-        static async Task<bool> To_WAV(int File_Number, string To_Dir, bool IsFromFileDelete, bool IsUseFFmpeg)
+        static async Task<bool> To_WAV(int File_Number, string To_Dir, bool IsFromFileDelete, bool IsUseFFmpeg, bool IsUseBass)
         {
             if (!File.Exists(From_Files[File_Number]))
             {
@@ -171,6 +189,20 @@ namespace WoTB_Voice_Mod_Creater.Class
                     }
                     File.Delete(Voice_Set.Special_Path + "/Encode_Mp3/Audio_Encode" + File_Number + ".bat");
                 });
+            }
+            else if (IsUseBass)
+            {
+                string To_Audio_File = To_Dir + "\\" + Path.GetFileNameWithoutExtension(From_Files[File_Number]) + ".wav";
+                Un4seen.Bass.Misc.EncoderWAV w = new Un4seen.Bass.Misc.EncoderWAV(0);
+                w.InputFile = From_Files[File_Number];
+                w.OutputFile = To_Audio_File;
+                w.WAV_BitsPerSample = 24;
+                w.Start(null, IntPtr.Zero, false);
+                w.Stop();
+                if (IsFromFileDelete)
+                {
+                    File.Delete(From_Files[File_Number]);
+                }
             }
             else
             {

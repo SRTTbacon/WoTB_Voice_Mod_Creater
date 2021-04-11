@@ -16,7 +16,7 @@ namespace BNKManager
     }
     public class LoLSoundBankManager
     {
-        public List<LoLSoundBank> banksList;
+        public List<LoLSoundBank> banksList = null;
         public LoLSoundBankManager(List<LoLSoundBank> banksList)
         {
             this.banksList = banksList;

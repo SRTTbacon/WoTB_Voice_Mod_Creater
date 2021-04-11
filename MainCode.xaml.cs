@@ -7,14 +7,11 @@ using System.IO.Compression;
 using System.Net;
 using System.Security.Authentication;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Xml.Linq;
 using WK.Libraries.BetterFolderBrowserNS;
-using WoTB_Voice_Mod_Creater.Android;
 using WoTB_Voice_Mod_Creater.Class;
 
 public static partial class StringExtensions
@@ -34,11 +31,11 @@ public static partial class StringExtensions
 }
 public class SRTTbacon_Server
 {
-    public const string IP_Local = "非公開";
-    public const string IP_Global = "非公開";
-    public const string Name = "非公開";
-    public const string Password = "非公開";
-    public const int Port = -1;
+    public const string IP_Local = "192.168.3.12";
+    public const string IP_Global = "60.151.34.219";
+    public const string Name = "SRTTbacon_Server";
+    public const string Password = "SRTTbacon";
+    public const int Port = 50000;
     public static bool IsSRTTbaconOwnerMode = false;
     public static string IP = "";
 }
@@ -46,13 +43,12 @@ namespace WoTB_Voice_Mod_Creater
 {
     public partial class MainCode : Window
     {
-        const string Version = "1.3.0";
+        const string Version = "1.3.2";
         readonly string Path = Directory.GetCurrentDirectory();
         bool IsClosing = false;
         bool IsMessageShowing = false;
         bool IsIncludeJapanese = false;
         bool IsFullScreen = true;
-        readonly bool IsSRTTbacon_V1 = false;
         //チャットモード(0が全体:1がサーバー内:2が管理者チャット)
         //管理者チャットは管理者(SRTTbacon)と個人チャットする用(主にバグ報告かな？)
         int Chat_Mode = 0;
@@ -131,9 +127,6 @@ namespace WoTB_Voice_Mod_Creater
                 Download_P.Visibility = Visibility.Hidden;
                 Download_T.Visibility = Visibility.Hidden;
                 Load_Image.Visibility = Visibility.Hidden;
-                Password_Text.Visibility = Visibility.Hidden;
-                Password_T.Visibility = Visibility.Hidden;
-                Server_Create_Name_T.Visibility = Visibility.Hidden;
                 WoTB_Select_B.Visibility = Visibility.Hidden;
                 Server_B.Visibility = Visibility.Hidden;
                 Save_Window.Opacity = 0;
@@ -149,10 +142,6 @@ namespace WoTB_Voice_Mod_Creater
                 {
                     SRTTbacon_Server.IP = SRTTbacon_Server.IP_Local;
                     ConnectType = FtpDataConnectionType.PASV;
-                    if (Environment.UserName == "SRTTbacon_V1")
-                    {
-                        IsSRTTbacon_V1 = true;
-                    }
                 }
                 else
                 {
@@ -211,11 +200,6 @@ namespace WoTB_Voice_Mod_Creater
                     Sub_Code.Error_Log_Write(e.Message);
                 }
                 Server_Connect();
-                Voice_Volume_S.Maximum = 100;
-                Voice_Volume_S.Value = 50;
-                Voice_Type_C.Items.Add("モード:メイン");
-                Voice_Type_C.Items.Add("モード:サブ");
-                Voice_Type_C.SelectedIndex = 0;
                 BrushConverter bc = new BrushConverter();
                 Chat_Mode_Public_B.Background = Brushes.Transparent;
                 Chat_Mode_Server_B.Background = Brushes.Transparent;
@@ -224,7 +208,6 @@ namespace WoTB_Voice_Mod_Creater
                 Chat_Mode_Server_B.BorderBrush = Brushes.Transparent;
                 Chat_Mode_Private_B.BorderBrush = Brushes.Red;
                 Chat_Mode_Change(2);
-                Player_Position_Change();
                 Window_Show();
                 if (!File.Exists(Path + "/WoTB_Path.dat"))
                 {
@@ -680,21 +663,6 @@ namespace WoTB_Voice_Mod_Creater
             Download_Data_File.Download_Total_Size = 0;
             Load_Data_Window.Window_Stop();
         }
-        //サーバーを取得
-        string[] GetServerNames()
-        {
-            string[] Server_Lists = Server_File.Server_Open_File_Line("/WoTB_Voice_Mod/Server_Names.dat");
-            string[] Temp = { };
-            for (int Number = 0; Number <= Server_Lists.Length - 1; Number++)
-            {
-                if (Server_Lists[Number] != "")
-                {
-                    Array.Resize(ref Temp, Temp.Length + 1);
-                    Temp[Temp.Length - 1] = Server_Lists[Number];
-                }
-            }
-            return Temp;
-        }
         void OnValidateCertificate(FtpClient control, FtpSslValidationEventArgs e)
         {
             e.Accept = true;
@@ -757,55 +725,6 @@ namespace WoTB_Voice_Mod_Creater
             };
             IsConnecting();
         }
-        //音声のインデックスを戻す
-        private void Voice_Back_Click(object sender, RoutedEventArgs e)
-        {
-            if (Voice_Set.Voice_Files_Number > 0)
-            {
-                Voice_Set.Voice_Files_Number--;
-                Voice_T.Text = Voice_Set.Voice_Files[Voice_Set.Voice_Files_Number];
-                Voice_All_Number_T.Text = Voice_Set.Voice_Files_Number + "|" + (Voice_Set.Voice_Files.Count - 1);
-                Voice_S.Value = Voice_Set.Voice_Files_Number;
-            }
-        }
-        //音声のインデックスを進める
-        private void Voice_Front_Click(object sender, RoutedEventArgs e)
-        {
-            if (Voice_Set.Voice_Files_Number < Voice_Set.Voice_Files.Count - 1)
-            {
-                Voice_Set.Voice_Files_Number++;
-                Voice_T.Text = Voice_Set.Voice_Files[Voice_Set.Voice_Files_Number];
-                Voice_All_Number_T.Text = Voice_Set.Voice_Files_Number + "|" + (Voice_Set.Voice_Files.Count - 1);
-                Voice_S.Value = Voice_Set.Voice_Files_Number;
-            }
-        }
-        //音声のインデックスをスライダーで変更
-        private void Voice_S_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-        {
-            Voice_Set.Voice_Files_Number = (int)Voice_S.Value;
-            Voice_T.Text = Voice_Set.Voice_Files[Voice_Set.Voice_Files_Number];
-            Voice_All_Number_T.Text = Voice_Set.Voice_Files_Number + "|" + (Voice_Set.Voice_Files.Count - 1);
-        }
-        //音声を停止
-        private void Voice_Stop_B_Click(object sender, RoutedEventArgs e)
-        {
-        }
-        //音声を再生
-        private void Voice_Play_B_Click(object sender, RoutedEventArgs e)
-        {
-        }
-        //音声の位置を反映
-        void Player_Position_Change()
-        {
-        }
-        //音声の位置を指定
-        private void Voice_Location_S_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-        {
-        }
-        //音量を変更
-        private void Voice_Volume_S_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-        {
-        }
         //キャッシュを削除
         private void Cache_Delete_B_Click(object sender, RoutedEventArgs e)
         {
@@ -843,51 +762,6 @@ namespace WoTB_Voice_Mod_Creater
                     Sub_Code.Error_Log_Write(m.Message);
                 }
             }
-        }
-        //サーバーをクリックしたときにそのサーバーの情報を取得
-        private void Server_Lists_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
-        {
-            if (Server_Lists.SelectedIndex != -1)
-            {
-                Explanation_Scrool.Visibility = Visibility.Visible;
-                Explanation_Text.Visibility = Visibility.Visible;
-                Explanation_Border.Visibility = Visibility.Visible;
-                XDocument xml2 = XDocument.Load(Voice_Set.FTP_Server.OpenRead("/WoTB_Voice_Mod/" + Server_Names_List[Server_Lists.SelectedIndex] + "/Server_Config.dat"));
-                XElement item2 = xml2.Element("Server_Create_Config");
-                if (bool.Parse(item2.Element("IsEnablePassword").Value))
-                {
-                    Password_Text.Visibility = Visibility.Visible;
-                    Password_T.Visibility = Visibility.Visible;
-                }
-                else
-                {
-                    Password_Text.Visibility = Visibility.Hidden;
-                    Password_T.Visibility = Visibility.Hidden;
-                }
-                Explanation_T.Text = item2.Element("Explanation").Value;
-                Server_Create_Name_T.Text = "制作者:" + item2.Element("Master_User_Name").Value;
-                Server_Create_Name_T.Visibility = Visibility.Visible;
-            }
-        }
-        //リストボックスの空欄をクリックするとサーバーを未選択にする
-        private void Server_Lists_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
-        {
-            Server_Lists.SelectedIndex = -1;
-            Password_Text.Visibility = Visibility.Hidden;
-            Password_T.Visibility = Visibility.Hidden;
-            Explanation_Scrool.Visibility = Visibility.Hidden;
-            Explanation_Text.Visibility = Visibility.Hidden;
-            Explanation_Border.Visibility = Visibility.Hidden;
-            Server_Create_Name_T.Visibility = Visibility.Hidden;
-        }
-        //サーバーリストを更新
-        private void Server_List_Update_B_Click(object sender, RoutedEventArgs e)
-        {
-            if (IsProcessing)
-            {
-                return;
-            }
-            Server_List_Reset();
         }
         //ログイン
         private void User_Login_B_Click(object sender, RoutedEventArgs e)
@@ -1022,15 +896,6 @@ namespace WoTB_Voice_Mod_Creater
             }
             Chat_Send_T.Text = "";
         }
-        private void Voice_Delete_B_Click(object sender, RoutedEventArgs e)
-        {
-            if (Voice_Set.App_Busy)
-            {
-                return;
-            }
-            Voice_Set.FTP_Server.DeleteFile("/WoTB_Voice_Mod/" + Voice_Set.SRTTbacon_Server_Name + "/Voices/" + Voice_Set.Voice_Files[Voice_Set.Voice_Files_Number]);
-            Voice_Set.TCP_Server.WriteLine(Voice_Set.SRTTbacon_Server_Name + "|Remove|" + Voice_Set.Voice_Files[Voice_Set.Voice_Files_Number] + '\0');
-        }
         private void Chat_Mode_Public_B_Click(object sender, RoutedEventArgs e)
         {
             Chat_Mode_Change(0);
@@ -1100,44 +965,6 @@ namespace WoTB_Voice_Mod_Creater
                 await Task.Delay(1000 / 30);
             }
             Load_Image.Visibility = Visibility.Hidden;
-        }
-        private void Back_B_Click(object sender, RoutedEventArgs e)
-        {
-            MessageBoxResult result = MessageBox.Show("メニュー画面に戻りますか？", "確認", MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.No);
-            if (result == MessageBoxResult.Yes)
-            {
-                Voice_S.Visibility = Visibility.Hidden;
-                Voice_Back_B.Visibility = Visibility.Hidden;
-                Voice_Front_B.Visibility = Visibility.Hidden;
-                Voice_Stop_B.Visibility = Visibility.Hidden;
-                Voice_Play_B.Visibility = Visibility.Hidden;
-                Voice_Location_S.Visibility = Visibility.Hidden;
-                Voice_Volume_S.Visibility = Visibility.Hidden;
-                Voice_Type_C.Visibility = Visibility.Hidden;
-                Voice_Delete_B.Visibility = Visibility.Hidden;
-                Voice_Type_Border.Visibility = Visibility.Hidden;
-                Back_B.Visibility = Visibility.Hidden;
-                Save_B.Visibility = Visibility.Hidden;
-                Voice_T.Text = "";
-                Voice_All_Number_T.Text = "";
-                Chat_T.Text = "";
-                Voice_Set.SRTTbacon_Server_Name = "";
-                Voice_Set.Voice_Files = new List<string>();
-                Voice_Set.Voice_Files_Number = 0;
-                Voice_S.Value = 0;
-                Voice_S.Maximum = 1;
-                Chat_Hide();
-                Password_Text.Visibility = Visibility.Hidden;
-                Password_T.Visibility = Visibility.Hidden;
-                Explanation_Scrool.Visibility = Visibility.Hidden;
-                Explanation_Text.Visibility = Visibility.Hidden;
-                Explanation_Border.Visibility = Visibility.Hidden;
-                Server_Create_Name_T.Visibility = Visibility.Hidden;
-                Server_List_Reset();
-                Server_Lists.Visibility = Visibility.Visible;
-                Cache_Delete_B.Visibility = Visibility.Visible;
-                Server_List_Update_B.Visibility = Visibility.Visible;
-            }
         }
         private void Voice_Mod_Free_B_Click(object sender, RoutedEventArgs e)
         {
@@ -1434,6 +1261,10 @@ namespace WoTB_Voice_Mod_Creater
             {
                 return;
             }
+            if (Other_Window.Visibility == Visibility.Visible)
+            {
+                Other_Window.RootWindow_KeyDown(e);
+            }
             //他の画面を表示させていても動作するように
             if ((System.Windows.Forms.Control.ModifierKeys & System.Windows.Forms.Keys.Shift) == System.Windows.Forms.Keys.Shift && e.Key == System.Windows.Input.Key.F)
             {
@@ -1515,7 +1346,7 @@ namespace WoTB_Voice_Mod_Creater
                     {
                         Sub_Code.Error_Log_Write(e1.Message);
                     }
-                    int Minus = (int)(Voice_Volume_S.Value / 40);
+                    Other_Window.Pause_Volume_Animation(true, 25);
                     while (Opacity > 0)
                     {
                         Opacity -= Sub_Code.Window_Feed_Time;
@@ -1753,13 +1584,81 @@ namespace WoTB_Voice_Mod_Creater
                 Server_Voices_Sort_Window.Window_Show(false, "サーバーに参加しました。");
             }
         }
-        private void WoT_To_Blitz_B_Click(object sender, RoutedEventArgs e)
+        private async void WoT_To_Blitz_B_Click(object sender, RoutedEventArgs e)
         {
             if (IsProcessing)
             {
                 return;
             }
+            if (!File.Exists(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Version.dat") && !Voice_Set.FTP_Server.IsConnected)
+            {
+                Message_Feed_Out("サーバーに接続できないため実行できません。");
+                return;
+            }
+            IsProcessing = true;
+            int Tmp = await Sub_Code.Wwise_Project_Update(Message_T, Download_P, Download_T, Download_Border);
+            IsProcessing = false;
+            if (Tmp == 0 || Tmp == 3)
+            {
+                Message_Feed_Out("チェックが完了しました。");
+            }
+            else if (Tmp == 1)
+            {
+                Message_Feed_Out("ダウンロードに失敗しました。以前のバージョンで実行します。");
+            }
+            else if (Tmp == 3)
+            {
+                Message_Feed_Out("ダウンロードに失敗しました。開発者へご連絡ください。");
+                return;
+            }
+            else if (Tmp == 4)
+            {
+                return;
+            }
+            else if (Tmp == 5)
+            {
+                Message_Feed_Out("エラーが発生しました。Log.txtを参照してください。");
+                return;
+            }
             WoT_To_Blitz_Window.Window_Show();
+        }
+        private async void Blitz_To_WoT_B_Click(object sender, RoutedEventArgs e)
+        {
+            if (IsProcessing)
+            {
+                return;
+            }
+            if (!File.Exists(Voice_Set.Special_Path + "/Wwise/WoT_Sound_Mod/Version.dat") && !Voice_Set.FTP_Server.IsConnected)
+            {
+                Message_Feed_Out("サーバーに接続できないため実行できません。");
+                return;
+            }
+            IsProcessing = true;
+            int Tmp = await Sub_Code.Wwise_WoT_Project_Update(Message_T, Download_P, Download_T, Download_Border);
+            IsProcessing = false;
+            if (Tmp == 0 || Tmp == 3)
+            {
+                Message_Feed_Out("チェックが完了しました。");
+            }
+            else if (Tmp == 1)
+            {
+                Message_Feed_Out("ダウンロードに失敗しました。以前のバージョンで実行します。");
+            }
+            else if (Tmp == 3)
+            {
+                Message_Feed_Out("ダウンロードに失敗しました。開発者へご連絡ください。");
+                return;
+            }
+            else if (Tmp == 4)
+            {
+                return;
+            }
+            else if (Tmp == 5)
+            {
+                Message_Feed_Out("エラーが発生しました。Log.txtを参照してください。");
+                return;
+            }
+            Blitz_To_WoT_Window.Window_Show();
         }
     }
 }

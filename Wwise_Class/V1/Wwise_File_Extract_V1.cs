@@ -27,6 +27,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         }
         public void Pck_Clear()
         {
+            Sounds.Clear();
             Selected_PCK_File = "";
             IsPCKSelected = false;
             Wwise = null;
@@ -181,6 +182,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             {
                 try
                 {
+                    //.pck内のファイルが.ogg形式でないとファイルサイズが0バイトになる
                     WEMFile wem = new WEMFile(To_Dir + "/" + Sounds[Index].id + ".wem", WEMForcePacketFormat.NoForcePacketFormat);
                     wem.GenerateOGG(To_Dir + "/" + Sounds[Index].id + ".ogg", Voice_Set.Special_Path + "/Wwise/packed_codebooks_aoTuV_603.bin", false, false);
                     wem.Close();
@@ -191,7 +193,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 }
             });
         }
-        //wwiseutil.exeから指定したディレクトリにあるwemファイルをpckファイルに書き換える
+        //wwiseutil.exeで指定したディレクトリにあるwemファイルをpckファイルに書き換える
         //引数:保存先(元ファイルと同じでもOK),wemファイルがあるフォルダ,既にファイルがある場合上書きするか
         public void Wwise_PCK_Save(string To_File, string Set_Dir, bool IsOverWrite)
         {
