@@ -27,6 +27,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         }
         public void Pck_Clear()
         {
+            Wwise.PCK_Clear();
             Sounds.Clear();
             Selected_PCK_File = "";
             IsPCKSelected = false;

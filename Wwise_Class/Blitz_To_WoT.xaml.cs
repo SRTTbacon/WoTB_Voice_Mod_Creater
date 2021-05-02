@@ -171,6 +171,8 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 Bass.BASS_StreamFree(Stream);
                 Voices_L.Items.Clear();
                 Content_L.Items.Clear();
+                BNK_FSB_Enable.Clear();
+                BNK_FSB_Voices.Clear();
                 Voices_L.Items.Add("音声ファイルが選択されていません。");
                 BNK_FSB_Voices.Clear();
                 File_Name_T.Text = "";
@@ -619,11 +621,42 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                     }
                     await BNK_Create_V2(To_Dir + "/Voices", SetPath);
                     Directory.Delete(To_Dir + "/Voices", true);
-                    Message_Feed_Out("完了しました。指定したフォルダを確認してください。");
+                    if (Sub_Code.WoT_Get_ModDirectory())
+                    {
+                        Message_T.Text = "ダイアログを表示しています...";
+                        await Task.Delay(50);
+                        MessageBoxResult result = System.Windows.MessageBox.Show("WoTのインストールフォルダの取得に成功しました。\n作成した音声ModをWoTに導入しますか？\n配置場所:" + Voice_Set.WoT_Mod_Path, "確認",
+                            MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.Yes);
+                        if (result == MessageBoxResult.Yes)
+                        {
+                            try
+                            {
+                                if (!Directory.Exists(Voice_Set.WoT_Mod_Path + "/audioww"))
+                                {
+                                    Directory.CreateDirectory(Voice_Set.WoT_Mod_Path + "/audioww");
+                                }
+                                if (File.Exists(Voice_Set.WoT_Mod_Path + "/audioww/voiceover.bnk"))
+                                {
+                                    File.Copy(Voice_Set.WoT_Mod_Path + "/audioww/voiceover.bnk", Voice_Set.WoT_Mod_Path + "/audioww/voiceover_bak.bnk", true);
+                                }
+                                File.Copy(SetPath + "/voiceover.bnk", Voice_Set.WoT_Mod_Path + "/audioww/voiceover.bnk", true);
+                            }
+                            catch (Exception e1)
+                            {
+                                Sub_Code.Error_Log_Write(e1.Message);
+                                Message_Feed_Out("WoTにインストールできませんでした。Error_Log.txtを確認してください。");
+                                IsBusy = false;
+                                fbd.Dispose();
+                                return;
+                            }
+                        }
+                    }
+                    Message_Feed_Out("完了しました。");
                 }
                 catch (Exception e1)
                 {
                     Sub_Code.Error_Log_Write(e1.Message);
+                    Message_Feed_Out("エラーが発生しました。Error_Log.txtを参照してください。");
                 }
                 IsBusy = false;
             }
@@ -650,6 +683,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             Wwise_Class.Wwise_Project_Create Wwise = new Wwise_Class.Wwise_Project_Create(Voice_Set.Special_Path + "/Wwise/WoT_Sound_Mod");
             Wwise.Sound_Add_Wwise(Voice_Dir, true);
             Wwise.Save();
+            Message_T.Text = "voiceover.bnkを作成しています...";
             await Task.Delay(50);
             Wwise.Project_Build("voiceover", Save_Dir + "/voiceover.bnk", "WinHighRes");
             Wwise.Clear("Windows_HighRes");

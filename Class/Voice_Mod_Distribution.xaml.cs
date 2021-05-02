@@ -346,7 +346,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                         else
                         {
                             //Fmod_Player.ESystem.Load(Voice_Set.Special_Path + "/Server/Download_Mods/" + Mod_Select_Name + "/" + Bank_Name, ref ELI, ref EP);
-                            Wwise_Bnk = new Wwise_Class.Wwise_File_Extract_V2(Voice_Set.Special_Path + "/Server/Download_Mods/" + Mod_Select_Name + "/" + Bank_Name);
+                            Wwise_Bnk = new Wwise_Class.Wwise_File_Extract_V2(Dir + "/" + Bank_Name);
                         }
                         /*Cauldron.FMOD.EventProject EC = new Cauldron.FMOD.EventProject();
                         Fmod_Player.ESystem.GetProjectByIndex(0, ref EC);
@@ -367,6 +367,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                     catch (Exception e1)
                     {
                         Sub_Code.Error_Log_Write(e1.Message);
+                        Message_Feed_Out("エラー:ファイルを読み取れませんでした。");
                         return;
                     }
                 }

@@ -391,6 +391,8 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                     await Task.Delay(500);
                     Wwise.Project_Build("ui_battle", sfd.SelectedFolder + "/ui_battle.bnk");
                     await Task.Delay(500);
+                    Wwise.Project_Build("ui_battle_basic", sfd.SelectedFolder + "/ui_battle_basic.bnk");
+                    await Task.Delay(500);
                     Wwise.Project_Build("ui_chat_quick_commands", sfd.SelectedFolder + "/ui_chat_quick_commands.bnk");
                     await Task.Delay(500);
                     Wwise.Project_Build("reload", sfd.SelectedFolder + "/reload.bnk");
@@ -405,6 +407,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                         await Task.Delay(50);
                         DVPL.DVPL_Pack(sfd.SelectedFolder + "/voiceover_crew.bnk", sfd.SelectedFolder + "/voiceover_crew.bnk.dvpl", true);
                         DVPL.DVPL_Pack(sfd.SelectedFolder + "/ui_battle.bnk", sfd.SelectedFolder + "/ui_battle.bnk.dvpl", true);
+                        DVPL.DVPL_Pack(sfd.SelectedFolder + "/ui_battle_basic.bnk", sfd.SelectedFolder + "/ui_battle_basic.bnk.dvpl", true);
                         DVPL.DVPL_Pack(sfd.SelectedFolder + "/ui_chat_quick_commands.bnk", sfd.SelectedFolder + "/ui_chat_quick_commands.bnk.dvpl", true);
                         DVPL.DVPL_Pack(sfd.SelectedFolder + "/reload.bnk", sfd.SelectedFolder + "/reload.bnk.dvpl", true);
                     }

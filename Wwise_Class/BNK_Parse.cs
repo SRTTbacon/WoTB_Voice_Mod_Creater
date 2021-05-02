@@ -242,7 +242,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 return Children_Sort(Child_ID);
         }
         //CAkSoundの階層に到達するまで繰り返す
-        //CAkSoundに行ったらSourceIDを取得して戻り値にリストとして返す
+        //CAkSoundに到達したらSourceIDを取得して戻り値にリストとして返す
         List<string> Children_Sort(uint Child_ID)
         {
             int Number_01 = -1;
@@ -340,6 +340,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         //CAkSoundの階層に到達するまで繰り返す
         //CAkSoundに行ったらSourceIDを取得して戻り値にリストとして返す
         //Childrenから取得するのではなく、DirectParentIDが一致するファイルから取得
+        //一部のbnkファイルは上の形式が使用できないためこちらを使用
         List<string> Children_Sort_Special(uint Child_ID)
         {
             int Number_01 = -1;

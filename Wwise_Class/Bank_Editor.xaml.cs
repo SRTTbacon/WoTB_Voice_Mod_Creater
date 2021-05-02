@@ -185,27 +185,43 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             };
             if (ofd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
-                string Ex = Path.GetExtension(ofd.FileName);
-                Sound_List.Items.Clear();
-                Change_List.Items.Clear();
-                Change_Sound_Full_Name.Clear();
-                if (Ex == ".bnk")
+                try
                 {
-                    Wwise_Bnk = new Wwise_File_Extract_V2(ofd.FileName);
-                    foreach (string Name_ID in Wwise_Bnk.Wwise_Get_Names())
+                    string Ex = Path.GetExtension(ofd.FileName);
+                    Sound_List.Items.Clear();
+                    Change_List.Items.Clear();
+                    Change_Sound_Full_Name.Clear();
+                    if (Wwise_Bnk != null)
                     {
-                        Sound_List.Items.Add((Sound_List.Items.Count + 1) + ":" + Name_ID);
+                        Wwise_Bnk.Bank_Clear();
                     }
-                    IsPCKFile = false;
+                    if (Wwise_Pck != null)
+                    {
+                        Wwise_Pck.Pck_Clear();
+                    }
+                    if (Ex == ".bnk")
+                    {
+                        Wwise_Bnk = new Wwise_File_Extract_V2(ofd.FileName);
+                        foreach (string Name_ID in Wwise_Bnk.Wwise_Get_Names())
+                        {
+                            Sound_List.Items.Add((Sound_List.Items.Count + 1) + ":" + Name_ID);
+                        }
+                        IsPCKFile = false;
+                    }
+                    else if (Ex == ".pck")
+                    {
+                        Wwise_Pck = new Wwise_File_Extract_V1(ofd.FileName);
+                        foreach (string Name_ID in Wwise_Pck.Wwise_Get_Banks_ID())
+                        {
+                            Sound_List.Items.Add((Sound_List.Items.Count + 1) + ":" + Name_ID);
+                        }
+                        IsPCKFile = true;
+                    }
                 }
-                else if (Ex == ".pck")
+                catch (Exception e1)
                 {
-                    Wwise_Pck = new Wwise_File_Extract_V1(ofd.FileName);
-                    foreach (string Name_ID in Wwise_Pck.Wwise_Get_Banks_ID())
-                    {
-                        Sound_List.Items.Add((Sound_List.Items.Count + 1) + ":" + Name_ID);
-                    }
-                    IsPCKFile = true;
+                    Sub_Code.Error_Log_Write(e1.Message);
+                    Message_Feed_Out("エラー:ファイルを読み取れませんでした。");
                 }
             }
         }

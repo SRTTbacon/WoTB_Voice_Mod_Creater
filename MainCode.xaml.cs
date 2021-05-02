@@ -31,11 +31,12 @@ public static partial class StringExtensions
 }
 public class SRTTbacon_Server
 {
-    public const string IP_Local = "非公開";
-    public const string IP_Global = "非公開";
-    public const string Name = "非公開";
-    public const string Password = "非公開";
-    public const int Port = -1;
+    public const string IP_Local = "192.168.3.12";
+    public const string IP_Global = "60.151.34.219";
+    public const string Name = "SRTTbacon_Server";
+    public const string Password = "SRTTbacon";
+    public const string Version = "1.3.5";
+    public const int Port = 50000;
     public static bool IsSRTTbaconOwnerMode = false;
     public static string IP = "";
 }
@@ -43,7 +44,6 @@ namespace WoTB_Voice_Mod_Creater
 {
     public partial class MainCode : Window
     {
-        const string Version = "1.3.2";
         readonly string Path = Directory.GetCurrentDirectory();
         bool IsClosing = false;
         bool IsMessageShowing = false;
@@ -129,6 +129,7 @@ namespace WoTB_Voice_Mod_Creater
                 Load_Image.Visibility = Visibility.Hidden;
                 WoTB_Select_B.Visibility = Visibility.Hidden;
                 Server_B.Visibility = Visibility.Hidden;
+                //Create_Save_B.Visibility = Visibility.Hidden;
                 Save_Window.Opacity = 0;
                 MouseLeftButtonDown += (sender, e) => { ScreenMove(); };
                 Fmod_Player.ESystem.Init(128, Cauldron.FMOD.INITFLAGS.NORMAL, IntPtr.Zero);
@@ -274,7 +275,7 @@ namespace WoTB_Voice_Mod_Creater
                 MaxWidth = MaxSize.Width;
                 MaxHeight = MaxSize.Height;
                 Video_Mode.Width = Width;
-                Version_T.Text = "V" + Version;
+                Version_T.Text = "V" + SRTTbacon_Server.Version;
                 if (Sub_Code.IsTextIncludeJapanese(Voice_Set.Special_Path))
                 {
                     IsIncludeJapanese = true;
@@ -605,7 +606,7 @@ namespace WoTB_Voice_Mod_Creater
                 }
                 if (!File.Exists(Voice_Set.Special_Path + "/Wwise_Parse/wwiser.pyz"))
                 {
-                    IsOK_06 = false;
+                    IsOK_07 = false;
                     Download_Data_File.Download_File_Path.Add(Voice_Set.Special_Path + "/Wwise_Parse.dat");
                     Download_Data_File.Download_Total_Size += Voice_Set.FTP_Server.GetFileSize("/WoTB_Voice_Mod/Update/Data/Wwise_Parse.zip");
                     Task task_02 = Task.Run(() =>
@@ -627,7 +628,7 @@ namespace WoTB_Voice_Mod_Creater
                             ftp1.Dispose();
                         });
                         task_01.Wait();
-                        IsOK_06 = true;
+                        IsOK_07 = true;
                     });
                 }
             });
@@ -1001,7 +1002,7 @@ namespace WoTB_Voice_Mod_Creater
                 StreamReader str = new StreamReader(Voice_Set.FTP_Server.OpenRead("/WoTB_Voice_Mod/Update/Configs.dat"));
                 string Line = str.ReadLine();
                 str.Close();
-                if (Line == Version)
+                if (Line == SRTTbacon_Server.Version)
                 {
                     Message_Feed_Out("既に最新のバージョンです。");
                 }
@@ -1296,7 +1297,9 @@ namespace WoTB_Voice_Mod_Creater
                 }
             }
             if (Save_Window.Visibility == Visibility.Visible || Voice_Mods_Window.Visibility == Visibility.Visible || Tools_Window.Visibility == Visibility ||
-                Other_Window.Visibility == Visibility.Visible || Voice_Create_Window.Visibility == Visibility.Visible || Message_Window.Visibility == Visibility.Visible || Load_Data_Window.Visibility == Visibility.Visible)
+                Other_Window.Visibility == Visibility.Visible || Voice_Create_Window.Visibility == Visibility.Visible || Message_Window.Visibility == Visibility.Visible || Load_Data_Window.Visibility == Visibility.Visible ||
+                Tools_V2_Window.Visibility == Visibility.Visible || Change_To_Wwise_Window.Visibility == Visibility.Visible || WoT_To_Blitz_Window.Visibility == Visibility.Visible ||
+                Blitz_To_WoT_Window.Visibility == Visibility.Visible || Bank_Editor_Window.Visibility == Visibility.Visible || Create_Save_File_Window.Visibility == Visibility.Visible)
             {
                 return;
             }
@@ -1477,6 +1480,12 @@ namespace WoTB_Voice_Mod_Creater
                     Sub_Code.Error_Log_Write(e1.Message);
                 }
             }
+            //一時フォルダの位置を確認
+            if ((System.Windows.Forms.Control.ModifierKeys & System.Windows.Forms.Keys.Shift) == System.Windows.Forms.Keys.Shift && e.Key == System.Windows.Input.Key.P)
+            {
+                MessageBox.Show("一時フォルダ場所:" + Voice_Set.Special_Path);
+            }
+            IsClosing = false;
         }
         private async void Voice_Create_V2_B_Click(object sender, RoutedEventArgs e)
         {
@@ -1492,11 +1501,7 @@ namespace WoTB_Voice_Mod_Creater
             IsProcessing = true;
             int Tmp = await Sub_Code.Wwise_Project_Update(Message_T, Download_P, Download_T, Download_Border);
             IsProcessing = false;
-            if (Tmp == 0 || Tmp == 3)
-            {
-                Message_Feed_Out("チェックが完了しました。");
-            }
-            else if (Tmp == 1)
+            if (Tmp == 1)
             {
                 Message_Feed_Out("ダウンロードに失敗しました。以前のバージョンで実行します。");
             }
@@ -1512,6 +1517,22 @@ namespace WoTB_Voice_Mod_Creater
             else if (Tmp == 5)
             {
                 Message_Feed_Out("エラーが発生しました。Log.txtを参照してください。");
+                return;
+            }
+            try
+            {
+                StreamReader str = new StreamReader(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Version.dat");
+                double Version_Wwise = double.Parse(str.ReadLine());
+                str.Close();
+                if (Version_Wwise < 1.3)
+                {
+                    Message_Feed_Out("プロジェクトデータをアップデートしてください。");
+                    return;
+                }
+            }
+            catch
+            {
+                Message_Feed_Out("エラーが発生しました。");
                 return;
             }
             Voice_Create_Window.Window_Show(true);
@@ -1546,11 +1567,7 @@ namespace WoTB_Voice_Mod_Creater
             IsProcessing = true;
             int Tmp = await Sub_Code.Wwise_Project_Update(Message_T, Download_P, Download_T, Download_Border);
             IsProcessing = false;
-            if (Tmp == 0 || Tmp == 3)
-            {
-                Message_Feed_Out("チェックが完了しました。");
-            }
-            else if (Tmp == 1)
+            if (Tmp == 1)
             {
                 Message_Feed_Out("ダウンロードに失敗しました。以前のバージョンで実行します。");
             }
@@ -1566,6 +1583,22 @@ namespace WoTB_Voice_Mod_Creater
             else if (Tmp == 5)
             {
                 Message_Feed_Out("エラーが発生しました。Log.txtを参照してください。");
+                return;
+            }
+            try
+            {
+                StreamReader str = new StreamReader(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Version.dat");
+                double Version_Wwise = double.Parse(str.ReadLine());
+                str.Close();
+                if (Version_Wwise < 1.3)
+                {
+                    Message_Feed_Out("プロジェクトデータをアップデートしてください。");
+                    return;
+                }
+            }
+            catch
+            {
+                Message_Feed_Out("エラーが発生しました。");
                 return;
             }
             Change_To_Wwise_Window.Window_Show();
@@ -1598,11 +1631,7 @@ namespace WoTB_Voice_Mod_Creater
             IsProcessing = true;
             int Tmp = await Sub_Code.Wwise_Project_Update(Message_T, Download_P, Download_T, Download_Border);
             IsProcessing = false;
-            if (Tmp == 0 || Tmp == 3)
-            {
-                Message_Feed_Out("チェックが完了しました。");
-            }
-            else if (Tmp == 1)
+            if (Tmp == 1)
             {
                 Message_Feed_Out("ダウンロードに失敗しました。以前のバージョンで実行します。");
             }
@@ -1618,6 +1647,22 @@ namespace WoTB_Voice_Mod_Creater
             else if (Tmp == 5)
             {
                 Message_Feed_Out("エラーが発生しました。Log.txtを参照してください。");
+                return;
+            }
+            try
+            {
+                StreamReader str = new StreamReader(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Version.dat");
+                double Version_Wwise = double.Parse(str.ReadLine());
+                str.Close();
+                if (Version_Wwise < 1.3)
+                {
+                    Message_Feed_Out("プロジェクトデータをアップデートしてください。");
+                    return;
+                }
+            }
+            catch
+            {
+                Message_Feed_Out("エラーが発生しました。");
                 return;
             }
             WoT_To_Blitz_Window.Window_Show();
@@ -1636,11 +1681,7 @@ namespace WoTB_Voice_Mod_Creater
             IsProcessing = true;
             int Tmp = await Sub_Code.Wwise_WoT_Project_Update(Message_T, Download_P, Download_T, Download_Border);
             IsProcessing = false;
-            if (Tmp == 0 || Tmp == 3)
-            {
-                Message_Feed_Out("チェックが完了しました。");
-            }
-            else if (Tmp == 1)
+            if (Tmp == 1)
             {
                 Message_Feed_Out("ダウンロードに失敗しました。以前のバージョンで実行します。");
             }
@@ -1659,6 +1700,14 @@ namespace WoTB_Voice_Mod_Creater
                 return;
             }
             Blitz_To_WoT_Window.Window_Show();
+        }
+        private void Create_Save_B_Click(object sender, RoutedEventArgs e)
+        {
+            if (IsProcessing)
+            {
+                return;
+            }
+            Create_Save_File_Window.Window_Show();
         }
     }
 }

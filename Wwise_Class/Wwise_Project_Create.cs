@@ -15,6 +15,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         const string Master_Audio_Bus_ID = "1514A4D8-1DA6-412A-A17E-75CA0C2149F3";
         const string Master_Audio_Bus_WorkID = "005C6247-5812-4D7E-86EA-2F3C50B5E166";
         string Project_Dir;
+        bool IsIncludeBGM = false;
         List<string> Actor_Mixer_Hierarchy = new List<string>();
         List<string> Add_Wav_Files = new List<string>();
         int Battle_Number = 0;
@@ -140,6 +141,26 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             }
             try
             {
+                if (BankName == "reload" && !IsIncludeBGM)
+                {
+                    //BGMが含まれていなければ強制的に追加
+                    Sub_Code.Audio_Encode_To_Other(Voice_Set.Special_Path + "/Wwise/Not_Voice.mp3", Voice_Set.Special_Path + "/Wwise/Battle_Music_01.wav", "wav", false);
+                    File.Copy(Voice_Set.Special_Path + "/Wwise/Battle_Music_01.wav", Voice_Set.Special_Path + "/Wwise/Battle_Music_02.wav", true);
+                    File.Copy(Voice_Set.Special_Path + "/Wwise/Battle_Music_01.wav", Voice_Set.Special_Path + "/Wwise/Battle_Music_03.wav", true);
+                    File.Copy(Voice_Set.Special_Path + "/Wwise/Battle_Music_01.wav", Voice_Set.Special_Path + "/Wwise/Battle_Music_04.wav", true);
+                    File.Copy(Voice_Set.Special_Path + "/Wwise/Battle_Music_01.wav", Voice_Set.Special_Path + "/Wwise/Battle_Music_05.wav", true);
+                    Add_Sound("649358221", Voice_Set.Special_Path + "/Wwise/Battle_Music_01.wav", "ja");
+                    Add_Sound("649358221", Voice_Set.Special_Path + "/Wwise/Battle_Music_02.wav", "ja");
+                    Add_Sound("649358221", Voice_Set.Special_Path + "/Wwise/Battle_Music_03.wav", "ja");
+                    Add_Sound("649358221", Voice_Set.Special_Path + "/Wwise/Battle_Music_04.wav", "ja");
+                    Add_Sound("649358221", Voice_Set.Special_Path + "/Wwise/Battle_Music_05.wav", "ja");
+                    File.Delete(Voice_Set.Special_Path + "/Wwise/Battle_Music_01.wav");
+                    File.Delete(Voice_Set.Special_Path + "/Wwise/Battle_Music_02.wav");
+                    File.Delete(Voice_Set.Special_Path + "/Wwise/Battle_Music_03.wav");
+                    File.Delete(Voice_Set.Special_Path + "/Wwise/Battle_Music_04.wav");
+                    File.Delete(Voice_Set.Special_Path + "/Wwise/Battle_Music_05.wav");
+                    IsIncludeBGM = true;
+                }
                 BankName = BankName.Replace(" ", "_");
                 string Project_File = Directory.GetFiles(Project_Dir, "*.wproj", SearchOption.TopDirectoryOnly)[0];
                 StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Wwise/Project_Build.bat");
@@ -200,6 +221,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 Add_Wav_Files.Clear();
                 Project_Dir = "";
                 Battle_Number = 0;
+                IsIncludeBGM = false;
             }
             catch (Exception e)
             {
@@ -261,9 +283,31 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 return false;
             }
         }
-        public void Sound_Add_Wwise(string Dir_Name, bool IsWoT_Project = false)
+        public void Sound_Music_Add_Wwise(string Dir_Name)
         {
-            bool IsIncludeBGM = false;
+            string[] Voice_Files_01 = Directory.GetFiles(Dir_Name, "*.wav", SearchOption.TopDirectoryOnly);
+            foreach (string Voice_Now in Voice_Files_01)
+            {
+                string Name_Only;
+                if (Path.GetFileNameWithoutExtension(Voice_Now).Contains("reload"))
+                {
+                    Name_Only = Voice_Mod_Create.Get_Voice_Type_V2(Voice_Now);
+                }
+                else
+                {
+                    Name_Only = Voice_Mod_Create.Get_Voice_Type_V1(Voice_Now);
+                }
+                switch (Name_Only)
+                {
+                    case "battle_bgm":
+                        Add_Sound("649358221", Voice_Now, "ja");
+                        IsIncludeBGM = true;
+                        break;
+                }
+            }
+        }
+        public void Sound_Add_Wwise(string Dir_Name, bool IsWoT_Project = false, bool IsNotIncludeBGM = false)
+        {
             string[] Voice_Files_01 = Directory.GetFiles(Dir_Name, "*.wav", SearchOption.TopDirectoryOnly);
             foreach (string Voice_Now in Voice_Files_01)
             {
@@ -547,33 +591,17 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                             Add_Sound("924876614", Voice_Now, "ja");
                             break;
                         case "battle_bgm":
-                            Add_Sound("649358221", Voice_Now, "ja");
-                            IsIncludeBGM = true;
+                            if (!IsNotIncludeBGM)
+                            {
+                                Add_Sound("649358221", Voice_Now, "ja");
+                                IsIncludeBGM = true;
+                            }
                             break;
                         case "load_bgm":
                             Add_Sound("915105627", Voice_Now, "ja");
                             break;
                     }
                 }
-            }
-            //BGMが含まれていなければ強制的に追加
-            if (!IsIncludeBGM)
-            {
-                Sub_Code.Audio_Encode_To_Other(Voice_Set.Special_Path + "/Wwise/Not_Voice.mp3", Voice_Set.Special_Path + "/Wwise/Battle_Music_01.wav", "wav", false);
-                File.Copy(Voice_Set.Special_Path + "/Wwise/Battle_Music_01.wav", Voice_Set.Special_Path + "/Wwise/Battle_Music_02.wav", true);
-                File.Copy(Voice_Set.Special_Path + "/Wwise/Battle_Music_01.wav", Voice_Set.Special_Path + "/Wwise/Battle_Music_03.wav", true);
-                File.Copy(Voice_Set.Special_Path + "/Wwise/Battle_Music_01.wav", Voice_Set.Special_Path + "/Wwise/Battle_Music_04.wav", true);
-                File.Copy(Voice_Set.Special_Path + "/Wwise/Battle_Music_01.wav", Voice_Set.Special_Path + "/Wwise/Battle_Music_05.wav", true);
-                Add_Sound("649358221", Voice_Set.Special_Path + "/Wwise/Battle_Music_01.wav", "ja");
-                Add_Sound("649358221", Voice_Set.Special_Path + "/Wwise/Battle_Music_02.wav", "ja");
-                Add_Sound("649358221", Voice_Set.Special_Path + "/Wwise/Battle_Music_03.wav", "ja");
-                Add_Sound("649358221", Voice_Set.Special_Path + "/Wwise/Battle_Music_04.wav", "ja");
-                Add_Sound("649358221", Voice_Set.Special_Path + "/Wwise/Battle_Music_05.wav", "ja");
-                File.Delete(Voice_Set.Special_Path + "/Wwise/Battle_Music_01.wav");
-                File.Delete(Voice_Set.Special_Path + "/Wwise/Battle_Music_02.wav");
-                File.Delete(Voice_Set.Special_Path + "/Wwise/Battle_Music_03.wav");
-                File.Delete(Voice_Set.Special_Path + "/Wwise/Battle_Music_04.wav");
-                File.Delete(Voice_Set.Special_Path + "/Wwise/Battle_Music_05.wav");
             }
         }
     }

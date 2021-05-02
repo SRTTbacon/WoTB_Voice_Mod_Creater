@@ -202,7 +202,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 }
                 catch (Exception e)
                 {
-                    System.Windows.MessageBox.Show("設定を読み込めませんでした。。\nエラー回避のため設定は削除されます。");
+                    System.Windows.MessageBox.Show("設定を読み込めませんでした。\nエラー回避のため設定は削除されます。");
                     File.Delete(Voice_Set.Special_Path + "/Configs/Save_Configs.conf");
                     Sub_Code.Error_Log_Write(e.Message);
                 }
@@ -336,6 +336,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Stream = BassFx.BASS_FX_TempoCreate(StreamHandle, BASSFlag.BASS_FX_FREESOURCE);
             }
             Bass.BASS_ChannelSetAttribute(Stream, BASSAttribute.BASS_ATTRIB_VOL, 1f);
+            Bass.BASS_ChannelSetDevice(Stream, Video_Mode.Sound_Device);
             Bass.BASS_ChannelPlay(Stream, true);
             if (SE_Play_Index < Select_SE_File_Count)
             {

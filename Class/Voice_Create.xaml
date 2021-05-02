@@ -88,11 +88,13 @@
             <Button x:Name="Voice_Load_B" Content="ロード" Height="60" VerticalAlignment="Top" Width="225" Background="Transparent" Margin="-1685,50,0,0" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Click="Voice_Load_B_Click"/>
             <Button x:Name="Voice_Clear" Content="初期化" Height="60" VerticalAlignment="Top" Width="225" Background="Transparent" Margin="-228,00,0,0" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Click="Voice_Clear_Click"/>
             <Button x:Name="Voice_Create_B" Content="設定画面へ" Height="75" VerticalAlignment="Top" Width="325" Foreground="Aqua" FontSize="40" Background="Transparent" BorderBrush="Aqua" Margin="-326,1004,0,0" Click="Voice_Create_B_Click"/>
-            <TextBlock Height="50" Width="200" TextWrapping="Wrap" Text="プロジェクト名" Foreground="Aqua" FontSize="35" Margin="-1920,700,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
+            <TextBlock x:Name="Project_Name_Text" Height="50" Width="575" TextWrapping="Wrap" Text="プロジェクト名" Foreground="Aqua" FontSize="35" Margin="-1920,700,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
             <TextBox x:Name="Project_Name_T" Height="60" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="500" FontSize="40" Margin="-1920,765,0,0" TextAlignment="Center"/>
             <Border x:Name="Border_All" BorderBrush="Transparent" BorderThickness="1" Background="Black" Height="1080" VerticalAlignment="Top" Visibility="Hidden" Width="1920" Opacity=" 0.001" Margin="-1920,0,0,0"/>
             <CheckBox x:Name="ColorMode_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-3425,40,0,0" Click="ColorMode_C_Click"/>
             <TextBlock Height="50" Width="284" TextWrapping="Wrap" Text="未選択に色を付ける" Foreground="Aqua" FontSize="35" Margin="-3090,25,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
+            <CheckBox x:Name="BGM_Reload_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-2220,425,0,0" Click="BGM_Reload_C_Click"/>
+            <TextBlock Height="45" Width="338" TextWrapping="Wrap" Text="BGMをreload.bnkに含める" Foreground="Aqua" FontSize="30" Margin="-1850,410,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
             <Class1:Save_Configs x:Name="Voice_Create_Window" Width="1920" Height="1080" Margin="-1920,0,0,0" Visibility="Hidden"/>
         </DockPanel>
     </Viewbox>

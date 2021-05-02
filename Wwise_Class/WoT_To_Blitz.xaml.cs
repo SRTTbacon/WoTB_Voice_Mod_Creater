@@ -6,6 +6,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Forms;
 using System.Windows.Input;
+using System.Windows.Media;
 using Un4seen.Bass;
 using Un4seen.Bass.AddOn.Fx;
 using WK.Libraries.BetterFolderBrowserNS;
@@ -20,11 +21,15 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         bool IsBusy = false;
         bool IsLocationChanging = false;
         bool IsPaused = false;
+        bool IsBGMMode = false;
+        bool IsModeChanging = false;
         int Stream;
         int Max_Stream_Count = 0;
         int Available_Stream_Count = 0;
-        Random r = new Random((int)DateTime.Now.Ticks & 0x0000FFFF);
+        Random r = new Random((int)(DateTime.Now.Ticks & 0x0000FFFF));
+        readonly BrushConverter bc = new BrushConverter();
         List<List<string>> BNK_Voices = new List<List<string>>();
+        List<List<bool>> BNK_Voices_Enable = new List<List<bool>>();
         List<string> BGM_Add = new List<string>();
         Wwise_Class.Wwise_File_Extract_V1 Wwise_PCK;
         Wwise_Class.Wwise_File_Extract_V2 Wwise_BNK;
@@ -36,6 +41,8 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             Volume_S.AddHandler(MouseUpEvent, new MouseButtonEventHandler(Volume_MouseUp), true);
             Voices_L.Items.Add("音声ファイルが選択されていません。");
             Location_S.Maximum = 0;
+            Change_Mode_Layout();
+            Button_Color_Change(-1);
         }
         async void Position_Change()
         {
@@ -210,32 +217,39 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                         IsBusy = false;
                         return;
                     }
+                    BNK_Voices_Enable.Clear();
                     BNK_Voices = p.Get_Voices(false);
                     List<string> Need_Files = new List<string>();
                     foreach (List<string> Types in BNK_Voices)
                     {
+                        BNK_Voices_Enable.Add(new List<bool>());
                         foreach (string File_Now in Types)
                         {
                             Need_Files.Add(File_Now);
+                            BNK_Voices_Enable[BNK_Voices_Enable.Count - 1].Add(true);
                         }
                     }
                     if (Need_Files.Count == 0)
                     {
+                        BNK_Voices_Enable.Clear();
                         Message_T.Text = "移植できるファイルが見つからなかったため、特殊な方法で解析しています...";
                         await Task.Delay(50);
                         p.IsSpecialBNKFileMode = true;
                         BNK_Voices = p.Get_Voices(false);
                         foreach (List<string> Types in BNK_Voices)
                         {
+                            BNK_Voices_Enable.Add(new List<bool>());
                             foreach (string File_Now in Types)
                             {
                                 Need_Files.Add(File_Now);
+                                BNK_Voices_Enable[BNK_Voices_Enable.Count - 1].Add(true);
                             }
                         }
                         if (Need_Files.Count == 0)
                         {
                             p.Clear();
                             BNK_Voices.Clear();
+                            BNK_Voices_Enable.Clear();
                             Message_Feed_Out("移植できる音声が見つかりませんでした。");
                             IsBusy = false;
                             return;
@@ -244,6 +258,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                     p.Clear();
                     Get_Available_Voice_Count();
                     Voices_L.Items.Clear();
+                    Voice_Type_L.Items.Clear();
                     for (int Number = 0; Number < BNK_Voices.Count; Number++)
                     {
                         Voices_L.Items.Add(Voice_Set.Get_Voice_Type_Japanese_Name_V2(Number) + " : " + BNK_Voices[Number].Count + "個");
@@ -393,6 +408,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 BGM_Add.Clear();
                 Voices_L.Items.Clear();
                 Voices_L.Items.Add("音声ファイルが選択されていません。");
+                Voice_Type_L.Items.Clear();
                 BNK_Voices.Clear();
                 File_Name_T.Text = "";
                 Location_S.Value = 0;
@@ -415,59 +431,61 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                     Wwise_PCK.Pck_Clear();
                 if (Wwise_BNK != null)
                     Wwise_BNK.Bank_Clear();
+                Button_Color_Change(-1);
             }
         }
-        //指定した音声を変換して再生
         private void Voices_L_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (Voices_L.SelectedIndex == -1 || BNK_Voices.Count == 0 || IsBusy)
+            if (Voices_L.SelectedIndex == -1)
             {
                 return;
             }
-            Bass.BASS_ChannelStop(Stream);
-            Bass.BASS_StreamFree(Stream);
-            int Voice_Count = BNK_Voices[Voices_L.SelectedIndex].Count;
-            if (Voice_Count == 0)
+            Voice_Type_L.Items.Clear();
+            foreach (string Name_Now in BNK_Voices[Voices_L.SelectedIndex])
             {
-                Location_S.Value = 0;
-                Location_S.Maximum = 0;
-                Location_T.Text = "00:00";
-                return;
+                string Name_Temp = Name_Now;
+                if (Name_Temp.Length > 15)
+                {
+                    if (BNK_Voices_Enable[Voices_L.SelectedIndex][Voice_Type_L.Items.Count])
+                    {
+                        Name_Temp = Name_Temp.Substring(0, 16) + "...|有効";
+                    }
+                    else
+                    {
+                        Name_Temp = Name_Temp.Substring(0, 16) + "...|無効";
+                    }
+                }
+                else
+                {
+                    if (BNK_Voices_Enable[Voices_L.SelectedIndex][Voice_Type_L.Items.Count])
+                    {
+                        Name_Temp += "|有効";
+                    }
+                    else
+                    {
+                        Name_Temp += "|無効";
+                    }
+                }
+                Voice_Type_L.Items.Add(Name_Temp);
             }
-            string Get_Number = BNK_Voices[Voices_L.SelectedIndex][r.Next(0, Voice_Count)];
-            BGM_Add_List.SelectedIndex = -1;
-            Load_Sound(Sub_Code.File_Get_FileName_No_Extension(Voice_Set.Special_Path + "/Wwise/BNK_WAV/" + Get_Number));
+            Button_Color_Change(-1);
         }
         //BGMに指定したファイルを再生
         private void BGM_Add_List_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (BGM_Add_List.SelectedIndex == -1)
+            if (BGM_Add_List.SelectedIndex == -1 || IsBusy || BGM_Add.Count == 0)
             {
                 return;
             }
             Bass.BASS_ChannelStop(Stream);
             Bass.BASS_StreamFree(Stream);
-            Voices_L.SelectedIndex = -1;
-            Load_Sound();
+            Load_Sound(BGM_Add[BGM_Add_List.SelectedIndex]);
         }
         void Load_Sound(string File_Name = "")
         {
             Location_S.Value = 0;
             Location_T.Text = "00:00";
-            int StreamHandle;
-            if (Voices_L.SelectedIndex != -1)
-            {
-                StreamHandle = Bass.BASS_StreamCreateFile(File_Name, 0, 0, BASSFlag.BASS_SAMPLE_FLOAT | BASSFlag.BASS_STREAM_DECODE | BASSFlag.BASS_SAMPLE_LOOP);
-            }
-            else if (BGM_Add_List.SelectedIndex != -1)
-            {
-                StreamHandle = Bass.BASS_StreamCreateFile(BGM_Add[BGM_Add_List.SelectedIndex], 0, 0, BASSFlag.BASS_SAMPLE_FLOAT | BASSFlag.BASS_STREAM_DECODE | BASSFlag.BASS_SAMPLE_LOOP);
-            }
-            else
-            {
-                Location_S.Maximum = 0;
-                return;
-            }
+            int StreamHandle = Bass.BASS_StreamCreateFile(File_Name, 0, 0, BASSFlag.BASS_SAMPLE_FLOAT | BASSFlag.BASS_STREAM_DECODE | BASSFlag.BASS_SAMPLE_LOOP);
             Stream = BassFx.BASS_FX_TempoCreate(StreamHandle, BASSFlag.BASS_FX_FREESOURCE);
             Bass.BASS_ChannelSetAttribute(Stream, BASSAttribute.BASS_ATTRIB_VOL, (float)Volume_S.Value / 100);
             Bass.BASS_ChannelSetDevice(Stream, Video_Mode.Sound_Device);
@@ -590,6 +608,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 Bass.BASS_ChannelStop(Stream);
                 Bass.BASS_StreamFree(Stream);
                 Voices_L.SelectedIndex = -1;
+                Voice_Type_L.Items.Clear();
             }
         }
         private void BGM_Add_List_MouseDown(object sender, MouseButtonEventArgs e)
@@ -600,6 +619,38 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 Bass.BASS_StreamFree(Stream);
                 BGM_Add_List.SelectedIndex = -1;
             }
+        }
+        private void Voice_Type_L_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (Voice_Type_L.SelectedIndex == -1 ||BNK_Voices.Count == 0 || IsBusy)
+            {
+                return;
+            }
+            if (IsModeChanging)
+            {
+                IsModeChanging = false;
+                return;
+            }
+            Bass.BASS_ChannelStop(Stream);
+            Bass.BASS_StreamFree(Stream);
+            if (BNK_Voices_Enable[Voices_L.SelectedIndex][Voice_Type_L.SelectedIndex])
+            {
+                Button_Color_Change(0);
+            }
+            else
+            {
+                Button_Color_Change(1);
+            }
+            int Voice_Count = BNK_Voices[Voices_L.SelectedIndex].Count;
+            if (Voice_Count == 0)
+            {
+                Location_S.Value = 0;
+                Location_S.Maximum = 0;
+                Location_T.Text = "00:00";
+                return;
+            }
+            string Get_Number = BNK_Voices[Voices_L.SelectedIndex][Voice_Type_L.SelectedIndex];
+            Load_Sound(Sub_Code.File_Get_FileName_No_Extension(Voice_Set.Special_Path + "/Wwise/BNK_WAV/" + Get_Number));
         }
         private async void Start_B_Click(object sender, RoutedEventArgs e)
         {
@@ -677,7 +728,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                         Directory.Delete(Voice_Set.Special_Path + "/Wwise/BNK_WAV/Voices", true);
                     }
                     await Task.Delay(50);
-                    string Log_01 = Sub_Code.Set_Voice_Type_Change_Name_By_Index(Voice_Set.Special_Path + "/Wwise/BNK_WAV", Voice_Set.Special_Path + "/Wwise/BNK_WAV/Voices", BNK_Voices);
+                    string Log_01 = Sub_Code.Set_Voice_Type_Change_Name_By_Index(Voice_Set.Special_Path + "/Wwise/BNK_WAV", Voice_Set.Special_Path + "/Wwise/BNK_WAV/Voices", BNK_Voices, BNK_Voices_Enable);
                     if (Log_01 != "")
                     {
                         Message_Feed_Out("ファイルをコピーできませんでした。詳しくは\"Error_Log.txt\"を参照してください。");
@@ -699,6 +750,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                         await Task.Delay(50);
                         DVPL.DVPL_Pack(SetPath + "/voiceover_crew.bnk", SetPath + "/voiceover_crew.bnk.dvpl", true);
                         DVPL.DVPL_Pack(SetPath + "/ui_battle.bnk", SetPath + "/ui_battle.bnk.dvpl", true);
+                        DVPL.DVPL_Pack(SetPath + "/ui_battle_basic.bnk", SetPath + "/ui_battle_basic.bnk.dvpl", true);
                         DVPL.DVPL_Pack(SetPath + "/ui_chat_quick_commands.bnk", SetPath + "/ui_chat_quick_commands.bnk.dvpl", true);
                         DVPL.DVPL_Pack(SetPath + "/reload.bnk", SetPath + "/reload.bnk.dvpl", true);
                     }
@@ -712,6 +764,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                         Sub_Code.DVPL_File_Delete(Voice_Set.WoTB_Path + "/Data/WwiseSound/reload.bnk");
                         Sub_Code.DVPL_File_Delete(Voice_Set.WoTB_Path + "/Data/WwiseSound/ui_chat_quick_commands.bnk");
                         Sub_Code.DVPL_File_Delete(Voice_Set.WoTB_Path + "/Data/WwiseSound/ui_battle.bnk");
+                        Sub_Code.DVPL_File_Delete(Voice_Set.WoTB_Path + "/Data/WwiseSound/ui_battle_basic.bnk");
                         if (!Sub_Code.DVPL_File_Copy(SetPath + "/voiceover_crew.bnk", Voice_Set.WoTB_Path + "/Data/WwiseSound/ja/voiceover_crew.bnk", true))
                         {
                             IsOK = false;
@@ -719,6 +772,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                         Sub_Code.DVPL_File_Copy(SetPath + "/reload.bnk", Voice_Set.WoTB_Path + "/Data/WwiseSound/reload.bnk", true);
                         Sub_Code.DVPL_File_Copy(SetPath + "/ui_chat_quick_commands.bnk", Voice_Set.WoTB_Path + "/Data/WwiseSound/ui_chat_quick_commands.bnk", true);
                         Sub_Code.DVPL_File_Copy(SetPath + "/ui_battle.bnk", Voice_Set.WoTB_Path + "/Data/WwiseSound/ui_battle.bnk", true);
+                        Sub_Code.DVPL_File_Copy(SetPath + "/ui_battle_basic.bnk", Voice_Set.WoTB_Path + "/Data/WwiseSound/ui_battle_basic.bnk", true);
                     }
                     if (IsOK)
                         Message_Feed_Out("完了しました。");
@@ -783,6 +837,8 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             await Task.Delay(500);
             Wwise.Project_Build("ui_battle", Save_Dir + "/ui_battle.bnk");
             await Task.Delay(500);
+            Wwise.Project_Build("ui_battle_basic", Save_Dir + "/ui_battle_basic.bnk");
+            await Task.Delay(500);
             Wwise.Project_Build("ui_chat_quick_commands", Save_Dir + "/ui_chat_quick_commands.bnk");
             await Task.Delay(500);
             Wwise.Project_Build("reload", Save_Dir + "/reload.bnk");
@@ -831,6 +887,109 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         private void Configs_B_Click(object sender, RoutedEventArgs e)
         {
             Save_Configs_Window.Window_Show_V3(File_Name_T.Text, BNK_Voices);
+        }
+        private void Voice_Type_Enable_B_Click(object sender, RoutedEventArgs e)
+        {
+            if (Voice_Type_L.SelectedIndex == -1)
+            {
+                return;
+            }
+            int SelectedIndex = Voice_Type_L.SelectedIndex;
+            if (SelectedIndex == -1 || Voices_L.SelectedIndex == -1)
+            {
+                return;
+            }
+            IsModeChanging = true;
+            BNK_Voices_Enable[Voices_L.SelectedIndex][SelectedIndex] = true;
+            string Get_Name = Voice_Type_L.SelectedItem.ToString();
+            Voice_Type_L.Items[SelectedIndex] = Get_Name.Substring(0, Get_Name.LastIndexOf('|') + 1) + "有効";
+            Button_Color_Change(0);
+            Voice_Type_L.SelectedIndex = SelectedIndex;
+        }
+        private void Voice_Type_Disable_B_Click(object sender, RoutedEventArgs e)
+        {
+            int SelectedIndex = Voice_Type_L.SelectedIndex;
+            if (SelectedIndex == -1 || Voices_L.SelectedIndex == -1)
+            {
+                return;
+            }
+            IsModeChanging = true;
+            BNK_Voices_Enable[Voices_L.SelectedIndex][SelectedIndex] = false;
+            string Get_Name = Voice_Type_L.SelectedItem.ToString();
+            Voice_Type_L.Items[SelectedIndex] = Get_Name.Substring(0, Get_Name.LastIndexOf('|') + 1) + "無効";
+            Button_Color_Change(1);
+            Voice_Type_L.SelectedIndex = SelectedIndex;
+        }
+        //Type : 0 = 有効化に色を付ける、1 = 無効化に色を付ける、それ以外 = 両方に色を付ける
+        void Button_Color_Change(int Type)
+        {
+            if (Type == 0)
+            {
+                Voice_Type_Disable_B.Background = Brushes.Transparent;
+                Voice_Type_Disable_B.BorderBrush = Brushes.Aqua;
+                Voice_Type_Enable_B.Background = (Brush)bc.ConvertFrom("#59999999");
+                Voice_Type_Enable_B.BorderBrush = Brushes.Red;
+            }
+            else if (Type == 1)
+            {
+                Voice_Type_Disable_B.Background = (Brush)bc.ConvertFrom("#59999999");
+                Voice_Type_Disable_B.BorderBrush = Brushes.Red;
+                Voice_Type_Enable_B.Background = Brushes.Transparent;
+                Voice_Type_Enable_B.BorderBrush = Brushes.Aqua;
+            }
+            else
+            {
+                Voice_Type_Disable_B.Background = (Brush)bc.ConvertFrom("#59999999");
+                Voice_Type_Disable_B.BorderBrush = Brushes.Red;
+                Voice_Type_Enable_B.Background = (Brush)bc.ConvertFrom("#59999999");
+                Voice_Type_Enable_B.BorderBrush = Brushes.Red;
+            }
+        }
+        private void Mode_Next_B_Click(object sender, RoutedEventArgs e)
+        {
+            if (!IsBGMMode)
+            {
+                IsBGMMode = true;
+                Change_Mode_Layout();
+            }
+        }
+        private void Mode_Back_B_Click(object sender, RoutedEventArgs e)
+        {
+            if (IsBGMMode)
+            {
+                IsBGMMode = false;
+                Change_Mode_Layout();
+            }
+        }
+        void Change_Mode_Layout()
+        {
+            Bass.BASS_ChannelStop(Stream);
+            Bass.BASS_StreamFree(Stream);
+            Voice_Type_L.SelectedIndex = -1;
+            BGM_Add_List.SelectedIndex = -1;
+            if (IsBGMMode)
+            {
+                Voice_Type_L.Visibility = Visibility.Hidden;
+                Voice_Type_Enable_B.Visibility = Visibility.Hidden;
+                Voice_Type_Disable_B.Visibility = Visibility.Hidden;
+                BGM_Add_List.Visibility = Visibility.Visible;
+                BGM_Add_B.Visibility = Visibility.Visible;
+                BGM_Delete_B.Visibility = Visibility.Visible;
+                BGM_Clear_B.Visibility = Visibility.Visible;
+                Mode_Text.Text = "戦闘BGMを追加";
+            }
+            else
+            {
+                Voice_Type_L.Visibility = Visibility.Visible;
+                Voice_Type_Enable_B.Visibility = Visibility.Visible;
+                Voice_Type_Disable_B.Visibility = Visibility.Visible;
+                BGM_Add_List.Visibility = Visibility.Hidden;
+                BGM_Add_B.Visibility = Visibility.Hidden;
+                BGM_Delete_B.Visibility = Visibility.Hidden;
+                BGM_Clear_B.Visibility = Visibility.Hidden;
+                Mode_Text.Text = "移植する音声を編集";
+            }
+            Button_Color_Change(-1);
         }
     }
 }

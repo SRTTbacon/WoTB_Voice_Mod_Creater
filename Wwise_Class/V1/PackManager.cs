@@ -333,5 +333,15 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 stageTwo.Remove(path);
             }
         }
+        public void PCK_Clear()
+        {
+            if (binaryReader != null)
+            {
+                binaryReader.Close();
+                binaryReader.Dispose();
+                soundBankList.Clear();
+                soundFileList.Clear();
+            }
+        }
     }
 }

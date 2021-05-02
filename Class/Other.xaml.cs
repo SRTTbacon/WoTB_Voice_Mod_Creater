@@ -32,7 +32,8 @@ namespace WoTB_Voice_Mod_Creater.Class
         bool IsNotMusicChange = false;
         bool IsSaveOK = false;
         bool IsShowWAVEForm = false;
-        bool IsWaveLoaded = false;
+        bool IsWaveGrayLoaded = false;
+        bool IsWaveColorLoaded = false;
         bool IsPlayingMouseDown = false;
         bool IsSyncPitch_And_Speed = false;
         System.Windows.Point Mouse_Point = new System.Windows.Point(0, 0);
@@ -221,10 +222,14 @@ namespace WoTB_Voice_Mod_Creater.Class
                 {
                     if (Bass.BASS_ChannelIsActive(Stream) == BASSActive.BASS_ACTIVE_PLAYING && !IsLocationChanging)
                     {
-                        if (IsWaveLoaded)
+                        if (IsWaveGrayLoaded)
                         {
-                            IsWaveLoaded = false;
+                            IsWaveGrayLoaded = false;
                             WAVEForm_Gray_Image.Source = Wave_Gray_Image_Source;
+                        }
+                        if (IsWaveColorLoaded)
+                        {
+                            IsWaveColorLoaded = false;
                             WAVEForm_Color_Image.Source = Wave_Color_Image_Source;
                         }
                         long position = Bass.BASS_ChannelGetPosition(Stream);
@@ -526,7 +531,8 @@ namespace WoTB_Voice_Mod_Creater.Class
                     return;
                 }
                 Video_Change_B.Visibility = Visibility.Visible;
-                IsWaveLoaded = false;
+                IsWaveGrayLoaded = false;
+                IsWaveColorLoaded = false;
                 WAVEForm_Gray_Image.Source = null;
                 WAVEForm_Color_Image.Source = null;
                 WAVEForm_Color_Image.Width = 0;
@@ -552,6 +558,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Start_Time = 0;
                 End_Time = Location_S.Maximum;
                 Loop_Time_T.Text = "再生時間:" + (int)Start_Time + "～" + (int)End_Time;
+                IsPaused = false;
                 Bass.BASS_ChannelPlay(Stream, false);
                 if (Device_L.SelectedIndex != -1)
                 {
@@ -638,6 +645,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 Wave_Gray_Image_Source = Sub_Code.Bitmap_To_BitmapImage(WF_Gray.CreateBitmap(WAVEForm_Image_Width, WAVEForm_Image_Height * 2, -1, -1, false));
                 WF_Gray.RenderStop();
+                IsWaveGrayLoaded = true;
             }));
         }
         void GetWaveFormData_Color(int framesDone, int framesTotal, TimeSpan elapsedTime, bool finished)
@@ -646,7 +654,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 Wave_Color_Image_Source = Sub_Code.Bitmap_To_BitmapImage(WF_Color.CreateBitmap(WAVEForm_Image_Width, WAVEForm_Image_Height * 2, -1, -1, false));
                 WF_Color.RenderStop();
-                IsWaveLoaded = true;
+                IsWaveColorLoaded = true;
             }));
         }
         private void Volume_S_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)

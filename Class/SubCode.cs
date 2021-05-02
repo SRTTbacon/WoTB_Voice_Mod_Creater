@@ -163,6 +163,60 @@ namespace WoTB_Voice_Mod_Creater
                 return false;
             }
         }
+        //WoTのディレクトリを取得
+        public static bool WoT_Get_ModDirectory()
+        {
+            try
+            {
+                RegistryKey rKey = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\WOT.ASIA.PRODUCTION");
+                string location = (string)rKey.GetValue("InstallLocation");
+                rKey.Close();
+                if (File.Exists(location + "/WorldOfTanks.exe"))
+                {
+                    string[] ModDirs = Directory.GetDirectories(location + "/res_mods");
+                    List<double> Version_List = new List<double>();
+                    List<string> ModDir_List = new List<string>();
+                    foreach (string Dir_Now in ModDirs)
+                    {
+                        string Dir_Name_Only = Path.GetFileName(Dir_Now);
+                        if (!Dir_Name_Only.Contains('.'))
+                        {
+                            continue;
+                        }
+                        try
+                        {
+                            string Temp_01 = Dir_Name_Only.Substring(Dir_Name_Only.IndexOf('.') + 1).Replace(".", "");
+                            string Temp_02 = Dir_Name_Only.Substring(0, Dir_Name_Only.IndexOf('.') + 1) + Temp_01;
+                            Version_List.Add(double.Parse(Temp_02));
+                            ModDir_List.Add(Dir_Now);
+                        }
+                        catch
+                        {
+
+                        }
+                    }
+                    //最新バージョンのフォルダ名を取得
+                    if (Version_List.Count > 0)
+                    {
+                        // 最大の要素を取得
+                        double max = 0;
+                        foreach (double e in Version_List)
+                        {
+                            if (max < e) max = e;
+                        }
+                        Voice_Set.WoT_Mod_Path = ModDir_List[Version_List.IndexOf(max)];
+                        Version_List.Clear();
+                        ModDir_List.Clear();
+                        return true;
+                    }
+                }
+                return false;
+            }
+            catch
+            {
+                return false;
+            }
+        }
         //ディレクトリをコピー(サブフォルダを含む)
         public static void Directory_Copy(string From_Dir, string To_Dir)
         {
@@ -1711,6 +1765,7 @@ namespace WoTB_Voice_Mod_Creater
                                     Download_T.Visibility = Visibility.Hidden;
                                     Download_Border.Visibility = Visibility.Hidden;
                                     Voice_Set.App_Busy = false;
+                                    Message_T.Text = "";
                                     return 1;
                                 }
                                 System.IO.Compression.ZipFile.ExtractToDirectory(Voice_Set.Special_Path + "/Wwise_Project.dat", Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod");
@@ -1720,10 +1775,12 @@ namespace WoTB_Voice_Mod_Creater
                                 Download_T.Visibility = Visibility.Hidden;
                                 Download_Border.Visibility = Visibility.Hidden;
                                 Voice_Set.App_Busy = false;
+                                Message_T.Text = "";
                                 return 0;
                             }
                             else
                             {
+                                Message_T.Text = "";
                                 return 2;
                             }
                         }
@@ -1742,7 +1799,7 @@ namespace WoTB_Voice_Mod_Creater
                         StreamReader str = new StreamReader(Voice_Set.FTP_Server.OpenRead("/WoTB_Voice_Mod/Update/Wwise/Version_01.txt"));
                         string Line = str.ReadLine();
                         str.Close();
-                        double SizeMB = (double)(Voice_Set.FTP_Server.GetFileSize("/WoTB_Voice_Mod/Update/Wwise/Wwise_Project.zip") / 1024.0 / 1024.0);
+                        double SizeMB = (double)(Voice_Set.FTP_Server.GetFileSize("/WoTB_Voice_Mod/Update/Wwise/Wwise_Project_01.zip") / 1024.0 / 1024.0);
                         SizeMB = (Math.Floor(SizeMB * 10)) / 10;
                         Message_T.Text = "サーバーからプロジェクトデータをダウンロードしています...\nダウンロードサイズ:約" + SizeMB + "MB";
                         await Task.Delay(50);
@@ -1752,10 +1809,10 @@ namespace WoTB_Voice_Mod_Creater
                         Download_Border.Visibility = Visibility.Visible;
                         try
                         {
-                            long File_Size_Full = Voice_Set.FTP_Server.GetFileSize("/WoTB_Voice_Mod/Update/Wwise/Wwise_Project.zip");
+                            long File_Size_Full = Voice_Set.FTP_Server.GetFileSize("/WoTB_Voice_Mod/Update/Wwise/Wwise_Project_01.zip");
                             Task task = Task.Run(() =>
                             {
-                                Voice_Set.FTP_Server.DownloadFile(Voice_Set.Special_Path + "/Wwise_Project.dat", "/WoTB_Voice_Mod/Update/Wwise/Wwise_Project.zip");
+                                Voice_Set.FTP_Server.DownloadFile(Voice_Set.Special_Path + "/Wwise_Project.dat", "/WoTB_Voice_Mod/Update/Wwise/Wwise_Project_01.zip");
                             });
                             while (true)
                             {
