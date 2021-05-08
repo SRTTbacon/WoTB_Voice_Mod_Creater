@@ -5,6 +5,7 @@ Wwiseの使い方がわからなくても自動でプロジェクトを作成、
 操作方法はYoutubeの動画を参照してください<br>
 バグや不具合、わからないことがあればSRTTbacon#2395までご連絡を！<br>
 V1.2.7から.NetFramework4.6.1に変更しましたので、Windows7などはマイクロソフトからダウンロード&インストールする必要があります。<br>
+<br>
 ダウンロード:https://drive.google.com/file/d/1rTmmRGbGPCuXOSDNt31pz6hQ1cqGWWb1/view<br>
 <br>
 ソース内のWwise_Class/V1とV2の違いは、V1では.pckファイルを扱い、V2では.bnkファイルを扱う感じです。<br>
