@@ -68,6 +68,7 @@ namespace WoTB_Voice_Mod_Creater
                     User_Login_B.Visibility = Visibility.Visible;
                     User_Register_B.Visibility = Visibility.Visible;
                     Voice_Create_Tool_B.Visibility = Visibility.Visible;
+                    Voice_Create_V2_B.Visibility = Visibility.Visible;
                     Update_B.Visibility = Visibility.Visible;
                 }
             }
@@ -88,13 +89,7 @@ namespace WoTB_Voice_Mod_Creater
             {
                 try
                 {
-                    using (var eifs = new FileStream(Path + "/User.dat", FileMode.Open, FileAccess.Read))
-                    {
-                        using (var eofs = new FileStream(Voice_Set.Special_Path + "/Temp_User.dat", FileMode.Create, FileAccess.Write))
-                        {
-                            FileEncode.FileEncryptor.Decrypt(eifs, eofs, "SRTTbacon_Server_User_Pass_Save");
-                        }
-                    }
+                    Sub_Code.File_Decrypt(Path + "/User.dat", Voice_Set.Special_Path + "/Temp_User.dat", "SRTTbacon_Server_User_Pass_Save", false);
                     StreamReader str = new StreamReader(Voice_Set.Special_Path + "/Temp_User.dat");
                     string Login_Read = str.ReadLine();
                     str.Close();
@@ -212,18 +207,12 @@ namespace WoTB_Voice_Mod_Creater
                 User_Register_B.Visibility = Visibility.Hidden;
                 Voice_Create_Tool_B.Visibility = Visibility.Visible;
                 WoTB_Select_B.Visibility = Visibility.Hidden;
-                Voice_Mod_Free_B.Visibility = Visibility.Visible;
-                Message_B.Visibility = Visibility.Visible;
-                Update_B.Visibility = Visibility.Visible;
                 Chat_Show();
             }
             else
             {
                 Connect_B.Visibility = Visibility.Visible;
                 Cache_Delete_B.Visibility = Visibility.Visible;
-                Voice_Mod_Free_B.Visibility = Visibility.Hidden;
-                Message_B.Visibility = Visibility.Hidden;
-                Update_B.Visibility = Visibility.Hidden;
                 Chat_Hide();
             }
         }

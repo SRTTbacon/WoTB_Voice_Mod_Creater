@@ -1697,6 +1697,7 @@ namespace WoTB_Voice_Mod_Creater
                 Number++;
             }
         }
+        //Wwiseプロジェクトをサーバーからダウンロード
         public static async Task<int> Wwise_Project_Update(TextBlock Message_T, ProgressBar Download_P, TextBlock Download_T, Border Download_Border)
         {
             try

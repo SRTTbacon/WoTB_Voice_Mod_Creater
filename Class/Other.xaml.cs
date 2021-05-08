@@ -52,6 +52,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         double Start_Time = -1;
         double End_Time = -1;
         SYNCPROC IsMusicEnd;
+        BASS_DEVICEINFO info = new BASS_DEVICEINFO();
         public Other()
         {
             InitializeComponent();
@@ -75,7 +76,6 @@ namespace WoTB_Voice_Mod_Creater.Class
             SetFirstDevice = Bass.BASS_GetDevice();
             Device_L.SelectedIndex = SetFirstDevice - 1;
             Bass.BASS_Free();
-            BASS_DEVICEINFO info = new BASS_DEVICEINFO();
             for (int n = 1; Bass.BASS_GetDeviceInfo(n, info); n++)
             {
                 Bass.BASS_Init(n, 44100, BASSInit.BASS_DEVICE_DEFAULT, IntPtr.Zero);

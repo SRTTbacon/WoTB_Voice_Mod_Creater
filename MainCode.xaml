@@ -125,7 +125,7 @@
             <Button x:Name="Exit_B" Content="終了" HorizontalAlignment="Left" Margin="-1917,995,0,0" VerticalAlignment="Top" Width="291" Height="82" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="30" Click="Exit_B_Click"/>
             <ProgressBar x:Name="Download_P" Height="30" VerticalAlignment="Top" Width="425" Margin="-3250,580,0,0"/>
             <TextBlock x:Name="Download_T" Height="50" Width="500" Margin="-3250,525,0,0" Foreground="Aqua" FontSize="40" TextWrapping="Wrap" Text="1000/1000" VerticalAlignment="Top" TextAlignment="Center"/>
-            <Button x:Name="Cache_Delete_B" Content="キャッシュを削除" HorizontalAlignment="Left" Margin="-352,995,0,0" VerticalAlignment="Top" Width="349" Height="82" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="30" Click="Cache_Delete_B_Click"/>
+            <Button x:Name="Cache_Delete_B" Content="設定を削除" HorizontalAlignment="Left" Margin="-352,995,0,0" VerticalAlignment="Top" Width="349" Height="82" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="30" Click="Cache_Delete_B_Click"/>
             <TextBlock x:Name="User_Name_Text" Height="50" Width="174" TextWrapping="Wrap" Text="ユーザー名:" Foreground="Aqua" FontSize="40" Margin="-2700,625,0,0" VerticalAlignment="Top"/>
             <TextBlock x:Name="User_Password_Text" Height="50" Width="174" TextWrapping="Wrap" Text="パスワード:" Foreground="Aqua" FontSize="40" Margin="-2700,750,0,0" VerticalAlignment="Top"/>
             <TextBox x:Name="User_Name_T" Height="50" TextWrapping="Wrap" Text="" VerticalAlignment="Top" FontSize="35" Margin="-2125,630,0,0" Width="400" TextAlignment="Center"/>
@@ -148,6 +148,7 @@
             <Button x:Name="WoT_To_Blitz_B" Content="WoTから移植" HorizontalAlignment="Left" Margin="-1610,170,0,0" VerticalAlignment="Top" Width="300" Height="70" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Click="WoT_To_Blitz_B_Click"/>
             <Button x:Name="Blitz_To_WoT_B" Content="BlitzからWoT" HorizontalAlignment="Left" Margin="-1610,255,0,0" VerticalAlignment="Top" Width="300" Height="70" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Click="Blitz_To_WoT_B_Click"/>
             <Button x:Name="Create_Save_B" Content="セーブデータとして変換" HorizontalAlignment="Left" Margin="-1610,340,0,0" VerticalAlignment="Top" Width="300" Height="70" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="33" Click="Create_Save_B_Click"/>
+            <Button x:Name="Loading_BGM_B" Content="戦闘前のBGM" HorizontalAlignment="Left" Margin="-1610,425,0,0" VerticalAlignment="Top" Width="300" Height="70" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="37" Click="Loading_BGM_B_Click"/>
             <Button x:Name="Voice_Create_V2_B" Content="音声作成ツールV2(新)" HorizontalAlignment="Left" Margin="-1220,150,0,0" VerticalAlignment="Top" Width="525" Height="90" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Click="Voice_Create_V2_B_Click"/>
             <Button x:Name="Other_B" Content="音楽プレイヤー" HorizontalAlignment="Left" Margin="-1920,170,0,0" VerticalAlignment="Top" Width="300" Height="70" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Click="Other_B_Click"/>
             <Button x:Name="Voice_Mod_Free_B" Content="Mod配布" HorizontalAlignment="Left" Margin="-1920,255,0,0" VerticalAlignment="Top" Width="300" Height="70" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Click="Voice_Mod_Free_B_Click"/>
@@ -173,6 +174,7 @@
             <Class2:WoT_To_Blitz x:Name="WoT_To_Blitz_Window" Width="1920" Height="1080" Margin="-1920,0,0,0" Visibility="Hidden"/>
             <Class2:Blitz_To_WoT x:Name="Blitz_To_WoT_Window" Width="1920" Height="1080" Margin="-1920,0,0,0" Visibility="Hidden"/>
             <Class1:Create_Save_File x:Name="Create_Save_File_Window" Width="1920" Height="1080" Margin="-1920,0,0,0" Visibility="Hidden"/>
+            <Class1:Create_Loading_BGM x:Name="Create_Loading_BGM_Window" Width="1920" Height="1080" Margin="-1920,0,0,0" Visibility="Hidden"/>
         </DockPanel>
     </Viewbox>
 </Window>

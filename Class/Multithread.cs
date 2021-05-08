@@ -18,6 +18,26 @@ namespace WoTB_Voice_Mod_Creater.Class
         static List<string> From_Files = new List<string>();
         //マルチスレッドで.mp3や.oggを.wav形式にエンコード
         //拡張子とファイル内容が異なっていた場合実行されない(ファイル拡張子が.mp3なのに実際は.oggだった場合など)
+        public static async Task Convert_To_Wav(List<string> Files, List<string> ToFilePath, List<Music_Play_Time> Time, bool IsFromFileDelete)
+        {
+            try
+            {
+                From_Files.Clear();
+                From_Files.AddRange(Files);
+                var tasks = new List<Task>();
+                for (int i = 0; i < From_Files.Count; i++)
+                {
+                    tasks.Add(To_WAV(i, ToFilePath[i], Time[i], IsFromFileDelete));
+                }
+                await Task.WhenAll(tasks);
+                From_Files.Clear();
+            }
+            catch (Exception e)
+            {
+                From_Files.Clear();
+                Sub_Code.Error_Log_Write(e.Message);
+            }
+        }
         public static async Task Convert_To_Wav(string From_Dir, bool IsFromFileDelete, bool IsUseFFmpeg = false, bool BassEncode = false)
         {
             await Convert_To_Wav(From_Dir, From_Dir, IsFromFileDelete, IsUseFFmpeg, BassEncode);
@@ -158,6 +178,30 @@ namespace WoTB_Voice_Mod_Creater.Class
                 return false;
             }
             return true;
+        }
+        static async Task To_WAV(int File_Number, string ToFilePath, Music_Play_Time Time, bool IsFromFileDelete)
+        {
+            double End = Time.End_Time - Time.Start_Time;
+            StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Encode_Mp3/Audio_WAV_Encode" + File_Number + ".bat");
+            stw.WriteLine("chcp 65001");
+            stw.Write("\"" + Voice_Set.Special_Path + "/Encode_Mp3/ffmpeg.exe\" -y -i \"" + From_Files[File_Number] + "\" -vn -ac 2 -ar 44100 -acodec pcm_s24le -f wav -ss " + Time.Start_Time + " -t " + End + " \"" + ToFilePath + "\"");
+            stw.Close();
+            ProcessStartInfo processStartInfo = new ProcessStartInfo
+            {
+                FileName = Voice_Set.Special_Path + "/Encode_Mp3/Audio_WAV_Encode" + File_Number + ".bat",
+                CreateNoWindow = true,
+                UseShellExecute = false
+            };
+            Process p = Process.Start(processStartInfo);
+            await Task.Run(() =>
+            {
+                p.WaitForExit();
+                if (IsFromFileDelete)
+                {
+                    File.Delete(From_Files[File_Number]);
+                }
+                File.Delete(Voice_Set.Special_Path + "/Encode_Mp3/Audio_WAV_Encode" + File_Number + ".bat");
+            });
         }
         static async Task<bool> To_WAV(int File_Number, string To_Dir, bool IsFromFileDelete, bool IsUseFFmpeg, bool IsUseBass)
         {

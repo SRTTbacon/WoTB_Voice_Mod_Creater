@@ -31,12 +31,12 @@ public static partial class StringExtensions
 }
 public class SRTTbacon_Server
 {
-    public const string IP_Local = "192.168.3.12";
-    public const string IP_Global = "60.151.34.219";
-    public const string Name = "SRTTbacon_Server";
-    public const string Password = "SRTTbacon";
-    public const string Version = "1.3.5";
-    public const int Port = 50000;
+    public const string IP_Local = "非公開";
+    public const string IP_Global = "非公開";
+    public const string Name = "非公開";
+    public const string Password = "非公開";
+    public const string Version = "1.3.6";
+    public const int Port = -1;
     public static bool IsSRTTbaconOwnerMode = false;
     public static string IP = "";
 }
@@ -328,6 +328,16 @@ namespace WoTB_Voice_Mod_Creater
                     string[] args = Environment.GetCommandLineArgs();
                     int pid = Convert.ToInt32(args[2]);
                     Process.GetProcessById(pid).Kill();
+                }
+                catch
+                {
+                }
+                try
+                {
+                    if (File.Exists(Path + "/Update.bat"))
+                    {
+                        File.Delete(Path + "/Update.bat");
+                    }
                     Directory.Delete(Path + "/Backup/Update", true);
                 }
                 catch (Exception e)
@@ -729,7 +739,7 @@ namespace WoTB_Voice_Mod_Creater
         //キャッシュを削除
         private void Cache_Delete_B_Click(object sender, RoutedEventArgs e)
         {
-            string Message_01 = "キャッシュを削除します。この操作は取り消せません。よろしいですか？";
+            string Message_01 = "現在の設定を削除します。この操作は取り消せません。よろしいですか？";
             MessageBoxResult result = MessageBox.Show(Message_01, "確認", MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.No);
             if (result == MessageBoxResult.Yes)
             {
@@ -788,6 +798,7 @@ namespace WoTB_Voice_Mod_Creater
                         Connect_Start();
                         Connect_Mode_Layout();
                         Chat_Mode_Change(2);
+                        Message_Feed_Out("ログインしました。ご利用ありがとうございます！！！");
                     }
                 }
                 else
@@ -852,6 +863,7 @@ namespace WoTB_Voice_Mod_Creater
                     Connectiong = true;
                     Connect_Start();
                     Connect_Mode_Layout();
+                    Message_Feed_Out("アカウントを登録しました。ご利用ありがとうございます！！！");
                 }
             }
             else
@@ -969,7 +981,7 @@ namespace WoTB_Voice_Mod_Creater
         }
         private void Voice_Mod_Free_B_Click(object sender, RoutedEventArgs e)
         {
-            if (IsProcessing)
+            if (IsProcessing || NotConnectedLoginMessage())
             {
                 return;
             }
@@ -977,7 +989,7 @@ namespace WoTB_Voice_Mod_Creater
         }
         private void Tool_B_Click(object sender, RoutedEventArgs e)
         {
-            if (IsProcessing)
+            if (IsProcessing || NotConnectedLoginMessage())
             {
                 return;
             }
@@ -1103,7 +1115,17 @@ namespace WoTB_Voice_Mod_Creater
                         Directory.Delete(Voice_Set.Special_Path + "/Update", true);
                         if (IsReboot)
                         {
-                            Process.Start(Path + "/WoTB_Voice_Mod_Creater.exe", "/up " + Process.GetCurrentProcess().Id);
+                            StreamWriter stw = File.CreateText(Path + "/Update.bat");
+                            stw.WriteLine("timeout 1");
+                            stw.Write("\"" + Path + "/WoTB_Voice_Mod_Creater.exe\" /up " + Process.GetCurrentProcess().Id);
+                            stw.Close();
+                            ProcessStartInfo processStartInfo1 = new ProcessStartInfo
+                            {
+                                FileName = Path + "/Update.bat",
+                                CreateNoWindow = true,
+                                UseShellExecute = false
+                            };
+                            Process p = Process.Start(processStartInfo1);
                             Application.Current.Shutdown();
                         }
                         Download_P.Visibility = Visibility.Hidden;
@@ -1128,7 +1150,7 @@ namespace WoTB_Voice_Mod_Creater
         }
         private void Other_B_Click(object sender, RoutedEventArgs e)
         {
-            if (IsProcessing)
+            if (IsProcessing || NotConnectedLoginMessage())
             {
                 return;
             }
@@ -1136,7 +1158,7 @@ namespace WoTB_Voice_Mod_Creater
         }
         private void Message_B_Click(object sender, RoutedEventArgs e)
         {
-            if (IsProcessing)
+            if (IsProcessing || NotConnectedLoginMessage())
             {
                 return;
             }
@@ -1144,7 +1166,7 @@ namespace WoTB_Voice_Mod_Creater
         }
         private void Voice_Create_Tool_B_Click(object sender, RoutedEventArgs e)
         {
-            if (IsProcessing)
+            if (IsProcessing || NotConnectedLoginMessage())
             {
                 return;
             }
@@ -1299,7 +1321,8 @@ namespace WoTB_Voice_Mod_Creater
             if (Save_Window.Visibility == Visibility.Visible || Voice_Mods_Window.Visibility == Visibility.Visible || Tools_Window.Visibility == Visibility ||
                 Other_Window.Visibility == Visibility.Visible || Voice_Create_Window.Visibility == Visibility.Visible || Message_Window.Visibility == Visibility.Visible || Load_Data_Window.Visibility == Visibility.Visible ||
                 Tools_V2_Window.Visibility == Visibility.Visible || Change_To_Wwise_Window.Visibility == Visibility.Visible || WoT_To_Blitz_Window.Visibility == Visibility.Visible ||
-                Blitz_To_WoT_Window.Visibility == Visibility.Visible || Bank_Editor_Window.Visibility == Visibility.Visible || Create_Save_File_Window.Visibility == Visibility.Visible)
+                Blitz_To_WoT_Window.Visibility == Visibility.Visible || Bank_Editor_Window.Visibility == Visibility.Visible || Create_Save_File_Window.Visibility == Visibility.Visible ||
+                Create_Loading_BGM_Window.Visibility == Visibility.Visible)
             {
                 return;
             }
@@ -1489,7 +1512,7 @@ namespace WoTB_Voice_Mod_Creater
         }
         private async void Voice_Create_V2_B_Click(object sender, RoutedEventArgs e)
         {
-            if (IsProcessing)
+            if (IsProcessing || NotConnectedLoginMessage())
             {
                 return;
             }
@@ -1539,7 +1562,7 @@ namespace WoTB_Voice_Mod_Creater
         }
         private void Tool_V2_B_Click(object sender, RoutedEventArgs e)
         {
-            if (IsProcessing)
+            if (IsProcessing || NotConnectedLoginMessage())
             {
                 return;
             }
@@ -1547,7 +1570,7 @@ namespace WoTB_Voice_Mod_Creater
         }
         private void Advanced_Mode_B_Click(object sender, RoutedEventArgs e)
         {
-            if (IsProcessing)
+            if (IsProcessing || NotConnectedLoginMessage())
             {
                 return;
             }
@@ -1555,7 +1578,7 @@ namespace WoTB_Voice_Mod_Creater
         }
         private async void Change_Wwise_B_Click(object sender, RoutedEventArgs e)
         {
-            if (IsProcessing)
+            if (IsProcessing || NotConnectedLoginMessage())
             {
                 return;
             }
@@ -1619,7 +1642,7 @@ namespace WoTB_Voice_Mod_Creater
         }
         private async void WoT_To_Blitz_B_Click(object sender, RoutedEventArgs e)
         {
-            if (IsProcessing)
+            if (IsProcessing || NotConnectedLoginMessage())
             {
                 return;
             }
@@ -1669,7 +1692,7 @@ namespace WoTB_Voice_Mod_Creater
         }
         private async void Blitz_To_WoT_B_Click(object sender, RoutedEventArgs e)
         {
-            if (IsProcessing)
+            if (IsProcessing || NotConnectedLoginMessage())
             {
                 return;
             }
@@ -1703,11 +1726,75 @@ namespace WoTB_Voice_Mod_Creater
         }
         private void Create_Save_B_Click(object sender, RoutedEventArgs e)
         {
-            if (IsProcessing)
+            if (IsProcessing || NotConnectedLoginMessage())
             {
                 return;
             }
             Create_Save_File_Window.Window_Show();
+        }
+        private async void Loading_BGM_B_Click(object sender, RoutedEventArgs e)
+        {
+            if (IsProcessing || NotConnectedLoginMessage())
+            {
+                return;
+            }
+            if (!File.Exists(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Version.dat") && !Voice_Set.FTP_Server.IsConnected)
+            {
+                Message_Feed_Out("サーバーに接続できないため実行できません。");
+                return;
+            }
+            IsProcessing = true;
+            int Tmp = await Sub_Code.Wwise_Project_Update(Message_T, Download_P, Download_T, Download_Border);
+            IsProcessing = false;
+            if (Tmp == 1)
+            {
+                Message_Feed_Out("ダウンロードに失敗しました。以前のバージョンで実行します。");
+            }
+            else if (Tmp == 3)
+            {
+                Message_Feed_Out("ダウンロードに失敗しました。開発者へご連絡ください。");
+                return;
+            }
+            else if (Tmp == 4)
+            {
+                return;
+            }
+            else if (Tmp == 5)
+            {
+                Message_Feed_Out("エラーが発生しました。Log.txtを参照してください。");
+                return;
+            }
+            try
+            {
+                StreamReader str = new StreamReader(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Version.dat");
+                double Version_Wwise = double.Parse(str.ReadLine());
+                str.Close();
+                if (Version_Wwise < 1.3)
+                {
+                    Message_Feed_Out("プロジェクトデータをアップデートしてください。");
+                    return;
+                }
+            }
+            catch
+            {
+                Message_Feed_Out("エラーが発生しました。");
+                return;
+            }
+            Create_Loading_BGM_Window.Window_Show();
+        }
+        bool NotConnectedLoginMessage()
+        {
+            if (!Voice_Set.FTP_Server.IsConnected)
+            {
+                Message_Feed_Out("サーバーに接続されていないため、この機能は利用できません。");
+                return true;
+            }
+            if (Voice_Set.UserName == "")
+            {
+                Message_Feed_Out("アカウント登録またはログインしてからお試しください。");
+                return true;
+            }
+            return false;
         }
     }
 }
