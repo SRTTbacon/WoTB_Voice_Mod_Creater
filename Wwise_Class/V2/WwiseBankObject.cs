@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 
 namespace BNKManager
 {
@@ -152,7 +153,7 @@ namespace BNKManager
         }
     }
     //本家WoTのpckファイル読み込むとクラッシュするため廃止
-    /*public class EventWwiseObject : WwiseObject
+    public class EventWwiseObject : WwiseObject
     {
         public uint ID;
         public List<uint> eventActionList = new List<uint>();
@@ -183,5 +184,5 @@ namespace BNKManager
             }
             return base.GetObjectBytes(objData);
         }
-    }*/
+    }
 }

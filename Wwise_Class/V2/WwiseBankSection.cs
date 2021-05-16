@@ -79,6 +79,10 @@ namespace BNKManager
             uint objectCount = br.ReadUInt32();
             for (uint i = 0; i < objectCount; i++)
             {
+                if (br.BaseStream.Position >= br.BaseStream.Length)
+                {
+                    break;
+                }
                 WwiseObjectType objType = (WwiseObjectType)br.ReadByte();
                 uint objLength = br.ReadUInt32();
                 switch (objType)
@@ -94,7 +98,7 @@ namespace BNKManager
                         this.objects.Add(new EventWwiseObject(br));
                         break;*/
                     default:
-                        this.objects.Add(new WwiseObject(objType, br.ReadBytes((int)objLength)));
+                        //this.objects.Add(new WwiseObject(objType, br.ReadBytes((int)objLength)));
                         break;
                 }
             }

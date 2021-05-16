@@ -427,8 +427,9 @@ namespace WoTB_Voice_Mod_Creater.Class
             }
             if (Ex_Sort_C.IsChecked.Value)
             {
-                string[] Temp_01 = { ".aiff", ".mp3", ".mp4", ".ogg", ".wav" };
+                string[] Temp_01 = { ".aac", ".aiff", ".mp3", ".mp4", ".ogg", ".wav" };
                 List<List<string>> Temp_02 = new List<List<string>>();
+                Temp_02.Add(new List<string>());
                 Temp_02.Add(new List<string>());
                 Temp_02.Add(new List<string>());
                 Temp_02.Add(new List<string>());
@@ -695,42 +696,39 @@ namespace WoTB_Voice_Mod_Creater.Class
                 return;
             }
             IsLocationChanging = true;
+            if (Bass.BASS_ChannelIsActive(Stream) == BASSActive.BASS_ACTIVE_PLAYING)
+            {
+                IsPlayingMouseDown = true;
+            }
             IsPaused = true;
-            Bass.BASS_ChannelPause(Stream);
+            Pause_Volume_Animation(false, 10);
             if (Video_V.Visibility == Visibility.Visible)
             {
                 Video_V.Pause();
             }
             Bass.BASS_ChannelSetAttribute(Stream, BASSAttribute.BASS_ATTRIB_VOL, 0f);
         }
-        async void Location_MouseUp(object sender, MouseButtonEventArgs e)
+        void Location_MouseUp(object sender, MouseButtonEventArgs e)
         {
             IsLocationChanging = false;
-            IsPaused = false;
             if (WAVEForm_Color_Image.Visibility == Visibility.Visible)
             {
                 WAVEForm_Color_Image.Width = (Location_S.Value / Location_S.Maximum) * WAVEForm_Image_Width;
             }
             Bass.BASS_ChannelSetPosition(Stream, Location_S.Value);
-            Bass.BASS_ChannelPlay(Stream, false);
+            if (IsPlayingMouseDown)
+            {
+                IsPaused = false;
+                Bass.BASS_ChannelPlay(Stream, false);
+                Play_Volume_Animation(10);
+                IsPlayingMouseDown = false;
+            }
             if (Video_V.Visibility == Visibility.Visible)
             {
                 Video_V.Play();
                 long position = Bass.BASS_ChannelGetPosition(Stream);
                 TimeSpan time = TimeSpan.FromSeconds(Bass.BASS_ChannelBytes2Seconds(Stream, position) + 0.1);
                 Video_V.Position = time;
-            }
-            float Volume_Now = 0f;
-            float Volume_Plus = (float)(Volume_S.Value / 100) / 20f;
-            while (Volume_Now < (float)(Volume_S.Value / 100) && !IsPaused)
-            {
-                Volume_Now += Volume_Plus;
-                if (Volume_Now > 1f)
-                {
-                    Volume_Now = 1f;
-                }
-                Bass.BASS_ChannelSetAttribute(Stream, BASSAttribute.BASS_ATTRIB_VOL, Volume_Now);
-                await Task.Delay(1000 / 60);
             }
         }
         private void Location_S_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
@@ -1520,6 +1518,35 @@ namespace WoTB_Voice_Mod_Creater.Class
         //キーイベント
         public void RootWindow_KeyDown(System.Windows.Input.KeyEventArgs e)
         {
+            //追加されている曲をクリア
+            if ((System.Windows.Forms.Control.ModifierKeys & Keys.Shift) == Keys.Shift && e.Key == Key.D)
+            {
+                if (Music_List.Items.Count == 0)
+                {
+                    return;
+                }
+                MessageBoxResult result = System.Windows.MessageBox.Show("現在追加されている曲をクリアしますか？\nこの操作は取り消しできません。", "確認", MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.No);
+                if (result == MessageBoxResult.Yes)
+                {
+                    try
+                    {
+                        Pause_Volume_Animation(true, 10);
+                        File_Full_Path.Clear();
+                        File_Name_Path.Clear();
+                        Music_List.Items.Clear();
+                        WAVEForm_Color_Image.Source = null;
+                        WAVEForm_Gray_Image.Source = null;
+                        WAVEForm_Color_Image.Width = 0;
+                        WAVEForm_Color_Image.Visibility = Visibility.Hidden;
+                        WAVEForm_Gray_Image.Visibility = Visibility.Hidden;
+                        File.Delete(Voice_Set.Special_Path + "/Configs/Other_Music_List.dat");
+                    }
+                    catch (Exception e1)
+                    {
+                        Sub_Code.Error_Log_Write(e1.Message);
+                    }
+                }
+            }
             if (Loop_C.IsChecked.Value)
             {
                 //再生開始時間を保存

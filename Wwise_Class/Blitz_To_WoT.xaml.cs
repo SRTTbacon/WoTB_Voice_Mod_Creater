@@ -160,12 +160,43 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         {
             BNK_FSB_Clear();
         }
-        void BNK_FSB_Clear()
+        void BNK_FSB_Clear(bool IsMessageShow = true)
         {
             if (IsClosing || IsBusy)
                 return;
-            MessageBoxResult result = System.Windows.MessageBox.Show("内容をクリアしますか？", "確認", MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.No);
-            if (result == MessageBoxResult.Yes)
+            if (IsMessageShow)
+            {
+                MessageBoxResult result = System.Windows.MessageBox.Show("内容をクリアしますか？", "確認", MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.No);
+                if (result == MessageBoxResult.Yes)
+                {
+                    Bass.BASS_ChannelStop(Stream);
+                    Bass.BASS_StreamFree(Stream);
+                    Voices_L.Items.Clear();
+                    Content_L.Items.Clear();
+                    BNK_FSB_Enable.Clear();
+                    BNK_FSB_Voices.Clear();
+                    Voices_L.Items.Add("音声ファイルが選択されていません。");
+                    BNK_FSB_Voices.Clear();
+                    File_Name_T.Text = "";
+                    Location_S.Value = 0;
+                    Location_S.Maximum = 0;
+                    Max_Stream_Count = 0;
+                    Now_Stream_Count = 0;
+                    Location_T.Text = "00:00";
+                    try
+                    {
+                        if (Directory.Exists(Voice_Set.Special_Path + "/Wwise/BNK_WAV_WoT"))
+                        {
+                            Directory.Delete(Voice_Set.Special_Path + "/Wwise/BNK_WAV_WoT", true);
+                        }
+                    }
+                    catch (Exception e1)
+                    {
+                        Sub_Code.Error_Log_Write(e1.Message);
+                    }
+                }
+            }
+            else
             {
                 Bass.BASS_ChannelStop(Stream);
                 Bass.BASS_StreamFree(Stream);
@@ -516,7 +547,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 {
                     IsBusy = false;
                     Sub_Code.Error_Log_Write(e1.Message);
-                    BNK_FSB_Clear();
+                    BNK_FSB_Clear(false);
                     Message_Feed_Out("エラーが発生しました。Error_Log.txtを参照してください。");
                 }
             }

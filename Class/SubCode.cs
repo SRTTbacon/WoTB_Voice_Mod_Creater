@@ -233,7 +233,7 @@ namespace WoTB_Voice_Mod_Creater
                 foreach (FileInfo file in files)
                 {
                     string tempPath = Path.Combine(To_Dir, file.Name);
-                    file.CopyTo(tempPath, false);
+                    file.CopyTo(tempPath, true);
                 }
                 foreach (DirectoryInfo subdir in dirs)
                 {
@@ -805,6 +805,32 @@ namespace WoTB_Voice_Mod_Creater
                     }
                 }
             }
+        }
+        public static List<string> Check_MP3_Get_List(string Dir, bool IsRename)
+        {
+            List<string> Voice_List = new List<string>();
+            string[] Files_01 = Directory.GetFiles(Dir, "*", SearchOption.TopDirectoryOnly);
+            foreach (string File_Now in Files_01)
+            {
+                StreamReader str = new StreamReader(File_Now);
+                string Read_01 = str.ReadLine();
+                str.Close();
+                string Read = Read_01.Substring(0, 3);
+                //最初の3文字がID3だった場合.mp3形式
+                //Xrecordで変換した場合ヘッダがなくなるためXingが含まれていたら
+                if (Read != "ID3" && !Read_01.Contains("Xing") && !Read_01.Contains("LAME"))
+                {
+                    if (Path.GetExtension(File_Now) == ".mp3" && IsRename)
+                    {
+                        string To_File = Path.GetDirectoryName(File_Now) + "\\" + Path.GetFileNameWithoutExtension(File_Now) + ".raw";
+                        Sub_Code.File_Move(File_Now, To_File, false);
+                        Voice_List.Add(To_File);
+                    }
+                    else
+                        Voice_List.Add(File_Now);
+                }
+            }
+            return Voice_List;
         }
         //.fdpファイルから.fev + .fsbを作成する
         //例:Test.fdp -> Test.fevとTest.fsbを作成
@@ -1697,6 +1723,22 @@ namespace WoTB_Voice_Mod_Creater
                 Number++;
             }
         }
+        public static void Actor_Mixer_Update(string Version)
+        {
+            if (!Directory.Exists(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy") || !Directory.Exists(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Events"))
+                return;
+            Voice_Set.FTP_Server.DownloadFile(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Default Work Unit.wwu", "/WoTB_Voice_Mod/Update/Wwise/Default Work Unit.wwu");
+            Voice_Set.FTP_Server.DownloadFile(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/SoundBanks/Default Work Unit.wwu", "/WoTB_Voice_Mod/Update/Wwise/SoundBanks/Default Work Unit.wwu");
+            Voice_Set.FTP_Server.DownloadFile(Voice_Set.Special_Path + "/Wwise/Download_Wwise_Events.dat", "/WoTB_Voice_Mod/Update/Wwise/Events.zip");
+            StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Version.dat");
+            stw.Write(Version);
+            stw.Close();
+            System.IO.Compression.ZipFile.ExtractToDirectory(Voice_Set.Special_Path + "/Wwise/Download_Wwise_Events.dat", Voice_Set.Special_Path + "/Wwise/Download_Wwise_Events");
+            Sub_Code.Directory_Copy(Voice_Set.Special_Path + "/Wwise/Download_Wwise_Events", Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Events");
+            File.Delete(Voice_Set.Special_Path + "/Wwise/Download_Wwise_Events.dat");
+            File.Delete(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Backup.tmp");
+            Directory.Delete(Voice_Set.Special_Path + "/Wwise/Download_Wwise_Events", true);
+        }
         //Wwiseプロジェクトをサーバーからダウンロード
         public static async Task<int> Wwise_Project_Update(TextBlock Message_T, ProgressBar Download_P, TextBlock Download_T, Border Download_Border)
         {
@@ -1708,10 +1750,23 @@ namespace WoTB_Voice_Mod_Creater
                     {
                         StreamReader str = new StreamReader(Voice_Set.FTP_Server.OpenRead("/WoTB_Voice_Mod/Update/Wwise/Version_01.txt"));
                         string Line = str.ReadLine();
+                        string Line_Actor_V = str.ReadLine();
                         str.Close();
                         StreamReader str2 = new StreamReader(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Version.dat");
                         string Version = str2.ReadLine();
                         str2.Close();
+                        if (File.Exists(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Version.dat"))
+                        {
+                            StreamReader str3 = new StreamReader(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Version.dat");
+                            string Actor_Version_Now = str3.ReadLine();
+                            str3.Close();
+                            if (Line_Actor_V != Actor_Version_Now)
+                            {
+                                Actor_Mixer_Update(Line_Actor_V);
+                            }
+                        }
+                        else
+                            Actor_Mixer_Update(Line_Actor_V);
                         if (Version != Line)
                         {
                             MessageBoxResult result = MessageBox.Show("プロジェクトデータのアップデートがあります。アップデートしますか？", "確認", MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.Yes);

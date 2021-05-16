@@ -288,7 +288,6 @@ namespace WoTB_Voice_Mod_Creater.Class
                         Message_T.Text = ".wavまたは.oggに変換しています...";
                         await Task.Delay(50);
                         Wwise_File_Extract_V2 Wwise_BNK = new Wwise_File_Extract_V2(Selected_File);
-                        Max_Stream_Count = Wwise_BNK.Wwise_Get_Numbers();
                         Wwise_BNK.Wwise_Extract_To_WEM_Directory_V2(Voice_Set.Local_Path + "/Projects/" + Project_Name_T.Text + "/All_Voices");
                         Wwise_BNK.Bank_Clear();
                         Message_T.Text = "不要な音声ファイルを削除しています...";
@@ -339,6 +338,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             if (result == MessageBoxResult.Yes)
             {
                 Selected_File = "";
+                Project_Name_T.Text = "";
                 Now_Stream_Count = 0;
                 Max_Stream_Count = 0;
                 BNK_FSB_Voices.Clear();

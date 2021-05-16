@@ -18,7 +18,6 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         const string Master_Audio_Bus_ID = "1514A4D8-1DA6-412A-A17E-75CA0C2149F3";
         const string Master_Audio_Bus_WorkID = "005C6247-5812-4D7E-86EA-2F3C50B5E166";
         string Project_Dir;
-        bool IsIncludeBGM = false;
         List<string> Actor_Mixer_Hierarchy = new List<string>();
         List<string> Add_Wav_Files = new List<string>();
         List<string> Add_All_Files = new List<string>();
@@ -56,7 +55,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             }
             try
             {
-                uint FileName_Short_ID = WwiseHash.HashString(Audio_File);
+                uint FileName_Short_ID = WwiseHash.HashString(Audio_File + Container_ShortID);
                 if (Language == "SFX")
                 {
                     if (File.Exists(Audio_File))
@@ -175,7 +174,8 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             }
             try
             {
-                if (BankName == "reload" && !IsIncludeBGM)
+                //廃止
+                /*if (BankName == "reload" && !IsIncludeBGM)
                 {
                     //BGMが含まれていなければ強制的に追加
                     Sub_Code.Audio_Encode_To_Other(Voice_Set.Special_Path + "/Wwise/Not_Voice.mp3", Voice_Set.Special_Path + "/Wwise/Battle_Music_01.wav", "wav", false);
@@ -194,7 +194,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                     File.Delete(Voice_Set.Special_Path + "/Wwise/Battle_Music_04.wav");
                     File.Delete(Voice_Set.Special_Path + "/Wwise/Battle_Music_05.wav");
                     IsIncludeBGM = true;
-                }
+                }*/
                 BankName = BankName.Replace(" ", "_");
                 string Project_File = Directory.GetFiles(Project_Dir, "*.wproj", SearchOption.TopDirectoryOnly)[0];
                 StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Wwise/Project_Build.bat");
@@ -257,7 +257,6 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 Add_All_Files_Time.Clear();
                 Project_Dir = "";
                 Battle_Number = 0;
-                IsIncludeBGM = false;
             }
             catch (Exception e)
             {
@@ -333,6 +332,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 return false;
             }
         }
+        //プロジェクトに戦闘BGMを追加
         public void Sound_Music_Add_Wwise(string Dir_Name)
         {
             string[] Voice_Files_01 = Directory.GetFiles(Dir_Name, "*.wav", SearchOption.TopDirectoryOnly);
@@ -351,11 +351,11 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 {
                     case "battle_bgm":
                         Add_Sound("649358221", Voice_Now, "ja");
-                        IsIncludeBGM = true;
                         break;
                 }
             }
         }
+        //ロードBGMをプロジェクトに追加
         public void Loading_Music_Add_Wwise(string Music_File, int Music_Index, Music_Play_Time Time, bool IsFeed_In_Mode)
         {
             string Mode = "";
@@ -390,7 +390,18 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 Add_Sound("520751345", Music_File, "ja", true, Time_Set, Mode);
             if (Music_Index == 10)
                 Add_Sound("307041675", Music_File, "ja", true, Time_Set, Mode);
+            if (Music_Index == 11)
+                Add_Sound("960016609", Music_File, "ja", true, Time_Set, Mode);
+            if (Music_Index == 12)
+                Add_Sound("404033224", Music_File, "ja", true, Time_Set, Mode);
+            if (Music_Index == 13)
+                Add_Sound("797792182", Music_File, "ja", true, Time_Set, Mode);
+            if (Music_Index == 14)
+                Add_Sound("434309394", Music_File, "ja", true, Time_Set, Mode);
+            if (Music_Index == 15)
+                Add_Sound("868083406", Music_File, "ja", true, Time_Set, Mode);
         }
+        //音声をプロジェクトに追加
         public void Sound_Add_Wwise(string Dir_Name, bool IsWoT_Project = false, bool IsNotIncludeBGM = false)
         {
             string[] Voice_Files_01 = Directory.GetFiles(Dir_Name, "*.wav", SearchOption.TopDirectoryOnly);
@@ -679,7 +690,6 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                             if (!IsNotIncludeBGM)
                             {
                                 Add_Sound("649358221", Voice_Now, "ja");
-                                IsIncludeBGM = true;
                             }
                             break;
                         case "load_bgm":
@@ -687,6 +697,56 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                             break;
                     }
                 }
+            }
+        }
+        //イベント内の指定したShortIDの項目を無効にする
+        //階層が存在する場合はフォルダの指定もする必要あり
+        public void Event_Not_Include(string Event_Name, uint ShortID)
+        {
+            if (!File.Exists(Project_Dir + "/Events/" + Event_Name + ".wwu"))
+                return;
+            if (!File.Exists(Project_Dir + "/Events/" + Event_Name + ".wwu.bak"))
+                File.Copy(Project_Dir + "/Events/" + Event_Name + ".wwu", Project_Dir + "/Events/" + Event_Name + ".wwu.bak", true);
+            List<string> Lines = new List<string>();
+            Lines.AddRange(File.ReadAllLines(Project_Dir + "/Events/" + Event_Name + ".wwu"));
+            int ShortID_Line = 0;
+            for (int Number = 0; Number < Lines.Count; Number++)
+            {
+                if (Lines[Number].Contains("ShortID=\"" + ShortID + "\""))
+                {
+                    ShortID_Line = Number;
+                    break;
+                }
+            }
+            if (ShortID_Line == 0)
+            {
+                return;
+            }
+            More_Class.List_Init(ShortID_Line + 1);
+            More_Class.List_Add(Lines, "<PropertyList>");
+            More_Class.List_Add(Lines, "<Property Name=\"Inclusion\" Type=\"bool\">");
+            More_Class.List_Add(Lines, "<ValueList>");
+            More_Class.List_Add(Lines, "<Value>False</Value>");
+            More_Class.List_Add(Lines, "</ValueList>");
+            More_Class.List_Add(Lines, "</Property>");
+            More_Class.List_Add(Lines, "</PropertyList>");
+            try
+            {
+                File.WriteAllLines(Project_Dir + "/Events/" + Event_Name + ".wwu", Lines.ToArray());
+            }
+            catch (Exception e)
+            {
+                Sub_Code.Error_Log_Write(e.Message);
+            }
+            Lines.Clear();
+        }
+        //Event_Not_Include()を行った場合必ず実行
+        public void Event_Reset()
+        {
+            foreach (string Name_Now in Directory.GetFiles(Project_Dir + "/Events", "*.bak", SearchOption.TopDirectoryOnly))
+            {
+                string To_File = Path.GetDirectoryName(Name_Now) + "\\" + Path.GetFileNameWithoutExtension(Name_Now);
+                Sub_Code.File_Move(Name_Now, To_File, true);
             }
         }
     }

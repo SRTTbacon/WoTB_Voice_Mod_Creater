@@ -205,7 +205,8 @@ namespace WoTB_Voice_Mod_Creater
                 User_Password_T.Visibility = Visibility.Hidden;
                 User_Login_B.Visibility = Visibility.Hidden;
                 User_Register_B.Visibility = Visibility.Hidden;
-                Voice_Create_Tool_B.Visibility = Visibility.Visible;
+                Voice_Create_Tool_B.Visibility = Visibility.Hidden;
+                Voice_Create_V2_B.Visibility = Visibility.Visible;
                 WoTB_Select_B.Visibility = Visibility.Hidden;
                 Chat_Show();
             }

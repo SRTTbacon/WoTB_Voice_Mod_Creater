@@ -43,17 +43,22 @@ namespace WoTB_Voice_Mod_Creater.Class
             Position_S.AddHandler(MouseDownEvent, new MouseButtonEventHandler(Position_S_MouseDown), true);
             Position_S.AddHandler(MouseUpEvent, new MouseButtonEventHandler(Position_S_MouseUp), true);
             Volume_S.AddHandler(MouseUpEvent, new MouseButtonEventHandler(Volume_S_MouseUp), true);
-            BGM_Type_L.Items.Add("1:America_lakville | 0個");
-            BGM_Type_L.Items.Add("2:America_overlord | 0個");
-            BGM_Type_L.Items.Add("3:Chinese | 0個");
-            BGM_Type_L.Items.Add("4:Desert_airfield | 0個");
-            BGM_Type_L.Items.Add("5:Desert_sand_river | 0個");
-            BGM_Type_L.Items.Add("6:Europe_himmelsdorf | 0個");
-            BGM_Type_L.Items.Add("7:Europe_mannerheim | 0個");
-            BGM_Type_L.Items.Add("8:Europe_ruinberg | 0個");
-            BGM_Type_L.Items.Add("9:Japan | 0個");
-            BGM_Type_L.Items.Add("10:Russian_malinovka | 0個");
-            BGM_Type_L.Items.Add("11:Russian_prokhorovka | 0個");
+            BGM_Type_L.Items.Add("ロード1:America_lakville | 0個");
+            BGM_Type_L.Items.Add("ロード2:America_overlord | 0個");
+            BGM_Type_L.Items.Add("ロード3:Chinese | 0個");
+            BGM_Type_L.Items.Add("ロード4:Desert_airfield | 0個");
+            BGM_Type_L.Items.Add("ロード5:Desert_sand_river | 0個");
+            BGM_Type_L.Items.Add("ロード6:Europe_himmelsdorf | 0個");
+            BGM_Type_L.Items.Add("ロード7:Europe_mannerheim | 0個");
+            BGM_Type_L.Items.Add("ロード8:Europe_ruinberg | 0個");
+            BGM_Type_L.Items.Add("ロード9:Japan | 0個");
+            BGM_Type_L.Items.Add("ロード10:Russian_malinovka | 0個");
+            BGM_Type_L.Items.Add("ロード11:Russian_prokhorovka | 0個");
+            BGM_Type_L.Items.Add("リザルト:勝利 | 0個");
+            BGM_Type_L.Items.Add("リザルト:引き分け | 0個");
+            BGM_Type_L.Items.Add("リザルト:敗北 | 0個");
+            BGM_Type_L.Items.Add("優勢:味方 | 0個");
+            BGM_Type_L.Items.Add("優勢:敵 | 0個");
             for (int Number = 0; Number < BGM_Type_L.Items.Count; Number++)
             {
                 Music_Type_Music.Add(new List<string>());
@@ -631,12 +636,29 @@ namespace WoTB_Voice_Mod_Creater.Class
         {
             if (BGM_Type_L.SelectedIndex == -1)
             {
-                Message_Feed_Out("\"ロードBGMの種類\"を選択する必要があります。");
+                Message_Feed_Out("\"BGMの種類\"を選択する必要があります。");
                 return;
             }
             if (Music_Type_Music[BGM_Type_L.SelectedIndex].Count == 0)
             {
-                Message_Feed_Out("選択したタイプに最低1つはBGMファイルを追加する必要があります。");
+                if (BGM_Type_L.SelectedIndex == 12 || BGM_Type_L.SelectedIndex == 13)
+                {
+                    if (Music_Type_Music[12].Count == 0 || Music_Type_Music[13].Count == 0)
+                    {
+                        Message_Feed_Out("引き分け、または敗北はどちらともに1つ以上BGMを入れる必要があります。");
+                    }
+                }
+                else if (BGM_Type_L.SelectedIndex == 14 || BGM_Type_L.SelectedIndex == 15)
+                {
+                    if (Music_Type_Music[14].Count == 0 || Music_Type_Music[15].Count == 0)
+                    {
+                        Message_Feed_Out("優勢はどちらともに1つ以上BGMを入れる必要があります。");
+                    }
+                }
+                else
+                {
+                    Message_Feed_Out("選択したタイプに最低1つはBGMファイルを追加する必要があります。");
+                }
                 return;
             }
             Music_Mod_Create(BGM_Type_L.SelectedIndex);
@@ -698,11 +720,13 @@ namespace WoTB_Voice_Mod_Creater.Class
                 await Task.Delay(50);
                 await Wwise.Sound_To_WAV();
                 Wwise.Save();
-                string[] Loading_Music_Name = { "America_lakville", "America_overlord", "Chinese", "Desert_airfield", "Desert_sand_river",
-                "Europe_himmelsdorf","Europe_mannerheim","Europe_ruinberg","Japan","Russian_malinovka","Russian_prokhorovka"};
+                //数を合わせるため使用しない項目を入れています。
+                string[] Loading_Music_Name = { "America_lakville", "America_overlord", "Chinese", "Desert_airfield", "Desert_sand_river","Europe_himmelsdorf",
+                "Europe_mannerheim","Europe_ruinberg","Japan","Russian_malinovka","Russian_prokhorovka","リザルト(勝利)","リザルト(敗北、または引き分け)","None",
+                "優勢(敵味方両方)","None"};
                 string[] Loading_Music_Type = { "music_maps_america_lakville", "music_maps_america_overlord", "music_maps_chinese", "music_maps_desert_airfield",
                 "music_maps_desert_sand_river","music_maps_europe_himmelsdorf","music_maps_europe_mannerheim","music_maps_europe_ruinberg","music_maps_japan",
-                "music_maps_russian_malinovka","music_maps_russian_prokhorovka"};
+                "music_maps_russian_malinovka","music_maps_russian_prokhorovka","music_result_screen_basic", "music_result_screen","None","music_battle","None"};
                 if (Index == -1)
                 {
                     for (int Number = 0; Number < BGM_Type_L.Items.Count; Number++)
@@ -713,13 +737,31 @@ namespace WoTB_Voice_Mod_Creater.Class
                             await Task.Delay(100);
                             Wwise.Project_Build(Loading_Music_Type[Number], bfb.SelectedFolder + "/" + Loading_Music_Type[Number] + ".bnk");
                         }
+                        if (Number == 12 || Number == 14)
+                            Number++;
                     }
                 }
                 else
                 {
-                    Message_T.Text = Loading_Music_Name[Index] + "をビルドしています...";
-                    await Task.Delay(100);
-                    Wwise.Project_Build(Loading_Music_Type[Index], bfb.SelectedFolder + "/" + Loading_Music_Type[Index] + ".bnk");
+                    bool Index12_OK = true;
+                    bool Index14_OK = true;
+                    foreach (int Number in ListBoxEx.SelectedIndexs(BGM_Type_L))
+                    {
+                        if (Number == 13 && !Index12_OK)
+                            continue;
+                        if (Index == 15 && !Index14_OK)
+                            continue;
+                        if (Number == 12)
+                            Index12_OK = false;
+                        if (Number == 13)
+                            Index14_OK = false;
+                        int Number_01 = Number;
+                        if (Number == 13 || Number == 15)
+                            Number_01--;
+                        Message_T.Text = Loading_Music_Name[Number_01] + "をビルドしています...";
+                        await Task.Delay(100);
+                        Wwise.Project_Build(Loading_Music_Type[Number_01], bfb.SelectedFolder + "/" + Loading_Music_Type[Number_01] + ".bnk");
+                    }
                 }
                 await Task.Delay(100);
                 Wwise.Clear();
@@ -727,7 +769,6 @@ namespace WoTB_Voice_Mod_Creater.Class
                     File.Copy(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Backup.tmp", Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Default Work Unit.wwu", true);
                 Message_Feed_Out("完了しました。指定したフォルダを参照してください。");
                 IsBusy = false;
-                return;
             }
             bfb.Dispose();
         }
@@ -834,6 +875,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             if (BGM_Type_L.SelectedIndex == -1 || BGM_Music_L.SelectedIndex == -1)
             {
                 Feed_In_C.IsChecked = false;
+                return;
             }
             if (Feed_In_C.IsChecked.Value)
                 Music_Feed_In[BGM_Type_L.SelectedIndex][BGM_Music_L.SelectedIndex] = true;

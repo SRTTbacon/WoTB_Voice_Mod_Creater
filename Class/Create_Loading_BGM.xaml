@@ -64,8 +64,8 @@
         <DockPanel Width="1920" Height="1080">
             <Border BorderBrush="Aqua" BorderThickness="1" Background="#111216" Height="1080" VerticalAlignment="Top" Width="1920"/>
             <Button x:Name="Back_B" Content="戻る" Height="75" VerticalAlignment="Top" Width="275" Background="Transparent" Margin="-3565,1005,0,0" Foreground="Aqua" BorderBrush="Aqua" FontSize="38" Click="Back_B_Click"/>
-            <ListBox x:Name="BGM_Type_L" Height="750" VerticalAlignment="Top" Width="550" Margin="-3200,150,0,0" Background="Transparent" BorderBrush="Aqua" Foreground="Aqua" FontSize="37" SelectionChanged="BGM_Type_L_SelectionChanged"/>
-            <TextBlock Height="50" TextWrapping="Wrap" Text="ロードBGMの種類" VerticalAlignment="Top" Width="262" Foreground="Aqua" FontSize="37" Margin="-3200,75,0,0"/>
+            <ListBox x:Name="BGM_Type_L" Height="750" VerticalAlignment="Top" Width="550" Margin="-3200,150,0,0" Background="Transparent" BorderBrush="Aqua" Foreground="Aqua" FontSize="37" SelectionChanged="BGM_Type_L_SelectionChanged" SelectionMode="Extended"/>
+            <TextBlock Height="50" TextWrapping="Wrap" Text="BGMの種類" VerticalAlignment="Top" Width="262" Foreground="Aqua" FontSize="37" Margin="-3200,75,0,0" TextAlignment="Center"/>
             <ListBox x:Name="BGM_Music_L" Height="675" VerticalAlignment="Top" Width="550" Margin="-650,150,0,0" Background="Transparent" BorderBrush="Aqua" Foreground="Aqua" FontSize="37" SelectionChanged="BGM_Music_L_SelectionChanged"/>
             <TextBlock Height="50" TextWrapping="Wrap" Text="再生されるBGM" VerticalAlignment="Top" Width="244" Foreground="Aqua" FontSize="37" Margin="-620,75,0,0"/>
             <Button x:Name="Save_B" Content="セーブ" Height="70" VerticalAlignment="Top" Width="250" Background="Transparent" Margin="-2180,75,0,0" Foreground="Aqua" BorderBrush="Aqua" FontSize="38" Click="Save_B_Click"/>

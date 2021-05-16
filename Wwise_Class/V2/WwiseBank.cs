@@ -34,6 +34,10 @@ namespace BNKManager
             {
                 string sectionName = Encoding.ASCII.GetString(br.ReadBytes(4));
                 uint sectionLength = br.ReadUInt32();
+                if (sectionName == "HIRC")
+                {
+                    break;
+                }
                 switch (sectionName)
                 {
                     case "BKHD":

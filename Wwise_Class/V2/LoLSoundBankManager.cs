@@ -83,7 +83,13 @@ namespace BNKManager
             {
                 foreach (DATASection.WEMFile wem in data.wemFiles)
                 {
-                    newList.Add(new WEMFile(wem.info.ID, 0, GetAudioFileSeconds(ref wem.data)));
+                    //一部の破損したbnkファイルを読み込もうとした場合クラッシュするためtry catchを使用(どぉーしてだよ"ぉ～)
+                    //RavioliGameToolsで確認したところ、サウンド以外の謎のファイルが入っている場合にエラーが発生する可能性が高い
+                    try
+                    {
+                        newList.Add(new WEMFile(wem.info.ID, 0, GetAudioFileSeconds(ref wem.data)));
+                    }
+                    catch { }
                 }
             }
             WPKSoundBank wpkBank = this.GetWPKBank();

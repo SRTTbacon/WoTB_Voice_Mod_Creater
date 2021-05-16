@@ -135,6 +135,56 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Sub_Code.Error_Log_Write(ex.Message);
             }
         }
+        public static async Task Convert_PSB_To_WAV(string[] Files, bool IsFromFileDelete = false)
+        {
+            From_Files.Clear();
+            From_Files.AddRange(Files);
+            var tasks = new List<Task>();
+            for (int i = 0; i < From_Files.Count; i++)
+            {
+                tasks.Add(PSB_To_WAV(i, IsFromFileDelete));
+            }
+            await Task.WhenAll(tasks);
+            From_Files.Clear();
+        }
+        static async Task<bool> PSB_To_WAV(int File_Number, bool IsFromFileDelete)
+        {
+            if (!File.Exists(From_Files[File_Number]))
+            {
+                return false;
+            }
+            string GetDir = Path.GetDirectoryName(From_Files[File_Number]);
+            string GetFileNameOnly = Path.GetFileNameWithoutExtension(From_Files[File_Number]);
+            StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Encode_Mp3/PSB_To_WAV_" + File_Number + ".bat");
+            stw.WriteLine("chcp 65001");
+            stw.Write("\"D:/Downloads/SDA Downloads/XCI_NCA_NSP_v2/ncaDecrypted/FreeMoteToolkit/PsbDecompile.exe\" \"" + From_Files[File_Number] + "\"");
+            stw.Close();
+            ProcessStartInfo processStartInfo = new ProcessStartInfo
+            {
+                FileName = Voice_Set.Special_Path + "/Encode_Mp3/PSB_To_WAV_" + File_Number + ".bat",
+                CreateNoWindow = true,
+                WorkingDirectory = "D:/Downloads/SDA Downloads/XCI_NCA_NSP_v2/ncaDecrypted/FreeMoteToolkit",
+                UseShellExecute = false
+            };
+            Process p = Process.Start(processStartInfo);
+            await Task.Run(() =>
+            {
+                p.WaitForExit();
+                if (File.Exists(GetDir + "\\" + GetFileNameOnly + "\\" + GetFileNameOnly + ".opus.wav"))
+                {
+                    Sub_Code.File_Move(GetDir + "\\" + GetFileNameOnly + "\\" + GetFileNameOnly + ".opus.wav", GetDir + "\\" + GetFileNameOnly + ".wav", true);
+                    Directory.Delete(GetDir + "\\" + GetFileNameOnly, true);
+                }
+                if (File.Exists(GetDir + "\\" + GetFileNameOnly + ".wav") && IsFromFileDelete)
+                {
+                    File.Delete(From_Files[File_Number]);
+                }
+                File.Delete(GetDir + "\\" + GetFileNameOnly + ".json");
+                File.Delete(GetDir + "\\" + GetFileNameOnly + ".resx.json");
+                File.Delete(Voice_Set.Special_Path + "/Encode_Mp3/PSB_To_WAV_" + File_Number + ".bat");
+            });
+            return true;
+        }
         static async Task<bool> To_MP3(int File_Number, string To_Dir, bool IsFromFileDelete)
         {
             if (!File.Exists(From_Files[File_Number]))
@@ -166,6 +216,37 @@ namespace WoTB_Voice_Mod_Creater.Class
                                 reader.CopyTo(wtr);
                             }
                         }
+                    }
+                    else if (Ex == ".flac")
+                    {
+                        using (NAudio.Flac.FlacReader reader = new NAudio.Flac.FlacReader(From_Files[File_Number]))
+                        {
+                            using (LameMP3FileWriter wtr = new LameMP3FileWriter(To_Audio_File, reader.WaveFormat, 128))
+                            {
+                                reader.CopyTo(wtr);
+                            }
+                        }
+                    }
+                    else if (Ex == ".aac" || Ex == ".wma" || Ex == ".mp4" || Ex == ".webm")
+                    {
+                        using (MediaFoundationReader reader = new MediaFoundationReader(From_Files[File_Number]))
+                        {
+                            using (LameMP3FileWriter wtr = new LameMP3FileWriter(To_Audio_File, reader.WaveFormat, 128))
+                            {
+                                reader.CopyTo(wtr);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        Un4seen.Bass.Misc.EncoderLAME mc = new Un4seen.Bass.Misc.EncoderLAME(0);
+                        mc.EncoderDirectory = Voice_Set.Special_Path + "/Encode_Mp3";
+                        mc.InputFile = From_Files[File_Number];
+                        mc.OutputFile = To_Audio_File;
+                        mc.LAME_Bitrate = (int)Un4seen.Bass.Misc.EncoderLAME.BITRATE.kbps_160;
+                        mc.LAME_Mode = Un4seen.Bass.Misc.EncoderLAME.LAMEMode.Default;
+                        mc.LAME_Quality = Un4seen.Bass.Misc.EncoderLAME.LAMEQuality.Q2;
+                        Un4seen.Bass.Misc.BaseEncoder.EncodeFile(mc, null, true, false, true);
                     }
                     if (IsFromFileDelete)
                     {

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Net;
 using System.Security.Authentication;
 using System.Text;
@@ -29,13 +30,25 @@ public static partial class StringExtensions
         return count;
     }
 }
+public static class ListBoxEx
+{
+    public static IList<int> SelectedIndexs(System.Windows.Controls.ListBox list)
+    {
+        List<int> Temp = new List<int>();
+        foreach (string Now_String in list.SelectedItems)
+        {
+            Temp.Add(list.Items.IndexOf(Now_String));
+        }
+        return Temp;
+    }
+}
 public class SRTTbacon_Server
 {
     public const string IP_Local = "非公開";
     public const string IP_Global = "非公開";
     public const string Name = "非公開";
     public const string Password = "非公開";
-    public const string Version = "1.3.6";
+    public const string Version = "1.3.7";
     public const int Port = -1;
     public static bool IsSRTTbaconOwnerMode = false;
     public static string IP = "";
@@ -129,6 +142,7 @@ namespace WoTB_Voice_Mod_Creater
                 Load_Image.Visibility = Visibility.Hidden;
                 WoTB_Select_B.Visibility = Visibility.Hidden;
                 Server_B.Visibility = Visibility.Hidden;
+                Voice_Create_Tool_B.Visibility = Visibility.Hidden;
                 //Create_Save_B.Visibility = Visibility.Hidden;
                 Save_Window.Opacity = 0;
                 MouseLeftButtonDown += (sender, e) => { ScreenMove(); };
@@ -295,6 +309,23 @@ namespace WoTB_Voice_Mod_Creater
                 {
                     Sub_Code.Error_Log_Write(e.Message);
                 }
+                if (File.Exists(Voice_Set.Special_Path + "/Configs/Main_Configs_Save.conf"))
+                {
+                    try
+                    {
+                        Sub_Code.File_Decrypt(Voice_Set.Special_Path + "/Configs/Main_Configs_Save.conf", Voice_Set.Special_Path + "/Configs/Main_Configs_Save.tmp", "SRTTbacon_Main_Config_Save", false);
+                        StreamReader str = new StreamReader(Voice_Set.Special_Path + "/Configs/Main_Configs_Save.tmp");
+                        IsFullScreen = bool.Parse(str.ReadLine());
+                        str.Close();
+                        File.Delete(Voice_Set.Special_Path + "/Configs/Main_Configs_Save.tmp");
+                        if (!IsFullScreen)
+                            Window_Size_Change(false);
+                    }
+                    catch (Exception e)
+                    {
+                        Sub_Code.Error_Log_Write(e.Message);
+                    }
+                }
                 /*Wwise_Class.BNK_Parse p = new Wwise_Class.BNK_Parse(Voice_Set.Special_Path + "/voiceover.xml");
                 List<List<string>> Temp = p.Get_Voices();
                 StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Test.txt");
@@ -380,6 +411,7 @@ namespace WoTB_Voice_Mod_Creater
             bool IsOK_05 = true;
             bool IsOK_06 = true;
             bool IsOK_07 = true;
+            bool IsOK_08 = true;
             Download_Data_File.Download_Total_Size = 0;
             Task task = Task.Run(async() =>
             {
@@ -468,6 +500,33 @@ namespace WoTB_Voice_Mod_Creater
                         });
                         task_01.Wait();
                         IsOK_02 = true;
+                    });
+                }
+                else if (!File.Exists(Voice_Set.Special_Path + "/Encode_Mp3/lame.exe"))
+                {
+                    IsOK_08 = false;
+                    Download_Data_File.Download_Total_Size += Voice_Set.FTP_Server.GetFileSize("/WoTB_Voice_Mod/Update/Data/lame.exe");
+                    Task task_02 = Task.Run(() =>
+                    {
+                        Task task_01 = Task.Run(() =>
+                        {
+                            //DVPL.Encode_Mp3_Extract();
+                            FluentFTP.FtpClient ftp1 = new FtpClient(SRTTbacon_Server.IP)
+                            {
+                                Credentials = new NetworkCredential(SRTTbacon_Server.Name, SRTTbacon_Server.Password),
+                                SocketKeepAlive = false,
+                                DataConnectionType = ConnectType,
+                                SslProtocols = SslProtocols.Tls,
+                                ConnectTimeout = 1000,
+                            };
+                            ftp1.ValidateCertificate += new FtpSslValidation(OnValidateCertificate);
+                            ftp1.Connect();
+                            ftp1.DownloadFile(Voice_Set.Special_Path + "/Encode_Mp3/lame.exe", "/WoTB_Voice_Mod/Update/Data/lame.exe");
+                            ftp1.Disconnect();
+                            ftp1.Dispose();
+                        });
+                        task_01.Wait();
+                        IsOK_08 = true;
                     });
                 }
                 if (!File.Exists(Voice_Set.Special_Path + "/Fmod_Designer/Fmod_designer.exe"))
@@ -645,7 +704,7 @@ namespace WoTB_Voice_Mod_Creater
             await Task.Delay(100);
             while (true)
             {
-                if (IsOK_00 && IsOK_01 && IsOK_02 && IsOK_03 && IsOK_04 && IsOK_05 && IsOK_06 && IsOK_07)
+                if (IsOK_00 && IsOK_01 && IsOK_02 && IsOK_03 && IsOK_04 && IsOK_05 && IsOK_06 && IsOK_07 && IsOK_08)
                 {
                     break;
                 }
@@ -1278,6 +1337,49 @@ namespace WoTB_Voice_Mod_Creater
             Message_T.Text = "";
             Message_T.Opacity = 1;
         }
+        void Main_Config_Save()
+        {
+            try
+            {
+                StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Configs/Main_Configs_Save.tmp");
+                stw.Write(IsFullScreen);
+                stw.Close();
+                Sub_Code.File_Encrypt(Voice_Set.Special_Path + "/Configs/Main_Configs_Save.tmp", Voice_Set.Special_Path + "/Configs/Main_Configs_Save.conf", "SRTTbacon_Main_Config_Save", true);
+            }
+            catch (Exception e)
+            {
+                Sub_Code.Error_Log_Write(e.Message);
+            }
+        }
+        void Window_Size_Change(bool IsChangeSize)
+        {
+            try
+            {
+                if (IsChangeSize)
+                    IsFullScreen = !IsFullScreen;
+                System.Drawing.Size MaxSize = System.Windows.Forms.Screen.PrimaryScreen.WorkingArea.Size;
+                if (!IsFullScreen)
+                {
+                    Width = ((double)MaxSize.Width / 1.25);
+                    Height = ((double)MaxSize.Height / 1.25);
+                    Left = (MaxSize.Width - Width) / 2;
+                    Top = (MaxSize.Height - Height) / 2;
+                }
+                else
+                {
+                    Width = MaxSize.Width;
+                    Height = MaxSize.Height;
+                    Left = 0;
+                    Top = 0;
+                }
+                Video_Mode.Width = Width;
+            }
+            catch (Exception e1)
+            {
+                Sub_Code.Error_Log_Write(e1.Message);
+                Message_Feed_Out("画面サイズを変更できませんでした。");
+            }
+        }
         private async void DockPanel_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
             if (IsProcessing)
@@ -1291,32 +1393,8 @@ namespace WoTB_Voice_Mod_Creater
             //他の画面を表示させていても動作するように
             if ((System.Windows.Forms.Control.ModifierKeys & System.Windows.Forms.Keys.Shift) == System.Windows.Forms.Keys.Shift && e.Key == System.Windows.Input.Key.F)
             {
-                try
-                {
-                    System.Drawing.Size MaxSize = System.Windows.Forms.Screen.PrimaryScreen.WorkingArea.Size;
-                    if (IsFullScreen)
-                    {
-                        Width = ((double)MaxSize.Width / 1.25);
-                        Height = ((double)MaxSize.Height / 1.25);
-                        Left = (MaxSize.Width - Width) / 2;
-                        Top = (MaxSize.Height - Height) / 2;
-                        IsFullScreen = false;
-                    }
-                    else
-                    {
-                        Width = MaxSize.Width;
-                        Height = MaxSize.Height;
-                        Left = 0;
-                        Top = 0;
-                        IsFullScreen = true;
-                    }
-                    Video_Mode.Width = Width;
-                }
-                catch (Exception e1)
-                {
-                    Sub_Code.Error_Log_Write(e1.Message);
-                    Message_Feed_Out("画面サイズを変更できませんでした。");
-                }
+                Window_Size_Change(true);
+                Main_Config_Save();
             }
             if (Save_Window.Visibility == Visibility.Visible || Voice_Mods_Window.Visibility == Visibility.Visible || Tools_Window.Visibility == Visibility ||
                 Other_Window.Visibility == Visibility.Visible || Voice_Create_Window.Visibility == Visibility.Visible || Message_Window.Visibility == Visibility.Visible || Load_Data_Window.Visibility == Visibility.Visible ||
@@ -1507,6 +1585,44 @@ namespace WoTB_Voice_Mod_Creater
             if ((System.Windows.Forms.Control.ModifierKeys & System.Windows.Forms.Keys.Shift) == System.Windows.Forms.Keys.Shift && e.Key == System.Windows.Input.Key.P)
             {
                 MessageBox.Show("一時フォルダ場所:" + Voice_Set.Special_Path);
+            }
+            //非公開のコマンドたち
+            if (SRTTbacon_Server.IsSRTTbaconOwnerMode)
+            {
+                //.psbファイルが入っているフォルダを指定し、中身を.wavに変換
+                if ((System.Windows.Forms.Control.ModifierKeys & System.Windows.Forms.Keys.Shift) == System.Windows.Forms.Keys.Shift && e.Key == System.Windows.Input.Key.T)
+                {
+                    try
+                    {
+                        BetterFolderBrowser bfd = new BetterFolderBrowser()
+                        {
+                            Title = "フォルダを選択してください。",
+                            RootFolder = Sub_Code.Get_OpenDirectory_Path(),
+                            Multiselect = false
+                        };
+                        if (bfd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                        {
+                            Sub_Code.Set_Directory_Path(bfd.SelectedFolder);
+                            string[] Files = Directory.GetFiles(bfd.SelectedFolder, "*.psb", SearchOption.TopDirectoryOnly);
+                            if (Files.Length == 0)
+                            {
+                                Message_Feed_Out("指定したフォルダ内に.psbファイルが存在しませんでした。");
+                                bfd.Dispose();
+                                return;
+                            }
+                            Message_T.Text = ".psbファイルを変換しています...";
+                            await Task.Delay(50);
+                            await Multithread.Convert_PSB_To_WAV(Files, true);
+                            Message_Feed_Out("変換が完了しました。");
+                        }
+                        bfd.Dispose();
+                    }
+                    catch (Exception e1)
+                    {
+                        Sub_Code.Error_Log_Write(e1.Message);
+                        Message_Feed_Out("エラーが発生しました。");
+                    }
+                }
             }
             IsClosing = false;
         }

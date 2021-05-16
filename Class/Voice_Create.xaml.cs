@@ -797,8 +797,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                     {
                         Message_T.Text = "音量をWoTB用に調整しています...";
                         await Task.Delay(50);
-                        Sub_Code.Check_MP3_Rename(Dir_Name + "/Voices");
-                        await Multithread.Convert_To_MP3(Directory.GetFiles(Dir_Name + "/Voices", "*.raw", SearchOption.TopDirectoryOnly), Dir_Name + "/Voices", true);
+                        await Multithread.Convert_To_MP3(Sub_Code.Check_MP3_Get_List(Dir_Name + "/Voices", true).ToArray(), Dir_Name + "/Voices", true);
                         Sub_Code.MP3_Volume_Set(Dir_Name + "/Voices");
                         /*Message_T.Text = "音量を均一にしています...";
                         await Task.Delay(50);
@@ -1389,11 +1388,13 @@ namespace WoTB_Voice_Mod_Creater.Class
             }
             else
             {
+                Wwise.Event_Not_Include("Reload", 224498802);
                 Wwise.Project_Build("reload", Dir_Name + "/reload.bnk");
                 await Task.Delay(500);
                 Wwise.Sound_Music_Add_Wwise(Dir_Name + "/Voices");
                 Wwise.Save();
                 Wwise.Project_Build("voiceover_crew", Dir_Name + "/voiceover_crew.bnk");
+                Wwise.Event_Reset();
             }
             await Task.Delay(500);
             Wwise.Clear();
@@ -1412,13 +1413,13 @@ namespace WoTB_Voice_Mod_Creater.Class
             if (result == MessageBoxResult.Yes)
             {
                 List_Text_Reset();
-                Project_Name_T.Text = "";
                 Bass.BASS_ChannelStop(Stream);
                 Bass.BASS_StreamFree(Stream);
                 Voice_Back_B.Visibility = Visibility.Hidden;
                 Voice_Sub_List.Visibility = Visibility.Hidden;
                 Voice_Next_B.Visibility = Visibility.Visible;
                 Voice_List.Visibility = Visibility.Visible;
+                Project_Name_T.Text = "";
                 Project_Name_Text.Text = "プロジェクト名";
                 Project_Name_T.IsEnabled = true;
                 Voice_List_T.Text = "音声リスト1";
