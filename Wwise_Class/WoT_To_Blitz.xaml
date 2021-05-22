@@ -95,8 +95,10 @@
             <TextBlock Height="50" TextWrapping="Wrap" Text="音量を調整" VerticalAlignment="Top" Width="200" Foreground="Aqua" FontSize="37" Margin="-1825,757,0,0"/>
             <Button x:Name="Volume_Set_Help_B" Content="?" Height="50" VerticalAlignment="Top" Width="50" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="35" Margin="-1575,757,0,0" Click="Volume_Set_Help_B_Click"/>
             <Button x:Name="Help_B" Content="注意事項" Height="70" VerticalAlignment="Top" Width="275" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="35" Margin="-275,1010,0,0" Click="Help_B_Click"/>
-            <CheckBox x:Name="PCK_Mode_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-2095,50,0,0" Click="PCK_Mode_C_Click"/>
-            <TextBlock Height="50" TextWrapping="Wrap" Text="PCKファイルを含む" VerticalAlignment="Top" Width="266" Foreground="Aqua" FontSize="37" Margin="-1795,32,0,0"/>
+            <CheckBox x:Name="PCK_Mode_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-2440,50,0,0" Click="PCK_Mode_C_Click"/>
+            <TextBlock Height="50" TextWrapping="Wrap" Text="PCKファイルを含む" VerticalAlignment="Top" Width="266" Foreground="Aqua" FontSize="37" Margin="-2130,32,0,0"/>
+            <CheckBox x:Name="XML_Mode_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-1800,50,0,0" Click="XML_Mode_C_Click"/>
+            <TextBlock Height="50" TextWrapping="Wrap" Text="audio_mods.xmlを含む" VerticalAlignment="Top" Width="364" Foreground="Aqua" FontSize="37" Margin="-1400,32,0,0"/>
             <Button x:Name="Details_B" Content="詳細" Height="65" Margin="-3550,900,0,0" VerticalAlignment="Top" Width="200" Background="Transparent" Foreground="Aqua" FontSize="37" BorderBrush="Aqua" Click="Details_B_Click"/>
             <Button x:Name="Mode_Back_B" Content="←" Height="50" Margin="-665,20,0,0" VerticalAlignment="Top" Width="100" Background="Transparent" Foreground="Aqua" FontSize="37" BorderBrush="Aqua" Click="Mode_Back_B_Click"/>
             <Button x:Name="Mode_Next_B" Content="→" Height="50" Margin="-440,20,0,0" VerticalAlignment="Top" Width="100" Background="Transparent" Foreground="Aqua" FontSize="37" BorderBrush="Aqua" Click="Mode_Next_B_Click"/>

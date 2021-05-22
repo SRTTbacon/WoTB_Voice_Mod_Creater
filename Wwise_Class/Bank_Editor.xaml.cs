@@ -683,5 +683,23 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 }
             }
         }
+        private void Clear_B_Click(object sender, RoutedEventArgs e)
+        {
+            if (IsClosing)
+                return;
+            MessageBoxResult result = System.Windows.MessageBox.Show("内容をクリアしますか？", "確認", MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.No);
+            if (result == MessageBoxResult.Yes)
+            {
+                if (Wwise_Bnk != null)
+                    Wwise_Bnk.Bank_Clear();
+                if (Wwise_Pck != null)
+                    Wwise_Pck.Pck_Clear();
+                Bass.BASS_ChannelStop(Stream);
+                Bass.BASS_StreamFree(Stream);
+                Sound_List.Items.Clear();
+                Change_List.Items.Clear();
+                Change_Sound_Full_Name.Clear();
+            }
+        }
     }
 }

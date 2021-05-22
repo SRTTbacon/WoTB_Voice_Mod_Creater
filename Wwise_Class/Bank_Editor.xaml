@@ -130,12 +130,13 @@
             <TextBlock FontSize="34" Height="50" Width="275" TextWrapping="Wrap" Text="ファイルを変換しない" VerticalAlignment="Top" Margin="-2975,83,0,0" Foreground="Aqua" TextAlignment="Center"/>
             <TextBlock FontSize="34" Height="50" Width="205" TextWrapping="Wrap" Text="変換前のリスト" VerticalAlignment="Top" Margin="-2990,765,0,0" Foreground="Aqua" TextAlignment="Center"/>
             <TextBlock FontSize="34" Height="50" Width="205" TextWrapping="Wrap" Text="変換後のリスト" VerticalAlignment="Top" Margin="-860,765,0,0" Foreground="Aqua" TextAlignment="Center"/>
-            <TextBlock x:Name="Message_T" Height="85" Width="1200" TextWrapping="Wrap" Text="" Foreground="Aqua" FontSize="40" Margin="-1920,950,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
+            <TextBlock x:Name="Message_T" Height="85" Width="1200" TextWrapping="Wrap" Text="" Foreground="Aqua" FontSize="40" Margin="-1920,900,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
             <Button x:Name="Save_B" Content="構成を変更" Height="75" VerticalAlignment="Top" Width="325" Background="Transparent" Margin="-325,1005,0,0" Foreground="Aqua" BorderBrush="Aqua" FontSize="38" Click="Save_B_Click"/>
             <Button x:Name="Back_B" Content="戻る" Height="75" VerticalAlignment="Top" Width="275" Background="Transparent" Margin="-3565,1005,0,0" Foreground="Aqua" BorderBrush="Aqua" FontSize="38" Click="Back_B_Click"/>
             <Border x:Name="Border_All" BorderBrush="Transparent" BorderThickness="1" Background="#11111C" Height="1080" VerticalAlignment="Top" Width="1920" Opacity="0.001" Margin="-1920,0,0,0" Visibility="Hidden"/>
             <TextBox x:Name="Search_T" Height="55" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="300" FontSize="35" Margin="-3150,825,0,0"/>
             <Button x:Name="Search_B" Content="検索" Height="65" VerticalAlignment="Top" Width="150" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Margin="-2675,820,0,0" Click="Search_B_Click"/>
+            <Button x:Name="Clear_B" Content="クリア" Height="65" VerticalAlignment="Top" Width="300" Background="Transparent" Margin="-1920,1015,0,0" Foreground="Aqua" BorderBrush="Aqua" FontSize="37" Click="Clear_B_Click"/>
         </DockPanel>
     </Viewbox>
 </UserControl>

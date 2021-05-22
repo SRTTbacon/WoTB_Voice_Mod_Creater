@@ -98,6 +98,14 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                     Install_C.IsChecked = bool.Parse(str.ReadLine());
                     Volume_Set_C.IsChecked = bool.Parse(str.ReadLine());
                     PCK_Mode_C.IsChecked = bool.Parse(str.ReadLine());
+                    try
+                    {
+                        XML_Mode_C.IsChecked = bool.Parse(str.ReadLine());
+                    }
+                    catch
+                    {
+                        //特になし
+                    }
                     str.Close();
                     File.Delete(Voice_Set.Special_Path + "/Configs/WoT_To_Blitz.tmp");
                 }
@@ -192,6 +200,13 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                     IsBusy = false;
                     return;
                 }
+                string XML_File_Path = Path.GetDirectoryName(ofd.FileName) + "/audio_mods.xml";
+                if (XML_Mode_C.IsChecked.Value && !File.Exists(XML_File_Path))
+                {
+                    Message_Feed_Out("audio_mods.xmlが見つかりませんでした。");
+                    IsBusy = false;
+                    return;
+                }
                 Bass.BASS_ChannelStop(Stream);
                 Bass.BASS_StreamFree(Stream);
                 try
@@ -211,12 +226,20 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                     Message_T.Text = ".bnkファイルを解析しています...";
                     await Task.Delay(50);
                     Wwise_Class.BNK_Parse p = new Wwise_Class.BNK_Parse(ofd.FileName);
+                    Message_T.Text = "audio_mods.xmlからイベントIDを取得しています...";
+                    await Task.Delay(50);
+                    if (XML_Mode_C.IsChecked.Value)
+                    {
+                        p.Get_Event_ID_From_XML(XML_File_Path);
+                    }
                     if (!p.IsVoiceFile())
                     {
                         Message_Feed_Out("選択されたbnkファイルは音声データではありません。");
                         IsBusy = false;
                         return;
                     }
+                    Message_T.Text = "各イベント内の音声IDを取得しています...";
+                    await Task.Delay(50);
                     BNK_Voices_Enable.Clear();
                     BNK_Voices = p.Get_Voices(false);
                     List<string> Need_Files = new List<string>();
@@ -234,7 +257,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                         BNK_Voices_Enable.Clear();
                         Message_T.Text = "移植できるファイルが見つからなかったため、特殊な方法で解析しています...";
                         await Task.Delay(50);
-                        p.IsSpecialBNKFileMode = true;
+                        p.SpecialBNKFileMode = 1;
                         BNK_Voices = p.Get_Voices(false);
                         foreach (List<string> Types in BNK_Voices)
                         {
@@ -432,11 +455,12 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 if (Wwise_BNK != null)
                     Wwise_BNK.Bank_Clear();
                 Button_Color_Change(-1);
+                Message_Feed_Out("内容をクリアしました。");
             }
         }
         private void Voices_L_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (Voices_L.SelectedIndex == -1)
+            if (Voices_L.SelectedIndex == -1 || Voices_L.Items.Count == 1)
             {
                 return;
             }
@@ -562,6 +586,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 return;
             }
             Bass.BASS_ChannelPlay(Stream, false);
+            IsPaused = false;
         }
         private void Pause_B_Click(object sender, RoutedEventArgs e)
         {
@@ -570,6 +595,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 return;
             }
             Bass.BASS_ChannelPause(Stream);
+            IsPaused = true;
         }
         void Volume_MouseUp(object sender, System.Windows.Input.MouseEventArgs e)
         {
@@ -584,7 +610,8 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 stw.WriteLine(DVPL_C.IsChecked.Value);
                 stw.WriteLine(Install_C.IsChecked.Value);
                 stw.WriteLine(Volume_Set_C.IsChecked.Value);
-                stw.Write(PCK_Mode_C.IsChecked.Value);
+                stw.WriteLine(PCK_Mode_C.IsChecked.Value);
+                stw.Write(XML_Mode_C.IsChecked.Value);
                 stw.Close();
                 using (var eifs = new FileStream(Voice_Set.Special_Path + "/Configs/WoT_To_Blitz.tmp", FileMode.Open, FileAccess.Read))
                 {
@@ -800,6 +827,10 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             Configs_Save();
         }
         private void PCK_Mode_C_Click(object sender, RoutedEventArgs e)
+        {
+            Configs_Save();
+        }
+        private void XML_Mode_C_Click(object sender, RoutedEventArgs e)
         {
             Configs_Save();
         }

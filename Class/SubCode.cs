@@ -17,6 +17,9 @@ namespace WoTB_Voice_Mod_Creater
         public const double Window_Feed_Time = 0.04;
         static List<string> IsAutoListAdd = new List<string>();
         static string IsLanguage = "";
+        public static string IsWwise_Blitz_Actor_Update = "1.0";
+        public static string IsWwise_Blitz_Update = "1.0";
+        public static string IsWwise_WoT_Update = "1.0";
         static bool IsServerCreating = false;
         static bool IsCreatingProject = false;
         static bool IsVolumeSet = false;
@@ -1197,9 +1200,8 @@ namespace WoTB_Voice_Mod_Creater
                 File.Delete(Voice_Set.Special_Path + "/Encode_Mp3/Audio_Encode.bat");
                 return true;
             }
-            catch (Exception e)
+            catch
             {
-                Sub_Code.Error_Log_Write(e.Message);
                 return false;
             }
         }
@@ -1365,9 +1367,8 @@ namespace WoTB_Voice_Mod_Creater
                 }
                 return false;
             }
-            catch (Exception e)
+            catch
             {
-                Sub_Code.Error_Log_Write(e.Message);
                 return false;
             }
         }
@@ -1748,10 +1749,6 @@ namespace WoTB_Voice_Mod_Creater
                 {
                     if (Voice_Set.FTP_Server.IsConnected)
                     {
-                        StreamReader str = new StreamReader(Voice_Set.FTP_Server.OpenRead("/WoTB_Voice_Mod/Update/Wwise/Version_01.txt"));
-                        string Line = str.ReadLine();
-                        string Line_Actor_V = str.ReadLine();
-                        str.Close();
                         StreamReader str2 = new StreamReader(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Version.dat");
                         string Version = str2.ReadLine();
                         str2.Close();
@@ -1760,14 +1757,14 @@ namespace WoTB_Voice_Mod_Creater
                             StreamReader str3 = new StreamReader(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Version.dat");
                             string Actor_Version_Now = str3.ReadLine();
                             str3.Close();
-                            if (Line_Actor_V != Actor_Version_Now)
+                            if (IsWwise_Blitz_Actor_Update != Actor_Version_Now)
                             {
-                                Actor_Mixer_Update(Line_Actor_V);
+                                Actor_Mixer_Update(IsWwise_Blitz_Actor_Update);
                             }
                         }
                         else
-                            Actor_Mixer_Update(Line_Actor_V);
-                        if (Version != Line)
+                            Actor_Mixer_Update(IsWwise_Blitz_Actor_Update);
+                        if (IsWwise_Blitz_Update != Version)
                         {
                             MessageBoxResult result = MessageBox.Show("プロジェクトデータのアップデートがあります。アップデートしますか？", "確認", MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.Yes);
                             if (result == MessageBoxResult.Yes)
@@ -1826,7 +1823,7 @@ namespace WoTB_Voice_Mod_Creater
                                 }
                                 System.IO.Compression.ZipFile.ExtractToDirectory(Voice_Set.Special_Path + "/Wwise_Project.dat", Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod");
                                 File.Delete(Voice_Set.Special_Path + "/Wwise_Project.dat");
-                                File.WriteAllText(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Version.dat", Line);
+                                File.WriteAllText(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Version.dat", IsWwise_Blitz_Update);
                                 Download_P.Visibility = Visibility.Hidden;
                                 Download_T.Visibility = Visibility.Hidden;
                                 Download_Border.Visibility = Visibility.Hidden;
@@ -1936,13 +1933,10 @@ namespace WoTB_Voice_Mod_Creater
                 {
                     if (Voice_Set.FTP_Server.IsConnected)
                     {
-                        StreamReader str = new StreamReader(Voice_Set.FTP_Server.OpenRead("/WoTB_Voice_Mod/Update/Wwise/Version_02.txt"));
-                        string Line = str.ReadLine();
-                        str.Close();
                         StreamReader str2 = new StreamReader(Voice_Set.Special_Path + "/Wwise/WoT_Sound_Mod/Version.dat");
                         string Version = str2.ReadLine();
                         str2.Close();
-                        if (Version != Line)
+                        if (Version != IsWwise_WoT_Update)
                         {
                             MessageBoxResult result = MessageBox.Show("プロジェクトデータのアップデートがあります。アップデートしますか？", "確認", MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.Yes);
                             if (result == MessageBoxResult.Yes)
@@ -2000,7 +1994,7 @@ namespace WoTB_Voice_Mod_Creater
                                 }
                                 System.IO.Compression.ZipFile.ExtractToDirectory(Voice_Set.Special_Path + "/WoT_Sound_Mod.dat", Voice_Set.Special_Path + "/Wwise/WoT_Sound_Mod");
                                 File.Delete(Voice_Set.Special_Path + "/WoT_Sound_Mod.dat");
-                                File.WriteAllText(Voice_Set.Special_Path + "/Wwise/WoT_Sound_Mod/Version.dat", Line);
+                                File.WriteAllText(Voice_Set.Special_Path + "/Wwise/WoT_Sound_Mod/Version.dat", IsWwise_WoT_Update);
                                 Download_P.Visibility = Visibility.Hidden;
                                 Download_T.Visibility = Visibility.Hidden;
                                 Download_Border.Visibility = Visibility.Hidden;

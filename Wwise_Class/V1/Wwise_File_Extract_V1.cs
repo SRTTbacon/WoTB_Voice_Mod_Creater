@@ -27,7 +27,8 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         }
         public void Pck_Clear()
         {
-            Wwise.PCK_Clear();
+            if (Wwise != null)
+                Wwise.PCK_Clear();
             Sounds.Clear();
             Selected_PCK_File = "";
             IsPCKSelected = false;
@@ -89,9 +90,8 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 Wwise.ExtractFileIndex(Index, To_File);
                 return true;
             }
-            catch (Exception e)
+            catch
             {
-                Sub_Code.Error_Log_Write(e.Message);
                 return false;
             }
         }
@@ -120,6 +120,38 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             catch (Exception e)
             {
                 Sub_Code.Error_Log_Write(e.Message);
+                return false;
+            }
+        }
+        public bool Wwise_Extract_To_Ogg_File(uint ShortID, string To_File, bool IsOverWrite)
+        {
+            int Index = -1;
+            for (int Number = 0; Number < Sounds.Count; Number++)
+            {
+                if (Sounds[Number].id == ShortID)
+                    Index = Number;
+            }
+            if (Index == -1 || !IsPCKSelected)
+            {
+                return false;
+            }
+            if (File.Exists(To_File) && !IsOverWrite)
+            {
+                return false;
+            }
+            try
+            {
+                if (Wwise_Extract_To_WEM_File(Index, To_File + ".wem", true))
+                {
+                    if (Sub_Code.WEM_To_File(To_File + ".wem", To_File, "ogg", true))
+                    {
+                        return true;
+                    }
+                }
+                return false;
+            }
+            catch
+            {
                 return false;
             }
         }

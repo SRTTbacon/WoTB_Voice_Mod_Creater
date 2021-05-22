@@ -1,0 +1,88 @@
+﻿<UserControl x:Class="WoTB_Voice_Mod_Creater.Wwise_Class.BNK_Event"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="1080" d:DesignWidth="1920">
+    <UserControl.Resources>
+        <Style x:Key="SliderThumbStyle" TargetType="{x:Type Thumb}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Thumb}">
+                        <Ellipse Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Slider}, Mode=FindAncestor}}" Width="25" Height="25"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="CustomSliderStyle" TargetType="{x:Type Slider}">
+            <Style.Triggers>
+                <Trigger Property="Orientation" Value="Horizontal">
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate>
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="25"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <TickBar Grid.Row="0" x:Name="TopTick" Placement="Top" Visibility="Collapsed" Fill="{TemplateBinding Foreground}" Height="8" Opacity="0.64" Margin="0,0,0,2"/>
+                                    <TickBar Grid.Row="2" x:Name="BottomTick" Placement="Bottom" Visibility="Collapsed" Fill="{TemplateBinding Foreground}" Height="8" Opacity="0.64" Margin="0,2,0,0"/>
+                                    <Track Grid.Row="1" x:Name="PART_Track">
+                                        <Track.DecreaseRepeatButton>
+                                            <RepeatButton Command="Slider.DecreaseLarge" Background="Aqua" Height="5" BorderBrush="{x:Null}" Opacity="0.2"/>
+                                        </Track.DecreaseRepeatButton>
+                                        <Track.IncreaseRepeatButton>
+                                            <RepeatButton Command="Slider.IncreaseLarge" Background="Gray" Height="5" BorderBrush="{x:Null}" Opacity="0.5"/>
+                                        </Track.IncreaseRepeatButton>
+                                        <Track.Thumb>
+                                            <Thumb Style="{StaticResource SliderThumbStyle}"/>
+                                        </Track.Thumb>
+                                    </Track>
+                                </Grid>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="Slider.TickPlacement" Value="TopLeft">
+                                        <Setter TargetName="TopTick" Property="Visibility" Value="Visible"/>
+                                    </Trigger>
+                                    <Trigger Property="Slider.TickPlacement" Value="BottomRight">
+                                        <Setter TargetName="BottomTick" Property="Visibility" Value="Visible"/>
+                                    </Trigger>
+                                    <Trigger Property="Slider.TickPlacement" Value="Both">
+                                        <Setter TargetName="TopTick" Property="Visibility" Value="Visible"/>
+                                        <Setter TargetName="BottomTick" Property="Visibility" Value="Visible"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Resources>
+    <Viewbox>
+        <DockPanel Width="1920" Height="1080">
+            <Border Width="1920" Height="1080" Background="#0E0E1C" BorderBrush="Aqua" BorderThickness="1"/>
+            <Button x:Name="Exit_B" Content="戻る" Height="75" VerticalAlignment="Top" Width="325" Foreground="Aqua" FontSize="40" Background="Transparent" BorderBrush="Aqua" Margin="-3513,1004,0,0" Click="Exit_B_Click"/>
+            <Button x:Name="Open_BNK_B" Content="BNKファイルを選択" Height="75" VerticalAlignment="Top" Width="325" Foreground="Aqua" FontSize="40" Background="Transparent" BorderBrush="Aqua" Margin="-1920,115,0,0" Click="Open_BNK_B_Click"/>
+            <CheckBox x:Name="PCK_Mode_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-2200,50,0,0" Click="PCK_Mode_C_Click"/>
+            <TextBlock Height="50" TextWrapping="Wrap" Text="PCKファイルを含む" VerticalAlignment="Top" Width="266" Foreground="Aqua" FontSize="37" Margin="-1900,32,0,0"/>
+            <TextBlock x:Name="Message_T" Height="105" Width="884" TextWrapping="Wrap" Text="" Foreground="Aqua" FontSize="37" Margin="-1920,905,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
+            <ListBox x:Name="Event_Type_L" Height="750" VerticalAlignment="Top" Width="550" Margin="-3200,150,0,0" Background="Transparent" BorderBrush="Aqua" Foreground="Aqua" FontSize="37" SelectionChanged="Event_Type_L_SelectionChanged"/>
+            <TextBlock Height="50" TextWrapping="Wrap" Text="イベントID一覧" VerticalAlignment="Top" Width="224" Foreground="Aqua" FontSize="37" Margin="-3200,75,0,0"/>
+            <TextBlock x:Name="File_Name_T" Height="50" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="665" Foreground="Aqua" FontSize="37" Margin="-1920,200,0,0" TextAlignment="Center"/>
+            <ListBox x:Name="Sound_L" Height="750" VerticalAlignment="Top" Width="550" Margin="-675,150,0,0" Background="Transparent" BorderBrush="Aqua" Foreground="Aqua" FontSize="37" SelectionChanged="Sound_L_SelectionChanged"/>
+            <TextBlock Height="50" TextWrapping="Wrap" Text="サウンドID一覧" VerticalAlignment="Top" Width="224" Foreground="Aqua" FontSize="37" Margin="-675,75,0,0"/>
+            <TextBlock x:Name="Volume_T" Height="50" Width="180" FontSize="40" Foreground="Aqua" TextWrapping="Wrap" Text="音量:50" Margin="-1920,250,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
+            <Slider x:Name="Volume_S" Height="27" VerticalAlignment="Top"  Width="410" Margin="-1920,325,0,0" Style="{StaticResource CustomSliderStyle}" Value="50" Maximum="100" SmallChange="1" LargeChange="1" ValueChanged="Volume_S_ValueChanged"/>
+            <Button x:Name="Play_B" Content="再生" Height="75" Margin="-1715,385,0,0" VerticalAlignment="Top" Width="200" Background="Transparent" Foreground="Aqua" FontSize="40" BorderBrush="Aqua" Click="Play_B_Click"/>
+            <Button x:Name="Pause_B" Content="停止" Height="75" Margin="-2125,385,0,0" VerticalAlignment="Top" Width="200" Background="Transparent" Foreground="Aqua" FontSize="40" BorderBrush="Aqua" Click="Pause_B_Click"/>
+            <TextBlock x:Name="Location_T" Height="50" Width="300" FontSize="40" Foreground="Aqua" TextWrapping="Wrap" Text="00:00" Margin="-1920,480,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
+            <Slider x:Name="Location_S" Height="27" VerticalAlignment="Top"  Width="410" Margin="-1920,550,0,0" Style="{StaticResource CustomSliderStyle}" SmallChange="0" LargeChange="0" Maximum="0" ValueChanged="Location_S_ValueChanged"/>
+            <TextBox x:Name="Event_ID_Search_T" Height="55" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="500" Margin="-2075,775,0,0" FontSize="37" TextAlignment="Center"/>
+            <Button x:Name="Event_ID_Search_B" Content="検索" Height="55" Margin="-1425,775,0,0" VerticalAlignment="Top" Width="120" Background="Transparent" Foreground="Aqua" FontSize="37" BorderBrush="Aqua" Click="Event_ID_Search_B_Click"/>
+            <Button x:Name="Extract_B" Content="イベント内のサウンドを抽出" Height="75" Margin="-1920,625,0,0" VerticalAlignment="Top" Width="400" Background="Transparent" Foreground="Aqua" FontSize="35" BorderBrush="Aqua" Click="Extract_B_Click"/>
+            <Button x:Name="Clear_B" Content="クリア" Height="75" VerticalAlignment="Top" Width="325" Foreground="Aqua" FontSize="40" Background="Transparent" BorderBrush="Aqua" Margin="-325,1004,0,0" Click="Clear_B_Click"/>
+        </DockPanel>
+    </Viewbox>
+</UserControl>

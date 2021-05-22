@@ -48,7 +48,7 @@ public class SRTTbacon_Server
     public const string IP_Global = "非公開";
     public const string Name = "非公開";
     public const string Password = "非公開";
-    public const string Version = "1.3.7";
+    public const string Version = "1.3.8";
     public const int Port = -1;
     public static bool IsSRTTbaconOwnerMode = false;
     public static string IP = "";
@@ -62,6 +62,7 @@ namespace WoTB_Voice_Mod_Creater
         bool IsMessageShowing = false;
         bool IsIncludeJapanese = false;
         bool IsFullScreen = true;
+        bool IsChange_To_Wwise_Checked = false;
         //チャットモード(0が全体:1がサーバー内:2が管理者チャット)
         //管理者チャットは管理者(SRTTbacon)と個人チャットする用(主にバグ報告かな？)
         int Chat_Mode = 0;
@@ -326,7 +327,15 @@ namespace WoTB_Voice_Mod_Creater
                         Sub_Code.Error_Log_Write(e.Message);
                     }
                 }
-                /*Wwise_Class.BNK_Parse p = new Wwise_Class.BNK_Parse(Voice_Set.Special_Path + "/voiceover.xml");
+                /*Wwise_Class.BNK_Parse bnk = new Wwise_Class.BNK_Parse();
+                bnk.Get_Event_ID_From_XML(Voice_Set.Special_Path + "/WoT/WoT_Mod/audio_mods.xml");
+                List<List<uint>> Get_Events = bnk.Get_Event_ID();
+                foreach (List<uint> Get_Event_IDs in Get_Events)
+                {
+                    foreach (uint ID_Only in Get_Event_IDs)
+                        MessageBox.Show("イベントID:" + ID_Only);
+                }
+                Wwise_Class.BNK_Parse p = new Wwise_Class.BNK_Parse(Voice_Set.Special_Path + "/voiceover.xml");
                 List<List<string>> Temp = p.Get_Voices();
                 StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Test.txt");
                 for (int Number = 0; Number < Temp.Count; Number++)
@@ -394,7 +403,6 @@ namespace WoTB_Voice_Mod_Creater
                 Opacity += 0.025;
                 await Task.Delay(1000 / 60);
             }
-            Voice_Set.Voice_BGM_Change_List_Init();
         }
         async void Load_Window_Set()
         {
@@ -731,6 +739,13 @@ namespace WoTB_Voice_Mod_Creater
             }
             Download_Data_File.Download_File_Path.Clear();
             Download_Data_File.Download_Total_Size = 0;
+            StreamReader str = new StreamReader(Voice_Set.FTP_Server.OpenRead("/WoTB_Voice_Mod/Update/Wwise/Version_01.txt"));
+            Sub_Code.IsWwise_Blitz_Update = str.ReadLine();
+            Sub_Code.IsWwise_Blitz_Actor_Update = str.ReadLine();
+            str.Close();
+            StreamReader str3 = new StreamReader(Voice_Set.FTP_Server.OpenRead("/WoTB_Voice_Mod/Update/Wwise/Version_02.txt"));
+            Sub_Code.IsWwise_WoT_Update = str3.ReadLine();
+            str3.Close();
             Load_Data_Window.Window_Stop();
         }
         void OnValidateCertificate(FtpClient control, FtpSslValidationEventArgs e)
@@ -1390,7 +1405,6 @@ namespace WoTB_Voice_Mod_Creater
             {
                 Other_Window.RootWindow_KeyDown(e);
             }
-            //他の画面を表示させていても動作するように
             if ((System.Windows.Forms.Control.ModifierKeys & System.Windows.Forms.Keys.Shift) == System.Windows.Forms.Keys.Shift && e.Key == System.Windows.Input.Key.F)
             {
                 Window_Size_Change(true);
@@ -1400,7 +1414,7 @@ namespace WoTB_Voice_Mod_Creater
                 Other_Window.Visibility == Visibility.Visible || Voice_Create_Window.Visibility == Visibility.Visible || Message_Window.Visibility == Visibility.Visible || Load_Data_Window.Visibility == Visibility.Visible ||
                 Tools_V2_Window.Visibility == Visibility.Visible || Change_To_Wwise_Window.Visibility == Visibility.Visible || WoT_To_Blitz_Window.Visibility == Visibility.Visible ||
                 Blitz_To_WoT_Window.Visibility == Visibility.Visible || Bank_Editor_Window.Visibility == Visibility.Visible || Create_Save_File_Window.Visibility == Visibility.Visible ||
-                Create_Loading_BGM_Window.Visibility == Visibility.Visible)
+                Create_Loading_BGM_Window.Visibility == Visibility.Visible || BNK_Event_Window.Visibility == Visibility.Visible)
             {
                 return;
             }
@@ -1586,6 +1600,15 @@ namespace WoTB_Voice_Mod_Creater
             {
                 MessageBox.Show("一時フォルダ場所:" + Voice_Set.Special_Path);
             }
+            //超上級者向け
+            if ((System.Windows.Forms.Control.ModifierKeys & System.Windows.Forms.Keys.Shift) == System.Windows.Forms.Keys.Shift && e.Key == System.Windows.Input.Key.E)
+            {
+                if (IsProcessing || NotConnectedLoginMessage())
+                {
+                    return;
+                }
+                BNK_Event_Window.Window_Show();
+            }
             //非公開のコマンドたち
             if (SRTTbacon_Server.IsSRTTbaconOwnerMode)
             {
@@ -1739,6 +1762,11 @@ namespace WoTB_Voice_Mod_Creater
             {
                 Message_Feed_Out("エラーが発生しました。");
                 return;
+            }
+            if (!IsChange_To_Wwise_Checked)
+            {
+                Voice_Set.Voice_BGM_Change_List_Init();
+                IsChange_To_Wwise_Checked = true;
             }
             Change_To_Wwise_Window.Window_Show();
         }

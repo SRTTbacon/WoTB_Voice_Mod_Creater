@@ -254,6 +254,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 FSB_Details_L.Items[1] = "BGMファイル:未指定";
                 FSB_Details_L.Items[3] = "BGM数:なし";
                 BGM_FSB_File = "";
+                Message_Feed_Out("内容をクリアしました。");
             }
         }
         //音声、BGMともに初期化

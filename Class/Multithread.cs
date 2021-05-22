@@ -92,10 +92,9 @@ namespace WoTB_Voice_Mod_Creater.Class
                 await Task.WhenAll(tasks);
                 From_Files.Clear();
             }
-            catch (Exception ex)
+            catch
             {
                 From_Files.Clear();
-                Sub_Code.Error_Log_Write(ex.Message);
             }
         }
         public static async Task Convert_To_Wav(string FilePath, bool IsFromFileDelete, bool BassEncode)

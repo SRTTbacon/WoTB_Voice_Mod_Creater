@@ -220,7 +220,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             var video = await youtube.Videos.GetAsync(Link);
             var title = Sub_Code.File_Replace_Name(video.Title);
             var streamManifest = await youtube.Videos.Streams.GetManifestAsync(Link_ID_Only);
-            var streamInfo = streamManifest.GetAudioOnly().WithHighestBitrate();
+            var streamInfo = streamManifest.GetAudioOnlyStreams().GetWithHighestBitrate();
             if (streamInfo != null)
             {
                 Message_T.Text = "音声を取得しています...";
@@ -232,7 +232,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 Message_T.Text = "動画を取得しています...";
                 await Task.Delay(50);
-                var streamInfo2 = streamManifest.GetVideoOnly().Where(s => s.Container == Container.Mp4).WithHighestVideoQuality();
+                var streamInfo2 = streamManifest.GetVideoOnlyStreams().Where(s => s.Container == Container.Mp4).GetWithHighestVideoQuality();
                 if (streamInfo2 != null)
                 {
                     var stream = await youtube.Videos.Streams.GetAsync(streamInfo2);

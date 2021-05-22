@@ -175,6 +175,7 @@
             <Class2:Blitz_To_WoT x:Name="Blitz_To_WoT_Window" Width="1920" Height="1080" Margin="-1920,0,0,0" Visibility="Hidden"/>
             <Class1:Create_Save_File x:Name="Create_Save_File_Window" Width="1920" Height="1080" Margin="-1920,0,0,0" Visibility="Hidden"/>
             <Class1:Create_Loading_BGM x:Name="Create_Loading_BGM_Window" Width="1920" Height="1080" Margin="-1920,0,0,0" Visibility="Hidden"/>
+            <Class2:BNK_Event x:Name="BNK_Event_Window" Width="1920" Height="1080" Margin="-1920,0,0,0" Visibility="Hidden"/>
         </DockPanel>
     </Viewbox>
 </Window>

@@ -76,13 +76,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             {
                 try
                 {
-                    using (var eifs = new FileStream(Voice_Set.Special_Path + "/Configs/Blitz_To_WoT.conf", FileMode.Open, FileAccess.Read))
-                    {
-                        using (var eofs = new FileStream(Voice_Set.Special_Path + "/Configs/Blitz_To_WoT.tmp", FileMode.Create, FileAccess.Write))
-                        {
-                            FileEncode.FileEncryptor.Decrypt(eifs, eofs, "Blitz_To_WoT_Configs_Save");
-                        }
-                    }
+                    Sub_Code.File_Decrypt(Voice_Set.Special_Path + "/Configs/Blitz_To_WoT.conf", Voice_Set.Special_Path + "/Configs/Blitz_To_WoT.tmp", "Blitz_To_WoT_Configs_Save", false);
                     StreamReader str = new StreamReader(Voice_Set.Special_Path + "/Configs/Blitz_To_WoT.tmp");
                     Volume_S.Value = double.Parse(str.ReadLine());
                     Volume_Set_C.IsChecked = bool.Parse(str.ReadLine());
@@ -194,6 +188,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                     {
                         Sub_Code.Error_Log_Write(e1.Message);
                     }
+                    Message_Feed_Out("内容をクリアしました。");
                 }
             }
             else
@@ -329,14 +324,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 stw.WriteLine(Volume_S.Value);
                 stw.WriteLine(Volume_Set_C.IsChecked.Value);
                 stw.Close();
-                using (var eifs = new FileStream(Voice_Set.Special_Path + "/Configs/Blitz_To_WoT.tmp", FileMode.Open, FileAccess.Read))
-                {
-                    using (var eofs = new FileStream(Voice_Set.Special_Path + "/Configs/Blitz_To_WoT.conf", FileMode.Create, FileAccess.Write))
-                    {
-                        FileEncode.FileEncryptor.Encrypt(eifs, eofs, "Blitz_To_WoT_Configs_Save");
-                    }
-                }
-                File.Delete(Voice_Set.Special_Path + "/Configs/Blitz_To_WoT.tmp");
+                Sub_Code.File_Encrypt(Voice_Set.Special_Path + "/Configs/Blitz_To_WoT.tmp", Voice_Set.Special_Path + "/Configs/Blitz_To_WoT.conf", "Blitz_To_WoT_Configs_Save", true);
             }
             catch (Exception e)
             {
@@ -410,7 +398,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                         {
                             Message_T.Text = "移植できるファイルが見つからなかったため、特殊な方法で解析しています...";
                             await Task.Delay(50);
-                            p.IsSpecialBNKFileMode = true;
+                            p.SpecialBNKFileMode = 1;
                             BNK_FSB_Voices = p.Get_Voices(true);
                             foreach (List<string> Types in BNK_FSB_Voices)
                             {
@@ -752,7 +740,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         private void Voices_L_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
             Content_L.Items.Clear();
-            if (Voices_L.SelectedIndex == -1)
+            if (Voices_L.SelectedIndex == -1 || Voices_L.Items.Count == 1)
             {
                 return;
             }

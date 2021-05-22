@@ -19,8 +19,9 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         List<List<string>> ID_Line_Special = new List<List<string>>();
         //ファイルが正しくない場合falseにする
         bool IsSelected = false;
-        //特殊な.bnkファイルの場合trueにする(別の方法で.bnkファイルを解析します。)
-        public bool IsSpecialBNKFileMode = false;
+        //特殊な.bnkファイルの場合1または2にします
+        public int SpecialBNKFileMode = 0;
+        List<List<uint>> WoT_Event_ID = new List<List<uint>>();
         public BNK_Parse(string BNK_File)
         {
             if (!File.Exists(BNK_File))
@@ -28,7 +29,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 IsSelected = false;
                 return;
             }
-            //bnkファイルを解析(wwiserを使用)
+            //bnkファイルを解析(Wwiserを使用)
             string Temp_Name = Sub_Code.Get_Time_Now(DateTime.Now, "-", 1, 6);
             StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Wwise_Parse/BNK_Parse_Start.bat");
             stw.WriteLine("chcp 65001");
@@ -71,7 +72,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                     ID_Line_Tmp.Add((Read_All.Count - 1).ToString());
                     ID_Line_Tmp.Add(strValue2);
                     ID_Line.Add(ID_Line_Tmp);
-                    if (strValue2 == "CAkRanSeqCntr" || strValue2 == "CAkSwitchCntr" || strValue2 == "CAkSound")
+                    if (strValue2 == "CAkRanSeqCntr" || strValue2 == "CAkSwitchCntr" || strValue2 == "CAkSound" || strValue2 == "CAkLayerCntr")
                     {
                         while ((line = file.ReadLine()) != null)
                         {
@@ -103,7 +104,67 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             file.Dispose();
             //生成されたxmlファイルは使用しないので消しておく
             File.Delete(Voice_Set.Special_Path + "/Wwise_Parse/" + Temp_Name + ".xml");
+            //通常のイベントIDを挿入
+            for (int Number = 0; Number < 40; Number++)
+            {
+                WoT_Event_ID.Add(new List<uint>());
+            }
+            Wot_Event_IDs_Clear();
             IsSelected = true;
+        }
+        void Wot_Event_IDs_Clear()
+        {
+            for (int Number_IDs = 0; Number_IDs < WoT_Event_ID.Count; Number_IDs++)
+                WoT_Event_ID[Number_IDs].Clear();
+            WoT_Event_ID[0].Add(2301863335);
+            WoT_Event_ID[1].Add(3166122996);
+            WoT_Event_ID[2].Add(1332081395);
+            WoT_Event_ID[3].Add(1057290642);
+            WoT_Event_ID[3].Add(4209631318);
+            WoT_Event_ID[4].Add(102434383);
+            WoT_Event_ID[4].Add(136522141);
+            WoT_Event_ID[4].Add(3406769);
+            WoT_Event_ID[4].Add(3175172091);
+            WoT_Event_ID[4].Add(730352367);
+            WoT_Event_ID[4].Add(1713814001);
+            WoT_Event_ID[5].Add(2655350512);
+            WoT_Event_ID[6].Add(1946435397);
+            WoT_Event_ID[7].Add(664892591);
+            WoT_Event_ID[8].Add(3563950026);
+            WoT_Event_ID[9].Add(1122640859);
+            WoT_Event_ID[10].Add(1702267773);
+            WoT_Event_ID[11].Add(1302422561);
+            WoT_Event_ID[12].Add(4148607935);
+            WoT_Event_ID[13].Add(1396083645);
+            WoT_Event_ID[14].Add(3616464105);
+            WoT_Event_ID[15].Add(1641781602);
+            WoT_Event_ID[16].Add(693799259);
+            WoT_Event_ID[17].Add(825236543);
+            WoT_Event_ID[18].Add(4011208105);
+            WoT_Event_ID[19].Add(1107412350);
+            WoT_Event_ID[20].Add(1781671118);
+            WoT_Event_ID[21].Add(575170028);
+            WoT_Event_ID[22].Add(3928775652);
+            WoT_Event_ID[23].Add(590598450);
+            WoT_Event_ID[24].Add(2775977275);
+            WoT_Event_ID[24].Add(1077949222);
+            WoT_Event_ID[25].Add(1112395295);
+            WoT_Event_ID[26].Add(998311689);
+            WoT_Event_ID[27].Add(766987452);
+            WoT_Event_ID[28].Add(1244332268);
+            WoT_Event_ID[29].Add(3498324732);
+            WoT_Event_ID[29].Add(311966861);
+            WoT_Event_ID[30].Add(47755571);
+            WoT_Event_ID[31].Add(1630212423);
+            WoT_Event_ID[32].Add(257621937);
+            WoT_Event_ID[33].Add(3917054405);
+            WoT_Event_ID[34].Add(4072375507);
+            WoT_Event_ID[35].Add(3034227203);
+            WoT_Event_ID[35].Add(79416786);
+            WoT_Event_ID[36].Add(1491984609);
+            WoT_Event_ID[37].Add(85617264);
+            WoT_Event_ID[38].Add(790147034);
+            WoT_Event_ID[39].Add(2594173436);
         }
         //選択されているbnkファイルが音声データかを調べる
         public bool IsVoiceFile(bool IsBlitzMode = false)
@@ -120,11 +181,11 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             }
             else
             {
-                Battle_Short_ID = 590598450;
+                Battle_Short_ID = WoT_Event_ID[23][0];
             }
             foreach (List<string> ID_Now in ID_Line)
             {
-                //戦闘開始のイベントがあるかないかで判定("590598450"が戦闘開始のイベントID)
+                //戦闘開始のイベントがあるかないかで判定
                 if (ID_Now[0] == Battle_Short_ID.ToString())
                 {
                     IsExist = true;
@@ -132,6 +193,28 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 }
             }
             return IsExist;
+        }
+        //イベントIDをリストとして取得
+        public List<uint> Get_BNK_Event_ID()
+        {
+            //イベントIDのみを抽出
+            List<uint> GetEventsID = new List<uint>();
+            foreach (List<string> List_Now in ID_Line)
+            {
+                if (List_Now[2] == "CAkEvent")
+                {
+                    GetEventsID.Add(uint.Parse(List_Now[0]));
+                }
+            }
+            return GetEventsID;
+        }
+        //指定したイベントIDのサウンドをリストとして取得
+        public List<uint> Get_Sounds_From_EventID(uint EventID)
+        {
+            List<uint> Sounds = new List<uint>();
+            foreach (string ID in Get_Event_Voices(EventID))
+                Sounds.Add(uint.Parse(ID));
+            return Sounds;
         }
         //データからどの音声ファイルが戦闘中のどこで再生されるかを取得(貫通時や火災時など)
         //引数:BlitzからPC版WoTに移植する際はtrue
@@ -171,9 +254,11 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         }
         public void Clear()
         {
+            IsSelected = false;
             Read_All.Clear();
             ID_Line.Clear();
             ID_Line_Special.Clear();
+            WoT_Event_ID.Clear();
         }
         //イベントからアクションIDを取得して音声ファイルを取得
         List<string> Get_Event_Voices(uint Event_ID)
@@ -227,7 +312,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 }
             }
             int Number_02 = int.Parse(ID_Line[Number_01][1]);
-            //Playイベントではない場合飛ばす
+            //Playイベントではない場合飛ばす(0x0403がPlayイベント)
             if (!Read_All[Number_02 + 1].Contains("0x0403"))
             {
                 return new List<string>();
@@ -236,7 +321,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             string Index = Read_All[Number_02 + 3].Remove(0, Read_All[Number_02 + 3].IndexOf("value=\"") + 7);
             Index = Index.Remove(Index.IndexOf("\""));
             uint Child_ID = uint.Parse(Index);
-            if (IsSpecialBNKFileMode)
+            if (SpecialBNKFileMode == 1)
                 return Children_Sort_Special(Child_ID);
             else
                 return Children_Sort(Child_ID);
@@ -397,168 +482,266 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 return Temp;
             }
         }
+        public List<List<uint>> Get_Event_ID()
+        {
+            return WoT_Event_ID;
+        }
+        //audio_mods.xmlからイベントIDを取得
+        public bool Get_Event_ID_From_XML(string audio_mods_file)
+        {
+            if (!File.Exists(audio_mods_file))
+                return false;
+            try
+            {
+                //大杉ィ
+                string[] WoT_Events = { "vo_start_battle", "vo_vehicle_destroyed", "vo_enemy_killed_by_player", "vo_fire_started", "vo_fuel_tank_damaged", "vo_target_captured", "vo_driver_killed"
+                , "vo_ammo_bay_damaged", "vo_engine_damaged", "vo_enemy_hp_damaged_by_explosion_at_direct_hit_by_player", "vo_armor_not_pierced_by_player", "vo_track_destroyed", "vo_track_functional"
+                , "vo_track_damaged", "vo_track_functional_can_move", "vo_target_lost", "minimap_attention", "enemy_sighted_for_team", "vo_fire_stopped", "vo_gun_damaged", "vo_target_unlocked"
+                , "vo_surveying_devices_damaged", "vo_turret_rotator_destroyed", "vo_radio_damaged", "vo_engine_destroyed", "vo_enemy_fire_started_by_player", "vo_ally_killed_by_player"
+                , "vo_surveying_devices_destroyed", "vo_commander_killed", "vo_gunner_killed", "vo_loader_killed", "vo_radioman_killed", "vo_turret_rotator_damaged", "vo_gun_destroyed"
+                , "vo_armor_ricochet_by_player", "vo_enemy_hp_damaged_by_projectile_by_player", "vo_enemy_no_hp_damage_at_no_attempt_by_player", "vo_engine_functional", "vo_gun_functional"
+                , "vo_surveying_devices_functional", "vo_turret_rotator_functional", "vo_enemy_hp_damaged_by_projectile_and_chassis_damaged_by_player", "vo_enemy_hp_damaged_by_projectile_and_gun_damaged_by_player"
+                , "vo_enemy_no_hp_damage_at_attempt_and_chassis_damaged_by_player","vo_enemy_no_hp_damage_at_attempt_and_gun_damaged_by_player","vo_enemy_no_hp_damage_at_no_attempt_and_chassis_damaged_by_player"};
+                //上の各項目がどの音声タイプか(詳しくはVoice_Set.csを参照)
+                int[] WoT_Events_Number = {23,33,9,13,15,36,7
+                ,1,10,3,2,28,29
+                ,27,29,37,39,34,14,16,37
+                ,24,31,21,11,8,0
+                ,25,6,19,20,22,30,17
+                ,5,3,2,12,18
+                ,26,32,4,4
+                ,4,4,4};
+                List<string> All_Lines = new List<string>();
+                All_Lines.AddRange(File.ReadAllLines(audio_mods_file));
+                //WoT_Event_IDの内容をクリア
+                Wot_Event_IDs_Clear();
+                List<bool> IsAdd_Event_Number = new List<bool>();
+                for (int Number_Temp = 0; Number_Temp < 40; Number_Temp++)
+                {
+                    IsAdd_Event_Number.Add(false);
+                }
+                //xmlファイルを1行ずつ参照
+                for (int Line_Number = 0; Line_Number < All_Lines.Count; Line_Number++)
+                {
+                    try
+                    {
+                        //イベント名が書かれている行であれば続行
+                        if (!All_Lines[Line_Number].Contains("<name>"))
+                            continue;
+                        //標準のイベント名を取得
+                        string After_Event_Name_01 = All_Lines[Line_Number].Substring(All_Lines[Line_Number].IndexOf("<name>") + 6);
+                        string After_Event_Name_02 = After_Event_Name_01.Substring(0, After_Event_Name_01.IndexOf("</name>"));
+                        for (int Number = 0; Number < WoT_Events.Length; Number++)
+                        {
+                            //WoT_Eventsに一致するイベント名があれば続行
+                            if (WoT_Events[Number] == After_Event_Name_02)
+                            {
+                                if (!IsAdd_Event_Number[WoT_Events_Number[Number]])
+                                {
+                                    WoT_Event_ID[WoT_Events_Number[Number]].Clear();
+                                    IsAdd_Event_Number[WoT_Events_Number[Number]] = true;
+                                }
+                                //変IsAdd_Event_Number更後のイベント名を取得
+                                string After_Mod_Event_Name_01 = All_Lines[Line_Number + 1].Substring(All_Lines[Line_Number + 1].IndexOf("<mod>") + 5);
+                                string After_Mod_Event_Name_02 = After_Mod_Event_Name_01.Substring(0, After_Mod_Event_Name_01.IndexOf("</mod>"));
+                                //そのままの名前ではイベント内に入っている音声を取得できないため、変更後のイベント名をハッシュ値に変更(uint)
+                                uint Get_Mod_Event_ID = WwiseHash.HashString(After_Mod_Event_Name_02);
+                                WoT_Event_ID[WoT_Events_Number[Number]].Add(Get_Mod_Event_ID);
+                            }
+                        }
+                    }
+                    catch
+                    {
+                        //例外処理なし
+                    }
+                }
+                All_Lines.Clear();
+                IsAdd_Event_Number.Clear();
+                //イベントIDが含まれていたらtrueを返す
+                int Voice_Event_Count = 0;
+                for (int Number_IDs = 0; Number_IDs < WoT_Event_ID.Count; Number_IDs++)
+                {
+                    Voice_Event_Count += WoT_Event_ID[Number_IDs].Count;
+                }
+                if (Voice_Event_Count > 0)
+                {
+                    return true;
+                }
+            }
+            catch (Exception e)
+            {
+                Sub_Code.Error_Log_Write(e.Message);
+            }
+            Wot_Event_IDs_Clear();
+            return false;
+        }
+        //イベントIDを初期に戻す
+        public void Set_Event_ID_Init()
+        {
+            Wot_Event_IDs_Clear();
+        }
         //イベントIDからインデックスを取得("戻り値が0のときはフレインドリーファイヤ－"などはVoice_Set.csに定義しています)
         int Get_Voice_Type_Number(uint ID, bool IsBlitzToWoT)
         {
             if (!IsBlitzToWoT)
             {
-                if (ID == 2301863335)
+                if (WoT_Event_ID[0].Contains(ID))
                 {
                     return 0;
                 }
-                else if (ID == 3166122996)
+                else if (WoT_Event_ID[1].Contains(ID))
                 {
                     return 1;
                 }
-                else if (ID == 1332081395)
+                else if (WoT_Event_ID[2].Contains(ID))
                 {
                     return 2;
                 }
-                else if (ID == 1057290642 || ID == 4209631318)
+                else if (WoT_Event_ID[3].Contains(ID))
                 {
                     return 3;
                 }
-                else if (ID == 102434383 || ID == 136522141 || ID == 3406769 || ID == 3175172091 || ID == 730352367 || ID == 1713814001)
+                else if (WoT_Event_ID[4].Contains(ID))
                 {
                     return 4;
                 }
-                else if (ID == 2655350512)
+                else if (WoT_Event_ID[5].Contains(ID))
                 {
                     return 5;
                 }
-                else if (ID == 1946435397)
+                else if (WoT_Event_ID[6].Contains(ID))
                 {
                     return 6;
                 }
-                else if (ID == 664892591)
+                else if (WoT_Event_ID[7].Contains(ID))
                 {
                     return 7;
                 }
-                else if (ID == 3563950026)
+                else if (WoT_Event_ID[8].Contains(ID))
                 {
                     return 8;
                 }
-                else if (ID == 1122640859)
+                else if (WoT_Event_ID[9].Contains(ID))
                 {
                     return 9;
                 }
-                else if (ID == 1702267773)
+                else if (WoT_Event_ID[10].Contains(ID))
                 {
                     return 10;
                 }
-                else if (ID == 1302422561)
+                else if (WoT_Event_ID[11].Contains(ID))
                 {
                     return 11;
                 }
-                else if (ID == 4148607935)
+                else if (WoT_Event_ID[12].Contains(ID))
                 {
                     return 12;
                 }
-                else if (ID == 1396083645)
+                else if (WoT_Event_ID[13].Contains(ID))
                 {
                     return 13;
                 }
-                else if (ID == 3616464105)
+                else if (WoT_Event_ID[14].Contains(ID))
                 {
                     return 14;
                 }
-                else if (ID == 1641781602)
+                else if (WoT_Event_ID[15].Contains(ID))
                 {
                     return 15;
                 }
-                else if (ID == 693799259)
+                else if (WoT_Event_ID[16].Contains(ID))
                 {
                     return 16;
                 }
-                else if (ID == 825236543)
+                else if (WoT_Event_ID[17].Contains(ID))
                 {
                     return 17;
                 }
-                else if (ID == 4011208105)
+                else if (WoT_Event_ID[18].Contains(ID))
                 {
                     return 18;
                 }
-                else if (ID == 1107412350)
+                else if (WoT_Event_ID[19].Contains(ID))
                 {
                     return 19;
                 }
-                else if (ID == 1781671118)
+                else if (WoT_Event_ID[20].Contains(ID))
                 {
                     return 20;
                 }
-                else if (ID == 575170028)
+                else if (WoT_Event_ID[21].Contains(ID))
                 {
                     return 21;
                 }
-                else if (ID == 3928775652)
+                else if (WoT_Event_ID[22].Contains(ID))
                 {
                     return 22;
                 }
-                else if (ID == 590598450)
+                else if (WoT_Event_ID[23].Contains(ID))
                 {
                     return 23;
                 }
-                else if (ID == 2775977275 || ID == 1077949222)
+                else if (WoT_Event_ID[24].Contains(ID))
                 {
                     return 24;
                 }
-                else if (ID == 1112395295)
+                else if (WoT_Event_ID[25].Contains(ID))
                 {
                     return 25;
                 }
-                else if (ID == 998311689)
+                else if (WoT_Event_ID[26].Contains(ID))
                 {
                     return 26;
                 }
-                else if (ID == 766987452)
+                else if (WoT_Event_ID[27].Contains(ID))
                 {
                     return 27;
                 }
-                else if (ID == 1244332268)
+                else if (WoT_Event_ID[28].Contains(ID))
                 {
                     return 28;
                 }
-                else if (ID == 3498324732 || ID == 311966861)
+                else if (WoT_Event_ID[29].Contains(ID))
                 {
                     return 29;
                 }
-                else if (ID == 47755571)
+                else if (WoT_Event_ID[30].Contains(ID))
                 {
                     return 30;
                 }
-                else if (ID == 1630212423)
+                else if (WoT_Event_ID[31].Contains(ID))
                 {
                     return 31;
                 }
-                else if (ID == 257621937)
+                else if (WoT_Event_ID[32].Contains(ID))
                 {
                     return 32;
                 }
-                else if (ID == 3917054405)
+                else if (WoT_Event_ID[33].Contains(ID))
                 {
                     return 33;
                 }
-                else if (ID == 4072375507)
+                else if (WoT_Event_ID[34].Contains(ID))
                 {
                     return 34;
                 }
-                else if (ID == 3034227203 || ID == 79416786)
+                else if (WoT_Event_ID[35].Contains(ID))
                 {
                     return 35;
                 }
-                else if (ID == 1491984609)
+                else if (WoT_Event_ID[36].Contains(ID))
                 {
                     return 44;
                 }
-                else if (ID == 85617264)
+                else if (WoT_Event_ID[37].Contains(ID))
                 {
                     return 45;
                 }
-                else if (ID == 790147034)
+                else if (WoT_Event_ID[38].Contains(ID))
                 {
                     return 46;
                 }
-                else if (ID == 2594173436)
+                else if (WoT_Event_ID[39].Contains(ID))
                 {
                     return 47;
                 }

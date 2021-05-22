@@ -234,7 +234,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                         }
                         long position = Bass.BASS_ChannelGetPosition(Stream);
                         Location_S.Value = Bass.BASS_ChannelBytes2Seconds(Stream, position);
-                        if (Loop_C.IsChecked.Value && Start_Time != -1 && Location_S.Value >= End_Time)
+                        if (Start_Time != -1 && Location_S.Value >= End_Time)
                         {
                             Music_Pos_Change(Start_Time, true);
                             long position2 = Bass.BASS_ChannelGetPosition(Stream);
@@ -242,7 +242,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                             TimeSpan time = TimeSpan.FromSeconds(Location_S.Value);
                             Video_V.Position = time;
                         }
-                        else if (Loop_C.IsChecked.Value && Start_Time != -1 && Location_S.Value < Start_Time)
+                        else if (Start_Time != -1 && Location_S.Value < Start_Time)
                         {
                             Music_Pos_Change(Start_Time, true);
                             long position2 = Bass.BASS_ChannelGetPosition(Stream);
@@ -514,7 +514,9 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 return;
             }
-            List_Remove_Index();
+            MessageBoxResult result = System.Windows.MessageBox.Show("選択中の曲をリストから削除しますか？", "確認", MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.No);
+            if (result == MessageBoxResult.Yes)
+                List_Remove_Index();
         }
         private void Music_List_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -1058,7 +1060,15 @@ namespace WoTB_Voice_Mod_Creater.Class
                 }
                 if (!Background_C.IsChecked.Value)
                 {
-                    Pause_Volume_Animation(true);
+                    //Pause_Volume_Animation(true);
+                    Bass.BASS_ChannelStop(Stream);
+                    Bass.BASS_StreamFree(Stream);
+                    Video_V.Stop();
+                    Video_V.Source = null;
+                    Location_S.Value = 0;
+                    Location_S.Maximum = 0;
+                    Location_T.Text = "00:00";
+                    Music_List.SelectedIndex = -1;
                     Video_Mode_Change(false);
                     Video_V.Visibility = Visibility.Hidden;
                     Video_Change_B.Visibility = Visibility.Hidden;
@@ -1547,35 +1557,32 @@ namespace WoTB_Voice_Mod_Creater.Class
                     }
                 }
             }
-            if (Loop_C.IsChecked.Value)
+            //再生開始時間を保存
+            if ((System.Windows.Forms.Control.ModifierKeys & Keys.Shift) == Keys.Shift && e.Key == Key.S)
             {
-                //再生開始時間を保存
-                if ((System.Windows.Forms.Control.ModifierKeys & Keys.Shift) == Keys.Shift && e.Key == Key.S)
+                Start_Time = Location_S.Value;
+                if (Start_Time > End_Time)
                 {
-                    Start_Time = Location_S.Value;
-                    if (Start_Time > End_Time)
-                    {
-                        End_Time = Location_S.Maximum;
-                    }
-                    Loop_Time_T.Text = "再生時間:" + (int)Start_Time + "～" + (int)End_Time;
+                    End_Time = Location_S.Maximum;
                 }
-                //再生終了時間を保存
-                if ((System.Windows.Forms.Control.ModifierKeys & Keys.Shift) == Keys.Shift && e.Key == Key.E)
-                {
-                    End_Time = Location_S.Value;
-                    if (End_Time < Start_Time)
-                    {
-                        Start_Time = 0;
-                    }
-                    Loop_Time_T.Text = "再生時間:" + (int)Start_Time + "～" + (int)End_Time;
-                }
-                //保存した時間を取り消す
-                if ((System.Windows.Forms.Control.ModifierKeys & Keys.Shift) == Keys.Shift && e.Key == Key.C)
+                Loop_Time_T.Text = "再生時間:" + (int)Start_Time + "～" + (int)End_Time;
+            }
+            //再生終了時間を保存
+            if ((System.Windows.Forms.Control.ModifierKeys & Keys.Shift) == Keys.Shift && e.Key == Key.E)
+            {
+                End_Time = Location_S.Value;
+                if (End_Time < Start_Time)
                 {
                     Start_Time = 0;
-                    End_Time = Location_S.Maximum;
-                    Loop_Time_T.Text = "再生時間:" + (int)Start_Time + "～" + (int)End_Time;
                 }
+                Loop_Time_T.Text = "再生時間:" + (int)Start_Time + "～" + (int)End_Time;
+            }
+            //保存した時間を取り消す
+            if ((System.Windows.Forms.Control.ModifierKeys & Keys.Shift) == Keys.Shift && e.Key == Key.C)
+            {
+                Start_Time = 0;
+                End_Time = Location_S.Maximum;
+                Loop_Time_T.Text = "再生時間:" + (int)Start_Time + "～" + (int)End_Time;
             }
         }
     }

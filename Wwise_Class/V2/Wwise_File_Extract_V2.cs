@@ -259,6 +259,41 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 return false;
             }
         }
+        public bool Wwise_Extract_To_Ogg_File(uint ShortID, string To_File, bool IsOverWrite)
+        {
+            if (IsClear)
+            {
+                return false;
+            }
+            if (File.Exists(To_File) && !IsOverWrite)
+            {
+                return false;
+            }
+            try
+            {
+                int Index = -1;
+                for (int Number = 0; Number < WEML.Count; Number++)
+                {
+                    if (WEML[Number].ID == ShortID)
+                        Index = Number;
+                }
+                if (Index == -1)
+                    return false;
+                if (Wwise_Extract_To_WEM_File(Index, To_File + ".wem", true))
+                {
+                    if (Sub_Code.WEM_To_File(To_File + ".wem", To_File, "ogg", true))
+                    {
+                        return true;
+                    }
+                }
+                return false;
+            }
+            catch (Exception e)
+            {
+                Sub_Code.Error_Log_Write(e.Message);
+                return false;
+            }
+        }
         //.wemファイルを.bnkファイルに書き込む
         //LOL.Save()をしない場合ファイルには書き込まれず、メモリに情報を保存するだけになります。
         public bool Bank_Edit_Sound(int Index, string From_File, bool Save)

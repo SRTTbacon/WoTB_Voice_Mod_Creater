@@ -182,7 +182,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                         {
                             Message_T.Text = "移植できるファイルが見つからなかったため、特殊な方法で解析しています...";
                             await Task.Delay(50);
-                            p.IsSpecialBNKFileMode = true;
+                            p.SpecialBNKFileMode = 1;
                             BNK_FSB_Voices = p.Get_Voices(Mode);
                             foreach (List<string> Types in BNK_FSB_Voices)
                             {
