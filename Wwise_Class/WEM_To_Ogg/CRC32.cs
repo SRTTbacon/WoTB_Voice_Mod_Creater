@@ -3,7 +3,7 @@
     internal static class CRC32
     {
         private static readonly uint[] CRC_LOOKUP = new uint[]
-            {
+        {
                 0x00000000,0x04c11db7,0x09823b6e,0x0d4326d9,
                 0x130476dc,0x17c56b6b,0x1a864db2,0x1e475005,
                 0x2608edb8,0x22c9f00f,0x2f8ad6d6,0x2b4bcb61,
@@ -68,17 +68,14 @@
                 0x9abc8bd5,0x9e7d9662,0x933eb0bb,0x97ffad0c,
                 0xafb010b1,0xab710d06,0xa6322bdf,0xa2f33668,
                 0xbcb4666d,0xb8757bda,0xb5365d03,0xb1f740b4
-            };
-
+        };
         internal static uint Compute(byte[] buffer, uint size)
         {
             uint hash = 0;
-
             for (int i = 0; i < size; i++)
             {
                 hash = (hash << 8) ^ CRC_LOOKUP[((hash >> 24) & 0xFF) ^ buffer[i]];
             }
-
             return hash;
         }
     }

@@ -225,10 +225,12 @@ namespace WoTB_Voice_Mod_Creater
         {
             try
             {
+                if (!Directory.Exists(To_Dir))
+                    Directory.CreateDirectory(To_Dir);
                 DirectoryInfo dir = new DirectoryInfo(From_Dir);
                 if (!dir.Exists)
                 {
-                    throw new DirectoryNotFoundException("指定したディレクトリが存在しません。\n" + From_Dir);
+                    return;
                 }
                 DirectoryInfo[] dirs = dir.GetDirectories();
                 Directory.CreateDirectory(To_Dir);

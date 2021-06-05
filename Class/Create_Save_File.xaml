@@ -19,6 +19,8 @@
             <Button x:Name="Save_File_Create_B" Content="セーブデータを作成" Height="75" VerticalAlignment="Top" Width="400" Background="Transparent" Margin="-1350,750,0,0" Foreground="Aqua" BorderBrush="Aqua" FontSize="38" Click="Save_File_Create_B_Click"/>
             <Button x:Name="Clear_B" Content="クリア" Height="70" VerticalAlignment="Top" Width="300" Background="Transparent" Margin="-300,1010,0,0" Foreground="Aqua" BorderBrush="Aqua" FontSize="38" Click="Clear_B_Click"/>
             <Button x:Name="Details_B" Content="詳細" Height="65" Margin="-3550,900,0,0" VerticalAlignment="Top" Width="200" Background="Transparent" Foreground="Aqua" FontSize="37" BorderBrush="Aqua" Click="Details_B_Click"/>
+            <CheckBox x:Name="PCK_Mode_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-1625,50,0,0"/>
+            <TextBlock Height="50" TextWrapping="Wrap" Text="PCKファイルを含む" VerticalAlignment="Top" Width="266" Foreground="Aqua" FontSize="37" Margin="-1320,32,0,0"/>
         </DockPanel>
     </Viewbox>
 </UserControl>

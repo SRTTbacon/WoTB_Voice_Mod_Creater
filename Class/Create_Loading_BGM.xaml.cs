@@ -850,7 +850,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         //再生終了位置を指定
         private void End_B_Click(object sender, RoutedEventArgs e)
         {
-            if (IsClosing || IsBusy)
+            if (IsClosing || IsBusy || BGM_Type_L.SelectedIndex == -1 || BGM_Music_L.SelectedIndex == -1)
                 return;
             Music_Play_Times[BGM_Type_L.SelectedIndex][BGM_Music_L.SelectedIndex].End_Time = Position_S.Value;
             if (Music_Play_Times[BGM_Type_L.SelectedIndex][BGM_Music_L.SelectedIndex].End_Time < Music_Play_Times[BGM_Type_L.SelectedIndex][BGM_Music_L.SelectedIndex].Start_Time)
@@ -863,7 +863,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         //開始位置、終了位置を初期化
         private void Time_Clear_B_Click(object sender, RoutedEventArgs e)
         {
-            if (IsClosing || IsBusy)
+            if (IsClosing || IsBusy || BGM_Type_L.SelectedIndex == -1 || BGM_Music_L.SelectedIndex == -1)
                 return;
             Music_Play_Times[BGM_Type_L.SelectedIndex][BGM_Music_L.SelectedIndex].Start_Time = 0;
             Music_Play_Times[BGM_Type_L.SelectedIndex][BGM_Music_L.SelectedIndex].End_Time = 0;

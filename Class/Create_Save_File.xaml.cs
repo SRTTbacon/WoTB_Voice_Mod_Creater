@@ -12,6 +12,7 @@ namespace WoTB_Voice_Mod_Creater.Class
     public partial class Create_Save_File : UserControl
     {
         string Selected_File = "";
+        bool IsPCKMode = false;
         int Max_Stream_Count = 0;
         int Now_Stream_Count = 0;
         bool IsMessageShowing = false;
@@ -91,6 +92,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 {
                     IsBusy = true;
                     string Ex = Path.GetExtension(ofd.FileName);
+                    string PCK_Path = Path.GetDirectoryName(ofd.FileName) + "\\" + Path.GetFileNameWithoutExtension(ofd.FileName) + ".pck";
                     if (Ex == ".fsb")
                     {
                         Message_T.Text = ".fsbファイルを解析しています...";
@@ -139,6 +141,18 @@ namespace WoTB_Voice_Mod_Creater.Class
                         {
                             Sub_Code.Error_Log_Write(e1.Message);
                         }
+                        if (PCK_Mode_C.IsChecked.Value)
+                        {
+                            if (!File.Exists(PCK_Path))
+                            {
+                                Message_Feed_Out("PCKファイルが見つかりませんでした。");
+                                IsBusy = false;
+                                return;
+                            }
+                            IsPCKMode = true;
+                        }
+                        else
+                            IsPCKMode = false;
                         int BNK_Mode = 0;
                         Wwise_Class.BNK_Parse p = new Wwise_Class.BNK_Parse(ofd.FileName);
                         if (p.IsVoiceFile(true))
@@ -200,6 +214,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                             IsBusy = false;
                             return;
                         }
+                        Max_Stream_Count = p.Get_File_Count();
                         p.Clear();
                         Voices_L.Items.Clear();
                         Now_Stream_Count = 0;
@@ -208,11 +223,10 @@ namespace WoTB_Voice_Mod_Creater.Class
                             Now_Stream_Count += BNK_FSB_Voices[Number].Count;
                             Voices_L.Items.Add(Voice_Set.Get_Voice_Type_Japanese_Name_V2(Number) + " : " + BNK_FSB_Voices[Number].Count + "個");
                         }
-                        Wwise_File_Extract_V2 Wwise_BNK = new Wwise_File_Extract_V2(ofd.FileName);
-                        Max_Stream_Count = Wwise_BNK.Wwise_Get_Numbers();
-                        Wwise_BNK.Bank_Clear();
                     }
                     Message_Feed_Out("解析が完了しました。");
+                    if (IsPCKMode)
+                        Selected_File = PCK_Path;
                     Selected_File = ofd.FileName;
                     File_Name_T.Text = "ファイル名:" + Path.GetFileName(ofd.FileName);
                 }
@@ -287,9 +301,19 @@ namespace WoTB_Voice_Mod_Creater.Class
                     {
                         Message_T.Text = ".wavまたは.oggに変換しています...";
                         await Task.Delay(50);
-                        Wwise_File_Extract_V2 Wwise_BNK = new Wwise_File_Extract_V2(Selected_File);
-                        Wwise_BNK.Wwise_Extract_To_WEM_Directory_V2(Voice_Set.Local_Path + "/Projects/" + Project_Name_T.Text + "/All_Voices");
-                        Wwise_BNK.Bank_Clear();
+                        if (IsPCKMode)
+                        {
+                            Wwise_File_Extract_V1 Wwise_PCK = new Wwise_File_Extract_V1(Selected_File);
+                            await Wwise_PCK.Async_Wwise_Extract_To_WEM_Directory(Voice_Set.Local_Path + "/Projects/" + Project_Name_T.Text + "/All_Voices");
+                            await Wwise_PCK.Async_Wwise_Extract_To_OGG_Directory(Voice_Set.Local_Path + "/Projects/" + Project_Name_T.Text + "/All_Voices");
+                            Wwise_PCK.Pck_Clear();
+                        }
+                        else
+                        {
+                            Wwise_File_Extract_V2 Wwise_BNK = new Wwise_File_Extract_V2(Selected_File);
+                            Wwise_BNK.Wwise_Extract_To_WEM_Directory_V2(Voice_Set.Local_Path + "/Projects/" + Project_Name_T.Text + "/All_Voices");
+                            Wwise_BNK.Bank_Clear();
+                        }
                         Message_T.Text = "不要な音声ファイルを削除しています...";
                         await Task.Delay(50);
                         string[] All_Files = Directory.GetFiles(Voice_Set.Local_Path + "/Projects/" + Project_Name_T.Text + "/All_Voices", "*", SearchOption.TopDirectoryOnly);
@@ -344,6 +368,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 BNK_FSB_Voices.Clear();
                 Need_Files.Clear();
                 Voices_L.Items.Clear();
+                IsPCKMode = false;
                 Voices_L.Items.Add("音声ファイルが選択されていません。");
                 File_Name_T.Text = "ファイル名:未選択";
                 Message_Feed_Out("内容をクリアしました。");

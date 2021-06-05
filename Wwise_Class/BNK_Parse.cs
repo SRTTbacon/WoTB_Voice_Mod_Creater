@@ -72,7 +72,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                     ID_Line_Tmp.Add((Read_All.Count - 1).ToString());
                     ID_Line_Tmp.Add(strValue2);
                     ID_Line.Add(ID_Line_Tmp);
-                    if (strValue2 == "CAkRanSeqCntr" || strValue2 == "CAkSwitchCntr" || strValue2 == "CAkSound" || strValue2 == "CAkLayerCntr")
+                    if (strValue2 == "CAkRanSeqCntr" || strValue2 == "CAkSwitchCntr" || strValue2 == "CAkSound" || strValue2 == "CAkLayerCntr" || strValue2 == "CAkActorMixer")
                     {
                         while ((line = file.ReadLine()) != null)
                         {
@@ -165,6 +165,17 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             WoT_Event_ID[37].Add(85617264);
             WoT_Event_ID[38].Add(790147034);
             WoT_Event_ID[39].Add(2594173436);
+        }
+        //bnkファイル内のCAkSoundの数を取得
+        public int Get_File_Count()
+        {
+            int Count = 0;
+            for (int Number = 0; Number < ID_Line.Count; Number++)
+            {
+                if (ID_Line[Number][2] == "CAkSound")
+                    Count++;
+            }
+            return Count;
         }
         //選択されているbnkファイルが音声データかを調べる
         public bool IsVoiceFile(bool IsBlitzMode = false)
@@ -311,6 +322,8 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                     Number_01 = Number;
                 }
             }
+            if (Number_01 == -1)
+                return new List<string>();
             int Number_02 = int.Parse(ID_Line[Number_01][1]);
             //Playイベントではない場合飛ばす(0x0403がPlayイベント)
             if (!Read_All[Number_02 + 1].Contains("0x0403"))

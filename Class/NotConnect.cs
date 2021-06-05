@@ -59,7 +59,7 @@ namespace WoTB_Voice_Mod_Creater
                 }
                 else
                 {
-                    Message_T.Text = "ログイン(アカウント登録)をすると追加機能が利用できます。";
+                    Message_T.Text = "ログイン(アカウント登録)をすると機能が有効化されます。";
                     Connect_B.Visibility = Visibility.Hidden;
                     User_Name_Text.Visibility = Visibility.Visible;
                     User_Name_T.Visibility = Visibility.Visible;
@@ -67,7 +67,7 @@ namespace WoTB_Voice_Mod_Creater
                     User_Password_T.Visibility = Visibility.Visible;
                     User_Login_B.Visibility = Visibility.Visible;
                     User_Register_B.Visibility = Visibility.Visible;
-                    Voice_Create_Tool_B.Visibility = Visibility.Visible;
+                    Voice_Create_Tool_B.Visibility = Visibility.Hidden;
                     Voice_Create_V2_B.Visibility = Visibility.Visible;
                     Update_B.Visibility = Visibility.Visible;
                 }

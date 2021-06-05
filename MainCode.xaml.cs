@@ -10,6 +10,7 @@ using System.Security.Authentication;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Documents;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using WK.Libraries.BetterFolderBrowserNS;
@@ -48,7 +49,7 @@ public class SRTTbacon_Server
     public const string IP_Global = "非公開";
     public const string Name = "非公開";
     public const string Password = "非公開";
-    public const string Version = "1.3.8";
+    public const string Version = "1.3.9";
     public const int Port = -1;
     public static bool IsSRTTbaconOwnerMode = false;
     public static string IP = "";
@@ -67,6 +68,7 @@ namespace WoTB_Voice_Mod_Creater
         //管理者チャットは管理者(SRTTbacon)と個人チャットする用(主にバグ報告かな？)
         int Chat_Mode = 0;
         readonly List<string> Server_Names_List = new List<string>();
+        BrushConverter bc = new BrushConverter();
         public MainCode()
         {
             try
@@ -162,20 +164,14 @@ namespace WoTB_Voice_Mod_Creater
                 else
                 {
                     SRTTbacon_Server.IP = SRTTbacon_Server.IP_Global;
-                    ConnectType = FtpDataConnectionType.PASV;
+                    ConnectType = FtpDataConnectionType.AutoActive;
                 }
                 //一時ファイルの保存先を変更している場合それを適応
                 if (File.Exists(Path + "/TempDirPath.dat"))
                 {
                     try
                     {
-                        using (var eifs = new FileStream(Path + "/TempDirPath.dat", FileMode.Open, FileAccess.Read))
-                        {
-                            using (var eofs = new FileStream(Path + "/Temp.dat", FileMode.Create, FileAccess.Write))
-                            {
-                                FileEncode.FileEncryptor.Decrypt(eifs, eofs, "Temp_Directory_Path_Pass");
-                            }
-                        }
+                        Sub_Code.File_Decrypt(Path + "/TempDirPath.dat", Path + "/Temp.dat", "Temp_Directory_Path_Pass", false);
                         StreamReader str = new StreamReader(Path + "/Temp.dat");
                         string Read = str.ReadLine();
                         str.Close();
@@ -216,7 +212,6 @@ namespace WoTB_Voice_Mod_Creater
                     Sub_Code.Error_Log_Write(e.Message);
                 }
                 Server_Connect();
-                BrushConverter bc = new BrushConverter();
                 Chat_Mode_Public_B.Background = Brushes.Transparent;
                 Chat_Mode_Server_B.Background = Brushes.Transparent;
                 Chat_Mode_Private_B.Background = (Brush)bc.ConvertFrom("#59999999");
@@ -233,13 +228,7 @@ namespace WoTB_Voice_Mod_Creater
                 {
                     try
                     {
-                        using (var eifs = new FileStream(Path + "/WoTB_Path.dat", FileMode.Open, FileAccess.Read))
-                        {
-                            using (var eofs = new FileStream(Voice_Set.Special_Path + "/Temp_WoTB_Path.dat", FileMode.Create, FileAccess.Write))
-                            {
-                                FileEncode.FileEncryptor.Decrypt(eifs, eofs, "WoTB_Directory_Path_Pass");
-                            }
-                        }
+                        Sub_Code.File_Decrypt(Path + "/WoTB_Path.dat", Voice_Set.Special_Path + "/Temp_WoTB_Path.dat", "WoTB_Directory_Path_Pass", false);
                         StreamReader str = new StreamReader(Voice_Set.Special_Path + "/Temp_WoTB_Path.dat");
                         string Read = str.ReadLine();
                         str.Close();
@@ -327,26 +316,6 @@ namespace WoTB_Voice_Mod_Creater
                         Sub_Code.Error_Log_Write(e.Message);
                     }
                 }
-                /*Wwise_Class.BNK_Parse bnk = new Wwise_Class.BNK_Parse();
-                bnk.Get_Event_ID_From_XML(Voice_Set.Special_Path + "/WoT/WoT_Mod/audio_mods.xml");
-                List<List<uint>> Get_Events = bnk.Get_Event_ID();
-                foreach (List<uint> Get_Event_IDs in Get_Events)
-                {
-                    foreach (uint ID_Only in Get_Event_IDs)
-                        MessageBox.Show("イベントID:" + ID_Only);
-                }
-                Wwise_Class.BNK_Parse p = new Wwise_Class.BNK_Parse(Voice_Set.Special_Path + "/voiceover.xml");
-                List<List<string>> Temp = p.Get_Voices();
-                StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Test.txt");
-                for (int Number = 0; Number < Temp.Count; Number++)
-                {
-                    stw.WriteLine(Voice_Set.Get_Voice_Type_Japanese_Name_V2(Number));
-                    foreach (string Source_ID in Temp[Number])
-                    {
-                        stw.WriteLine("    " + Source_ID);
-                    }
-                }
-                stw.Close();*/
                 //Android_Class a = new Android_Class();
                 //a.Upload_File(Voice_Set.Special_Path + "/Test_02/load_bgm_01.wav", "/Download");
                 //a.Download_File("内部ストレージ/Download/コネクト.mp3", Voice_Set.Special_Path + "/コネクト.mp3", true);
@@ -410,221 +379,192 @@ namespace WoTB_Voice_Mod_Creater
             {
                 return;
             }
-            Load_Data_Window.Window_Start("必要なデータをダウンロードしています");
-            bool IsOK_00 = true;
-            bool IsOK_01 = true;
-            bool IsOK_02 = true;
-            bool IsOK_03 = true;
-            bool IsOK_04 = true;
-            bool IsOK_05 = true;
-            bool IsOK_06 = true;
-            bool IsOK_07 = true;
-            bool IsOK_08 = true;
-            Download_Data_File.Download_Total_Size = 0;
-            Task task = Task.Run(async() =>
+            try
             {
-                if (!File.Exists(Voice_Set.Special_Path + "/Loading/148.png"))
+                Load_Data_Window.Window_Start("必要なデータをダウンロードしています");
+                bool IsOK_00 = true;
+                bool IsOK_01 = true;
+                bool IsOK_02 = true;
+                bool IsOK_03 = true;
+                bool IsOK_04 = true;
+                bool IsOK_05 = true;
+                bool IsOK_06 = true;
+                bool IsOK_07 = true;
+                bool IsOK_08 = true;
+                Download_Data_File.Download_Total_Size = 0;
+                Task task = Task.Run(async () =>
                 {
-                    string Loading_Path = Voice_Set.Special_Path + "/Loading.dat";
-                    IsOK_00 = false;
-                    Download_Data_File.Download_File_Path.Add(Loading_Path);
-                    Download_Data_File.Download_Total_Size += Voice_Set.FTP_Server.GetFileSize("/WoTB_Voice_Mod/Update/Data/Loading.zip");
-                    Task task_02 = Task.Run(() =>
+                    if (!File.Exists(Voice_Set.Special_Path + "/Loading/148.png"))
                     {
-                        Task task_01 = Task.Run(() =>
+                        string Loading_Path = Voice_Set.Special_Path + "/Loading.dat";
+                        IsOK_00 = false;
+                        Download_Data_File.Download_File_Path.Add(Loading_Path);
+                        Download_Data_File.Download_Total_Size += Voice_Set.FTP_Server.GetFileSize("/WoTB_Voice_Mod/Update/Data/Loading.zip");
+                        Task task_02 = Task.Run(() =>
                         {
+                            Task task_01 = Task.Run(() =>
+                            {
                             //DVPL.DVPL_Unpack_Extract();
                             FluentFTP.FtpClient ftp1 = new FtpClient(SRTTbacon_Server.IP)
-                            {
-                                Credentials = new NetworkCredential(SRTTbacon_Server.Name, SRTTbacon_Server.Password),
-                                SocketKeepAlive = false,
-                                DataConnectionType = ConnectType,
-                                SslProtocols = SslProtocols.Tls,
-                                ConnectTimeout = 1000,
-                            };
-                            ftp1.ValidateCertificate += new FtpSslValidation(OnValidateCertificate);
-                            ftp1.Connect();
-                            ftp1.DownloadFile(Loading_Path, "/WoTB_Voice_Mod/Update/Data/Loading.zip");
-                            ftp1.Disconnect();
-                            ftp1.Dispose();
+                                {
+                                    Credentials = new NetworkCredential(SRTTbacon_Server.Name, SRTTbacon_Server.Password),
+                                    SocketKeepAlive = false,
+                                    DataConnectionType = ConnectType,
+                                    SslProtocols = SslProtocols.Tls,
+                                    ConnectTimeout = 1000,
+                                };
+                                ftp1.ValidateCertificate += new FtpSslValidation(OnValidateCertificate);
+                                ftp1.Connect();
+                                ftp1.DownloadFile(Loading_Path, "/WoTB_Voice_Mod/Update/Data/Loading.zip");
+                                ftp1.Disconnect();
+                                ftp1.Dispose();
+                            });
+                            task_01.Wait();
+                            ZipFile.ExtractToDirectory(Loading_Path, System.IO.Path.GetDirectoryName(Loading_Path) + "\\" + System.IO.Path.GetFileNameWithoutExtension(Loading_Path));
+                            IsOK_00 = true;
                         });
-                        task_01.Wait();
-                        ZipFile.ExtractToDirectory(Loading_Path, System.IO.Path.GetDirectoryName(Loading_Path) + "\\" + System.IO.Path.GetFileNameWithoutExtension(Loading_Path));
-                        IsOK_00 = true;
-                    });
-                }
-                await Task.Delay(10);
-                if (!File.Exists(Voice_Set.Special_Path + "/DVPL/DVPL_Convert.exe"))
-                {
-                    IsOK_01 = false;
-                    Download_Data_File.Download_File_Path.Add(Voice_Set.Special_Path + "/DVPL.dat");
-                    Download_Data_File.Download_Total_Size += Voice_Set.FTP_Server.GetFileSize("/WoTB_Voice_Mod/Update/Data/DVPL.zip");
-                    Task task_02 = Task.Run(() =>
+                    }
+                    await Task.Delay(10);
+                    if (!File.Exists(Voice_Set.Special_Path + "/DVPL/DVPL_Convert.exe"))
                     {
-                        Task task_01 = Task.Run(() =>
+                        IsOK_01 = false;
+                        Download_Data_File.Download_File_Path.Add(Voice_Set.Special_Path + "/DVPL.dat");
+                        Download_Data_File.Download_Total_Size += Voice_Set.FTP_Server.GetFileSize("/WoTB_Voice_Mod/Update/Data/DVPL.zip");
+                        Task task_02 = Task.Run(() =>
                         {
+                            Task task_01 = Task.Run(() =>
+                            {
                             //DVPL.DVPL_Unpack_Extract();
                             FluentFTP.FtpClient ftp1 = new FtpClient(SRTTbacon_Server.IP)
-                            {
-                                Credentials = new NetworkCredential(SRTTbacon_Server.Name, SRTTbacon_Server.Password),
-                                SocketKeepAlive = false,
-                                DataConnectionType = ConnectType,
-                                SslProtocols = SslProtocols.Tls,
-                                ConnectTimeout = 1000,
-                            };
-                            ftp1.ValidateCertificate += new FtpSslValidation(OnValidateCertificate);
-                            ftp1.Connect();
-                            ftp1.DownloadFile(Voice_Set.Special_Path + "/DVPL.dat", "/WoTB_Voice_Mod/Update/Data/DVPL.zip");
-                            ftp1.Disconnect();
-                            ftp1.Dispose();
+                                {
+                                    Credentials = new NetworkCredential(SRTTbacon_Server.Name, SRTTbacon_Server.Password),
+                                    SocketKeepAlive = false,
+                                    DataConnectionType = ConnectType,
+                                    SslProtocols = SslProtocols.Tls,
+                                    ConnectTimeout = 1000,
+                                };
+                                ftp1.ValidateCertificate += new FtpSslValidation(OnValidateCertificate);
+                                ftp1.Connect();
+                                ftp1.DownloadFile(Voice_Set.Special_Path + "/DVPL.dat", "/WoTB_Voice_Mod/Update/Data/DVPL.zip");
+                                ftp1.Disconnect();
+                                ftp1.Dispose();
+                            });
+                            task_01.Wait();
+                            IsOK_01 = true;
                         });
-                        task_01.Wait();
-                        IsOK_01 = true;
-                    });
-                }
-                if (!File.Exists(Voice_Set.Special_Path + "/Encode_Mp3/ffmpeg.exe"))
-                {
-                    IsOK_02 = false;
-                    Download_Data_File.Download_File_Path.Add(Voice_Set.Special_Path + "/Encode_Mp3.dat");
-                    Download_Data_File.Download_Total_Size += Voice_Set.FTP_Server.GetFileSize("/WoTB_Voice_Mod/Update/Data/Encode_Mp3.zip");
-                    Task task_02 = Task.Run(() =>
+                    }
+                    if (!File.Exists(Voice_Set.Special_Path + "/Encode_Mp3/ffmpeg.exe"))
                     {
-                        Task task_01 = Task.Run(() =>
+                        IsOK_02 = false;
+                        Download_Data_File.Download_File_Path.Add(Voice_Set.Special_Path + "/Encode_Mp3.dat");
+                        Download_Data_File.Download_Total_Size += Voice_Set.FTP_Server.GetFileSize("/WoTB_Voice_Mod/Update/Data/Encode_Mp3.zip");
+                        Task task_02 = Task.Run(() =>
                         {
+                            Task task_01 = Task.Run(() =>
+                            {
                             //DVPL.Encode_Mp3_Extract();
                             FluentFTP.FtpClient ftp1 = new FtpClient(SRTTbacon_Server.IP)
-                            {
-                                Credentials = new NetworkCredential(SRTTbacon_Server.Name, SRTTbacon_Server.Password),
-                                SocketKeepAlive = false,
-                                DataConnectionType = ConnectType,
-                                SslProtocols = SslProtocols.Tls,
-                                ConnectTimeout = 1000,
-                            };
-                            ftp1.ValidateCertificate += new FtpSslValidation(OnValidateCertificate);
-                            ftp1.Connect();
-                            ftp1.DownloadFile(Voice_Set.Special_Path + "/Encode_Mp3.dat", "/WoTB_Voice_Mod/Update/Data/Encode_Mp3.zip");
-                            ftp1.Disconnect();
-                            ftp1.Dispose();
+                                {
+                                    Credentials = new NetworkCredential(SRTTbacon_Server.Name, SRTTbacon_Server.Password),
+                                    SocketKeepAlive = false,
+                                    DataConnectionType = ConnectType,
+                                    SslProtocols = SslProtocols.Tls,
+                                    ConnectTimeout = 1000,
+                                };
+                                ftp1.ValidateCertificate += new FtpSslValidation(OnValidateCertificate);
+                                ftp1.Connect();
+                                ftp1.DownloadFile(Voice_Set.Special_Path + "/Encode_Mp3.dat", "/WoTB_Voice_Mod/Update/Data/Encode_Mp3.zip");
+                                ftp1.Disconnect();
+                                ftp1.Dispose();
+                            });
+                            task_01.Wait();
+                            IsOK_02 = true;
                         });
-                        task_01.Wait();
-                        IsOK_02 = true;
-                    });
-                }
-                else if (!File.Exists(Voice_Set.Special_Path + "/Encode_Mp3/lame.exe"))
-                {
-                    IsOK_08 = false;
-                    Download_Data_File.Download_Total_Size += Voice_Set.FTP_Server.GetFileSize("/WoTB_Voice_Mod/Update/Data/lame.exe");
-                    Task task_02 = Task.Run(() =>
+                    }
+                    else if (!File.Exists(Voice_Set.Special_Path + "/Encode_Mp3/lame.exe"))
                     {
-                        Task task_01 = Task.Run(() =>
+                        IsOK_08 = false;
+                        Download_Data_File.Download_Total_Size += Voice_Set.FTP_Server.GetFileSize("/WoTB_Voice_Mod/Update/Data/lame.exe");
+                        Task task_02 = Task.Run(() =>
                         {
+                            Task task_01 = Task.Run(() =>
+                            {
                             //DVPL.Encode_Mp3_Extract();
                             FluentFTP.FtpClient ftp1 = new FtpClient(SRTTbacon_Server.IP)
-                            {
-                                Credentials = new NetworkCredential(SRTTbacon_Server.Name, SRTTbacon_Server.Password),
-                                SocketKeepAlive = false,
-                                DataConnectionType = ConnectType,
-                                SslProtocols = SslProtocols.Tls,
-                                ConnectTimeout = 1000,
-                            };
-                            ftp1.ValidateCertificate += new FtpSslValidation(OnValidateCertificate);
-                            ftp1.Connect();
-                            ftp1.DownloadFile(Voice_Set.Special_Path + "/Encode_Mp3/lame.exe", "/WoTB_Voice_Mod/Update/Data/lame.exe");
-                            ftp1.Disconnect();
-                            ftp1.Dispose();
+                                {
+                                    Credentials = new NetworkCredential(SRTTbacon_Server.Name, SRTTbacon_Server.Password),
+                                    SocketKeepAlive = false,
+                                    DataConnectionType = ConnectType,
+                                    SslProtocols = SslProtocols.Tls,
+                                    ConnectTimeout = 1000,
+                                };
+                                ftp1.ValidateCertificate += new FtpSslValidation(OnValidateCertificate);
+                                ftp1.Connect();
+                                ftp1.DownloadFile(Voice_Set.Special_Path + "/Encode_Mp3/lame.exe", "/WoTB_Voice_Mod/Update/Data/lame.exe");
+                                ftp1.Disconnect();
+                                ftp1.Dispose();
+                            });
+                            task_01.Wait();
+                            IsOK_08 = true;
                         });
-                        task_01.Wait();
-                        IsOK_08 = true;
-                    });
-                }
-                if (!File.Exists(Voice_Set.Special_Path + "/Fmod_Designer/Fmod_designer.exe"))
-                {
-                    IsOK_03 = false;
-                    Download_Data_File.Download_File_Path.Add(Voice_Set.Special_Path + "/Fmod_Designer.dat");
-                    Download_Data_File.Download_Total_Size += Voice_Set.FTP_Server.GetFileSize("/WoTB_Voice_Mod/Update/Data/Fmod_Designer.zip");
-                    Task task_02 = Task.Run(() =>
+                    }
+                    if (!File.Exists(Voice_Set.Special_Path + "/Fmod_Designer/Fmod_designer.exe"))
                     {
-                        Task task_01 = Task.Run(() =>
+                        IsOK_03 = false;
+                        Download_Data_File.Download_File_Path.Add(Voice_Set.Special_Path + "/Fmod_Designer.dat");
+                        Download_Data_File.Download_Total_Size += Voice_Set.FTP_Server.GetFileSize("/WoTB_Voice_Mod/Update/Data/Fmod_Designer.zip");
+                        Task task_02 = Task.Run(() =>
                         {
+                            Task task_01 = Task.Run(() =>
+                            {
                             //DVPL.Fmod_Designer_Extract();
                             FluentFTP.FtpClient ftp1 = new FtpClient(SRTTbacon_Server.IP)
-                            {
-                                Credentials = new NetworkCredential(SRTTbacon_Server.Name, SRTTbacon_Server.Password),
-                                SocketKeepAlive = false,
-                                DataConnectionType = ConnectType,
-                                SslProtocols = SslProtocols.Tls,
-                                ConnectTimeout = 1000,
-                            };
-                            ftp1.ValidateCertificate += new FtpSslValidation(OnValidateCertificate);
-                            ftp1.Connect();
-                            ftp1.DownloadFile(Voice_Set.Special_Path + "/Fmod_Designer.dat", "/WoTB_Voice_Mod/Update/Data/Fmod_Designer.zip");
-                            ftp1.Disconnect();
-                            ftp1.Dispose();
+                                {
+                                    Credentials = new NetworkCredential(SRTTbacon_Server.Name, SRTTbacon_Server.Password),
+                                    SocketKeepAlive = false,
+                                    DataConnectionType = ConnectType,
+                                    SslProtocols = SslProtocols.Tls,
+                                    ConnectTimeout = 1000,
+                                };
+                                ftp1.ValidateCertificate += new FtpSslValidation(OnValidateCertificate);
+                                ftp1.Connect();
+                                ftp1.DownloadFile(Voice_Set.Special_Path + "/Fmod_Designer.dat", "/WoTB_Voice_Mod/Update/Data/Fmod_Designer.zip");
+                                ftp1.Disconnect();
+                                ftp1.Dispose();
+                            });
+                            task_01.Wait();
+                            IsOK_03 = true;
                         });
-                        task_01.Wait();
-                        IsOK_03 = true;
-                    });
-                }
-                if (!File.Exists(Voice_Set.Special_Path + "/SE/Capture_End_01.wav"))
-                {
-                    IsOK_04 = false;
-                    Download_Data_File.Download_File_Path.Add(Voice_Set.Special_Path + "/SE.dat");
-                    Download_Data_File.Download_Total_Size += Voice_Set.FTP_Server.GetFileSize("/WoTB_Voice_Mod/Update/Data/SE.zip");
-                    Task task_02 = Task.Run(() =>
+                    }
+                    if (!File.Exists(Voice_Set.Special_Path + "/SE/Capture_End_01.wav"))
                     {
-                        Task task_01 = Task.Run(() =>
+                        IsOK_04 = false;
+                        Download_Data_File.Download_File_Path.Add(Voice_Set.Special_Path + "/SE.dat");
+                        Download_Data_File.Download_Total_Size += Voice_Set.FTP_Server.GetFileSize("/WoTB_Voice_Mod/Update/Data/SE.zip");
+                        Task task_02 = Task.Run(() =>
                         {
+                            Task task_01 = Task.Run(() =>
+                            {
                             //DVPL.SE_Extract();
                             FluentFTP.FtpClient ftp1 = new FtpClient(SRTTbacon_Server.IP)
-                            {
-                                Credentials = new NetworkCredential(SRTTbacon_Server.Name, SRTTbacon_Server.Password),
-                                SocketKeepAlive = false,
-                                DataConnectionType = ConnectType,
-                                SslProtocols = SslProtocols.Tls,
-                                ConnectTimeout = 1000,
-                            };
-                            ftp1.ValidateCertificate += new FtpSslValidation(OnValidateCertificate);
-                            ftp1.Connect();
-                            ftp1.DownloadFile(Voice_Set.Special_Path + "/SE.dat", "/WoTB_Voice_Mod/Update/Data/SE.zip");
-                            ftp1.Disconnect();
-                            ftp1.Dispose();
+                                {
+                                    Credentials = new NetworkCredential(SRTTbacon_Server.Name, SRTTbacon_Server.Password),
+                                    SocketKeepAlive = false,
+                                    DataConnectionType = ConnectType,
+                                    SslProtocols = SslProtocols.Tls,
+                                    ConnectTimeout = 1000,
+                                };
+                                ftp1.ValidateCertificate += new FtpSslValidation(OnValidateCertificate);
+                                ftp1.Connect();
+                                ftp1.DownloadFile(Voice_Set.Special_Path + "/SE.dat", "/WoTB_Voice_Mod/Update/Data/SE.zip");
+                                ftp1.Disconnect();
+                                ftp1.Dispose();
+                            });
+                            task_01.Wait();
+                            IsOK_04 = true;
                         });
-                        task_01.Wait();
-                        IsOK_04 = true;
-                    });
-                }
-                if (!File.Exists(Voice_Set.Special_Path + "/Fmod_Android_Create/Fmod_Android_Create.exe"))
-                {
-                    IsOK_05 = false;
-                    Download_Data_File.Download_File_Path.Add(Voice_Set.Special_Path + "/Fmod_Android_Create.dat");
-                    Download_Data_File.Download_Total_Size += Voice_Set.FTP_Server.GetFileSize("/WoTB_Voice_Mod/Update/Data/Fmod_Android_Create.zip");
-                    Task task_02 = Task.Run(() =>
-                    {
-                        Task task_01 = Task.Run(() =>
-                        {
-                            //DVPL.Fmod_Android_Create_Extract();
-                            FluentFTP.FtpClient ftp1 = new FtpClient(SRTTbacon_Server.IP)
-                            {
-                                Credentials = new NetworkCredential(SRTTbacon_Server.Name, SRTTbacon_Server.Password),
-                                SocketKeepAlive = false,
-                                DataConnectionType = ConnectType,
-                                SslProtocols = SslProtocols.Tls,
-                                ConnectTimeout = 1000,
-                            };
-                            ftp1.ValidateCertificate += new FtpSslValidation(OnValidateCertificate);
-                            ftp1.Connect();
-                            ftp1.DownloadFile(Voice_Set.Special_Path + "/Fmod_Android_Create.dat", "/WoTB_Voice_Mod/Update/Data/Fmod_Android_Create.zip");
-                            ftp1.Disconnect();
-                            ftp1.Dispose();
-                        });
-                        task_01.Wait();
-                        IsOK_05 = true;
-                    });
-                }
-                else
-                {
-                    FileInfo f = new FileInfo(Voice_Set.Special_Path + "/Fmod_Android_Create/Fmod_Android_Create.exe");
-                    if (f.Length != 1639936)
+                    }
+                    if (!File.Exists(Voice_Set.Special_Path + "/Fmod_Android_Create/Fmod_Android_Create.exe"))
                     {
                         IsOK_05 = false;
                         Download_Data_File.Download_File_Path.Add(Voice_Set.Special_Path + "/Fmod_Android_Create.dat");
@@ -633,8 +573,8 @@ namespace WoTB_Voice_Mod_Creater
                         {
                             Task task_01 = Task.Run(() =>
                             {
-                                //DVPL.Fmod_Android_Create_Extract();
-                                FluentFTP.FtpClient ftp1 = new FtpClient(SRTTbacon_Server.IP)
+                            //DVPL.Fmod_Android_Create_Extract();
+                            FluentFTP.FtpClient ftp1 = new FtpClient(SRTTbacon_Server.IP)
                                 {
                                     Credentials = new NetworkCredential(SRTTbacon_Server.Name, SRTTbacon_Server.Password),
                                     SocketKeepAlive = false,
@@ -652,101 +592,138 @@ namespace WoTB_Voice_Mod_Creater
                             IsOK_05 = true;
                         });
                     }
-                }
-                if (!File.Exists(Voice_Set.Special_Path + "/Wwise/x64/Release/bin/Wwise.exe"))
-                {
-                    IsOK_06 = false;
-                    Download_Data_File.Download_File_Path.Add(Voice_Set.Special_Path + "/Wwise.dat");
-                    Download_Data_File.Download_Total_Size += Voice_Set.FTP_Server.GetFileSize("/WoTB_Voice_Mod/Update/Data/Wwise.zip");
-                    Task task_02 = Task.Run(() =>
+                    else
                     {
-                        Task task_01 = Task.Run(() =>
+                        FileInfo f = new FileInfo(Voice_Set.Special_Path + "/Fmod_Android_Create/Fmod_Android_Create.exe");
+                        if (f.Length != 1639936)
                         {
+                            IsOK_05 = false;
+                            Download_Data_File.Download_File_Path.Add(Voice_Set.Special_Path + "/Fmod_Android_Create.dat");
+                            Download_Data_File.Download_Total_Size += Voice_Set.FTP_Server.GetFileSize("/WoTB_Voice_Mod/Update/Data/Fmod_Android_Create.zip");
+                            Task task_02 = Task.Run(() =>
+                            {
+                                Task task_01 = Task.Run(() =>
+                                {
+                                //DVPL.Fmod_Android_Create_Extract();
+                                FluentFTP.FtpClient ftp1 = new FtpClient(SRTTbacon_Server.IP)
+                                    {
+                                        Credentials = new NetworkCredential(SRTTbacon_Server.Name, SRTTbacon_Server.Password),
+                                        SocketKeepAlive = false,
+                                        DataConnectionType = ConnectType,
+                                        SslProtocols = SslProtocols.Tls,
+                                        ConnectTimeout = 1000,
+                                    };
+                                    ftp1.ValidateCertificate += new FtpSslValidation(OnValidateCertificate);
+                                    ftp1.Connect();
+                                    ftp1.DownloadFile(Voice_Set.Special_Path + "/Fmod_Android_Create.dat", "/WoTB_Voice_Mod/Update/Data/Fmod_Android_Create.zip");
+                                    ftp1.Disconnect();
+                                    ftp1.Dispose();
+                                });
+                                task_01.Wait();
+                                IsOK_05 = true;
+                            });
+                        }
+                    }
+                    if (!File.Exists(Voice_Set.Special_Path + "/Wwise/x64/Release/bin/Wwise.exe"))
+                    {
+                        IsOK_06 = false;
+                        Download_Data_File.Download_File_Path.Add(Voice_Set.Special_Path + "/Wwise.dat");
+                        Download_Data_File.Download_Total_Size += Voice_Set.FTP_Server.GetFileSize("/WoTB_Voice_Mod/Update/Data/Wwise.zip");
+                        Task task_02 = Task.Run(() =>
+                        {
+                            Task task_01 = Task.Run(() =>
+                            {
                             //DVPL.Wwise_Extract();
                             FluentFTP.FtpClient ftp1 = new FtpClient(SRTTbacon_Server.IP)
-                            {
-                                Credentials = new NetworkCredential(SRTTbacon_Server.Name, SRTTbacon_Server.Password),
-                                SocketKeepAlive = false,
-                                DataConnectionType = ConnectType,
-                                SslProtocols = SslProtocols.Tls,
-                                ConnectTimeout = 1000,
-                            };
-                            ftp1.ValidateCertificate += new FtpSslValidation(OnValidateCertificate);
-                            ftp1.Connect();
-                            ftp1.DownloadFile(Voice_Set.Special_Path + "/Wwise.dat", "/WoTB_Voice_Mod/Update/Data/Wwise.zip");
-                            ftp1.Disconnect();
-                            ftp1.Dispose();
+                                {
+                                    Credentials = new NetworkCredential(SRTTbacon_Server.Name, SRTTbacon_Server.Password),
+                                    SocketKeepAlive = false,
+                                    DataConnectionType = ConnectType,
+                                    SslProtocols = SslProtocols.Tls,
+                                    ConnectTimeout = 1000,
+                                };
+                                ftp1.ValidateCertificate += new FtpSslValidation(OnValidateCertificate);
+                                ftp1.Connect();
+                                ftp1.DownloadFile(Voice_Set.Special_Path + "/Wwise.dat", "/WoTB_Voice_Mod/Update/Data/Wwise.zip");
+                                ftp1.Disconnect();
+                                ftp1.Dispose();
+                            });
+                            task_01.Wait();
+                            IsOK_06 = true;
                         });
-                        task_01.Wait();
-                        IsOK_06 = true;
-                    });
-                }
-                if (!File.Exists(Voice_Set.Special_Path + "/Wwise_Parse/wwiser.pyz"))
-                {
-                    IsOK_07 = false;
-                    Download_Data_File.Download_File_Path.Add(Voice_Set.Special_Path + "/Wwise_Parse.dat");
-                    Download_Data_File.Download_Total_Size += Voice_Set.FTP_Server.GetFileSize("/WoTB_Voice_Mod/Update/Data/Wwise_Parse.zip");
-                    Task task_02 = Task.Run(() =>
-                    {
-                        Task task_01 = Task.Run(() =>
-                        {
-                            FluentFTP.FtpClient ftp1 = new FtpClient(SRTTbacon_Server.IP)
-                            {
-                                Credentials = new NetworkCredential(SRTTbacon_Server.Name, SRTTbacon_Server.Password),
-                                SocketKeepAlive = false,
-                                DataConnectionType = ConnectType,
-                                SslProtocols = SslProtocols.Tls,
-                                ConnectTimeout = 1000,
-                            };
-                            ftp1.ValidateCertificate += new FtpSslValidation(OnValidateCertificate);
-                            ftp1.Connect();
-                            ftp1.DownloadFile(Voice_Set.Special_Path + "/Wwise_Parse.dat", "/WoTB_Voice_Mod/Update/Data/Wwise_Parse.zip");
-                            ftp1.Disconnect();
-                            ftp1.Dispose();
-                        });
-                        task_01.Wait();
-                        IsOK_07 = true;
-                    });
-                }
-            });
-            await Task.Delay(100);
-            while (true)
-            {
-                if (IsOK_00 && IsOK_01 && IsOK_02 && IsOK_03 && IsOK_04 && IsOK_05 && IsOK_06 && IsOK_07 && IsOK_08)
-                {
-                    break;
-                }
-                await Task.Delay(100);
-            }
-            bool IsOK = false;
-            Task task_03 = Task.Run(() =>
-            {
-                foreach (string Extract_File_Now in Download_Data_File.Download_File_Path)
-                {
-                    if (System.IO.Path.GetFileNameWithoutExtension(Extract_File_Now) == "Loading")
-                    {
-                        File.Delete(Extract_File_Now);
-                        continue;
                     }
-                    ZipFile.ExtractToDirectory(Extract_File_Now, System.IO.Path.GetDirectoryName(Extract_File_Now) + "\\" + System.IO.Path.GetFileNameWithoutExtension(Extract_File_Now));
-                    File.Delete(Extract_File_Now);
-                }
-                IsOK = true;
-            });
-            while (!IsOK)
-            {
+                    if (!File.Exists(Voice_Set.Special_Path + "/Wwise_Parse/wwiser.pyz"))
+                    {
+                        IsOK_07 = false;
+                        Download_Data_File.Download_File_Path.Add(Voice_Set.Special_Path + "/Wwise_Parse.dat");
+                        Download_Data_File.Download_Total_Size += Voice_Set.FTP_Server.GetFileSize("/WoTB_Voice_Mod/Update/Data/Wwise_Parse.zip");
+                        Task task_02 = Task.Run(() =>
+                        {
+                            Task task_01 = Task.Run(() =>
+                            {
+                                FluentFTP.FtpClient ftp1 = new FtpClient(SRTTbacon_Server.IP)
+                                {
+                                    Credentials = new NetworkCredential(SRTTbacon_Server.Name, SRTTbacon_Server.Password),
+                                    SocketKeepAlive = false,
+                                    DataConnectionType = ConnectType,
+                                    SslProtocols = SslProtocols.Tls,
+                                    ConnectTimeout = 1000,
+                                };
+                                ftp1.ValidateCertificate += new FtpSslValidation(OnValidateCertificate);
+                                ftp1.Connect();
+                                ftp1.DownloadFile(Voice_Set.Special_Path + "/Wwise_Parse.dat", "/WoTB_Voice_Mod/Update/Data/Wwise_Parse.zip");
+                                ftp1.Disconnect();
+                                ftp1.Dispose();
+                            });
+                            task_01.Wait();
+                            IsOK_07 = true;
+                        });
+                    }
+                });
                 await Task.Delay(100);
+                while (true)
+                {
+                    if (IsOK_00 && IsOK_01 && IsOK_02 && IsOK_03 && IsOK_04 && IsOK_05 && IsOK_06 && IsOK_07 && IsOK_08)
+                    {
+                        break;
+                    }
+                    await Task.Delay(100);
+                }
+                bool IsOK = false;
+                Task task_03 = Task.Run(() =>
+                {
+                    foreach (string Extract_File_Now in Download_Data_File.Download_File_Path)
+                    {
+                        if (System.IO.Path.GetFileNameWithoutExtension(Extract_File_Now) == "Loading")
+                        {
+                            File.Delete(Extract_File_Now);
+                            continue;
+                        }
+                        ZipFile.ExtractToDirectory(Extract_File_Now, System.IO.Path.GetDirectoryName(Extract_File_Now) + "\\" + System.IO.Path.GetFileNameWithoutExtension(Extract_File_Now));
+                        File.Delete(Extract_File_Now);
+                    }
+                    IsOK = true;
+                });
+                while (!IsOK)
+                {
+                    await Task.Delay(100);
+                }
+                Download_Data_File.Download_File_Path.Clear();
+                Download_Data_File.Download_Total_Size = 0;
+                StreamReader str = new StreamReader(Voice_Set.FTP_Server.OpenRead("/WoTB_Voice_Mod/Update/Wwise/Version_01.txt"));
+                Sub_Code.IsWwise_Blitz_Update = str.ReadLine();
+                Sub_Code.IsWwise_Blitz_Actor_Update = str.ReadLine();
+                str.Close();
+                StreamReader str3 = new StreamReader(Voice_Set.FTP_Server.OpenRead("/WoTB_Voice_Mod/Update/Wwise/Version_02.txt"));
+                Sub_Code.IsWwise_WoT_Update = str3.ReadLine();
+                str3.Close();
+                Load_Data_Window.Window_Stop();
             }
-            Download_Data_File.Download_File_Path.Clear();
-            Download_Data_File.Download_Total_Size = 0;
-            StreamReader str = new StreamReader(Voice_Set.FTP_Server.OpenRead("/WoTB_Voice_Mod/Update/Wwise/Version_01.txt"));
-            Sub_Code.IsWwise_Blitz_Update = str.ReadLine();
-            Sub_Code.IsWwise_Blitz_Actor_Update = str.ReadLine();
-            str.Close();
-            StreamReader str3 = new StreamReader(Voice_Set.FTP_Server.OpenRead("/WoTB_Voice_Mod/Update/Wwise/Version_02.txt"));
-            Sub_Code.IsWwise_WoT_Update = str3.ReadLine();
-            str3.Close();
-            Load_Data_Window.Window_Stop();
+            catch (Exception e)
+            {
+                Sub_Code.Error_Log_Write(e.Message);
+                Message_Feed_Out("エラーが発生しました。");
+            }
         }
         void OnValidateCertificate(FtpClient control, FtpSslValidationEventArgs e)
         {
@@ -770,7 +747,8 @@ namespace WoTB_Voice_Mod_Creater
                             {
                                 Dispatcher.Invoke(() =>
                                 {
-                                    Chat_T.Text = Server_File.Server_Open_File("/WoTB_Voice_Mod/" + Voice_Set.SRTTbacon_Server_Name + "/Chat.dat");
+                                    Chat_T_Change("/WoTB_Voice_Mod/" + Voice_Set.SRTTbacon_Server_Name + "/Chat.dat");
+                                    //Chat_T.Text = Server_File.Server_Open_File("/WoTB_Voice_Mod/" + Voice_Set.SRTTbacon_Server_Name + "/Chat.dat");
                                     Chat_Scrool.ScrollToEnd();
                                 });
                             }
@@ -785,7 +763,8 @@ namespace WoTB_Voice_Mod_Creater
                             {
                                 Dispatcher.Invoke(() =>
                                 {
-                                    Chat_T.Text = Server_File.Server_Open_File("/WoTB_Voice_Mod/Chat.dat");
+                                    Chat_T_Change("/WoTB_Voice_Mod/Chat.dat");
+                                    //Chat_T.Text = Server_File.Server_Open_File("/WoTB_Voice_Mod/Chat.dat");
                                     Chat_Scrool.ScrollToEnd();
                                 });
                             }
@@ -796,7 +775,8 @@ namespace WoTB_Voice_Mod_Creater
                             {
                                 Dispatcher.Invoke(() =>
                                 {
-                                    Chat_T.Text = Server_File.Server_Open_File("/WoTB_Voice_Mod/Users/" + Voice_Set.UserName + "_Chat.dat");
+                                    Chat_T_Change("/WoTB_Voice_Mod/Users/" + Voice_Set.UserName + "_Chat.dat");
+                                    //Chat_T.Text = Server_File.Server_Open_File("/WoTB_Voice_Mod/Users/" + Voice_Set.UserName + "_Chat.dat");
                                     Chat_Scrool.ScrollToEnd();
                                 });
                             }
@@ -839,11 +819,11 @@ namespace WoTB_Voice_Mod_Creater
                         }
                     }
                     Directory.CreateDirectory(Voice_Set.Special_Path + "/Server");
-                    MessageBox.Show("キャッシュを削除しました。");
+                    MessageBox.Show("各画面の設定を削除しました。");
                 }
                 catch (Exception m)
                 {
-                    MessageBox.Show("キャッシュを削除できませんでした。ファイルが使用中でないか確認してください。\nエラー:" + m.Message);
+                    MessageBox.Show("設定を削除できませんでした。ファイルが使用中でないか確認してください。\nエラー:" + m.Message);
                     Sub_Code.Error_Log_Write(m.Message);
                 }
             }
@@ -858,14 +838,7 @@ namespace WoTB_Voice_Mod_Creater
                     StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Temp_User_Set.dat");
                     stw.WriteLine(User_Name_T.Text + ":" + User_Password_T.Text);
                     stw.Close();
-                    using (var eifs = new FileStream(Voice_Set.Special_Path + "/Temp_User_Set.dat", FileMode.Open, FileAccess.Read))
-                    {
-                        using (var eofs = new FileStream(Path + "/User.dat", FileMode.Create, FileAccess.Write))
-                        {
-                            FileEncode.FileEncryptor.Encrypt(eifs, eofs, "SRTTbacon_Server_User_Pass_Save");
-                        }
-                    }
-                    File.Delete(Voice_Set.Special_Path + "/Temp_User_Set.dat");
+                    Sub_Code.File_Encrypt(Voice_Set.Special_Path + "/Temp_User_Set.dat", Path + "/User.dat", "SRTTbacon_Server_User_Pass_Save", true);
                     if (Login())
                     {
                         Connectiong = true;
@@ -923,15 +896,8 @@ namespace WoTB_Voice_Mod_Creater
                 StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Temp_User_Set.dat");
                 stw.WriteLine(User_Name_T.Text + ":" + User_Password_T.Text);
                 stw.Close();
-                using (var eifs = new FileStream(Voice_Set.Special_Path + "/Temp_User_Set.dat", FileMode.Open, FileAccess.Read))
-                {
-                    using (var eofs = new FileStream(Path + "/User.dat", FileMode.Create, FileAccess.Write))
-                    {
-                        FileEncode.FileEncryptor.Encrypt(eifs, eofs, "SRTTbacon_Server_User_Pass_Save");
-                    }
-                }
+                Sub_Code.File_Encrypt(Voice_Set.Special_Path + "/Temp_User_Set.dat", Path + "/User.dat", "SRTTbacon_Server_User_Pass_Save", true);
                 File.Delete(Voice_Set.Special_Path + "/Temp_User_Chat.dat");
-                File.Delete(Voice_Set.Special_Path + "/Temp_User_Set.dat");
                 if (Login())
                 {
                     Connectiong = true;
@@ -947,7 +913,7 @@ namespace WoTB_Voice_Mod_Creater
         }
         private void Chat_Send_B_Click(object sender, RoutedEventArgs e)
         {
-            if (Chat_Send_T.Text == "")
+            if (Chat_Send_T.Text == "" || Chat_Send_T.Text == " " || Chat_Send_T.Text == "　")
             {
                 return;
             }
@@ -956,7 +922,7 @@ namespace WoTB_Voice_Mod_Creater
             {
                 return;
             }
-            if (Chat_Send_T.Text.CountOf("  ") >= 1)
+            if (Chat_Send_T.Text.CountOf("  ") >= 1 || Chat_Send_T.Text.CountOf("　　") >= 1)
             {
                 MessageBox.Show("スパム防止のため空白を2回連続で使用できません。");
                 return;
@@ -973,8 +939,8 @@ namespace WoTB_Voice_Mod_Creater
             }
             else if (Chat_Mode == 1)
             {
-                Voice_Set.AppendString("/WoTB_Voice_Mod/" + Voice_Set.SRTTbacon_Server_Name + "/Chat.dat", Encoding.UTF8.GetBytes(Voice_Set.UserName + ":" + Chat_Send_T.Text + "\n"));
-                Voice_Set.TCP_Server.WriteLine(Voice_Set.SRTTbacon_Server_Name + "|Chat|" + Voice_Set.UserName + ":" + Chat_Send_T.Text + '\0');
+                /*Voice_Set.AppendString("/WoTB_Voice_Mod/" + Voice_Set.SRTTbacon_Server_Name + "/Chat.dat", Encoding.UTF8.GetBytes(Voice_Set.UserName + ":" + Chat_Send_T.Text + "\n"));
+                Voice_Set.TCP_Server.WriteLine(Voice_Set.SRTTbacon_Server_Name + "|Chat|" + Voice_Set.UserName + ":" + Chat_Send_T.Text + '\0');*/
             }
             else if (Chat_Mode == 2)
             {
@@ -1001,7 +967,6 @@ namespace WoTB_Voice_Mod_Creater
             {
                 if (Mode_Number == 0)
                 {
-                    BrushConverter bc = new BrushConverter();
                     Chat_Mode = 0;
                     Chat_Mode_Public_B.Background = (Brush)bc.ConvertFrom("#59999999");
                     Chat_Mode_Server_B.Background = Brushes.Transparent;
@@ -1009,11 +974,12 @@ namespace WoTB_Voice_Mod_Creater
                     Chat_Mode_Public_B.BorderBrush = Brushes.Red;
                     Chat_Mode_Server_B.BorderBrush = Brushes.Transparent;
                     Chat_Mode_Private_B.BorderBrush = Brushes.Transparent;
-                    Chat_T.Text = Server_File.Server_Open_File("/WoTB_Voice_Mod/Chat.dat");
+                    Chat_T.Document.Blocks.Clear();
+                    Chat_T_Change("/WoTB_Voice_Mod/Chat.dat");
+                    //Chat_T.Text = Server_File.Server_Open_File("/WoTB_Voice_Mod/Chat.dat");
                 }
                 else if (Mode_Number == 1)
                 {
-                    BrushConverter bc = new BrushConverter();
                     Chat_Mode = 1;
                     Chat_Mode_Public_B.Background = Brushes.Transparent;
                     Chat_Mode_Server_B.Background = (Brush)bc.ConvertFrom("#59999999");
@@ -1021,12 +987,18 @@ namespace WoTB_Voice_Mod_Creater
                     Chat_Mode_Public_B.BorderBrush = Brushes.Transparent;
                     Chat_Mode_Server_B.BorderBrush = Brushes.Red;
                     Chat_Mode_Private_B.BorderBrush = Brushes.Transparent;
+                    Chat_T.Document.Blocks.Clear();
+                    Run myRun = new Run("---現在のバージョンでは使用できません。---");
+                    Paragraph myParagraph = new Paragraph();
+                    myParagraph.Background = Brushes.Transparent;
+                    myParagraph.Foreground = Brushes.White;
+                    myParagraph.Inlines.Add(myRun);
+                    Chat_T.Document.Blocks.Add(myParagraph);
                     //Chat_T.Text = Server_Open_File("/WoTB_Voice_Mod/" + Voice_Set.SRTTbacon_Server_Name + "/Chat.dat");
-                    Chat_T.Text = "---現在のバージョンでは使用できません。---";
+                    //Chat_T.Text = "---現在のバージョンでは使用できません。---";
                 }
                 else if (Mode_Number == 2)
                 {
-                    BrushConverter bc = new BrushConverter();
                     Chat_Mode = 2;
                     Chat_Mode_Public_B.Background = Brushes.Transparent;
                     Chat_Mode_Server_B.Background = Brushes.Transparent;
@@ -1034,9 +1006,28 @@ namespace WoTB_Voice_Mod_Creater
                     Chat_Mode_Public_B.BorderBrush = Brushes.Transparent;
                     Chat_Mode_Server_B.BorderBrush = Brushes.Transparent;
                     Chat_Mode_Private_B.BorderBrush = Brushes.Red;
-                    Chat_T.Text = Server_File.Server_Open_File("/WoTB_Voice_Mod/Users/" + Voice_Set.UserName + "_Chat.dat");
+                    Chat_T_Change("/WoTB_Voice_Mod/Users/" + Voice_Set.UserName + "_Chat.dat");
+                    //Chat_T.Text = Server_File.Server_Open_File("/WoTB_Voice_Mod/Users/" + Voice_Set.UserName + "_Chat.dat");
                 }
                 Chat_Scrool.ScrollToEnd();
+            }
+        }
+        //チャットを更新
+        void Chat_T_Change(string Chat_Server)
+        {
+            Chat_T.Document.Blocks.Clear();
+            int Number = 0;
+            foreach (string Text in Server_File.Server_Open_File_Line(Chat_Server))
+            {
+                Run myRun = new Run(Text);
+                Paragraph myParagraph = new Paragraph();
+                if (Number % 2 == 0)
+                    myParagraph.Background = Brushes.Transparent;
+                else
+                    myParagraph.Background = (Brush)bc.ConvertFrom("#55919191");
+                myParagraph.Inlines.Add(myRun);
+                Chat_T.Document.Blocks.Add(myParagraph);
+                Number++;
             }
         }
         async Task Loading_Show()
@@ -1190,7 +1181,7 @@ namespace WoTB_Voice_Mod_Creater
                         if (IsReboot)
                         {
                             StreamWriter stw = File.CreateText(Path + "/Update.bat");
-                            stw.WriteLine("timeout 1");
+                            stw.WriteLine("timeout 3");
                             stw.Write("\"" + Path + "/WoTB_Voice_Mod_Creater.exe\" /up " + Process.GetCurrentProcess().Id);
                             stw.Close();
                             ProcessStartInfo processStartInfo1 = new ProcessStartInfo
@@ -1292,14 +1283,7 @@ namespace WoTB_Voice_Mod_Creater
                 StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Temp_WoTB_Path.dat");
                 stw.Write(WoTB_Path);
                 stw.Close();
-                using (var eifs = new FileStream(Voice_Set.Special_Path + "/Temp_WoTB_Path.dat", FileMode.Open, FileAccess.Read))
-                {
-                    using (var eofs = new FileStream(Path + "/WoTB_Path.dat", FileMode.Create, FileAccess.Write))
-                    {
-                        FileEncode.FileEncryptor.Encrypt(eifs, eofs, "WoTB_Directory_Path_Pass");
-                    }
-                }
-                File.Delete(Voice_Set.Special_Path + "/Temp_WoTB_Path.dat");
+                Sub_Code.File_Encrypt(Voice_Set.Special_Path + "/Temp_WoTB_Path.dat", Path + "/WoTB_Path.dat", "WoTB_Directory_Path_Pass", true);
                 Voice_Set.WoTB_Path = WoTB_Path;
                 Message_Feed_Out("WoTBのフォルダを取得しました。");
                 WoTB_Select_B.Visibility = Visibility.Hidden;
@@ -1397,7 +1381,7 @@ namespace WoTB_Voice_Mod_Creater
         }
         private async void DockPanel_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
-            if (IsProcessing)
+            if (IsProcessing || Voice_Set.UserName == "")
             {
                 return;
             }
@@ -1526,42 +1510,28 @@ namespace WoTB_Voice_Mod_Creater
                         }
                         Message_T.Text = "一時フォルダの場所を変更しています...";
                         await Task.Delay(50);
-                        Sub_Code.Directory_Copy(Voice_Set.Special_Path, Dir);
-                        try
-                        {
-                            string[] Files = Directory.GetFiles(Voice_Set.Special_Path, "*", SearchOption.AllDirectories);
-                            foreach (string File_Name in Files)
-                            {
-                                try
-                                {
-                                    File.Delete(File_Name);
-                                    if (Directory.GetFiles(System.IO.Path.GetDirectoryName(File_Name), "*", SearchOption.TopDirectoryOnly).Length == 0)
-                                    {
-                                        Directory.Delete(System.IO.Path.GetDirectoryName(File_Name), true);
-                                    }
-                                }
-                                catch (Exception e1)
-                                {
-                                    Sub_Code.Error_Log_Write(e1.Message);
-                                }
-                            }
-                            Directory.Delete(Voice_Set.Special_Path, true);
-                        }
-                        catch (Exception e1)
-                        {
-                            Sub_Code.Error_Log_Write(e1.Message);
-                        }
+                        Sub_Code.Directory_Copy(Voice_Set.Special_Path + "/Configs", Dir);
+                        Sub_Code.Directory_Copy(Voice_Set.Special_Path + "/DVPL", Dir);
+                        Sub_Code.Directory_Copy(Voice_Set.Special_Path + "/Encode_Mp3", Dir);
+                        Sub_Code.Directory_Copy(Voice_Set.Special_Path + "/Fmod_Android_Create", Dir);
+                        Sub_Code.Directory_Copy(Voice_Set.Special_Path + "/Fmod_Designer", Dir);
+                        Sub_Code.Directory_Copy(Voice_Set.Special_Path + "/Loading", Dir);
+                        Sub_Code.Directory_Copy(Voice_Set.Special_Path + "/SE", Dir);
+                        Sub_Code.Directory_Copy(Voice_Set.Special_Path + "/Wwise", Dir);
+                        Sub_Code.Directory_Copy(Voice_Set.Special_Path + "/Wwise_Parse", Dir);
+                        Sub_Code.Directory_Delete(Voice_Set.Special_Path + "/Configs");
+                        Sub_Code.Directory_Delete(Voice_Set.Special_Path + "/DVPL");
+                        Sub_Code.Directory_Delete(Voice_Set.Special_Path + "/Encode_Mp3");
+                        Sub_Code.Directory_Delete(Voice_Set.Special_Path + "/Fmod_Android_Create");
+                        Sub_Code.Directory_Delete(Voice_Set.Special_Path + "/Fmod_Designer");
+                        Sub_Code.Directory_Delete(Voice_Set.Special_Path + "/Loading");
+                        Sub_Code.Directory_Delete(Voice_Set.Special_Path + "/SE");
+                        Sub_Code.Directory_Delete(Voice_Set.Special_Path + "/Wwise");
+                        Sub_Code.Directory_Delete(Voice_Set.Special_Path + "/Wwise_Parse");
                         StreamWriter stw = File.CreateText(Dir + "/TempDirPath.dat");
                         stw.Write(Dir);
                         stw.Close();
-                        using (var eifs = new FileStream(Dir + "/TempDirPath.dat", FileMode.Open, FileAccess.Read))
-                        {
-                            using (var eofs = new FileStream(Path + "/TempDirPath.dat", FileMode.Create, FileAccess.Write))
-                            {
-                                FileEncode.FileEncryptor.Encrypt(eifs, eofs, "Temp_Directory_Path_Pass");
-                            }
-                        }
-                        File.Delete(Dir + "/TempDirPath.dat");
+                        Sub_Code.File_Encrypt(Dir + "/TempDirPath.dat", Path + "/TempDirPath.dat", "Temp_Directory_Path_Pass", true);
                         Voice_Set.Special_Path = Dir;
                         Message_Feed_Out("一時ファイルの保存先を変更しました。");
                     }
@@ -1645,6 +1615,22 @@ namespace WoTB_Voice_Mod_Creater
                         Sub_Code.Error_Log_Write(e1.Message);
                         Message_Feed_Out("エラーが発生しました。");
                     }
+                }
+                if ((System.Windows.Forms.Control.ModifierKeys & System.Windows.Forms.Keys.Shift) == System.Windows.Forms.Keys.Shift && e.Key == System.Windows.Input.Key.B)
+                {
+                    System.Windows.Forms.OpenFileDialog ofd = new System.Windows.Forms.OpenFileDialog()
+                    {
+                        Title = "Init.bnkを選択してください。",
+                        Filter = "Init.bnk(*.bnk)|*.bnk",
+                        Multiselect = false
+                    };
+                    if (ofd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                    {
+                        Wwise_Class.Master_Audio_Bus Master = new Wwise_Class.Master_Audio_Bus(ofd.FileName);
+                        await Master.Get_Hash_Name_To_File(Voice_Set.Special_Path + "/Test.txt", Message_T);
+                        Message_Feed_Out("解析が完了しました。");
+                    }
+                    ofd.Dispose();
                 }
             }
             IsClosing = false;

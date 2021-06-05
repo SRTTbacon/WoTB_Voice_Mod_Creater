@@ -164,6 +164,8 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                     Wwise_BNK = new Wwise_File_Extract_V2(ofd.FileName);
                     IsPCKMode = false;
                 }
+                if (!Directory.Exists(Voice_Set.Special_Path + "/Wwise/BNK_WAV_Special"))
+                    Directory.CreateDirectory(Voice_Set.Special_Path + "/Wwise/BNK_WAV_Special");
                 File_Name_T.Text = Path.GetFileName(ofd.FileName);
                 Message_Feed_Out(".bnkファイルをロードしました。");
             }

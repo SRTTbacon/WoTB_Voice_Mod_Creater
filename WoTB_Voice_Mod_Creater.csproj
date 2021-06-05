@@ -17,6 +17,7 @@
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
     <TargetFrameworkProfile />
+    <IsWebBootstrapper>false</IsWebBootstrapper>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
@@ -29,7 +30,6 @@
     <MapFileExtensions>true</MapFileExtensions>
     <ApplicationRevision>0</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
-    <IsWebBootstrapper>false</IsWebBootstrapper>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
@@ -124,6 +124,16 @@
     <ApplicationManifest>Properties\app.manifest</ApplicationManifest>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Interop.PortableDeviceApiLib, Version=1.0.0.0, Culture=neutral, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <EmbedInteropTypes>False</EmbedInteropTypes>
+      <HintPath>obj\x86\Debug\Interop.PortableDeviceApiLib.dll</HintPath>
+    </Reference>
+    <Reference Include="Interop.PortableDeviceTypesLib, Version=1.0.0.0, Culture=neutral, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <EmbedInteropTypes>False</EmbedInteropTypes>
+      <HintPath>obj\x86\Debug\Interop.PortableDeviceTypesLib.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
@@ -151,7 +161,19 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="Class\Administrator_Control.xaml.cs">
+    <Compile Include="Android\Android_Upload.cs" />
+    <Compile Include="Android\PortableDevice.cs" />
+    <Compile Include="Android\PortableDeviceCollection.cs" />
+    <Compile Include="Android\PortableDeviceFile.cs" />
+    <Compile Include="Android\PortableDeviceFolder.cs" />
+    <Compile Include="Android\PortableDeviceObject.cs" />
+    <Compile Include="Class\Create_Loading_BGM.xaml.cs">
+      <DependentUpon>Create_Loading_BGM.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Class\Create_Save_File.xaml.cs">
+      <DependentUpon>Create_Save_File.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Multiplayer\Administrator_Control.xaml.cs">
       <DependentUpon>Administrator_Control.xaml</DependentUpon>
     </Compile>
     <Compile Include="Class\Android_Create.cs" />
@@ -179,21 +201,37 @@
     <Compile Include="Class\Save_Configs.xaml.cs">
       <DependentUpon>Save_Configs.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Class\Server_Create.xaml.cs">
+    <Compile Include="Multiplayer\Server_Create.xaml.cs">
       <DependentUpon>Server_Create.xaml</DependentUpon>
     </Compile>
     <Compile Include="Class\Tools.xaml.cs">
       <DependentUpon>Tools.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Class\Voice_Control.xaml.cs">
+    <Compile Include="Multiplayer\Server_Voices_Sort.xaml.cs">
+      <DependentUpon>Server_Voices_Sort.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Multiplayer\Voice_Control.xaml.cs">
       <DependentUpon>Voice_Control.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Multiplayer\Server_Select.xaml.cs">
+      <DependentUpon>Server_Select.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Multiplayer\Server_Voices.cs" />
     <Compile Include="Wwise_Class\Bank_Editor.xaml.cs">
       <DependentUpon>Bank_Editor.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Wwise_Class\Blitz_To_WoT.xaml.cs">
+      <DependentUpon>Blitz_To_WoT.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Wwise_Class\BNK_Event.xaml.cs">
+      <DependentUpon>BNK_Event.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Wwise_Class\BNK_Parse.cs" />
+    <Compile Include="Wwise_Class\BNK_To_Wwise_Projects.cs" />
     <Compile Include="Wwise_Class\Change_To_Wwise.xaml.cs">
       <DependentUpon>Change_To_Wwise.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Wwise_Class\Master_Audio_Bus.cs" />
     <Compile Include="Wwise_Class\Tools_V2.xaml.cs">
       <DependentUpon>Tools_V2.xaml</DependentUpon>
     </Compile>
@@ -208,8 +246,26 @@
     <Compile Include="Wwise_Class\V2\WwiseBankObject.cs" />
     <Compile Include="Wwise_Class\V2\WwiseBankSection.cs" />
     <Compile Include="Wwise_Class\V2\Wwise_File_Extract_V2.cs" />
+    <Compile Include="Wwise_Class\WEM_To_Ogg\BitStream.cs" />
+    <Compile Include="Wwise_Class\WEM_To_Ogg\CodebookLibrary.cs" />
+    <Compile Include="Wwise_Class\WEM_To_Ogg\CRC32.cs" />
+    <Compile Include="Wwise_Class\WEM_To_Ogg\OggStream.cs" />
+    <Compile Include="Wwise_Class\WEM_To_Ogg\Packet.cs" />
+    <Compile Include="Wwise_Class\WEM_To_Ogg\Packet8.cs" />
+    <Compile Include="Wwise_Class\WEM_To_Ogg\WEMFile.cs" />
+    <Compile Include="Wwise_Class\WoT_To_Blitz.xaml.cs">
+      <DependentUpon>WoT_To_Blitz.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Wwise_Class\Wwise_Project_Create.cs" />
-    <Page Include="Class\Administrator_Control.xaml">
+    <Page Include="Class\Create_Loading_BGM.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Class\Create_Save_File.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Multiplayer\Administrator_Control.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -237,7 +293,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Class\Server_Create.xaml">
+    <Page Include="Multiplayer\Server_Create.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -245,7 +301,11 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Class\Voice_Control_Sub.xaml">
+    <Page Include="Multiplayer\Server_Voices_Sort.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Multiplayer\Voice_Control_Sub.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -285,7 +345,7 @@
     <Compile Include="Class\NotConnect.cs" />
     <Compile Include="Class\Server_File_Exchange.cs" />
     <Compile Include="Class\SubCode.cs" />
-    <Compile Include="Class\Voice_Control_Sub.xaml.cs">
+    <Compile Include="Multiplayer\Voice_Control_Sub.xaml.cs">
       <DependentUpon>Voice_Control_Sub.xaml</DependentUpon>
     </Compile>
     <Compile Include="Class\Voice_Create.xaml.cs">
@@ -314,11 +374,23 @@
       <DependentUpon>MainCode.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Page Include="Class\Voice_Control.xaml">
+    <Page Include="Multiplayer\Voice_Control.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Multiplayer\Server_Select.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Wwise_Class\Bank_Editor.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Wwise_Class\Blitz_To_WoT.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Wwise_Class\BNK_Event.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -327,6 +399,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Wwise_Class\Tools_V2.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Wwise_Class\WoT_To_Blitz.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -433,6 +509,9 @@
     <PackageReference Include="NAudio.Flac">
       <Version>1.0.5702.29018</Version>
     </PackageReference>
+    <PackageReference Include="NAudio.Lame">
+      <Version>1.1.0</Version>
+    </PackageReference>
     <PackageReference Include="NAudio.Vorbis">
       <Version>1.1.0</Version>
     </PackageReference>
@@ -478,7 +557,7 @@
       <Version>4.5.0</Version>
     </PackageReference>
     <PackageReference Include="YoutubeExplode">
-      <Version>5.1.9</Version>
+      <Version>6.0.0</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
@@ -499,9 +578,16 @@
   <ItemGroup>
     <EmbeddedResource Include="Resources\DdsFileTypePlusIO_x86.dll" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\bassenc.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\libmp3lame.32.dll" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>cd $(ProjectDir)
-$(SolutionDir)packages\Obfuscar.2.2.28\tools\Obfuscar.Console.exe ObfuscarConfig.xml</PostBuildEvent>
+$(SolutionDir)packages\Obfuscar.2.2.28\tools\Obfuscar.Console.exe ObfuscarConfig.xml
+rd /s /q "$(TargetDir)Addon"</PostBuildEvent>
   </PropertyGroup>
 </Project>

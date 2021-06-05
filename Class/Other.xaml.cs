@@ -20,8 +20,8 @@ namespace WoTB_Voice_Mod_Creater.Class
 {
     public partial class Other : System.Windows.Controls.UserControl
     {
-        readonly List<string> File_Full_Path = new List<string>();
-        readonly List<string> File_Name_Path = new List<string>();
+        readonly List<List<string>> File_Full_Path = new List<List<string>>();
+        readonly List<List<string>> File_Name_Path = new List<List<string>>();
         string Video_Mode_Select_Name = "";
         bool IsBusy = false;
         bool IsLocationChanging = false;
@@ -46,6 +46,8 @@ namespace WoTB_Voice_Mod_Creater.Class
         int SetFirstDevice = -1;
         int WAVEForm_Image_Width = 0;
         int WAVEForm_Image_Height = 0;
+        //曲のリストのインデックス:0～8
+        int Music_Select_List = 0;
         float Music_Frequency = 44100f;
         double X_Move = 0;
         double Y_Move = 0;
@@ -83,13 +85,18 @@ namespace WoTB_Voice_Mod_Creater.Class
             }
             WAVEForm_Image_Width = (int)WAVEForm_Gray_Image.Width;
             WAVEForm_Image_Height = (int)WAVEForm_Gray_Image.Height;
+            for (int Number = 0; Number < 9; Number++)
+            {
+                File_Full_Path.Add(new List<string>());
+                File_Name_Path.Add(new List<string>());
+            }
             Position_Change();
         }
         private void Video_V_MediaFailed(object sender, ExceptionRoutedEventArgs e)
         {
             Video_V.Stop();
             Video_V.Close();
-            Video_V.Source = new Uri(File_Full_Path[Music_List.SelectedIndex]);
+            Video_V.Source = new Uri(File_Full_Path[Music_Select_List][Music_List.SelectedIndex]);
             Video_V.Volume = 0;
             Video_V.Play();
             long position = Bass.BASS_ChannelGetPosition(Stream);
@@ -100,39 +107,52 @@ namespace WoTB_Voice_Mod_Creater.Class
         {
             Visibility = Visibility.Visible;
             Zoom_S.Value = 1;
+            bool IsListSave = false;
             if (File.Exists(Voice_Set.Special_Path + "/Configs/Other_Music_List.dat") && Bass.BASS_ChannelIsActive(Stream) == BASSActive.BASS_ACTIVE_STOPPED)
             {
                 try
                 {
-                    using (var eifs = new FileStream(Voice_Set.Special_Path + "/Configs/Other_Music_List.dat", FileMode.Open, FileAccess.Read))
-                    {
-                        using (var eofs = new FileStream(Voice_Set.Special_Path + "/Configs/Temp_Other_Music_List.dat", FileMode.Create, FileAccess.Write))
-                        {
-                            FileEncode.FileEncryptor.Decrypt(eifs, eofs, "SRTTbacon_Music_List_Save");
-                        }
-                    }
+                    Sub_Code.File_Decrypt(Voice_Set.Special_Path + "/Configs/Other_Music_List.dat", Voice_Set.Special_Path + "/Configs/Temp_Other_Music_List.dat", "SRTTbacon_Music_List_Save", false);
                     StreamReader str = new StreamReader(Voice_Set.Special_Path + "/Configs/Temp_Other_Music_List.dat");
-                    File_Full_Path.Clear();
-                    File_Name_Path.Clear();
+                    for (int Number = 0; Number < 9; Number++)
+                    {
+                        File_Full_Path[Number].Clear();
+                        File_Name_Path[Number].Clear();
+                    }
                     string line;
                     while ((line = str.ReadLine()) != null)
                     {
                         if (line != "")
                         {
-                            File_Full_Path.Add(line);
-                            File_Name_Path.Add(line.Substring(line.LastIndexOf('\\') + 1));
+                            if (line.Contains("|"))
+                            {
+                                int Index = int.Parse(line.Substring(0, line.IndexOf('|')));
+                                File_Full_Path[Index].Add(line.Substring(line.IndexOf('|') + 1));
+                                File_Name_Path[Index].Add(line.Substring(line.LastIndexOf('\\') + 1));
+                            }
+                            else
+                            {
+                                File_Full_Path[0].Add(line);
+                                File_Name_Path[0].Add(line.Substring(line.LastIndexOf('\\') + 1));
+                                IsListSave = true;
+                            }
                         }
                     }
                     str.Close();
                     File.Delete(Voice_Set.Special_Path + "/Configs/Temp_Other_Music_List.dat");
                     Music_List_Sort();
+                    if (IsListSave)
+                        Music_List_Save();
                 }
                 catch (Exception e)
                 {
                     System.Windows.MessageBox.Show("リストが破損しているためファイルを読み込めませんでした。\nエラー回避のためリストは削除されます。");
                     File.Delete(Voice_Set.Special_Path + "/Configs/Other_Music_List.dat");
-                    File_Full_Path.Clear();
-                    File_Name_Path.Clear();
+                    for (int Number = 0; Number < 9; Number++)
+                    {
+                        File_Full_Path[Number].Clear();
+                        File_Name_Path[Number].Clear();
+                    }
                     Music_List.Items.Clear();
                     Sub_Code.Error_Log_Write(e.Message);
                 }
@@ -141,13 +161,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 try
                 {
-                    using (var eifs = new FileStream(Voice_Set.Special_Path + "/Configs/Music_Player.conf", FileMode.Open, FileAccess.Read))
-                    {
-                        using (var eofs = new FileStream(Voice_Set.Special_Path + "/Configs/Temp_Music_Player.tmp", FileMode.Create, FileAccess.Write))
-                        {
-                            FileEncode.FileEncryptor.Decrypt(eifs, eofs, "Music_Player_Configs_Save");
-                        }
-                    }
+                    Sub_Code.File_Decrypt(Voice_Set.Special_Path + "/Configs/Music_Player.conf", Voice_Set.Special_Path + "/Configs/Temp_Music_Player.tmp", "Music_Player_Configs_Save", false);
                     StreamReader str = new StreamReader(Voice_Set.Special_Path + "/Configs/Temp_Music_Player.tmp");
                     Video_Mode_C.IsChecked = bool.Parse(str.ReadLine());
                     Loop_C.IsChecked = bool.Parse(str.ReadLine());
@@ -173,6 +187,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                         }
                         Mode_C.IsChecked = bool.Parse(str.ReadLine());
                         Music_Play_Mode_Change(Mode_C.IsChecked.Value);
+                        Music_List_Change(int.Parse(str.ReadLine()));
                     }
                     catch
                     {
@@ -360,7 +375,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 foreach (string File_Now in ofd.FileNames)
                 {
-                    foreach (string File_Now_01 in File_Name_Path)
+                    foreach (string File_Now_01 in File_Name_Path[Music_Select_List])
                     {
                         if (Path.GetFileName(File_Now) == File_Now_01)
                         {
@@ -375,8 +390,8 @@ namespace WoTB_Voice_Mod_Creater.Class
                             continue;
                         }
                     }
-                    File_Full_Path.Add(File_Now);
-                    File_Name_Path.Add(Path.GetFileName(File_Now));
+                    File_Full_Path[Music_Select_List].Add(File_Now);
+                    File_Name_Path[Music_Select_List].Add(Path.GetFileName(File_Now));
                     Number++;
                     if (Number == 1)
                     {
@@ -389,20 +404,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 System.Windows.MessageBox.Show("同名の曲が存在するため以下のファイルを追加できませんでした。\n" + Error_File);
             }
             Music_List_Sort();
-            StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Configs/Temp_Other_Music_List.dat");
-            foreach (string Now in File_Full_Path)
-            {
-                stw.WriteLine(Now);
-            }
-            stw.Close();
-            using (var eifs = new FileStream(Voice_Set.Special_Path + "/Configs/Temp_Other_Music_List.dat", FileMode.Open, FileAccess.Read))
-            {
-                using (var eofs = new FileStream(Voice_Set.Special_Path + "/Configs/Other_Music_List.dat", FileMode.Create, FileAccess.Write))
-                {
-                    FileEncode.FileEncryptor.Encrypt(eifs, eofs, "SRTTbacon_Music_List_Save");
-                }
-            }
-            File.Delete(Voice_Set.Special_Path + "/Configs/Temp_Other_Music_List.dat");
+            Music_List_Save();
             if (Number == 1)
             {
                 try
@@ -435,7 +437,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Temp_02.Add(new List<string>());
                 Temp_02.Add(new List<string>());
                 Temp_02.Add(new List<string>());
-                foreach (string Name_Now in File_Name_Path)
+                foreach (string Name_Now in File_Name_Path[Music_Select_List])
                 {
                     for (int Number = 0; Number <= Temp_01.Length - 1; Number++)
                     {
@@ -466,7 +468,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             }
             else
             {
-                Array Array_Sort = File_Name_Path.ToArray();
+                Array Array_Sort = File_Name_Path[Music_Select_List].ToArray();
                 Array.Sort(Array_Sort);
                 Music_List.Items.Clear();
                 foreach (string Name in Array_Sort)
@@ -484,29 +486,29 @@ namespace WoTB_Voice_Mod_Creater.Class
         {
             string NameOnly = Music_List.SelectedItem.ToString();
             Music_List.SelectedIndex = -1;
-            int Delete_Number = File_Name_Path.IndexOf(NameOnly);
-            File_Full_Path.RemoveAt(Delete_Number);
-            File_Name_Path.RemoveAt(Delete_Number);
+            int Delete_Number = File_Name_Path[Music_Select_List].IndexOf(NameOnly);
+            File_Full_Path[Music_Select_List].RemoveAt(Delete_Number);
+            File_Name_Path[Music_Select_List].RemoveAt(Delete_Number);
             Bass.BASS_ChannelStop(Stream);
             Video_V.Stop();
             Video_V.Source = null;
             Video_Change_B.Visibility = Visibility.Hidden;
             Bass.BASS_StreamFree(Stream);
+            Loop_Time_T.Text = "再生時間:0～0";
             Music_List_Sort();
+            Music_List_Save();
+        }
+        //曲のリストをファイルに記録
+        void Music_List_Save()
+        {
             StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Configs/Temp_Other_Music_List.dat");
-            foreach (string Now in File_Full_Path)
+            for (int Number = 0; Number < File_Full_Path.Count; Number++)
             {
-                stw.WriteLine(Now);
+                foreach (string Now in File_Full_Path[Number])
+                    stw.WriteLine(Number + "|" + Now);
             }
             stw.Close();
-            using (var eifs = new FileStream(Voice_Set.Special_Path + "/Configs/Temp_Other_Music_List.dat", FileMode.Open, FileAccess.Read))
-            {
-                using (var eofs = new FileStream(Voice_Set.Special_Path + "/Configs/Other_Music_List.dat", FileMode.Create, FileAccess.Write))
-                {
-                    FileEncode.FileEncryptor.Encrypt(eifs, eofs, "SRTTbacon_Music_List_Save");
-                }
-            }
-            File.Delete(Voice_Set.Special_Path + "/Configs/Temp_Other_Music_List.dat");
+            Sub_Code.File_Encrypt(Voice_Set.Special_Path + "/Configs/Temp_Other_Music_List.dat", Voice_Set.Special_Path + "/Configs/Other_Music_List.dat", "SRTTbacon_Music_List_Save", true);
         }
         private void Music_Delete_B_Click(object sender, RoutedEventArgs e)
         {
@@ -516,7 +518,11 @@ namespace WoTB_Voice_Mod_Creater.Class
             }
             MessageBoxResult result = System.Windows.MessageBox.Show("選択中の曲をリストから削除しますか？", "確認", MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.No);
             if (result == MessageBoxResult.Yes)
+            {
+                WAVEForm_Gray_Image.Source = null;
+                WAVEForm_Color_Image.Source = null;
                 List_Remove_Index();
+            }
         }
         private void Music_List_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -526,8 +532,8 @@ namespace WoTB_Voice_Mod_Creater.Class
             }
             if (Music_List.SelectedIndex != -1)
             {
-                int Select_Index = File_Name_Path.IndexOf(Music_List.Items[Music_List.SelectedIndex].ToString());
-                if (!File.Exists(File_Full_Path[Select_Index]))
+                int Select_Index = File_Name_Path[Music_Select_List].IndexOf(Music_List.Items[Music_List.SelectedIndex].ToString());
+                if (!File.Exists(File_Full_Path[Music_Select_List][Select_Index]))
                 {
                     System.Windows.MessageBox.Show("ファイルが存在しません。リストから削除されます。");
                     List_Remove_Index();
@@ -542,7 +548,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Bass.BASS_ChannelStop(Stream);
                 Bass.BASS_StreamFree(Stream);
                 Location_S.Value = 0;
-                int StreamHandle = Bass.BASS_StreamCreateFile(File_Full_Path[Select_Index], 0, 0, BASSFlag.BASS_SAMPLE_FLOAT | BASSFlag.BASS_STREAM_DECODE | BASSFlag.BASS_SAMPLE_LOOP);
+                int StreamHandle = Bass.BASS_StreamCreateFile(File_Full_Path[Music_Select_List][Select_Index], 0, 0, BASSFlag.BASS_SAMPLE_FLOAT | BASSFlag.BASS_STREAM_DECODE | BASSFlag.BASS_SAMPLE_LOOP);
                 Stream = BassFx.BASS_FX_TempoCreate(StreamHandle, BASSFlag.BASS_FX_FREESOURCE);
                 IsMusicEnd = new SYNCPROC(EndSync);
                 Bass.BASS_ChannelGetAttribute(Stream, BASSAttribute.BASS_ATTRIB_TEMPO_FREQ, ref Music_Frequency);
@@ -571,13 +577,13 @@ namespace WoTB_Voice_Mod_Creater.Class
                 {
                     Bass.BASS_ChannelSetDevice(Stream, SetFirstDevice);
                 }
-                if (Path.GetExtension(File_Full_Path[Select_Index]) == ".mp4" && Video_Mode_C.IsChecked.Value)
+                if (Path.GetExtension(File_Full_Path[Music_Select_List][Select_Index]) == ".mp4" && Video_Mode_C.IsChecked.Value)
                 {
                     Video_Mode_Change(true);
                     Device_T.Margin = new Thickness(-2100, 710, 0, 0);
                     Device_L.Margin = new Thickness(-2100, 770, 0, 0);
                     Video_V.Close();
-                    Video_V.Source = new Uri(File_Full_Path[Select_Index]);
+                    Video_V.Source = new Uri(File_Full_Path[Music_Select_List][Select_Index]);
                     Video_V.Volume = 0;
                     Video_V.Visibility = Visibility.Visible;
                     Video_V.Play();
@@ -589,13 +595,13 @@ namespace WoTB_Voice_Mod_Creater.Class
                     WAVEForm_Color_Image.Visibility = Visibility.Hidden;
                     WAVEForm_C.IsChecked = false;
                 }
-                else if (Path.GetExtension(File_Full_Path[Select_Index]) == ".mp4")
+                else if (Path.GetExtension(File_Full_Path[Music_Select_List][Select_Index]) == ".mp4")
                 {
                     Device_T.Margin = new Thickness(-2100, 710, 0, 0);
                     Device_L.Margin = new Thickness(-2100, 770, 0, 0);
                     Video_Mode_Change(false);
                     Video_V.Close();
-                    Video_V.Source = new Uri(File_Full_Path[Select_Index]);
+                    Video_V.Source = new Uri(File_Full_Path[Music_Select_List][Select_Index]);
                     Video_V.Volume = 0;
                     IsShowWAVEForm = false;
                     WAVEForm_Gray_Image.Visibility = Visibility.Hidden;
@@ -610,7 +616,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                     Video_V.Stop();
                     Video_V.Close();
                     Video_Change_B.Visibility = Visibility.Hidden;
-                    WF_Gray = new Un4seen.Bass.Misc.WaveForm(File_Full_Path[Select_Index], new Un4seen.Bass.Misc.WAVEFORMPROC(GetWaveFormData_Gray), null);
+                    WF_Gray = new Un4seen.Bass.Misc.WaveForm(File_Full_Path[Music_Select_List][Select_Index], new Un4seen.Bass.Misc.WAVEFORMPROC(GetWaveFormData_Gray), null);
                     WF_Gray.CallbackFrequency = 0;
                     WF_Gray.ColorBackground = Color.Transparent;
                     WF_Gray.ColorLeft = Color.Gray;
@@ -621,7 +627,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                     WF_Gray.ColorLeftEnvelope = Color.Transparent;
                     WF_Gray.ColorRightEnvelope = Color.Transparent;
                     WF_Gray.RenderStart(true, BASSFlag.BASS_DEFAULT);
-                    WF_Color = new Un4seen.Bass.Misc.WaveForm(File_Full_Path[Select_Index], new Un4seen.Bass.Misc.WAVEFORMPROC(GetWaveFormData_Color), null);
+                    WF_Color = new Un4seen.Bass.Misc.WaveForm(File_Full_Path[Music_Select_List][Select_Index], new Un4seen.Bass.Misc.WAVEFORMPROC(GetWaveFormData_Color), null);
                     WF_Color.CallbackFrequency = 0;
                     WF_Color.ColorBackground = Color.Transparent;
                     WF_Color.ColorLeft = Color.Aqua;
@@ -693,7 +699,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         }
         void Location_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            if (IsBusy)
+            if (IsBusy || IsPaused)
             {
                 return;
             }
@@ -710,8 +716,11 @@ namespace WoTB_Voice_Mod_Creater.Class
             }
             Bass.BASS_ChannelSetAttribute(Stream, BASSAttribute.BASS_ATTRIB_VOL, 0f);
         }
-        void Location_MouseUp(object sender, MouseButtonEventArgs e)
+        async void Location_MouseUp(object sender, MouseButtonEventArgs e)
         {
+            bool IsVideoSkip = false;
+            if (!IsLocationChanging)
+                IsVideoSkip = true;
             IsLocationChanging = false;
             if (WAVEForm_Color_Image.Visibility == Visibility.Visible)
             {
@@ -731,6 +740,11 @@ namespace WoTB_Voice_Mod_Creater.Class
                 long position = Bass.BASS_ChannelGetPosition(Stream);
                 TimeSpan time = TimeSpan.FromSeconds(Bass.BASS_ChannelBytes2Seconds(Stream, position) + 0.1);
                 Video_V.Position = time;
+                if (IsVideoSkip)
+                {
+                    await Task.Delay(100);
+                    Video_V.Pause();
+                }
             }
         }
         private void Location_S_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
@@ -837,9 +851,12 @@ namespace WoTB_Voice_Mod_Creater.Class
                     Bass.BASS_StreamFree(Stream);
                     Video_V.Stop();
                     Video_V.Source = null;
+                    WAVEForm_Gray_Image.Source = null;
+                    WAVEForm_Color_Image.Source = null;
                     Location_S.Value = 0;
                     Location_S.Maximum = 0;
                     Location_T.Text = "00:00";
+                    Loop_Time_T.Text = "再生時間:0～0";
                     Music_List.SelectedIndex = -1;
                 }
                 else
@@ -942,6 +959,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 WAVEForm_Color_Image.Visibility = Visibility.Hidden;
                 WAVEForm_C.Visibility = Visibility.Hidden;
                 WAVEForm_T.Visibility = Visibility.Hidden;
+                List_Number_T.Visibility = Visibility.Hidden;
                 Zoom_T.Visibility = Visibility.Visible;
                 Zoom_S.Visibility = Visibility.Visible;
                 Music_Fix_B.Visibility = Visibility.Visible;
@@ -982,6 +1000,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Loop_Time_T.Visibility = Visibility.Visible;
                 Ex_Sort_C.Visibility = Visibility.Visible;
                 Ex_Sort_T.Visibility = Visibility.Visible;
+                List_Number_T.Visibility = Visibility.Visible;
                 if (IsShowWAVEForm)
                 {
                     WAVEForm_Gray_Image.Visibility = Visibility.Visible;
@@ -1236,24 +1255,17 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 foreach (string File_Now in Sub_Code.AutoListAdd)
                 {
-                    File_Full_Path.Add(File_Now);
-                    File_Name_Path.Add(Path.GetFileName(File_Now));
+                    File_Full_Path[Music_Select_List].Add(File_Now);
+                    File_Name_Path[Music_Select_List].Add(Path.GetFileName(File_Now));
                 }
                 Music_List_Sort();
                 StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Configs/Temp_Other_Music_List.dat");
-                foreach (string Now in File_Full_Path)
+                foreach (string Now in File_Full_Path[Music_Select_List])
                 {
                     stw.WriteLine(Now);
                 }
                 stw.Close();
-                using (var eifs = new FileStream(Voice_Set.Special_Path + "/Configs/Temp_Other_Music_List.dat", FileMode.Open, FileAccess.Read))
-                {
-                    using (var eofs = new FileStream(Voice_Set.Special_Path + "/Configs/Other_Music_List.dat", FileMode.Create, FileAccess.Write))
-                    {
-                        FileEncode.FileEncryptor.Encrypt(eifs, eofs, "SRTTbacon_Music_List_Save");
-                    }
-                }
-                File.Delete(Voice_Set.Special_Path + "/Configs/Temp_Other_Music_List.dat");
+                Sub_Code.File_Encrypt(Voice_Set.Special_Path + "/Configs/Temp_Other_Music_List.dat", Voice_Set.Special_Path + "/Configs/Other_Music_List.dat", "SRTTbacon_Music_List_Save", true);
                 if (Sub_Code.AutoListAdd.Count == 1)
                 {
                     try
@@ -1279,6 +1291,17 @@ namespace WoTB_Voice_Mod_Creater.Class
             }
             try
             {
+                int Number_01 = 0;
+                if (File_Full_Path[Music_Select_List].Count == 0)
+                {
+                    for (int Number_02 = 0; Number_02 < File_Full_Path.Count; Number_02++)
+                    {
+                        if (File_Full_Path[Number_02].Count > 0)
+                            Number_01 = Number_02;
+                    }
+                }
+                else
+                    Number_01 = Music_Select_List;
                 StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Configs/Music_Player.tmp");
                 stw.WriteLine(Video_Mode_C.IsChecked.Value);
                 stw.WriteLine(Loop_C.IsChecked.Value);
@@ -1287,16 +1310,10 @@ namespace WoTB_Voice_Mod_Creater.Class
                 stw.WriteLine(Ex_Sort_C.IsChecked.Value);
                 stw.WriteLine(Volume_S.Value);
                 stw.WriteLine(WAVEForm_C.IsChecked.Value);
-                stw.Write(Mode_C.IsChecked.Value);
+                stw.WriteLine(Mode_C.IsChecked.Value);
+                stw.Write(Number_01);
                 stw.Close();
-                using (var eifs = new FileStream(Voice_Set.Special_Path + "/Configs/Music_Player.tmp", FileMode.Open, FileAccess.Read))
-                {
-                    using (var eofs = new FileStream(Voice_Set.Special_Path + "/Configs/Music_Player.conf", FileMode.Create, FileAccess.Write))
-                    {
-                        FileEncode.FileEncryptor.Encrypt(eifs, eofs, "Music_Player_Configs_Save");
-                    }
-                }
-                File.Delete(Voice_Set.Special_Path + "/Configs/Music_Player.tmp");
+                Sub_Code.File_Encrypt(Voice_Set.Special_Path + "/Configs/Music_Player.tmp", Voice_Set.Special_Path + "/Configs/Music_Player.conf", "Music_Player_Configs_Save", true);
             }
             catch (Exception e)
             {
@@ -1525,6 +1542,19 @@ namespace WoTB_Voice_Mod_Creater.Class
             }
             Video_V.SpeedRatio = Pitch_Speed_S.Value / 50;
         }
+        //曲のリストを変更
+        void Music_List_Change(int Index)
+        {
+            if (Music_Select_List == Index)
+                return;
+            Music_Select_List = Index;
+            List_Number_T.Text = "リスト番号:" + (Music_Select_List + 1);
+            Music_List.Items.Clear();
+            Pause_Volume_Animation(true, 10f);
+            Video_Mode_Change(false);
+            Music_List_Sort();
+            Configs_Save();
+        }
         //キーイベント
         public void RootWindow_KeyDown(System.Windows.Input.KeyEventArgs e)
         {
@@ -1541,8 +1571,11 @@ namespace WoTB_Voice_Mod_Creater.Class
                     try
                     {
                         Pause_Volume_Animation(true, 10);
-                        File_Full_Path.Clear();
-                        File_Name_Path.Clear();
+                        for (int Number = 0; Number < 9; Number++)
+                        {
+                            File_Full_Path[Number].Clear();
+                            File_Name_Path[Number].Clear();
+                        }
                         Music_List.Items.Clear();
                         WAVEForm_Color_Image.Source = null;
                         WAVEForm_Gray_Image.Source = null;
@@ -1557,6 +1590,24 @@ namespace WoTB_Voice_Mod_Creater.Class
                     }
                 }
             }
+            if ((System.Windows.Forms.Control.ModifierKeys & Keys.Shift) == Keys.Shift && e.Key == Key.D1)
+                Music_List_Change(0);
+            else if ((System.Windows.Forms.Control.ModifierKeys & Keys.Shift) == Keys.Shift && e.Key == Key.D2)
+                Music_List_Change(1);
+            else if ((System.Windows.Forms.Control.ModifierKeys & Keys.Shift) == Keys.Shift && e.Key == Key.D3)
+                Music_List_Change(2);
+            else if ((System.Windows.Forms.Control.ModifierKeys & Keys.Shift) == Keys.Shift && e.Key == Key.D4)
+                Music_List_Change(3);
+            else if ((System.Windows.Forms.Control.ModifierKeys & Keys.Shift) == Keys.Shift && e.Key == Key.D5)
+                Music_List_Change(4);
+            else if ((System.Windows.Forms.Control.ModifierKeys & Keys.Shift) == Keys.Shift && e.Key == Key.D6)
+                Music_List_Change(5);
+            else if ((System.Windows.Forms.Control.ModifierKeys & Keys.Shift) == Keys.Shift && e.Key == Key.D7)
+                Music_List_Change(6);
+            else if ((System.Windows.Forms.Control.ModifierKeys & Keys.Shift) == Keys.Shift && e.Key == Key.D8)
+                Music_List_Change(7);
+            else if ((System.Windows.Forms.Control.ModifierKeys & Keys.Shift) == Keys.Shift && e.Key == Key.D9)
+                Music_List_Change(8);
             //再生開始時間を保存
             if ((System.Windows.Forms.Control.ModifierKeys & Keys.Shift) == Keys.Shift && e.Key == Key.S)
             {
