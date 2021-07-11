@@ -111,11 +111,15 @@
     <Viewbox>
         <DockPanel Width="1920" Height="1080">
             <Border BorderBrush="Black" BorderThickness="1" Background="#4E3E5C" Height="1080" VerticalAlignment="Top" Width="1920"/>
-            <TextBlock Height="50" Width="625" TextWrapping="Wrap" Text="DVPL解除(同じフォルダに作成されます)" Foreground="Aqua" FontSize="40" VerticalAlignment="Top" Margin="-2800,50,0,0" TextAlignment="Center"/>
-            <Button x:Name="DVPL_Extract_B" Content="ファイルを選択" Height="65" Margin="-2800,125,0,0" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" VerticalAlignment="Top" Width="350" Click="DVPL_Extract_B_Click"/>
-            <Button x:Name="DVPL_Extract_Help_B" Content="？" Height="65" Margin="-2375,125,0,0" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" VerticalAlignment="Top" Width="65" Click="DVPL_Extract_Help_B_Click"/>
-            <TextBlock Height="50" Width="625" TextWrapping="Wrap" Text="DVPL化(同じフォルダに作成されます)" Foreground="Aqua" FontSize="40" VerticalAlignment="Top" Margin="-1000,50,0,0" TextAlignment="Center"/>
-            <Button x:Name="DVPL_Create_B" Content="ファイルを選択" Height="65" Margin="-1000,125,0,0" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" VerticalAlignment="Top" Width="350" Click="DVPL_Create_B_Click"/>
+            <TextBlock Height="50" Width="625" TextWrapping="Wrap" Text="DVPL解除(同じフォルダに作成されます)" Foreground="Aqua" FontSize="40" VerticalAlignment="Top" Margin="-2900,50,0,0" TextAlignment="Center"/>
+            <Button x:Name="DVPL_Extract_B" Content="ファイルを選択" Height="65" Margin="-2900,125,0,0" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" VerticalAlignment="Top" Width="350" Click="DVPL_Extract_B_Click"/>
+            <Button x:Name="DVPL_Extract_Dir_B" Content="フォルダを選択" Height="65" Margin="-2900,200,0,0" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" VerticalAlignment="Top" Width="350" Click="DVPL_Extract_Dir_B_Click"/>
+            <Button x:Name="DVPL_Extract_Help_B" Content="？" Height="65" Margin="-2475,165,0,0" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" VerticalAlignment="Top" Width="65" Click="DVPL_Extract_Help_B_Click"/>
+            <CheckBox x:Name="DVPL_Delete_C" Content="" Height="15" VerticalAlignment="Top" Width="16" Margin="-2200,150,0,0"/>
+            <TextBlock Height="50" Width="330" TextWrapping="Wrap" Text="変換前のファイルを削除" Foreground="Aqua" FontSize="35" VerticalAlignment="Top" Margin="-1835,135,0,0" TextAlignment="Center"/>
+            <TextBlock Height="50" Width="625" TextWrapping="Wrap" Text="DVPL化(同じフォルダに作成されます)" Foreground="Aqua" FontSize="40" VerticalAlignment="Top" Margin="-900,50,0,0" TextAlignment="Center"/>
+            <Button x:Name="DVPL_Create_B" Content="ファイルを選択" Height="65" Margin="-900,125,0,0" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" VerticalAlignment="Top" Width="350" Click="DVPL_Create_B_Click"/>
+            <Button x:Name="DVPL_Create_Dir_B" Content="フォルダを選択" Height="65" Margin="-900,200,0,0" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" VerticalAlignment="Top" Width="350" Click="DVPL_Create_Dir_B_Click"/>
             <TextBlock x:Name="Message_T" Height="55" Width="1468" Foreground="Aqua" FontSize="40" Margin="-1920,945,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" TextAlignment="Center"/>
             <Button x:Name="Exit_B" Content="戻る" Height="75" Margin="-3532,1000,0,0" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" VerticalAlignment="Top" Width="300" Click="Exit_B_Click"/>
             <TextBlock Height="50" Width="514" TextWrapping="Wrap" Text="BGMMod作成(一部対応済み)" Foreground="Aqua" FontSize="40" VerticalAlignment="Top" Margin="-2520,300,0,0" TextAlignment="Center"/>

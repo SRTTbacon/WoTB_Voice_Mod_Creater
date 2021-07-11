@@ -155,7 +155,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 Title = "Modファイルを選択してください。",
                 Multiselect = true,
-                Filter = "Modファイル(*.yaml;*.fev;*.fsb;*.yaml.dvpl;*.fev.dvpl;*.fsb.dvpl)|*.yaml;*.fev;*.fsb;*.yaml.dvpl;*.fev.dvpl;*.fsb.dvpl"
+                Filter = "Modファイル(*.bnk;*.bnk.dvpl)|*.bnk;*.bnk.dvpl"
             };
             if (ofd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {

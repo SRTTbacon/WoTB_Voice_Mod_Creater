@@ -342,6 +342,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                     stw.Close();
                     Sub_Code.File_Encrypt(sfd.FileName + ".tmp", sfd.FileName, "SRTTbacon_Create_Voice_Save", true);
                     Message_Feed_Out("保存しました。\nProjectsフォルダに該当する音声が入っています。");
+                    Flash.Flash_Start();
                 }
                 catch (Exception e1)
                 {

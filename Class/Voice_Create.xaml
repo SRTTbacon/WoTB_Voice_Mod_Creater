@@ -93,8 +93,8 @@
             <Border x:Name="Border_All" BorderBrush="Transparent" BorderThickness="1" Background="Black" Height="1080" VerticalAlignment="Top" Visibility="Hidden" Width="1920" Opacity=" 0.001" Margin="-1920,0,0,0"/>
             <CheckBox x:Name="ColorMode_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-3425,40,0,0" Click="ColorMode_C_Click"/>
             <TextBlock Height="50" Width="284" TextWrapping="Wrap" Text="未選択に色を付ける" Foreground="Aqua" FontSize="35" Margin="-3090,25,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
-            <CheckBox x:Name="BGM_Reload_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-2220,425,0,0" Click="BGM_Reload_C_Click"/>
-            <TextBlock Height="45" Width="338" TextWrapping="Wrap" Text="BGMをreload.bnkに含める" Foreground="Aqua" FontSize="30" Margin="-1850,410,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
+            <CheckBox x:Name="BGM_Reload_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-2220,425,0,0" Click="BGM_Reload_C_Click" Visibility="Hidden"/>
+            <TextBlock Height="45" Width="338" TextWrapping="Wrap" Text="BGMをreload.bnkに含める" Foreground="Aqua" FontSize="30" Margin="-1850,410,0,0" VerticalAlignment="Top" TextAlignment="Center" Visibility="Hidden"/>
             <Class1:Save_Configs x:Name="Voice_Create_Window" Width="1920" Height="1080" Margin="-1920,0,0,0" Visibility="Hidden"/>
         </DockPanel>
     </Viewbox>

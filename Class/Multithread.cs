@@ -1,4 +1,5 @@
-﻿using NAudio.Lame;
+﻿using K4os.Compression.LZ4;
+using NAudio.Lame;
 using NAudio.Wave;
 using SimpleTCP;
 using System;
@@ -145,6 +146,62 @@ namespace WoTB_Voice_Mod_Creater.Class
             }
             await Task.WhenAll(tasks);
             From_Files.Clear();
+        }
+        public static async Task DVPL_Pack(List<string> Files, bool IsFromFileDelete)
+        {
+            From_Files.Clear();
+            From_Files.AddRange(Files);
+            var tasks = new List<Task>();
+            for (int i = 0; i < From_Files.Count; i++)
+            {
+                tasks.Add(To_DVPL_Pack(i, IsFromFileDelete));
+            }
+            await Task.WhenAll(tasks);
+            From_Files.Clear();
+        }
+        static async Task<bool> To_DVPL_Pack(int File_Number, bool IsFromFileDelete)
+        {
+            if (!File.Exists(From_Files[File_Number]))
+            {
+                return false;
+            }
+            bool IsOK = false;
+            try
+            {
+                await Task.Run(() =>
+                {
+                    FileInfo file = new FileInfo(From_Files[File_Number]);
+                    long size = file.Length;
+                    if (size >= 50000000)
+                    {
+                        DVPL.DVPL_Pack_V2(From_Files[File_Number], From_Files[File_Number] + ".dvpl", IsFromFileDelete);
+                    }
+                    else
+                    {
+                        try
+                        {
+                            if (Path.GetExtension(From_Files[File_Number]) == ".tex")
+                            {
+                                DVPL.CREATE_DVPL(LZ4Level.L00_FAST, From_Files[File_Number], From_Files[File_Number] + ".dvpl", IsFromFileDelete);
+                            }
+                            else
+                            {
+                                DVPL.CREATE_DVPL(LZ4Level.L03_HC, From_Files[File_Number], From_Files[File_Number] + ".dvpl", IsFromFileDelete);
+                            }
+                            IsOK = true;
+                        }
+                        catch
+                        {
+                        }
+                    }
+                });
+            }
+            catch
+            {
+            }
+            if (IsOK)
+                return true;
+            return false;
         }
         static async Task<bool> PSB_To_WAV(int File_Number, bool IsFromFileDelete)
         {

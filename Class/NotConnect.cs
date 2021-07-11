@@ -128,6 +128,7 @@ namespace WoTB_Voice_Mod_Creater
             if (result == MessageBoxResult.Yes)
             {
                 IsClosing = true;
+                IsProcessing = true;
                 Voice_Set.App_Busy = true;
                 Other_Window.Pause_Volume_Animation(true, 25);
                 try
@@ -183,6 +184,7 @@ namespace WoTB_Voice_Mod_Creater
             {
                 Sub_Code.Error_Log_Write(e1.Message);
             }
+            Application.Current.Shutdown();
         }
         //再接続ボタン
         private void Connect_B_Click(object sender, RoutedEventArgs e)

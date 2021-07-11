@@ -6,7 +6,6 @@
     xmlns:local="clr-namespace:WoTB_Voice_Mod_Creater.Class"
     x:Class="WoTB_Voice_Mod_Creater.Class.Other"
     mc:Ignorable="d"
-    x:Name="RootWindow"
     KeyboardNavigation.TabNavigation="None"
     KeyboardNavigation.ControlTabNavigation="None"
     KeyboardNavigation.DirectionalNavigation="None"
@@ -134,7 +133,7 @@
             <TextBlock x:Name="Pitch_Speed_T" FontSize="40" Height="55" Width="366" TextWrapping="Wrap" Text="音程と速度:0" VerticalAlignment="Top" Margin="-475,300,0,0" Foreground="Aqua" TextAlignment="Center" Visibility="Hidden"/>
             <Slider x:Name="Pitch_Speed_S" Height="27" VerticalAlignment="Top" Width="400" Margin="-475,400,0,0" Style="{StaticResource CustomSliderStyle}" Maximum="100" Minimum="0" Value="50" Visibility="Hidden" SmallChange="1" LargeChange="1" ValueChanged="Pitch_Speed_S_ValueChanged" MouseRightButtonDown="Pitch_Speed_S_MouseRightButtonDown"/>
             <TextBlock x:Name="Speed_T" FontSize="40" Height="55" Width="300" TextWrapping="Wrap" Text="速度:0" VerticalAlignment="Top" Margin="-475,500,0,0" Foreground="Aqua" TextAlignment="Center"/>
-            <Slider x:Name="Speed_S" Height="27" VerticalAlignment="Top" Focusable="False"  Width="400" Margin="-475,600,0,0" Style="{StaticResource CustomSliderStyle}" SmallChange="0" Maximum="100" Minimum="-80" ValueChanged="Speed_S_ValueChanged" MouseRightButtonDown="Speed_S_MouseDoubleClick" LargeChange="0"/>
+            <Slider x:Name="Speed_S" Height="27" VerticalAlignment="Top" Focusable="False"  Width="400" Margin="-475,600,0,0" Style="{StaticResource CustomSliderStyle}" SmallChange="1" Maximum="100" Minimum="-80" ValueChanged="Speed_S_ValueChanged" MouseRightButtonDown="Speed_S_MouseDoubleClick" LargeChange="1"/>
             <TextBlock x:Name="Location_T" FontSize="40" Height="55" Width="300" TextWrapping="Wrap" Text="00:00" VerticalAlignment="Top" Margin="-475,700,0,0" Foreground="Aqua" TextAlignment="Center"/>
             <Slider x:Name="Location_S" IsMoveToPointEnabled="True" Height="27" VerticalAlignment="Top" Width="400" Margin="-475,800,0,0" Style="{StaticResource CustomSliderStyle2}" Focusable="False" ValueChanged="Location_S_ValueChanged"/>
             <TextBlock x:Name="Zoom_T" FontSize="40" Height="55" Width="325" TextWrapping="Wrap" Text="拡大率:1" VerticalAlignment="Top" Margin="-475,900,0,0" Foreground="Aqua" TextAlignment="Center"/>
@@ -165,7 +164,7 @@
             <TextBlock x:Name="List_Number_T" FontSize="30" Height="37" Width="175" TextWrapping="Wrap" Text="リスト番号:1" VerticalAlignment="Top" Margin="-300,80,0,0" Foreground="Aqua" TextAlignment="Center"/>
             <Button x:Name="Exit_B" Content="戻る" Height="85" VerticalAlignment="Top" Width="325" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Margin="-3513,995,0,0" Click="Exit_B_Click"/>
             <local:Youtube_Link x:Name="Youtube_Link_Window" Height="1080" VerticalAlignment="Top" Width="1920" Margin="-1920,0,0,0" Visibility="Hidden"/>
-            <local:Load_Data x:Name="Load_Window" Width="1920" Height="1080" Margin="-1920,0,0,0" Visibility="Hidden"/>
+            <local:Load_Data x:Name="Load_Window" Width="1920" Height="1080" VerticalAlignment="Top" Margin="-1920,0,0,0" Visibility="Hidden"/>
         </DockPanel>
     </Viewbox>
 </UserControl>

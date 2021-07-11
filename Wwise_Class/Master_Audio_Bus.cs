@@ -115,7 +115,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 Message_T.Text = ShortID + "を復号化しています...";
                 await Task.Delay(50);
                 FNV_Hash_Class hasher = new FNV_Hash_Class();
-                string Parse = hasher.Bruteforce(7, uint.Parse(ShortID));
+                string Parse = hasher.Bruteforce(8, uint.Parse(ShortID));
                 StreamWriter stw = new StreamWriter(To_File, true);
                 stw.WriteLine(ShortID + " = " + Parse + " : 親 = " + ID_Line_Special[Number][0]);
                 stw.Close();

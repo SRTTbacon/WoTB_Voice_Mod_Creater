@@ -84,6 +84,33 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             }
             return -1;
         }
+        public bool Wwise_Extract_To_WAV_Directory(string To_Dir)
+        {
+            if (IsClear)
+            {
+                return false;
+            }
+            if (!Directory.Exists(To_Dir))
+            {
+                return false;
+            }
+            try
+            {
+                Random r = new Random();
+                for (int Number = 0; Number < WEML.Count; Number++)
+                {
+                    int Number_01 = r.Next(0, 1000);
+                    if (Wwise_Extract_To_WEM_File(Number, To_Dir + "\\" + Number_01 + ".wem", true))
+                        Sub_Code.WEM_To_File(To_Dir + "\\" + Number_01 + ".wem", To_Dir + "\\" + WEML[Number].ID + ".wav", "wav", true);
+                }
+                return true;
+            }
+            catch (Exception e)
+            {
+                Sub_Code.Error_Log_Write(e.Message);
+                return false;
+            }
+        }
         //.bnkファイルの中身全てをフォルダに抽出
         //Name_Mode:1=連番,2=音声ID(数字数桁)
         public bool Wwise_Extract_To_WEM_Directory(string To_Dir, int Name_Mode)
@@ -282,6 +309,41 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 if (Wwise_Extract_To_WEM_File(Index, To_File + ".wem", true))
                 {
                     if (Sub_Code.WEM_To_File(To_File + ".wem", To_File, "ogg", true))
+                    {
+                        return true;
+                    }
+                }
+                return false;
+            }
+            catch (Exception e)
+            {
+                Sub_Code.Error_Log_Write(e.Message);
+                return false;
+            }
+        }
+        public bool Wwise_Extract_To_Wav_File(uint ShortID, string To_File, bool IsOverWrite)
+        {
+            if (IsClear)
+            {
+                return false;
+            }
+            if (File.Exists(To_File) && !IsOverWrite)
+            {
+                return false;
+            }
+            try
+            {
+                int Index = -1;
+                for (int Number = 0; Number < WEML.Count; Number++)
+                {
+                    if (WEML[Number].ID == ShortID)
+                        Index = Number;
+                }
+                if (Index == -1)
+                    return false;
+                if (Wwise_Extract_To_WEM_File(Index, To_File + ".wem", true))
+                {
+                    if (Sub_Code.WEM_To_File(To_File + ".wem", To_File, "wav", true))
                     {
                         return true;
                     }

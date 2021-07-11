@@ -4,16 +4,20 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Interop;
+using System.Windows.Media.Imaging;
 
 namespace WoTB_Voice_Mod_Creater
 {
     public class Sub_Code
     {
+        public const string Random_String = "0123456789abcdefghijklmnopqrstuvwxyz";
         public const double Window_Feed_Time = 0.04;
         static List<string> IsAutoListAdd = new List<string>();
         static string IsLanguage = "";
@@ -761,7 +765,7 @@ namespace WoTB_Voice_Mod_Creater
                 Volume_Set_Start(File_Import, Gain);
             }
         }
-        static void Volume_Set_Start(string File_Import, int Gain)
+        public static void Volume_Set_Start(string File_Import, int Gain = 10)
         {
             StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Encode_Mp3/Volume_Set.bat");
             stw.WriteLine("chcp 65001");
@@ -1161,11 +1165,11 @@ namespace WoTB_Voice_Mod_Creater
                 }
                 else if (Encode_Mode == "mp3")
                 {
-                    Encode_Style = "-y -vn -ac 2 -ar 44100 -ab 128k -acodec libmp3lame -f mp3";
+                    Encode_Style = "-y -vn -ac 2 -ar 44100 -ab 144k -acodec libmp3lame -f mp3";
                 }
                 else if (Encode_Mode == "ogg")
                 {
-                    Encode_Style = "-y -vn -ac 2 -ar 44100 -ab 128k -acodec libvorbis -f ogg";
+                    Encode_Style = "-y -vn -ac 2 -ar 44100 -ab 144k -acodec libvorbis -f ogg";
                 }
                 else if (Encode_Mode == "wav")
                 {
@@ -1173,11 +1177,11 @@ namespace WoTB_Voice_Mod_Creater
                 }
                 else if (Encode_Mode == "webm")
                 {
-                    Encode_Style = "-y -vn -f opus -acodec libopus -ab 128k";
+                    Encode_Style = "-y -vn -f opus -acodec libopus -ab 144k";
                 }
                 else if (Encode_Mode == "wma")
                 {
-                    Encode_Style = "-y -vn -ac 2 -ar 44100 -ab 128k -acodec wmav2 -f asf";
+                    Encode_Style = "-y -vn -ac 2 -ar 44100 -ab 144k -acodec wmav2 -f asf";
                 }
                 StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Encode_Mp3/Audio_Encode.bat");
                 stw.WriteLine("chcp 65001");
@@ -2147,6 +2151,205 @@ namespace WoTB_Voice_Mod_Creater
             {
                 return false;
             }
+        }
+        //Wwiserを用いて.bnkファイルを解析する
+        public static void BNK_Parse_To_XML(string From_BNK_File, string To_XML_File)
+        {
+            StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Wwise_Parse/BNK_Parse_Start.bat");
+            stw.WriteLine("chcp 65001");
+            stw.Write("\"" + Voice_Set.Special_Path + "/Wwise_Parse/Python/python.exe\" \"" + Voice_Set.Special_Path + "/Wwise_Parse/wwiser.pyz\" -iv \"" + From_BNK_File + "\" -dn \"" +
+                To_XML_File.Replace(".xml", "") + "\"");
+            stw.Close();
+            ProcessStartInfo processStartInfo1 = new ProcessStartInfo
+            {
+                FileName = Voice_Set.Special_Path + "/Wwise_Parse/BNK_Parse_Start.bat",
+                CreateNoWindow = true,
+                UseShellExecute = false
+            };
+            Process p = Process.Start(processStartInfo1);
+            p.WaitForExit();
+            File.Delete(Voice_Set.Special_Path + "/Wwise_Parse/BNK_Parse_Start.bat");
+        }
+        /// <summary>
+        /// BitmapImageを指定したサイズにカット
+        /// 引数:元のBitmapImage, 横幅, 縦幅, ref 指定したサイズのBitmapImage, ref サイズ外のBitmapImage
+        /// </summary>
+        public static void Resize_From_BitmapImage(BitmapImage From_Image, int Width, int Height, ref BitmapImage Inside_Image, ref BitmapImage Outside_Image)
+        {
+            var encoder = new System.Windows.Media.Imaging.PngBitmapEncoder();
+            encoder.Frames.Add(System.Windows.Media.Imaging.BitmapFrame.Create(From_Image));
+            using (var ms = new System.IO.MemoryStream())
+            {
+                encoder.Save(ms);
+                ms.Seek(0, System.IO.SeekOrigin.Begin);
+                using (System.Drawing.Image image = System.Drawing.Image.FromStream(ms))
+                {
+                    using (System.Drawing.Bitmap bitmap = new System.Drawing.Bitmap(Width, Height))
+                    {
+                        using (System.Drawing.Graphics graphics = System.Drawing.Graphics.FromImage(bitmap))
+                        {
+                            System.Drawing.SolidBrush solidBrush = new System.Drawing.SolidBrush(System.Drawing.Color.Transparent);
+                            graphics.FillRectangle(solidBrush, new System.Drawing.RectangleF(0, 0, Width, Height));
+                            graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+                            graphics.DrawImage(image, 0, 0, image.Width, image.Height);
+                            Inside_Image = Bitmap_To_BitmapImage(bitmap);
+                        }
+                    }
+                    using (System.Drawing.Bitmap bitmap = new System.Drawing.Bitmap((int)(From_Image.Width - Width), (int)From_Image.Height))
+                    {
+                        using (System.Drawing.Graphics graphics = System.Drawing.Graphics.FromImage(bitmap))
+                        {
+                            System.Drawing.SolidBrush solidBrush = new System.Drawing.SolidBrush(System.Drawing.Color.Transparent);
+                            graphics.FillRectangle(solidBrush, new System.Drawing.RectangleF(0, 0, Width, Height));
+                            graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+                            graphics.DrawImage(image, -Width, 0, image.Width, image.Height);
+                            Outside_Image = Bitmap_To_BitmapImage(bitmap);
+                        }
+                    }
+                }
+            }
+        }
+        public static void Resize_From_BitmapImage(BitmapImage From_Image, int Width, int Height, string To_Inside_File, string To_Outside_File)
+        {
+            var encoder = new System.Windows.Media.Imaging.PngBitmapEncoder();
+            encoder.Frames.Add(System.Windows.Media.Imaging.BitmapFrame.Create(From_Image));
+            using (var ms = new System.IO.MemoryStream())
+            {
+                encoder.Save(ms);
+                ms.Seek(0, System.IO.SeekOrigin.Begin);
+                using (System.Drawing.Image image = System.Drawing.Image.FromStream(ms))
+                {
+                    using (System.Drawing.Bitmap bitmap = new System.Drawing.Bitmap(Width, Height))
+                    {
+                        using (System.Drawing.Graphics graphics = System.Drawing.Graphics.FromImage(bitmap))
+                        {
+                            System.Drawing.SolidBrush solidBrush = new System.Drawing.SolidBrush(System.Drawing.Color.Transparent);
+                            graphics.FillRectangle(solidBrush, new System.Drawing.RectangleF(0, 0, Width, Height));
+                            graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+                            graphics.DrawImage(image, 0, 0, image.Width, image.Height);
+                            bitmap.Save(To_Inside_File, System.Drawing.Imaging.ImageFormat.Png);
+                        }
+                    }
+                    using (System.Drawing.Bitmap bitmap = new System.Drawing.Bitmap((int)(From_Image.Width - Width), (int)From_Image.Height))
+                    {
+                        using (System.Drawing.Graphics graphics = System.Drawing.Graphics.FromImage(bitmap))
+                        {
+                            System.Drawing.SolidBrush solidBrush = new System.Drawing.SolidBrush(System.Drawing.Color.Transparent);
+                            graphics.FillRectangle(solidBrush, new System.Drawing.RectangleF(0, 0, Width, Height));
+                            graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+                            graphics.DrawImage(image, -Width, 0, image.Width, image.Height);
+                            bitmap.Save(To_Outside_File, System.Drawing.Imaging.ImageFormat.Png);
+                        }
+                    }
+                }
+            }
+        }
+        public static bool IsSafeFileName(string File_Name)
+        {
+            if (string.IsNullOrEmpty(File_Name))
+                return false;
+            char[] invalidChars = System.IO.Path.GetInvalidFileNameChars();
+            if (File_Name.IndexOfAny(invalidChars) >= 0)
+                return false;
+            if (System.Text.RegularExpressions.Regex.IsMatch(File_Name
+                                           , @"(^|\\|/)(CON|PRN|AUX|NUL|CLOCK\$|COM[0-9]|LPT[0-9])(\.|\\|/|$)"
+                                           , System.Text.RegularExpressions.RegexOptions.IgnoreCase))
+                return false;
+            return true;
+        }
+        public static string Generate_Random_String(int Min_Length, int Max_Length)
+        {
+            return Generate_Random_String("C:\\ASGYAifei", Min_Length, Max_Length);
+        }
+        public static string Generate_Random_String(string File_Path, int Min_Length, int Max_Length)
+        {
+            Random r = new Random();
+            int Length = r.Next(Min_Length, Max_Length + 1);
+            StringBuilder sb = new StringBuilder(Length);
+            for (int i = 0; i < Length; i++)
+            {
+                int pos = r.Next(Random_String.Length);
+                char c = Random_String[pos];
+                sb.Append(c);
+            }
+            if (File_Exists(File_Path + sb))
+                return Generate_Random_String(File_Path, Min_Length, Max_Length);
+            return sb.ToString();
+        }
+    }
+    //ウィンドウにフォーカスがないとき、アイコンを光らせる
+    public class Flash
+    {
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool FlashWindowEx(ref FLASHWINFO pwfi);
+        public const uint FLASHW_STOP = 0;
+        public const uint FLASHW_CAPTION = 1;
+        public const uint FLASHW_TRAY = 2;
+        public const uint FLASHW_ALL = 3;
+        public const uint FLASHW_TIMER = 4;
+        public const uint FLASHW_TIMERNOFG = 12;
+        public static Window Handle = null;
+        public static bool IsFlashing = false;
+        private struct FLASHWINFO
+        {
+            public uint cbSize;
+            public IntPtr hwnd;
+            public uint dwFlags;
+            public uint uCount;
+            public uint dwTimeout;
+        }
+        //アイコンを光らせる
+        public static void Flash_Start(UInt32 count = UInt32.MaxValue)
+        {
+            if (Win2000OrLater && Handle != null && !IsFlashing)
+            {
+                if (Handle.IsActive) return;
+                IsFlashing = true;
+                WindowInteropHelper h = new WindowInteropHelper(Handle);
+                FLASHWINFO info = new FLASHWINFO
+                {
+                    hwnd = h.Handle,
+                    dwFlags = FLASHW_ALL | FLASHW_TIMER,
+                    uCount = count,
+                    dwTimeout = 0
+                };
+                info.cbSize = Convert.ToUInt32(Marshal.SizeOf(info));
+                FlashWindowEx(ref info);
+                Flash_Loop();
+            }
+        }
+        //アイコンを戻す
+        public static void Flash_Stop()
+        {
+            if (Win2000OrLater && Handle != null && IsFlashing)
+            {
+                WindowInteropHelper h = new WindowInteropHelper(Handle);
+                FLASHWINFO info = new FLASHWINFO
+                {
+                    hwnd = h.Handle,
+                    dwFlags = FLASHW_STOP,
+                    uCount = UInt32.MaxValue,
+                    dwTimeout = 0
+                };
+                info.cbSize = Convert.ToUInt32(Marshal.SizeOf(info));
+                FlashWindowEx(ref info);
+                IsFlashing = false;
+            }
+        }
+        //ウィンドウにフォーカスが与えられたらアイコンを戻す
+        static async void Flash_Loop()
+        {
+            while (!Handle.IsActive && IsFlashing)
+            {
+                await Task.Delay(500);
+            }
+            Flash_Stop();
+        }
+        //Windows XP以上か判定(まぁ.NET FrameWork4.6はWindows7以上なので必ずtrueを返しますが...)
+        private static bool Win2000OrLater
+        {
+            get { return System.Environment.OSVersion.Version.Major >= 5; }
         }
     }
 }

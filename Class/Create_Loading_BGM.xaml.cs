@@ -36,6 +36,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         bool IsLocationChanging = false;
         bool IsPaused = false;
         bool IsEnded = false;
+        Random r = new Random();
         SYNCPROC IsMusicEnd;
         public Create_Loading_BGM()
         {
@@ -54,9 +55,12 @@ namespace WoTB_Voice_Mod_Creater.Class
             BGM_Type_L.Items.Add("ロード9:Japan | 0個");
             BGM_Type_L.Items.Add("ロード10:Russian_malinovka | 0個");
             BGM_Type_L.Items.Add("ロード11:Russian_prokhorovka | 0個");
-            BGM_Type_L.Items.Add("リザルト:勝利 | 0個");
-            BGM_Type_L.Items.Add("リザルト:引き分け | 0個");
-            BGM_Type_L.Items.Add("リザルト:敗北 | 0個");
+            BGM_Type_L.Items.Add("リザルト:勝利-BGM | 0個");
+            BGM_Type_L.Items.Add("リザルト:勝利-音声 | 0個");
+            BGM_Type_L.Items.Add("リザルト:引き分け-BGM | 0個");
+            BGM_Type_L.Items.Add("リザルト:引き分け-音声 | 0個");
+            BGM_Type_L.Items.Add("リザルト:敗北-BGM | 0個");
+            BGM_Type_L.Items.Add("リザルト:敗北-音声 | 0個");
             BGM_Type_L.Items.Add("優勢:味方 | 0個");
             BGM_Type_L.Items.Add("優勢:敵 | 0個");
             for (int Number = 0; Number < BGM_Type_L.Items.Count; Number++)
@@ -265,6 +269,8 @@ namespace WoTB_Voice_Mod_Creater.Class
                 try
                 {
                     StreamWriter stw = File.CreateText(sfd.FileName + ".tmp");
+                    stw.WriteLine("V1.4");
+                    stw.WriteLine(Volume_WoTB_S.Value);
                     for (int Number = 0; Number < Music_Type_Music.Count; Number++)
                     {
                         for (int Number_01 = 0; Number_01 < Music_Type_Music[Number].Count; Number_01++)
@@ -287,7 +293,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             sfd.Dispose();
         }
         //ロード
-        private async void Load_B_Click(object sender, RoutedEventArgs e)
+        private void Load_B_Click(object sender, RoutedEventArgs e)
         {
             if (IsClosing || IsBusy)
                 return;
@@ -298,69 +304,118 @@ namespace WoTB_Voice_Mod_Creater.Class
                 InitialDirectory = Directory.GetCurrentDirectory()
             };
             if (ofd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                Load_From_File(ofd.FileName);
+            ofd.Dispose();
+        }
+        public async void Load_From_File(string WMS_File)
+        {
+            try
             {
-                try
+                IsPaused = true;
+                float Volume_Now = 1f;
+                Bass.BASS_ChannelGetAttribute(Stream, BASSAttribute.BASS_ATTRIB_VOL, ref Volume_Now);
+                float Volume_Minus = Volume_Now / 10f;
+                while (Volume_Now > 0f && IsPaused)
                 {
-                    IsPaused = true;
-                    float Volume_Now = 1f;
-                    Bass.BASS_ChannelGetAttribute(Stream, BASSAttribute.BASS_ATTRIB_VOL, ref Volume_Now);
-                    float Volume_Minus = Volume_Now / 10f;
-                    while (Volume_Now > 0f && IsPaused)
+                    Volume_Now -= Volume_Minus;
+                    if (Volume_Now < 0f)
+                        Volume_Now = 0f;
+                    Bass.BASS_ChannelSetAttribute(Stream, BASSAttribute.BASS_ATTRIB_VOL, Volume_Now);
+                    await Task.Delay(1000 / 60);
+                }
+                if (Volume_Now <= 0f)
+                {
+                    Bass.BASS_ChannelStop(Stream);
+                    Bass.BASS_StreamFree(Stream);
+                    Position_S.Value = 0;
+                    Position_S.Maximum = 0;
+                    Position_T.Text = "00:00";
+                }
+                Sub_Code.File_Decrypt(WMS_File, WMS_File + ".tmp", "SRTTbacon_WoTB_Loading_Music_Mode", false);
+                for (int Number = 0; Number < Music_Type_Music.Count; Number++)
+                {
+                    Music_Type_Music[Number].Clear();
+                }
+                for (int Number = 0; Number < Music_Play_Times.Count; Number++)
+                {
+                    Music_Play_Times[Number].Clear();
+                }
+                Play_Time_T.Text = "再生時間:0～0";
+                BGM_Music_L.Items.Clear();
+                StreamReader str = new StreamReader(WMS_File + ".tmp");
+                string line;
+                bool IsOneLine = false;
+                bool IsVersion_Upgrade_Mode = false;
+                while ((line = str.ReadLine()) != null)
+                {
+                    if (!IsOneLine)
                     {
-                        Volume_Now -= Volume_Minus;
-                        if (Volume_Now < 0f)
-                            Volume_Now = 0f;
-                        Bass.BASS_ChannelSetAttribute(Stream, BASSAttribute.BASS_ATTRIB_VOL, Volume_Now);
-                        await Task.Delay(1000 / 60);
+                        if (line == "V1.4")
+                            IsVersion_Upgrade_Mode = true;
+                        double Volume = 75;
+                        if (IsVersion_Upgrade_Mode)
+                        {
+                            if (double.TryParse(str.ReadLine(), out Volume))
+                                Volume_WoTB_S.Value = Volume;
+                        }
+                        else
+                        {
+                            if (double.TryParse(line, out Volume))
+                                Volume_WoTB_S.Value = Volume;
+                        }
+                        IsOneLine = true;
+                        continue;
                     }
-                    if (Volume_Now <= 0f)
+                    string[] Line_Split = line.Split('|');
+                    int Index = int.Parse(Line_Split[0]);
+                    string FilePath = Line_Split[1];
+                    string Play_Time_Only = Line_Split[2];
+                    double Start_Time = double.Parse(Play_Time_Only.Substring(0, Play_Time_Only.IndexOf('～')));
+                    double End_Time = double.Parse(Play_Time_Only.Substring(Play_Time_Only.IndexOf('～') + 1));
+                    bool IsFeed_In_Mode = bool.Parse(Line_Split[3]);
+                    if (!IsVersion_Upgrade_Mode && Index == 12)
                     {
-                        Bass.BASS_ChannelStop(Stream);
-                        Bass.BASS_StreamFree(Stream);
-                        Position_S.Value = 0;
-                        Position_S.Maximum = 0;
-                        Position_T.Text = "00:00";
+                        Music_Type_Music[13].Add(FilePath);
+                        Music_Play_Times[13].Add(new Music_Play_Time(Start_Time, End_Time));
+                        Music_Feed_In[13].Add(IsFeed_In_Mode);
                     }
-                    Sub_Code.File_Decrypt(ofd.FileName, ofd.FileName + ".tmp", "SRTTbacon_WoTB_Loading_Music_Mode", false);
-                    for (int Number = 0; Number < Music_Type_Music.Count; Number++)
+                    else if (!IsVersion_Upgrade_Mode && Index == 13)
                     {
-                        Music_Type_Music[Number].Clear();
+                        Music_Type_Music[15].Add(FilePath);
+                        Music_Play_Times[15].Add(new Music_Play_Time(Start_Time, End_Time));
+                        Music_Feed_In[15].Add(IsFeed_In_Mode);
                     }
-                    for (int Number = 0; Number < Music_Play_Times.Count; Number++)
+                    else if (!IsVersion_Upgrade_Mode && Index == 14)
                     {
-                        Music_Play_Times[Number].Clear();
+                        Music_Type_Music[17].Add(FilePath);
+                        Music_Play_Times[17].Add(new Music_Play_Time(Start_Time, End_Time));
+                        Music_Feed_In[17].Add(IsFeed_In_Mode);
                     }
-                    Play_Time_T.Text = "再生時間:0～0";
-                    BGM_Music_L.Items.Clear();
-                    StreamReader str = new StreamReader(ofd.FileName + ".tmp");
-                    string line;
-                    while ((line = str.ReadLine()) != null)
+                    else if (!IsVersion_Upgrade_Mode && Index == 15)
                     {
-                        string[] Line_Split = line.Split('|');
-                        int Index = int.Parse(Line_Split[0]);
-                        string FilePath = Line_Split[1];
-                        string Play_Time_Only = Line_Split[2];
-                        double Start_Time = double.Parse(Play_Time_Only.Substring(0, Play_Time_Only.IndexOf('～')));
-                        double End_Time = double.Parse(Play_Time_Only.Substring(Play_Time_Only.IndexOf('～') + 1));
-                        bool IsFeed_In_Mode = bool.Parse(Line_Split[3]);
+                        Music_Type_Music[18].Add(FilePath);
+                        Music_Play_Times[18].Add(new Music_Play_Time(Start_Time, End_Time));
+                        Music_Feed_In[18].Add(IsFeed_In_Mode);
+                    }
+                    else
+                    {
                         Music_Type_Music[Index].Add(FilePath);
                         Music_Play_Times[Index].Add(new Music_Play_Time(Start_Time, End_Time));
                         Music_Feed_In[Index].Add(IsFeed_In_Mode);
                     }
-                    str.Close();
-                    str.Dispose();
-                    File.Delete(ofd.FileName + ".tmp");
-                    Feed_In_C.IsChecked = false;
-                    Update_Music_Type_List();
-                    Message_Feed_Out("ロードしました。");
                 }
-                catch (Exception e1)
-                {
-                    Sub_Code.Error_Log_Write(e1.Message);
-                    Message_Feed_Out("エラー:ファイルを読み取れませんでした。");
-                }
+                str.Close();
+                str.Dispose();
+                File.Delete(WMS_File + ".tmp");
+                Feed_In_C.IsChecked = false;
+                Update_Music_Type_List();
+                Message_Feed_Out("ロードしました。");
             }
-            ofd.Dispose();
+            catch (Exception e1)
+            {
+                Sub_Code.Error_Log_Write(e1.Message);
+                Message_Feed_Out("エラー:ファイルを読み取れませんでした。");
+            }
         }
         //再生中の曲を変更
         private void BGM_Music_L_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -392,12 +447,17 @@ namespace WoTB_Voice_Mod_Creater.Class
             Feed_In_C.IsChecked = Music_Feed_In[BGM_Type_L.SelectedIndex][BGM_Music_L.SelectedIndex];
             IsPaused = true;
         }
-        //音量を変更
+        //音量を変更(ソフト内用)
         private void Volume_S_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            Volume_T.Text = "音量:" + (int)Volume_S.Value;
+            Volume_T.Text = "音量(ソフト内):" + (int)Volume_S.Value;
             if (!IsPaused)
                 Bass.BASS_ChannelSetAttribute(Stream, BASSAttribute.BASS_ATTRIB_VOL, (float)Volume_S.Value / 100);
+        }
+        //音量を変更(WoTB用)
+        private void Volume_WoTB_S_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            Volume_WoTB_T.Text = "音量(WoTB内):" + (int)Volume_WoTB_S.Value;
         }
         //再生速度を変更
         private void Speed_S_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
@@ -536,7 +596,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Play_Volume_Animation();
             }
         }
-        void Volume_S_MouseUp(object sender, System.Windows.Input.MouseEventArgs e)
+        void Volume_S_MouseUp(object sender, MouseEventArgs e)
         {
             Configs_Save();
         }
@@ -583,7 +643,10 @@ namespace WoTB_Voice_Mod_Creater.Class
                     }
                     Music_Type_Music[BGM_Type_L.SelectedIndex].Add(FilePath);
                     Music_Play_Times[BGM_Type_L.SelectedIndex].Add(new Music_Play_Time(0, 0));
-                    Music_Feed_In[BGM_Type_L.SelectedIndex].Add(true);
+                    if (BGM_Type_L.SelectedIndex == 12 || BGM_Type_L.SelectedIndex == 14 || BGM_Type_L.SelectedIndex == 16)
+                        Music_Feed_In[BGM_Type_L.SelectedIndex].Add(false);
+                    else
+                        Music_Feed_In[BGM_Type_L.SelectedIndex].Add(true);
                     BGM_Music_L.Items.Add(Path.GetFileName(FilePath));
                 }
                 if (Error_FileName != "")
@@ -629,7 +692,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Message_Feed_Out("最低1つはBGMファイルを選択する必要があります。");
                 return;
             }
-            Music_Mod_Create(-1);
+            Music_Mod_Create(false);
         }
         //指定した項目のみ作成
         private void Create_One_B_Click(object sender, RoutedEventArgs e)
@@ -641,16 +704,16 @@ namespace WoTB_Voice_Mod_Creater.Class
             }
             if (Music_Type_Music[BGM_Type_L.SelectedIndex].Count == 0)
             {
-                if (BGM_Type_L.SelectedIndex == 12 || BGM_Type_L.SelectedIndex == 13)
+                if (BGM_Type_L.SelectedIndex == 13 || BGM_Type_L.SelectedIndex == 14 || BGM_Type_L.SelectedIndex == 15 || BGM_Type_L.SelectedIndex == 16)
                 {
-                    if (Music_Type_Music[12].Count == 0 || Music_Type_Music[13].Count == 0)
+                    if (Music_Type_Music[13].Count == 0 || Music_Type_Music[15].Count == 0)
                     {
                         Message_Feed_Out("引き分け、または敗北はどちらともに1つ以上BGMを入れる必要があります。");
                     }
                 }
-                else if (BGM_Type_L.SelectedIndex == 14 || BGM_Type_L.SelectedIndex == 15)
+                else if (BGM_Type_L.SelectedIndex == 16 || BGM_Type_L.SelectedIndex == 17)
                 {
-                    if (Music_Type_Music[14].Count == 0 || Music_Type_Music[15].Count == 0)
+                    if (Music_Type_Music[16].Count == 0 || Music_Type_Music[17].Count == 0)
                     {
                         Message_Feed_Out("優勢はどちらともに1つ以上BGMを入れる必要があります。");
                     }
@@ -661,10 +724,10 @@ namespace WoTB_Voice_Mod_Creater.Class
                 }
                 return;
             }
-            Music_Mod_Create(BGM_Type_L.SelectedIndex);
+            Music_Mod_Create(true);
         }
         //すべて作成する場合は-1
-        async void Music_Mod_Create(int Index)
+        async void Music_Mod_Create(bool IsSelectedOnly)
         {
             if (IsClosing || IsBusy)
                 return;
@@ -708,12 +771,13 @@ namespace WoTB_Voice_Mod_Creater.Class
                     File.Copy(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Backup.tmp", Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Default Work Unit.wwu", true);
                 if (!File.Exists(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Backup.tmp"))
                     File.Copy(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Default Work Unit.wwu", Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Backup.tmp", true);
+                int Set_Volume = (int)(-40 * (1 - Volume_WoTB_S.Value / 100));
                 Wwise_Project_Create Wwise = new Wwise_Project_Create(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod");
                 for (int Number = 0; Number < Music_Type_Music.Count; Number++)
                 {
                     for (int Number_01 = 0; Number_01 < Music_Type_Music[Number].Count; Number_01++)
                     {
-                        Wwise.Loading_Music_Add_Wwise(Music_Type_Music[Number][Number_01], Number, Music_Play_Times[Number][Number_01], Music_Feed_In[Number][Number_01]);
+                        Wwise.Loading_Music_Add_Wwise(Music_Type_Music[Number][Number_01], Number, Music_Play_Times[Number][Number_01], Music_Feed_In[Number][Number_01], Set_Volume);
                     }
                 }
                 Message_T.Text = "ファイルを.wavにエンコードしています...";
@@ -722,52 +786,47 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Wwise.Save();
                 //数を合わせるため使用しない項目を入れています。
                 string[] Loading_Music_Name = { "America_lakville", "America_overlord", "Chinese", "Desert_airfield", "Desert_sand_river","Europe_himmelsdorf",
-                "Europe_mannerheim","Europe_ruinberg","Japan","Russian_malinovka","Russian_prokhorovka","リザルト(勝利)","リザルト(敗北、または引き分け)","None",
-                "優勢(敵味方両方)","None"};
+                "Europe_mannerheim","Europe_ruinberg","Japan","Russian_malinovka","Russian_prokhorovka","リザルト(勝利)","リザルト(勝利)","リザルト(敗北、または引き分け)","リザルト(敗北、または引き分け)",
+                "リザルト(敗北、または引き分け)","リザルト(敗北、または引き分け)","優勢(敵味方両方)","優勢(敵味方両方)"};
                 string[] Loading_Music_Type = { "music_maps_america_lakville", "music_maps_america_overlord", "music_maps_chinese", "music_maps_desert_airfield",
                 "music_maps_desert_sand_river","music_maps_europe_himmelsdorf","music_maps_europe_mannerheim","music_maps_europe_ruinberg","music_maps_japan",
-                "music_maps_russian_malinovka","music_maps_russian_prokhorovka","music_result_screen_basic", "music_result_screen","None","music_battle","None"};
-                if (Index == -1)
+                "music_maps_russian_malinovka","music_maps_russian_prokhorovka","music_result_screen_basic","music_result_screen_basic", "music_result_screen","music_result_screen",
+                "music_result_screen","music_result_screen","music_battle","music_battle"};
+                List<string> Build_Names = new List<string>();
+                if (!IsSelectedOnly)
                 {
                     for (int Number = 0; Number < BGM_Type_L.Items.Count; Number++)
                     {
                         if (Music_Type_Music[Number].Count > 0)
                         {
+                            if (Build_Names.Contains(Loading_Music_Type[Number]))
+                                continue;
+                            Build_Names.Add(Loading_Music_Type[Number]);
                             Message_T.Text = Loading_Music_Name[Number] + "をビルドしています...";
                             await Task.Delay(100);
                             Wwise.Project_Build(Loading_Music_Type[Number], bfb.SelectedFolder + "/" + Loading_Music_Type[Number] + ".bnk");
                         }
-                        if (Number == 12 || Number == 14)
-                            Number++;
                     }
                 }
                 else
                 {
-                    bool Index12_OK = true;
-                    bool Index14_OK = true;
                     foreach (int Number in ListBoxEx.SelectedIndexs(BGM_Type_L))
                     {
-                        if (Number == 13 && !Index12_OK)
+                        if (Build_Names.Contains(Loading_Music_Type[Number]))
                             continue;
-                        if (Index == 15 && !Index14_OK)
-                            continue;
-                        if (Number == 12)
-                            Index12_OK = false;
-                        if (Number == 13)
-                            Index14_OK = false;
-                        int Number_01 = Number;
-                        if (Number == 13 || Number == 15)
-                            Number_01--;
-                        Message_T.Text = Loading_Music_Name[Number_01] + "をビルドしています...";
+                        Build_Names.Add(Loading_Music_Type[Number]);
+                        Message_T.Text = Loading_Music_Name[Number] + "をビルドしています...";
                         await Task.Delay(100);
-                        Wwise.Project_Build(Loading_Music_Type[Number_01], bfb.SelectedFolder + "/" + Loading_Music_Type[Number_01] + ".bnk");
+                        Wwise.Project_Build(Loading_Music_Type[Number], bfb.SelectedFolder + "/" + Loading_Music_Type[Number] + ".bnk");
                     }
                 }
+                Build_Names.Clear();
                 await Task.Delay(100);
                 Wwise.Clear();
                 if (File.Exists(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Backup.tmp"))
                     File.Copy(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Backup.tmp", Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Default Work Unit.wwu", true);
                 Message_Feed_Out("完了しました。指定したフォルダを参照してください。");
+                Flash.Flash_Start();
                 IsBusy = false;
             }
             bfb.Dispose();
@@ -783,7 +842,13 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Music_Count += Music_Type_Music[Number].Count;
             }
             if (Music_Count == 0)
+            {
+                if (r.Next(0, 10) == 5)
+                    Message_Feed_Out("内容がないようです。");
+                else
+                    Message_Feed_Out("既にクリアされています。");
                 return;
+            }
             MessageBoxResult result = MessageBox.Show("内容をクリアしますか？", "確認", MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.No);
             if (result == MessageBoxResult.Yes)
             {
@@ -822,6 +887,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                     Music_Feed_In[Number].Clear();
                 }
                 Play_Time_T.Text = "再生時間:0～0";
+                Volume_WoTB_S.Value = 75;
                 BGM_Music_L.Items.Clear();
                 Update_Music_Type_List();
                 BGM_Type_L.SelectedIndex = -1;
@@ -881,6 +947,14 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Music_Feed_In[BGM_Type_L.SelectedIndex][BGM_Music_L.SelectedIndex] = true;
             else
                 Music_Feed_In[BGM_Type_L.SelectedIndex][BGM_Music_L.SelectedIndex] = false;
+        }
+        private void Volume_WoTB_Help_B_Click(object sender, RoutedEventArgs e)
+        {
+            string Message_01 = "・この設定は、全BGMに当てはまります。個別で設定することはできません。\n";
+            string Message_02 = "・実際に聞こえる音量は、この設定の数値とWoTB内のBGMの数値を足したものになります。\n";
+            string Message_03 = "例えば、この設定を50にし、WoTBのBGM設定も50にすると、だいたい25くらいの音量になります。\n";
+            string Message_04 = "試してみた感じ、この設定を30、WoTBのBGM設定を20にするとほとんど聞こえないような感じでした。ご参考までに。";
+            MessageBox.Show(Message_01 + Message_02 + Message_03 + Message_04);
         }
     }
 }

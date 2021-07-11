@@ -425,6 +425,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                         Sub_Code.DVPL_File_Copy(sfd.SelectedFolder + "/ui_chat_quick_commands.bnk", Voice_Set.WoTB_Path + "/Data/WwiseSound/ui_chat_quick_commands.bnk", true);
                         Sub_Code.DVPL_File_Copy(sfd.SelectedFolder + "/reload.bnk", Voice_Set.WoTB_Path + "/Data/WwiseSound/reload.bnk", true);
                     }
+                    Flash.Flash_Start();
                     Message_Feed_Out("完了しました。\nファイル容量が極端に少ない場合は失敗している可能性があります。");
                 }
             }

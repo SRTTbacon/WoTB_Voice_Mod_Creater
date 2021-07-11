@@ -8,6 +8,7 @@ using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Input;
 using Un4seen.Bass;
+using WK.Libraries.BetterFolderBrowserNS;
 using WoTB_Voice_Mod_Creater.Wwise_Class;
 
 namespace WoTB_Voice_Mod_Creater.Class
@@ -934,7 +935,8 @@ namespace WoTB_Voice_Mod_Creater.Class
                 }
                 await Task.Delay(1000 / 60);
             }
-            Message_T.Text = "";
+            if (IsMessageShowing)
+                Message_T.Text = "";
             Message_T.Opacity = 1;
             IsMessageShowing = false;
         }
@@ -1169,6 +1171,8 @@ namespace WoTB_Voice_Mod_Creater.Class
         }
         private void BGM_Mix_Help_B_Click(object sender, RoutedEventArgs e)
         {
+            if (IsBusy)
+                return;
             string Message_01 = "・新サウンドエンジンでは、曲が終わったあと次の曲に変更するということができないため、事前に曲が5分以下であれば";
             string Message_02 = "別の曲を付け足して5分以上にします。(作成ボタンを押してファイルを選択する際、このソフトで作成した音声の場合この設定は無視されます。)\n";
             string Message_03 = "その分ファイル容量は増えますが、ゲームの動作に影響はないかと思います。\n";
@@ -1176,6 +1180,93 @@ namespace WoTB_Voice_Mod_Creater.Class
             string Message_05 = "・戦闘時間が最大7分のため、BGMが7分30秒を超えるとそれ以降は強制的にカットされます。\n";
             string Message_06 = "注意:指定しているBGMによって作成時間が増える可能性があります。";
             System.Windows.MessageBox.Show(Message_01 + Message_02 + Message_03 + Message_04 + Message_05 + Message_06);
+        }
+        private async void DVPL_Extract_Dir_B_Click(object sender, RoutedEventArgs e)
+        {
+            if (IsBusy)
+                return;
+            BetterFolderBrowser bfb = new BetterFolderBrowser()
+            {
+                Title = ".dvplファイルが存在するフォルダを選択してください。",
+                RootFolder = Sub_Code.Get_OpenDirectory_Path(),
+                Multiselect = false,
+            };
+            if (bfb.ShowDialog() == DialogResult.OK)
+            {
+                IsBusy = true;
+                Sub_Code.Set_Directory_Path(bfb.SelectedFolder);
+                uint Dir_Files = 0;
+                List<string> DVPL_Files = new List<string>();
+                foreach (string file in Directory.EnumerateFiles(bfb.SelectedFolder, "*", SearchOption.AllDirectories))
+                {
+                    if (Dir_Files >= 100000)
+                    {
+                        Message_Feed_Out("フォルダ内のファイル数が多すぎます。");
+                        DVPL_Files.Clear();
+                        IsBusy = false;
+                        return;
+                    }
+                    if (Path.GetExtension(file) == ".dvpl")
+                        DVPL_Files.Add(file);
+                    Dir_Files++;
+                }
+                if (DVPL_Files.Count == 0)
+                {
+                    Message_Feed_Out(".dvplファイルが見つかりませんでした。");
+                    IsBusy = false;
+                    return;
+                }
+                Message_T.Text = ".dvplファイルを変換しています...";
+                await Task.Delay(50);
+                int Count = DVPL.DVPL_UnPack(DVPL_Files, DVPL_Delete_C.IsChecked.Value);
+                Message_Feed_Out(Count + "個の.dvplファイルを変換しました。");
+            }
+            bfb.Dispose();
+            IsBusy = false;
+        }
+        private async void DVPL_Create_Dir_B_Click(object sender, RoutedEventArgs e)
+        {
+            if (IsBusy)
+                return;
+            BetterFolderBrowser bfb = new BetterFolderBrowser()
+            {
+                Title = ".dvplファイルが存在するフォルダを選択してください。",
+                RootFolder = Sub_Code.Get_OpenDirectory_Path(),
+                Multiselect = false,
+            };
+            if (bfb.ShowDialog() == DialogResult.OK)
+            {
+                IsBusy = true;
+                Sub_Code.Set_Directory_Path(bfb.SelectedFolder);
+                uint Dir_Files = 0;
+                List<string> Add_Files = new List<string>();
+                foreach (string file in Directory.EnumerateFiles(bfb.SelectedFolder, "*", SearchOption.AllDirectories))
+                {
+                    if (Dir_Files >= 100000)
+                    {
+                        Message_Feed_Out("フォルダ内のファイル数が多すぎます。");
+                        Add_Files.Clear();
+                        IsBusy = false;
+                        return;
+                    }
+                    if (Path.GetExtension(file) != ".dvpl")
+                        Add_Files.Add(file);
+                    Dir_Files++;
+                }
+                if (Add_Files.Count == 0)
+                {
+                    Message_Feed_Out("ファイルが見つかりませんでした。");
+                    IsBusy = false;
+                    return;
+                }
+                IsMessageShowing = false;
+                Message_T.Text = "ファイルを変換しています...";
+                await Task.Delay(50);
+                await Multithread.DVPL_Pack(Add_Files, DVPL_Delete_C.IsChecked.Value);
+                Message_Feed_Out(Add_Files.Count + "個のファイルを変換しました。");
+            }
+            bfb.Dispose();
+            IsBusy = false;
         }
     }
 }

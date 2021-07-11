@@ -17,6 +17,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         bool IsClosing = false;
         bool IsMessageShowing = false;
         bool IsSaveOK = false;
+        YoutubeClient youtube = new YoutubeClient();
         public Youtube_Link()
         {
             InitializeComponent();
@@ -30,17 +31,11 @@ namespace WoTB_Voice_Mod_Creater.Class
             Opacity = 0;
             Visibility = Visibility.Visible;
             Save_Destination_T.Text = Directory.GetCurrentDirectory() + "\\Youtube\\";
-            if (File.Exists(Voice_Set.Special_Path + "/Download_Location.dat"))
+            if (File.Exists(Voice_Set.Special_Path + "/Configs/Download_Location.conf"))
             {
                 try
                 {
-                    using (var eifs = new FileStream(Voice_Set.Special_Path + "/Configs/Download_Location.dat", FileMode.Open, FileAccess.Read))
-                    {
-                        using (var eofs = new FileStream(Voice_Set.Special_Path + "/Configs/Temp_Location.dat", FileMode.Create, FileAccess.Write))
-                        {
-                            FileEncode.FileEncryptor.Decrypt(eifs, eofs, "Youtube_Download_Location_Save");
-                        }
-                    }
+                    Sub_Code.File_Decrypt(Voice_Set.Special_Path + "/Configs/Download_Location.conf", Voice_Set.Special_Path + "/Configs/Temp_Location.dat", "Youtube_Download_Location_Save", false);
                     StreamReader str = new StreamReader(Voice_Set.Special_Path + "/Configs/Temp_Location.dat");
                     Save_Destination_T.Text = str.ReadLine();
                     Type_L.SelectedIndex = int.Parse(str.ReadLine());
@@ -132,14 +127,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 stw.WriteLine(List_Add_C.IsChecked.Value);
                 stw.Write(Close_C.IsChecked.Value);
                 stw.Close();
-                using (var eifs = new FileStream(Voice_Set.Special_Path + "/Configs/Temp_Location.dat", FileMode.Open, FileAccess.Read))
-                {
-                    using (var eofs = new FileStream(Voice_Set.Special_Path + "/Configs/Download_Location.dat", FileMode.Create, FileAccess.Write))
-                    {
-                        FileEncode.FileEncryptor.Encrypt(eifs, eofs, "Youtube_Download_Location_Save");
-                    }
-                }
-                File.Delete(Voice_Set.Special_Path + "/Configs/Temp_Location.dat");
+                Sub_Code.File_Encrypt(Voice_Set.Special_Path + "/Configs/Temp_Location.dat", Voice_Set.Special_Path + "/Configs/Download_Location.conf", "Youtube_Download_Location_Save", true);
             }
             catch (Exception e)
             {
@@ -216,7 +204,6 @@ namespace WoTB_Voice_Mod_Creater.Class
         {
             //動画と音声を別々にダウンロード
             //動画の場合はダウンロード後ffmpegで合わせる
-            var youtube = new YoutubeClient();
             var video = await youtube.Videos.GetAsync(Link);
             var title = Sub_Code.File_Replace_Name(video.Title);
             var streamManifest = await youtube.Videos.Streams.GetManifestAsync(Link_ID_Only);
@@ -226,16 +213,16 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Message_T.Text = "音声を取得しています...";
                 await Task.Delay(50);
                 var stream = await youtube.Videos.Streams.GetAsync(streamInfo);
-                await youtube.Videos.Streams.DownloadAsync(streamInfo, OutDir + "Temp.mp3");
+                await youtube.Videos.Streams.DownloadAsync(streamInfo, OutDir + "Temp.webm");
+                Sub_Code.Audio_Encode_To_Other(OutDir + "Temp.webm", OutDir + "Temp.mp3", "mp3", true);
             }
             if (Type_L.SelectedIndex == 1)
             {
                 Message_T.Text = "動画を取得しています...";
                 await Task.Delay(50);
-                var streamInfo2 = streamManifest.GetVideoOnlyStreams().Where(s => s.Container == Container.Mp4).GetWithHighestVideoQuality();
+                IVideoStreamInfo streamInfo2 = streamManifest.GetVideoOnlyStreams().Where(s => s.Container == Container.Mp4).GetWithHighestVideoQuality();
                 if (streamInfo2 != null)
                 {
-                    var stream = await youtube.Videos.Streams.GetAsync(streamInfo2);
                     await youtube.Videos.Streams.DownloadAsync(streamInfo2, OutDir + "Temp.mp4");
                     Message_T.Text = "動画と音声を結合しています...";
                     await Task.Delay(50);
@@ -267,7 +254,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             File.Delete(OutDir + "Temp.mp4");
         }
         //URLが変更されたらサムネイルを取得して表示
-        private void Link_T_TextChanged(object sender, TextChangedEventArgs e)
+        private async void Link_T_TextChanged(object sender, TextChangedEventArgs e)
         {
             if (IsClosing)
             {
@@ -285,32 +272,39 @@ namespace WoTB_Voice_Mod_Creater.Class
                     ID = Link_T.Text.Substring(Link_T.Text.IndexOf('=') + 1, 11);
                 }
                 //サムネイル画像を取得
-                BitmapImage image = new BitmapImage();
-                HttpWebRequest req = (HttpWebRequest)WebRequest.Create("https://img.youtube.com/vi/" + ID + "/maxresdefault.jpg");
-                req.UserAgent = "Mozilla/4.0 (compatible; MSIE 6.0; Windows 10)";
-                req.Referer = "http://www.ipentec.com/index.html";
-                WebResponse res = req.GetResponse();
-                Stream st = res.GetResponseStream();
-                byte[] buffer = new byte[65535];
-                MemoryStream ms = new MemoryStream();
-                while (true)
+                if (ID.Length == 11)
                 {
-                    int rb = st.Read(buffer, 0, buffer.Length);
-                    if (rb > 0)
+                    var video = await youtube.Videos.GetAsync(ID);
+                    string ThumLink = "https://img.youtube.com/vi/" + ID + "/maxresdefault.jpg";
+                    if (video.Thumbnails.Count > 0)
+                        ThumLink = video.Thumbnails[video.Thumbnails.Count - 1].Url;
+                    BitmapImage image = new BitmapImage();
+                    HttpWebRequest req = (HttpWebRequest)WebRequest.Create(ThumLink);
+                    req.UserAgent = "Mozilla/4.0 (compatible; MSIE 6.0; Windows 10)";
+                    req.Referer = "http://www.ipentec.com/index.html";
+                    WebResponse res = req.GetResponse();
+                    Stream st = res.GetResponseStream();
+                    byte[] buffer = new byte[65535];
+                    MemoryStream ms = new MemoryStream();
+                    while (true)
                     {
-                        ms.Write(buffer, 0, rb);
+                        int rb = st.Read(buffer, 0, buffer.Length);
+                        if (rb > 0)
+                        {
+                            ms.Write(buffer, 0, rb);
+                        }
+                        else
+                        {
+                            break;
+                        }
                     }
-                    else
-                    {
-                        break;
-                    }
+                    image.BeginInit();
+                    ms.Seek(0, SeekOrigin.Begin);
+                    image.StreamSource = ms;
+                    image.EndInit();
+                    Thumbnail_Image.Source = image;
+                    Thumbnail_Image.Visibility = Visibility.Visible;
                 }
-                image.BeginInit();
-                ms.Seek(0, SeekOrigin.Begin);
-                image.StreamSource = ms;
-                image.EndInit();
-                Thumbnail_Image.Source = image;
-                Thumbnail_Image.Visibility = Visibility.Visible;
             }
             catch
             {

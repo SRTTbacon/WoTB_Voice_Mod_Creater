@@ -131,43 +131,64 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             };
             if (ofd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
-                IsBusy = true;
-                string PCK_File_Path = Path.GetDirectoryName(ofd.FileName) + "/" + Path.GetFileNameWithoutExtension(ofd.FileName) + ".pck";
-                if (PCK_Mode_C.IsChecked.Value && !File.Exists(PCK_File_Path))
+                try
                 {
-                    Message_Feed_Out(Path.GetFileNameWithoutExtension(ofd.FileName) + ".pckが見つかりませんでした。");
-                    IsBusy = false;
-                    return;
+                    IsBusy = true;
+                    string PCK_File_Path = Path.GetDirectoryName(ofd.FileName) + "/" + Path.GetFileNameWithoutExtension(ofd.FileName) + ".pck";
+                    if (PCK_Mode_C.IsChecked.Value && !File.Exists(PCK_File_Path))
+                    {
+                        Message_Feed_Out(Path.GetFileNameWithoutExtension(ofd.FileName) + ".pckが見つかりませんでした。");
+                        IsBusy = false;
+                        return;
+                    }
+                    Bass.BASS_ChannelStop(Stream);
+                    Bass.BASS_StreamFree(Stream);
+                    if (Directory.Exists(Voice_Set.Special_Path + "/Wwise/BNK_WAV_Special"))
+                    {
+                        Sub_Code.Directory_Delete(Voice_Set.Special_Path + "/Wwise/BNK_WAV_Special");
+                    }
+                    Message_T.Text = ".bnkファイルを解析しています...";
+                    await Task.Delay(50);
+                    p = new Wwise_Class.BNK_Parse(ofd.FileName);
+                    List<uint> Event_List = p.Get_BNK_Event_ID();
+                    Event_Type_L.Items.Clear();
+                    Sound_L.Items.Clear();
+                    foreach (uint ID in Event_List)
+                        Event_Type_L.Items.Add((Event_Type_L.Items.Count + 1) + ":" + ID);
+                    Event_List.Clear();
+                    if (PCK_Mode_C.IsChecked.Value)
+                    {
+                        Wwise_PCK = new Wwise_File_Extract_V1(PCK_File_Path);
+                        IsPCKMode = true;
+                    }
+                    else
+                    {
+                        Wwise_BNK = new Wwise_File_Extract_V2(ofd.FileName);
+                        IsPCKMode = false;
+                    }
+                    if (!Directory.Exists(Voice_Set.Special_Path + "/Wwise/BNK_WAV_Special"))
+                        Directory.CreateDirectory(Voice_Set.Special_Path + "/Wwise/BNK_WAV_Special");
+                    File_Name_T.Text = Path.GetFileName(ofd.FileName);
+                    Message_Feed_Out(".bnkファイルをロードしました。");
                 }
-                Bass.BASS_ChannelStop(Stream);
-                Bass.BASS_StreamFree(Stream);
-                if (Directory.Exists(Voice_Set.Special_Path + "/Wwise/BNK_WAV_Special"))
+                catch (Exception e1)
                 {
-                    Sub_Code.Directory_Delete(Voice_Set.Special_Path + "/Wwise/BNK_WAV_Special");
-                }
-                Message_T.Text = ".bnkファイルを解析しています...";
-                await Task.Delay(50);
-                p = new Wwise_Class.BNK_Parse(ofd.FileName);
-                List<uint> Event_List = p.Get_BNK_Event_ID();
-                Event_Type_L.Items.Clear();
-                Sound_L.Items.Clear();
-                foreach (uint ID in Event_List)
-                    Event_Type_L.Items.Add((Event_Type_L.Items.Count + 1) + ":" + ID);
-                Event_List.Clear();
-                if (PCK_Mode_C.IsChecked.Value)
-                {
-                    Wwise_PCK = new Wwise_File_Extract_V1(PCK_File_Path);
-                    IsPCKMode = true;
-                }
-                else
-                {
-                    Wwise_BNK = new Wwise_File_Extract_V2(ofd.FileName);
+                    Sub_Code.Error_Log_Write(e1.Message);
+                    if (Wwise_PCK != null)
+                        Wwise_PCK.Pck_Clear();
+                    if (Wwise_BNK != null)
+                        Wwise_BNK.Bank_Clear();
+                    if (p != null)
+                        p.Clear();
+                    Wwise_PCK = null;
+                    Wwise_BNK = null;
+                    p = null;
                     IsPCKMode = false;
+                    File_Name_T.Text = "";
+                    Event_Type_L.Items.Clear();
+                    Sound_L.Items.Clear();
+                    Message_Feed_Out("エラーが発生しました。詳しくはError_Log.txtを参照してください。");
                 }
-                if (!Directory.Exists(Voice_Set.Special_Path + "/Wwise/BNK_WAV_Special"))
-                    Directory.CreateDirectory(Voice_Set.Special_Path + "/Wwise/BNK_WAV_Special");
-                File_Name_T.Text = Path.GetFileName(ofd.FileName);
-                Message_Feed_Out(".bnkファイルをロードしました。");
             }
             IsBusy = false;
         }

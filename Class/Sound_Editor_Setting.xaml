@@ -1,0 +1,94 @@
+﻿<UserControl x:Class="WoTB_Voice_Mod_Creater.Class.Sound_Editor_Setting"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d"
+             d:DesignHeight="1080" d:DesignWidth="1920">
+    <UserControl.Resources>
+        <Style x:Key="SliderThumbStyle" TargetType="{x:Type Thumb}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Thumb}">
+                        <Ellipse Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Slider}, Mode=FindAncestor}}" Width="25" Height="25"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="CustomSliderStyle_Yoko" TargetType="{x:Type Slider}">
+            <Style.Triggers>
+                <Trigger Property="Orientation" Value="Horizontal">
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate>
+                                <Grid>
+                                    <TickBar Grid.Row="0" x:Name="TopTick" Placement="Top" Visibility="Collapsed" Fill="{TemplateBinding Foreground}" Height="8" Opacity="0.64" Margin="0,0,0,2"/>
+                                    <TickBar Grid.Row="2" x:Name="BottomTick" Placement="Bottom" Visibility="Collapsed" Fill="{TemplateBinding Foreground}" Height="8" Opacity="0.64" Margin="0,2,0,0"/>
+                                    <Track Grid.Row="1" x:Name="PART_Track">
+                                        <Track.DecreaseRepeatButton>
+                                            <RepeatButton Command="Slider.DecreaseLarge" Background="Aquamarine" Height="5" BorderBrush="{x:Null}" Opacity="0.8"/>
+                                        </Track.DecreaseRepeatButton>
+                                        <Track.IncreaseRepeatButton>
+                                            <RepeatButton Command="Slider.IncreaseLarge" Background="Gray" Height="5" BorderBrush="{x:Null}" Opacity="0.8"/>
+                                        </Track.IncreaseRepeatButton>
+                                        <Track.Thumb>
+                                            <Thumb Style="{StaticResource SliderThumbStyle}"/>
+                                        </Track.Thumb>
+                                    </Track>
+                                </Grid>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="Slider.TickPlacement" Value="TopLeft">
+                                        <Setter TargetName="TopTick" Property="Visibility" Value="Visible"/>
+                                    </Trigger>
+                                    <Trigger Property="Slider.TickPlacement" Value="BottomRight">
+                                        <Setter TargetName="BottomTick" Property="Visibility" Value="Visible"/>
+                                    </Trigger>
+                                    <Trigger Property="Slider.TickPlacement" Value="Both">
+                                        <Setter TargetName="TopTick" Property="Visibility" Value="Visible"/>
+                                        <Setter TargetName="BottomTick" Property="Visibility" Value="Visible"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Resources>
+    <Viewbox>
+        <DockPanel Width="1920" Height="1080">
+            <Border BorderBrush="Black" BorderThickness="1" Background="Black" Height="1080" VerticalAlignment="Top" Width="1920" Opacity="0.6"/>
+            <Border BorderBrush="Aqua" BorderThickness="1" Background="#80512216" Height="970" VerticalAlignment="Top" Width="1700" Margin="-1920,0,0,0"/>
+            <Button x:Name="Back_B" Content="戻る" Height="70" VerticalAlignment="Top" Width="250" Background="Transparent" Margin="-3370,900,0,0" Foreground="Aqua" BorderBrush="Aqua" FontSize="38" Focusable="False" Click="Back_B_Click"/>
+            <CheckBox x:Name="Cut_Pos_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-1680,850,0,0" Focusable="False"/>
+            <TextBlock FontSize="35" Height="50" Width="694" TextWrapping="Wrap" Text="カット後のトラックの位置と元トラックの位置を同期" VerticalAlignment="Top" Margin="-950,830,0,0" Foreground="Aqua" TextAlignment="Center"/>
+            <Button x:Name="Save_Dir_B" Content="保存先のフォルダを指定" Height="70" VerticalAlignment="Top" Width="412" Background="Transparent" Margin="-2900,50,0,0" Foreground="Aqua" BorderBrush="Aqua" FontSize="35" Focusable="False" Click="Save_Dir_B_Click"/>
+            <TextBlock FontSize="28" Height="70" Width="478" TextWrapping="Wrap" Text="これらの項目は'1つ1つ保存先を設定'にチェックがない場合に有効化されます。" VerticalAlignment="Top" Margin="-1975,50,0,0" Foreground="Aqua" TextAlignment="Center"/>
+            <TextBlock x:Name="Select_Dir_T" FontSize="33" Height="50" Width="714" TextWrapping="Wrap" Text="未指定" VerticalAlignment="Top" Margin="-2900,135,0,0" Foreground="Aqua" TextAlignment="Center"/>
+            <CheckBox x:Name="Save_Once_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-1680,775,0,0" Focusable="False"/>
+            <TextBlock FontSize="35" Height="50" Width="310" TextWrapping="Wrap" Text="1つ1つ保存先を指定" VerticalAlignment="Top" Margin="-1345,760,0,0" Foreground="Aqua" TextAlignment="Center"/>
+            <CheckBox x:Name="Set_Speed_Mode_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-1680,400,0,0" Focusable="False" IsChecked="True"/>
+            <TextBlock FontSize="35" Height="50" Width="530" TextWrapping="Wrap" Text="書き出し時、速度の設定を反映させる" VerticalAlignment="Top" Margin="-1122,385,0,0" Foreground="Aqua" TextAlignment="Center"/>
+            <CheckBox x:Name="Cut_Volume_Sync_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-1680,475,0,0" Focusable="False" IsChecked="True"/>
+            <TextBlock FontSize="35" Height="50" Width="552" TextWrapping="Wrap" Text="カット後の音量を元トラックの音量にする" VerticalAlignment="Top" Margin="-1095,460,0,0" Foreground="Aqua" TextAlignment="Center"/>
+            <CheckBox x:Name="Cut_ShortCut_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-1680,550,0,0" Focusable="False"/>
+            <TextBlock FontSize="35" Height="50" Width="412" TextWrapping="Wrap" Text="Ctrl+Cキーでカットできるように" VerticalAlignment="Top" Margin="-1233,535,0,0" Foreground="Aqua" TextAlignment="Center"/>
+            <CheckBox x:Name="Cut_Volume_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-1680,625,0,0" Focusable="False"/>
+            <TextBlock FontSize="35" Height="50" Width="500" TextWrapping="Wrap" Text="カット後、元トラックの音量を0にする" VerticalAlignment="Top" Margin="-1147,610,0,0" Foreground="Aqua" TextAlignment="Center"/>
+            <CheckBox x:Name="Save_Track_Delete_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-1680,700,0,0" Focusable="False"/>
+            <TextBlock FontSize="35" Height="50" Width="625" TextWrapping="Wrap" Text="保存後トラックを削除(1つのみの場合に限る)" VerticalAlignment="Top" Margin="-1025,685,0,0" Foreground="Aqua" TextAlignment="Center"/>
+            <TextBlock x:Name="Save_File_View_T" FontSize="30" Height="41" Width="619" TextWrapping="Wrap" Text="保存先のファイル名:Test_001.mp3" VerticalAlignment="Top" Margin="-3000,234,0,0" Foreground="Aqua" TextAlignment="Center"/>
+            <TextBox x:Name="Save_File_Name_T" Height="45" FontSize="33" TextWrapping="Wrap" Text="Test_" VerticalAlignment="Top" Width="275" Margin="-3325,290,0,0" TextAlignment="Center" TextChanged="Save_File_Name_T_TextChanged"/>
+            <TextBlock FontSize="35" Height="55" Width="50" TextWrapping="Wrap" Text="+" VerticalAlignment="Top" Margin="-2972,285,0,0" Foreground="Aqua" TextAlignment="Center"/>
+            <ComboBox x:Name="Save_File_Mode_C" Height="45" VerticalAlignment="Top" Width="250" FontSize="30" Margin="-2645,290,0,0" Focusable="False" SelectionChanged="Save_File_Mode_C_SelectionChanged"/>
+            <TextBlock FontSize="33" Height="44" Width="310" TextWrapping="Wrap" Text="保存形式" VerticalAlignment="Top" Margin="-3000,375,0,0" Foreground="Aqua" TextAlignment="Center"/>
+            <ComboBox x:Name="Save_Ex_C" Height="45" VerticalAlignment="Top" Width="250" FontSize="30" Margin="-3000,425,0,0" Focusable="False" SelectionChanged="Save_Ex_C_SelectionChanged"/>
+            <Button x:Name="Save_Ex_Help_B" Content="?" Height="45" VerticalAlignment="Top" Width="45" Background="Transparent" Margin="-2690,425,0,0" Foreground="Aqua" BorderBrush="Aqua" FontSize="30" Focusable="False" Click="Save_Ex_Help_B_Click"/>
+            <TextBlock x:Name="Message_T" Height="110" Width="850" TextWrapping="Wrap" Text="" Foreground="Aqua" FontSize="35" Margin="-2700,775,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
+            <TextBlock FontSize="33" Height="44" Width="310" TextWrapping="Wrap" Text="フレームレート" VerticalAlignment="Top" Margin="-1000,200,0,0" Foreground="Aqua" TextAlignment="Center"/>
+            <ComboBox x:Name="Framerate_C" Height="45" VerticalAlignment="Top" Width="250" FontSize="30" Margin="-1000,260,0,0" Focusable="False"/>
+            <Slider x:Name="Volume_S" Height="27" VerticalAlignment="Top" Width="400" Margin="-2225,700,0,0" Style="{StaticResource CustomSliderStyle_Yoko}" Maximum="100" Minimum="0" Focusable="False" SmallChange="0" ValueChanged="Volume_S_ValueChanged"/>
+            <TextBlock x:Name="Volume_T" FontSize="35" Height="50" Width="354" TextWrapping="Wrap" Text="追加時の音量:75" VerticalAlignment="Top" Margin="-2225,635,0,0" Foreground="Aqua" TextAlignment="Center"/>
+        </DockPanel>
+    </Viewbox>
+</UserControl>

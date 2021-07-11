@@ -1,0 +1,21 @@
+﻿<UserControl x:Class="WoTB_Voice_Mod_Creater.Class.ChangeLog"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="1080" d:DesignWidth="1920">
+    <Viewbox>
+        <DockPanel Width="1920" Height="1080">
+            <Border BorderBrush="Aqua" Background="Black" BorderThickness="1" Height="1080" VerticalAlignment="Top" Width="1920" Opacity="0.85"/>
+            <Border x:Name="Chat_Border" BorderBrush="Aqua" BorderThickness="1" Height="900" VerticalAlignment="Top" Width="1525" Margin="-1720,50,0,0"/>
+            <ScrollViewer x:Name ="Chat_Scrool" Width="1525" Height="900" VerticalScrollBarVisibility="Auto" Margin="-1720,50,0,0" VerticalAlignment="Top">
+                <RichTextBox x:Name="Message_T" Height="auto" VerticalAlignment="Top" Width="auto" FontSize="33" Background="Transparent" Foreground="Aqua" SelectionOpacity="0" AcceptsReturn="False" AutoWordSelection="False" IsReadOnly="True" IsUndoEnabled="False" AllowDrop="False" Focusable="False" UndoLimit="0" Cursor="Arrow" SelectionBrush="#00000000" BorderBrush="#00000000">
+                    <FlowDocument AllowDrop="False" Focusable="False" LineHeight="10">
+                    </FlowDocument>
+                </RichTextBox>
+            </ScrollViewer>
+            <Button x:Name="Exit_B" Content="戻る" Height="85" VerticalAlignment="Top" Width="300" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Margin="-3540,995,0,0" Click="Exit_B_Click"/>
+        </DockPanel>
+    </Viewbox>
+</UserControl>

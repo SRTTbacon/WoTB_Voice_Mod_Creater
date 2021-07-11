@@ -640,6 +640,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                     }
                     await BNK_Create_V2(To_Dir + "/Voices", SetPath);
                     Directory.Delete(To_Dir + "/Voices", true);
+                    Flash.Flash_Start();
                     if (Sub_Code.WoT_Get_ModDirectory())
                     {
                         Message_T.Text = "ダイアログを表示しています...";

@@ -62,11 +62,11 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 {
                     List<string> ID_Line_Tmp = new List<string>();
                     //イベントIDを取得
-                    string strValue = line.Remove(0, line.IndexOf("value=\"") + 7);
-                    strValue = strValue.Remove(strValue.LastIndexOf("\""));
+                    string strValue = line.Substring(line.IndexOf("value=\"") + 7);
+                    strValue = strValue.Substring(0, strValue.IndexOf("\""));
                     //イベントの内容を取得(CASoundやCAkRanSeqCntrなど)
-                    string strValue2 = Read_All[Read_All.Count - 4].Remove(0, Read_All[Read_All.Count - 4].IndexOf("name=\"") + 6);
-                    strValue2 = strValue2.Remove(strValue2.IndexOf("index") - 2);
+                    string strValue2 = Read_All[Read_All.Count - 4].Substring(Read_All[Read_All.Count - 4].IndexOf("name=\"") + 6);
+                    strValue2 = strValue2.Substring(0, strValue2.IndexOf('"'));
                     ID_Line_Tmp.Add(strValue);
                     //イベントの行
                     ID_Line_Tmp.Add((Read_All.Count - 1).ToString());
@@ -81,7 +81,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                             {
                                 List<string> ID_Line_Tmp_Special = new List<string>();
                                 string strValue3 = line.Remove(0, line.IndexOf("value=\"") + 7);
-                                strValue3 = strValue3.Remove(strValue3.LastIndexOf("\""));
+                                strValue3 = strValue3.Remove(strValue3.IndexOf("\""));
                                 ID_Line_Tmp_Special.Add(strValue3);
                                 ID_Line_Tmp_Special.Add(ID_Line_Tmp[1]);
                                 ID_Line_Tmp_Special.Add(strValue2);
@@ -177,6 +177,16 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             }
             return Count;
         }
+        //bnk内にMaster Audio Busが含まれているか
+        public bool IsInitBNK()
+        {
+            for (int Number = 0; Number < ID_Line.Count; Number++)
+            {
+                if (ID_Line[Number][2] == "CAkBus")
+                    return true;
+            }
+            return false;
+        }
         //選択されているbnkファイルが音声データかを調べる
         public bool IsVoiceFile(bool IsBlitzMode = false)
         {
@@ -208,6 +218,8 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         //イベントIDをリストとして取得
         public List<uint> Get_BNK_Event_ID()
         {
+            if (!IsSelected)
+                return new List<uint>();
             //イベントIDのみを抽出
             List<uint> GetEventsID = new List<uint>();
             foreach (List<string> List_Now in ID_Line)
