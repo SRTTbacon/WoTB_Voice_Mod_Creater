@@ -801,6 +801,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                         Sub_Code.DVPL_File_Copy(SetPath + "/ui_battle.bnk", Voice_Set.WoTB_Path + "/Data/WwiseSound/ui_battle.bnk", true);
                         Sub_Code.DVPL_File_Copy(SetPath + "/ui_battle_basic.bnk", Voice_Set.WoTB_Path + "/Data/WwiseSound/ui_battle_basic.bnk", true);
                     }
+                    Flash.Flash_Start();
                     if (IsOK)
                         Message_Feed_Out("完了しました。");
                     else

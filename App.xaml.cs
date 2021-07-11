@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows;
 
@@ -8,17 +9,31 @@ namespace WoTB_Voice_Mod_Creater
     {
         [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         static extern bool SetDllDirectory(string lpPathName);
-        private static readonly string mutexName = "SRTTbacon_WoTB_Voice_Mod_Creater";
+        private static readonly string mutexName = "SRTTbacon_WoTB_Voice_Mod_Creater_V1.4";
         private static readonly Mutex mutex = new Mutex(false, mutexName);
         private static bool hasHandle = false;
         protected override void OnStartup(StartupEventArgs e)
         {
-            hasHandle = mutex.WaitOne(0, false);
-            if (!hasHandle)
+            try
             {
-                MessageBox.Show("既にアプリが起動されています。");
-                this.Shutdown();
-                return;
+                hasHandle = mutex.WaitOne(0, false);
+                if (!hasHandle)
+                {
+                    MessageBoxResult result = MessageBox.Show("既にアプリが起動されています。\nソフトを強制終了させますか？", "確認", MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.No);
+                    if (result == MessageBoxResult.Yes)
+                    {
+                        Process[] p = Process.GetProcessesByName(System.Diagnostics.Process.GetCurrentProcess().ProcessName);
+                        foreach (Process e_Now in p)
+                            e_Now.Kill();
+                    }
+                    else
+                        this.Shutdown();
+                    return;
+                }
+            }
+            catch
+            {
+                
             }
             base.OnStartup(e);
         }

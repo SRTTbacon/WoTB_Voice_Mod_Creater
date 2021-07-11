@@ -13,7 +13,8 @@
         Background="Gray"
         Icon="may17_wallpaper_2560x1600.ico"
         KeyDown="DockPanel_KeyDown"
-        Title="WoTB_Voice_Mod_Creater" Height="1080" Width="1920" Closing="Window_Closing">
+        AllowDrop="True"
+        Title="WoTB_Voice_Mod_Creater" Height="1080" Width="1920" Closing="Window_Closing" PreviewDragOver="Window_PreviewDragOver" Drop="Window_Drop" Deactivated="Window_Deactivated" Activated="Window_Activated">
     <Window.Resources>
         <SolidColorBrush x:Key="CyanBrush" Color="Gray"/>
         <SolidColorBrush x:Key="PinkBrush" Color="Gray"/>
@@ -119,19 +120,19 @@
     <Viewbox Stretch="Fill">
         <DockPanel Width="1920" Height="1080">
             <Border BorderBrush="Black" BorderThickness="1" Background="#0E0E1C" Height="1080" VerticalAlignment="Top" Width="1920"/>
-            <Button x:Name="Connect_B" Content="再接続" HorizontalAlignment="Left" Margin="-1200,450,0,0" VerticalAlignment="Top" Width="480" Height="120" Background="Transparent" BorderBrush="Aqua" Foreground="Aqua" FontSize="30" Click="Connect_B_Click"/>
+            <Button x:Name="Connect_B" Content="再接続" HorizontalAlignment="Left" Margin="-1200,450,0,0" VerticalAlignment="Top" Width="480" Height="120" Focusable="False" Background="Transparent" BorderBrush="Aqua" Foreground="Aqua" FontSize="30" Click="Connect_B_Click"/>
             <TextBlock x:Name="Message_T" Height="103" Width="1200" TextWrapping="Wrap" Text="" Foreground="Aqua" FontSize="40" Margin="-1920,920,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
-            <TextBlock x:Name="Version_T" Height="55" Width="250" TextWrapping="Wrap" Text="V1.3.x" Foreground="Aqua" FontSize="40" Margin="-350,930,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
-            <Button x:Name="Exit_B" Content="終了" HorizontalAlignment="Left" Margin="-1917,995,0,0" VerticalAlignment="Top" Width="291" Height="82" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="30" Click="Exit_B_Click"/>
-            <ProgressBar x:Name="Download_P" Height="30" VerticalAlignment="Top" Width="425" Margin="-3250,580,0,0"/>
-            <TextBlock x:Name="Download_T" Height="50" Width="500" Margin="-3250,525,0,0" Foreground="Aqua" FontSize="40" TextWrapping="Wrap" Text="1000/1000" VerticalAlignment="Top" TextAlignment="Center"/>
-            <Button x:Name="Cache_Delete_B" Content="設定を削除" HorizontalAlignment="Left" Margin="-352,995,0,0" VerticalAlignment="Top" Width="349" Height="82" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="30" Click="Cache_Delete_B_Click"/>
+            <TextBlock x:Name="Version_T" Height="55" Width="250" TextWrapping="Wrap" Text="V1.4.x" Foreground="Aqua" FontSize="40" Margin="-350,930,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
+            <Button x:Name="Exit_B" Content="終了" HorizontalAlignment="Left" Margin="-1917,995,0,0" VerticalAlignment="Top" Width="291" Height="82" Focusable="False" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="30" Click="Exit_B_Click"/>
+            <ProgressBar x:Name="Download_P" Height="30" VerticalAlignment="Top" Width="425" Margin="-3250,670,0,0"/>
+            <TextBlock x:Name="Download_T" Height="50" Width="500" Margin="-3250,605,0,0" Foreground="Aqua" FontSize="40" TextWrapping="Wrap" Text="1000/1000" VerticalAlignment="Top" TextAlignment="Center"/>
+            <Button x:Name="Cache_Delete_B" Content="設定を削除" HorizontalAlignment="Left" Margin="-352,995,0,0" VerticalAlignment="Top" Width="349" Height="82" Focusable="False" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="30" Click="Cache_Delete_B_Click"/>
             <TextBlock x:Name="User_Name_Text" Height="50" Width="174" TextWrapping="Wrap" Text="ユーザー名:" Foreground="Aqua" FontSize="40" Margin="-2700,625,0,0" VerticalAlignment="Top"/>
             <TextBlock x:Name="User_Password_Text" Height="50" Width="174" TextWrapping="Wrap" Text="パスワード:" Foreground="Aqua" FontSize="40" Margin="-2700,750,0,0" VerticalAlignment="Top"/>
             <TextBox x:Name="User_Name_T" Height="50" TextWrapping="Wrap" Text="" VerticalAlignment="Top" FontSize="35" Margin="-2125,630,0,0" Width="400" TextAlignment="Center"/>
             <TextBox x:Name="User_Password_T" Height="50" TextWrapping="Wrap" Text="" VerticalAlignment="Top" FontSize="35" Margin="-2125,755,0,0" Width="400" TextAlignment="Center"/>
-            <Button x:Name="User_Login_B" Content="ログイン" HorizontalAlignment="Left" Margin="-775,615,0,0" VerticalAlignment="Top" Width="325" Height="85" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="30" Click="User_Login_B_Click"/>
-            <Button x:Name="User_Register_B" Content="アカウント登録" HorizontalAlignment="Left" Margin="-775,735,0,0" VerticalAlignment="Top" Width="325" Height="85" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="30" Click="User_Register_B_Click"/>
+            <Button x:Name="User_Login_B" Content="ログイン" HorizontalAlignment="Left" Margin="-775,615,0,0" VerticalAlignment="Top" Width="325" Height="85" Focusable="False" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="30" Click="User_Login_B_Click"/>
+            <Button x:Name="User_Register_B" Content="アカウント登録" HorizontalAlignment="Left" Margin="-775,735,0,0" VerticalAlignment="Top" Width="325" Height="85" Focusable="False" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="30" Click="User_Register_B_Click"/>
             <Border x:Name="Chat_Border" BorderBrush="Aqua" BorderThickness="1" Height="575" VerticalAlignment="Top" Width="622" Margin="-1920,320,0,0"/>
             <ScrollViewer x:Name ="Chat_Scrool" Width="610" Height="515" VerticalScrollBarVisibility="Auto" Margin="-1920,325,0,0" VerticalAlignment="Top">
                 <RichTextBox x:Name="Chat_T" Height="auto" VerticalAlignment="Top" Width="auto" FontSize="29" Background="Transparent" Foreground="White" SelectionOpacity="0" AcceptsReturn="False" AutoWordSelection="False" IsReadOnly="True" IsUndoEnabled="False" AllowDrop="False" Focusable="False" UndoLimit="0" Cursor="Arrow" SelectionBrush="#00000000" BorderBrush="#00000000">
@@ -140,28 +141,31 @@
                 </RichTextBox>
             </ScrollViewer>
             <TextBox x:Name="Chat_Send_T" Height="50" TextWrapping="Wrap" Text="" FontSize="35" VerticalAlignment="Top" Width="500" Margin="-2040,845,0,0"/>
-            <Button x:Name="Chat_Send_B" Content="送信" Height="50" VerticalAlignment="Top" Width="120" Margin="-1418,845,0,0" FontSize="35" Foreground="Aqua" Background="Transparent" BorderBrush="Aqua" Click="Chat_Send_B_Click"/>
-            <Button x:Name="Chat_Mode_Public_B" Content="全体" Height="50" VerticalAlignment="Top" Width="198" Margin="-2344,270,0,0" FontSize="35" Foreground="Aqua" Background="Transparent" BorderBrush="Aqua" Click="Chat_Mode_Public_B_Click"/>
-            <Button x:Name="Chat_Mode_Server_B" Content="サーバー" Height="50" VerticalAlignment="Top" Width="198" Margin="-1920,270,0,0" FontSize="35" Foreground="Aqua" Background="Transparent" BorderBrush="Aqua" Click="Chat_Mode_Server_B_Click"/>
-            <Button x:Name="Chat_Mode_Private_B" Content="個人" Height="50" VerticalAlignment="Top" Width="198" Margin="-1496,270,0,0" FontSize="35" Foreground="Aqua" Background="Transparent" BorderBrush="Aqua" Click="Chat_Mode_Private_B_Click"/>
-            <Button x:Name="Tool_B" Content="WoTB用ツールV1" HorizontalAlignment="Left" Margin="-1920,0,0,0" VerticalAlignment="Top" Width="300" Height="70" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Click="Tool_B_Click"/>
-            <Button x:Name="Tool_V2_B" Content="WoTB用ツールV2" HorizontalAlignment="Left" Margin="-1920,85,0,0" VerticalAlignment="Top" Width="300" Height="70" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Click="Tool_V2_B_Click"/>
-            <Button x:Name="Advanced_Mode_B" Content="上級者向け" HorizontalAlignment="Left" Margin="-1610,0,0,0" VerticalAlignment="Top" Width="300" Height="70" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Click="Advanced_Mode_B_Click"/>
-            <Button x:Name="Change_Wwise_B" Content="FSBから移植" HorizontalAlignment="Left" Margin="-1610,85,0,0" VerticalAlignment="Top" Width="300" Height="70" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Click="Change_Wwise_B_Click"/>
-            <Button x:Name="WoT_To_Blitz_B" Content="WoTから移植" HorizontalAlignment="Left" Margin="-1610,170,0,0" VerticalAlignment="Top" Width="300" Height="70" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Click="WoT_To_Blitz_B_Click"/>
-            <Button x:Name="Blitz_To_WoT_B" Content="BlitzからWoT" HorizontalAlignment="Left" Margin="-1610,255,0,0" VerticalAlignment="Top" Width="300" Height="70" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Click="Blitz_To_WoT_B_Click"/>
-            <Button x:Name="Create_Save_B" Content="セーブデータとして変換" HorizontalAlignment="Left" Margin="-1610,340,0,0" VerticalAlignment="Top" Width="300" Height="70" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="33" Click="Create_Save_B_Click"/>
-            <Button x:Name="Loading_BGM_B" Content="ロード | リザルトBGM" HorizontalAlignment="Left" Margin="-1610,425,0,0" VerticalAlignment="Top" Width="300" Height="70" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="35" Click="Loading_BGM_B_Click"/>
-            <Button x:Name="Voice_Create_V2_B" Content="音声Modを作成" HorizontalAlignment="Left" Margin="-1220,100,0,0" VerticalAlignment="Top" Width="525" Height="90" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Click="Voice_Create_V2_B_Click"/>
-            <Button x:Name="Other_B" Content="音楽プレイヤー" HorizontalAlignment="Left" Margin="-1920,170,0,0" VerticalAlignment="Top" Width="300" Height="70" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Click="Other_B_Click"/>
-            <Button x:Name="Voice_Mod_Free_B" Content="Mod配布" HorizontalAlignment="Left" Margin="-1920,255,0,0" VerticalAlignment="Top" Width="300" Height="70" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Click="Voice_Mod_Free_B_Click"/>
-            <Button x:Name="Update_B" Content="アップデートを確認" HorizontalAlignment="Left" Margin="-1920,340,0,0" VerticalAlignment="Top" Width="300" Height="70" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Click="Update_B_Click"/>
-            <Button x:Name="Message_B" Content="メッセージ" HorizontalAlignment="Left" Margin="-1920,425,0,0" VerticalAlignment="Top" Width="300" Height="70" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Click="Message_B_Click"/>
+            <Button x:Name="Chat_Send_B" Content="送信" Height="50" VerticalAlignment="Top" Width="120" Margin="-1418,845,0,0" FontSize="35" Foreground="Aqua" Background="Transparent" BorderBrush="Aqua" Focusable="False" Click="Chat_Send_B_Click"/>
+            <Button x:Name="Chat_Mode_Public_B" Content="全体" Height="50" VerticalAlignment="Top" Width="198" Margin="-2344,270,0,0" FontSize="35" Foreground="Aqua" Background="Transparent" BorderBrush="Aqua" Focusable="False" Click="Chat_Mode_Public_B_Click"/>
+            <Button x:Name="Chat_Mode_Server_B" Content="サーバー" Height="50" VerticalAlignment="Top" Width="198" Margin="-1920,270,0,0" FontSize="35" Foreground="Aqua" Background="Transparent" BorderBrush="Aqua" Focusable="False" Click="Chat_Mode_Server_B_Click"/>
+            <Button x:Name="Chat_Mode_Private_B" Content="個人" Height="50" VerticalAlignment="Top" Width="198" Margin="-1496,270,0,0" FontSize="35" Foreground="Aqua" Background="Transparent" BorderBrush="Aqua" Focusable="False" Click="Chat_Mode_Private_B_Click"/>
+            <Button x:Name="Tool_B" Content="WoTB用ツールV1" HorizontalAlignment="Left" Margin="-1920,0,0,0" VerticalAlignment="Top" Width="300" Height="70" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Focusable="False" Click="Tool_B_Click"/>
+            <Button x:Name="Tool_V2_B" Content="WoTB用ツールV2" HorizontalAlignment="Left" Margin="-1920,85,0,0" VerticalAlignment="Top" Width="300" Height="70" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Focusable="False" Click="Tool_V2_B_Click"/>
+            <Button x:Name="Advanced_Mode_B" Content="上級者向け" HorizontalAlignment="Left" Margin="-1610,0,0,0" VerticalAlignment="Top" Width="300" Height="70" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Focusable="False" Click="Advanced_Mode_B_Click"/>
+            <Button x:Name="Change_Wwise_B" Content="FSBから移植" HorizontalAlignment="Left" Margin="-1610,85,0,0" VerticalAlignment="Top" Width="300" Height="70" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Focusable="False" Click="Change_Wwise_B_Click"/>
+            <Button x:Name="WoT_To_Blitz_B" Content="WoTから移植" HorizontalAlignment="Left" Margin="-1610,170,0,0" VerticalAlignment="Top" Width="300" Height="70" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Focusable="False" Click="WoT_To_Blitz_B_Click"/>
+            <Button x:Name="Blitz_To_WoT_B" Content="BlitzからWoT" HorizontalAlignment="Left" Margin="-1610,255,0,0" VerticalAlignment="Top" Width="300" Height="70" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Focusable="False" Click="Blitz_To_WoT_B_Click"/>
+            <Button x:Name="Create_Save_B" Content="セーブデータとして変換" HorizontalAlignment="Left" Margin="-1610,340,0,0" VerticalAlignment="Top" Width="300" Height="70" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="33" Focusable="False" Click="Create_Save_B_Click"/>
+            <Button x:Name="Loading_BGM_B" Content="ロード | リザルトBGM" HorizontalAlignment="Left" Margin="-1610,425,0,0" VerticalAlignment="Top" Width="300" Height="70" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="35" Focusable="False" Click="Loading_BGM_B_Click"/>
+            <Button x:Name="Voice_Create_V2_B" Content="音声Modを作成" HorizontalAlignment="Left" Margin="-1220,100,0,0" VerticalAlignment="Top" Width="525" Height="90" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Focusable="False" Click="Voice_Create_V2_B_Click"/>
+            <Button x:Name="Other_B" Content="音楽プレイヤー" HorizontalAlignment="Left" Margin="-1920,170,0,0" VerticalAlignment="Top" Width="300" Height="70" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Focusable="False" Click="Other_B_Click"/>
+            <Button x:Name="Voice_Mod_Free_B" Content="Mod配布" HorizontalAlignment="Left" Margin="-1920,255,0,0" VerticalAlignment="Top" Width="300" Height="70" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Focusable="False" Click="Voice_Mod_Free_B_Click"/>
+            <Button x:Name="Update_B" Content="アップデートを確認" HorizontalAlignment="Left" Margin="-1920,340,0,0" VerticalAlignment="Top" Width="300" Height="70" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Focusable="False" Click="Update_B_Click"/>
+            <Button x:Name="Message_B" Content="メッセージ" HorizontalAlignment="Left" Margin="-1920,425,0,0" VerticalAlignment="Top" Width="300" Height="70" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Focusable="False" Click="Message_B_Click"/>
+            <Button x:Name="BNK_To_Project_B" Content="BNKからプロジェクトを復元" HorizontalAlignment="Left" Margin="-500,80,0,0" VerticalAlignment="Top" Width="425" Height="70" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" Focusable="False" FontSize="35" Click="BNK_To_Project_B_Click"/>
             <Image x:Name="Load_Image" Height="720" VerticalAlignment="Top" Width="1280" Stretch="Fill" Margin="-1920,200,0,0" Visibility="Hidden"/>
             <Button x:Name="Voice_Create_Tool_B" Content="音声作成ツールV1(旧)" HorizontalAlignment="Left" Margin="-1220,50,0,0" VerticalAlignment="Top" Width="525" Height="90" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Click="Voice_Create_Tool_B_Click" Visibility="Hidden"/>
-            <Button x:Name="WoTB_Select_B" Content="WoTBのインストールフォルダを指定" HorizontalAlignment="Left" Margin="-560,75,0,0" VerticalAlignment="Top" Width="500" Height="80" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="35" Click="WoTB_Select_B_Click"/>
+            <Button x:Name="WoTB_Select_B" Content="WoTBのインストールフォルダを指定" HorizontalAlignment="Left" Margin="-560,225,0,0" VerticalAlignment="Top" Width="500" Height="80" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="35" Focusable="False" Click="WoTB_Select_B_Click"/>
             <Border x:Name="Download_Border" BorderBrush="Transparent" Background="Transparent" BorderThickness="1" Height="1080" VerticalAlignment="Top" Width="1920" Margin="-1920,0,0,0" Visibility="Hidden"/>
-            <Button x:Name="Server_B" Content="音声作成(オンライン)" Margin="-600,495,0,0" VerticalAlignment="Top" Width="400" Height="82" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="35" Click="Server_B_Click"/>
+            <Button x:Name="Server_B" Content="音声作成(オンライン)" Margin="-600,495,0,0" VerticalAlignment="Top" Width="400" Height="82" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="35" Focusable="False" Click="Server_B_Click"/>
+            <Button x:Name="Change_Log_B" Content="変更履歴" HorizontalAlignment="Left" Margin="-300,0,0,0" VerticalAlignment="Top" Width="300" Height="70" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Focusable="False" Click="Change_Log_B_Click"/>
+            <Button x:Name="Sound_Editor_B" Content="サウンド編集" HorizontalAlignment="Left" Margin="-610,0,0,0" VerticalAlignment="Top" Width="300" Height="70" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Focusable="False" Click="Sound_Editor_B_Click"/>
             <Class1:Save_Configs x:Name="Save_Window" Width="1920" Height="1080" Margin="-1920,0,0,0" Visibility="Hidden"/>
             <Class1:Voice_Mod_Distribution x:Name="Voice_Mods_Window" Width="1920" Height="1080" Margin="-1920,0,0,0" Visibility="Hidden"/>
             <Class1:Tools x:Name="Tools_Window" Width="1920" Height="1080" Margin="-1920,0,0,0" Visibility="Hidden"/>
@@ -179,6 +183,9 @@
             <Class1:Create_Save_File x:Name="Create_Save_File_Window" Width="1920" Height="1080" Margin="-1920,0,0,0" Visibility="Hidden"/>
             <Class1:Create_Loading_BGM x:Name="Create_Loading_BGM_Window" Width="1920" Height="1080" Margin="-1920,0,0,0" Visibility="Hidden"/>
             <Class2:BNK_Event x:Name="BNK_Event_Window" Width="1920" Height="1080" Margin="-1920,0,0,0" Visibility="Hidden"/>
+            <Class2:BNK_To_Project x:Name="BNK_To_Project_Window" Width="1920" Height="1080" Margin="-1920,0,0,0" Visibility="Hidden"/>
+            <Class1:ChangeLog x:Name="ChangeLog_Window" Width="1920" Height="1080" Margin="-1920,0,0,0" Visibility="Hidden"/>
+            <Class1:Sound_Editor x:Name="Sound_Editor_Window" Width="1920" Height="1080" Margin="-1920,0,0,0" Visibility="Hidden"/>
         </DockPanel>
     </Viewbox>
 </Window>

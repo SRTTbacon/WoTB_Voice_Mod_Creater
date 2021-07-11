@@ -124,15 +124,9 @@
     <ApplicationManifest>Properties\app.manifest</ApplicationManifest>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Interop.PortableDeviceApiLib, Version=1.0.0.0, Culture=neutral, processorArchitecture=x86">
-      <SpecificVersion>False</SpecificVersion>
-      <EmbedInteropTypes>False</EmbedInteropTypes>
-      <HintPath>obj\x86\Debug\Interop.PortableDeviceApiLib.dll</HintPath>
-    </Reference>
-    <Reference Include="Interop.PortableDeviceTypesLib, Version=1.0.0.0, Culture=neutral, processorArchitecture=x86">
-      <SpecificVersion>False</SpecificVersion>
-      <EmbedInteropTypes>False</EmbedInteropTypes>
-      <HintPath>obj\x86\Debug\Interop.PortableDeviceTypesLib.dll</HintPath>
+    <Reference Include="Bass.Net">
+      <HintPath>..\..\Downloads\Google Downloads\Bass.Net.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
@@ -152,6 +146,7 @@
     <Reference Include="System.Xaml">
       <RequiredTargetFramework>4.0</RequiredTargetFramework>
     </Reference>
+    <Reference Include="UIAutomationProvider" />
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
@@ -161,17 +156,34 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="Android\Android_Upload.cs" />
-    <Compile Include="Android\PortableDevice.cs" />
-    <Compile Include="Android\PortableDeviceCollection.cs" />
-    <Compile Include="Android\PortableDeviceFile.cs" />
-    <Compile Include="Android\PortableDeviceFolder.cs" />
-    <Compile Include="Android\PortableDeviceObject.cs" />
+    <Compile Include="Class\ChangeLog.xaml.cs">
+      <DependentUpon>ChangeLog.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Class\Create_Loading_BGM.xaml.cs">
       <DependentUpon>Create_Loading_BGM.xaml</DependentUpon>
     </Compile>
     <Compile Include="Class\Create_Save_File.xaml.cs">
       <DependentUpon>Create_Save_File.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Class\ffmpeg.cs" />
+    <Compile Include="Class\NAudio\AveragePeakProvider.cs" />
+    <Compile Include="Class\NAudio\DecibelPeakProvider.cs" />
+    <Compile Include="Class\NAudio\IPeakProvider.cs" />
+    <Compile Include="Class\NAudio\MaxPeakProvider.cs" />
+    <Compile Include="Class\NAudio\PeakInfo.cs" />
+    <Compile Include="Class\NAudio\PeakProvider.cs" />
+    <Compile Include="Class\NAudio\RmsPeakProvider.cs" />
+    <Compile Include="Class\NAudio\SamplingPeakProvider.cs" />
+    <Compile Include="Class\NAudio\SoundCloudBlockWaveFormSettings.cs" />
+    <Compile Include="Class\NAudio\SoundCloudOriginalSettings.cs" />
+    <Compile Include="Class\NAudio\StandardWaveFormRendererSettings.cs" />
+    <Compile Include="Class\NAudio\WaveFormRenderer.cs" />
+    <Compile Include="Class\NAudio\WaveFormRendererSettings.cs" />
+    <Compile Include="Class\Sound_Editor.xaml.cs">
+      <DependentUpon>Sound_Editor.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Class\Sound_Editor_Setting.xaml.cs">
+      <DependentUpon>Sound_Editor_Setting.xaml</DependentUpon>
     </Compile>
     <Compile Include="Multiplayer\Administrator_Control.xaml.cs">
       <DependentUpon>Administrator_Control.xaml</DependentUpon>
@@ -227,7 +239,19 @@
       <DependentUpon>BNK_Event.xaml</DependentUpon>
     </Compile>
     <Compile Include="Wwise_Class\BNK_Parse.cs" />
-    <Compile Include="Wwise_Class\BNK_To_Wwise_Projects.cs" />
+    <Compile Include="Wwise_Class\BNK_To_Project.xaml.cs">
+      <DependentUpon>BNK_To_Project.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Wwise_Class\BNK_To_Wwise_Project\Actor_Mixer.cs" />
+    <Compile Include="Wwise_Class\BNK_To_Wwise_Project\Attenuations.cs" />
+    <Compile Include="Wwise_Class\BNK_To_Wwise_Project\BlendTracks.cs" />
+    <Compile Include="Wwise_Class\BNK_To_Wwise_Project\BNK_To_Wwise_Projects.cs" />
+    <Compile Include="Wwise_Class\BNK_To_Wwise_Project\Events.cs" />
+    <Compile Include="Wwise_Class\BNK_To_Wwise_Project\Game_Parameter.cs" />
+    <Compile Include="Wwise_Class\BNK_To_Wwise_Project\Master_Mixer.cs" />
+    <Compile Include="Wwise_Class\BNK_To_Wwise_Project\SoundBanks.cs" />
+    <Compile Include="Wwise_Class\BNK_To_Wwise_Project\SoundbanksInfo.cs" />
+    <Compile Include="Wwise_Class\BNK_To_Wwise_Project\Switch.cs" />
     <Compile Include="Wwise_Class\Change_To_Wwise.xaml.cs">
       <DependentUpon>Change_To_Wwise.xaml</DependentUpon>
     </Compile>
@@ -257,11 +281,23 @@
       <DependentUpon>WoT_To_Blitz.xaml</DependentUpon>
     </Compile>
     <Compile Include="Wwise_Class\Wwise_Project_Create.cs" />
+    <Page Include="Class\ChangeLog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Class\Create_Loading_BGM.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Class\Create_Save_File.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Class\Sound_Editor.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Class\Sound_Editor_Setting.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -391,6 +427,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Wwise_Class\BNK_Event.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Wwise_Class\BNK_To_Project.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -557,7 +597,7 @@
       <Version>4.5.0</Version>
     </PackageReference>
     <PackageReference Include="YoutubeExplode">
-      <Version>6.0.0</Version>
+      <Version>6.0.3</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
@@ -583,6 +623,12 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\libmp3lame.32.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Android\" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\bassmix.dll" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

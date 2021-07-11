@@ -21,6 +21,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         List<string> Actor_Mixer_Hierarchy = new List<string>();
         List<string> Add_Wav_Files = new List<string>();
         List<string> Add_All_Files = new List<string>();
+        List<string> Delete_FIles = new List<string>();
         List<Music_Play_Time> Add_All_Files_Time = new List<Music_Play_Time>();
         int Battle_Number = 0;
         //プロジェクトファイルの内容を取得
@@ -29,9 +30,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             try
             {
                 if (!File.Exists(Project_Dir + "/Actor-Mixer Hierarchy/Default Work Unit.wwu"))
-                {
                     return;
-                }
                 Actor_Mixer_Hierarchy.Clear();
                 Actor_Mixer_Hierarchy.AddRange(File.ReadAllLines(Project_Dir + "/Actor-Mixer Hierarchy/Default Work Unit.wwu"));
             }
@@ -47,12 +46,10 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             await Multithread.Convert_To_Wav(Add_All_Files, Add_Wav_Files, Add_All_Files_Time, false);
         }
         //取得したデータから指定したイベントにサウンドを追加(Save()が呼ばれるまで保存しない)
-        public bool Add_Sound(string Container_ShortID, string Audio_File, string Language, bool IsSetShortIDMode = false, Music_Play_Time Time = null, string Effect = "")
+        public bool Add_Sound(string Container_ShortID, string Audio_File, string Language, bool IsSetShortIDMode = false, Music_Play_Time Time = null, string Effect = "", int Set_Volume = 0)
         {
             if (Project_Dir == "")
-            {
                 return false;
-            }
             try
             {
                 uint FileName_Short_ID = WwiseHash.HashString(Audio_File + Container_ShortID);
@@ -63,9 +60,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                         if (Time == null)
                             File.Copy(Audio_File, Project_Dir + "/Originals/SFX/" + FileName_Short_ID + Path.GetExtension(Audio_File), true);
                         else
-                        {
                             Add_All_Files_Time.Add(Time);
-                        }
                         Add_Wav_Files.Add(Project_Dir + "/Originals/SFX/" + FileName_Short_ID + ".wav");
                         Add_All_Files.Add(Audio_File);
                     }
@@ -80,9 +75,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                             Add_All_Files_Time.Add(new Music_Play_Time(0, 9999));
                         }
                         else
-                        {
                             Add_All_Files_Time.Add(Time);
-                        }
                         Add_Wav_Files.Add(Project_Dir + "/Originals/Voices/" + Language + "/" + FileName_Short_ID + ".wav");
                         Add_All_Files.Add(Audio_File);
                     }
@@ -97,9 +90,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                     }
                 }
                 if (ShortID_Line == 0)
-                {
                     return false;
-                }
                 int ChildrenList_Line = 0;
                 int ReferenceListEnd_Line = 0;
                 for (int Number = ShortID_Line; Number < Actor_Mixer_Hierarchy.Count; Number++)
@@ -110,36 +101,26 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                         break;
                     }
                     if (Actor_Mixer_Hierarchy[Number].Contains("</ReferenceList>"))
-                    {
                         ReferenceListEnd_Line = Number;
-                    }
                     if (Actor_Mixer_Hierarchy[Number].Contains("</RandomSequenceContainer>"))
-                    {
                         break;
-                    }
                 }
                 if (ChildrenList_Line == 0 && ReferenceListEnd_Line == 0)
-                {
                     return false;
-                }
                 else if (ChildrenList_Line == 0)
                 {
                     More_Class.List_Init(ReferenceListEnd_Line + 1);
                     More_Class.List_Add(Actor_Mixer_Hierarchy, "<ChildrenList>");
                     More_Class.List_Add(Actor_Mixer_Hierarchy, "</ChildrenList>");
                     if (IsSetShortIDMode)
-                    {
-                        return List_Add_File(ReferenceListEnd_Line + 2, FileName_Short_ID + ".wav", Language, FileName_Short_ID, Effect);
-                    }
-                    return List_Add_File(ReferenceListEnd_Line + 2, FileName_Short_ID + ".wav", Language);
+                        return List_Add_File(ReferenceListEnd_Line + 2, FileName_Short_ID + ".wav", Language, FileName_Short_ID, Effect, Set_Volume);
+                    return List_Add_File(ReferenceListEnd_Line + 2, FileName_Short_ID + ".wav", Language, 0, Effect, Set_Volume);
                 }
                 else
                 {
                     if (IsSetShortIDMode)
-                    {
-                        return List_Add_File(ChildrenList_Line + 1, FileName_Short_ID + ".wav", Language, FileName_Short_ID, Effect);
-                    }
-                    return List_Add_File(ChildrenList_Line + 1, FileName_Short_ID + ".wav", Language);
+                        return List_Add_File(ChildrenList_Line + 1, FileName_Short_ID + ".wav", Language, FileName_Short_ID, Effect, Set_Volume);
+                    return List_Add_File(ChildrenList_Line + 1, FileName_Short_ID + ".wav", Language, 0, Effect, Set_Volume);
                 }
             }
             catch
@@ -151,12 +132,10 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         public bool Save()
         {
             if (Project_Dir == "")
-            {
                 return false;
-            }
             try
             {
-                File.WriteAllLines(Project_Dir + "/Actor-Mixer Hierarchy/Default Work Unit.wwu", Actor_Mixer_Hierarchy.ToArray());
+                File.WriteAllLines(Project_Dir + "/Actor-Mixer Hierarchy/Default Work Unit.wwu", Actor_Mixer_Hierarchy);
                 return true;
             }
             catch (Exception e)
@@ -169,9 +148,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         public void Project_Build(string BankName, string OutputFilePath, string GeneratedSoundBanksPath = null)
         {
             if (Project_Dir == "" || !Directory.Exists(Path.GetDirectoryName(OutputFilePath)))
-            {
                 return;
-            }
             try
             {
                 //廃止
@@ -213,13 +190,9 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 File.Delete(Voice_Set.Special_Path + "/Wwise/Project_Build.bat");
                 string GeneratedFile;
                 if (GeneratedSoundBanksPath == null)
-                {
                     GeneratedFile = Directory.GetFiles(Project_Dir + "/GeneratedSoundBanks/Windows", BankName + ".bnk", SearchOption.AllDirectories)[0];
-                }
                 else
-                {
                     GeneratedFile = Directory.GetFiles(Project_Dir + "/GeneratedSoundBanks/" + GeneratedSoundBanksPath, BankName + ".bnk", SearchOption.AllDirectories)[0];
-                }
                 Sub_Code.File_Move(GeneratedFile, OutputFilePath, true);
             }
             catch (Exception e)
@@ -238,23 +211,20 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                     Sub_Code.File_Delete_V2(File_Now);
                     Sub_Code.File_Delete_V2(File_Now.Replace(".wav", ".akd"));
                 }
+                foreach (string File_Now in Delete_FIles)
+                    Sub_Code.File_Delete_V2(File_Now);
                 string[] GetWEMFiles;
                 if (CachePath == null)
-                {
                     GetWEMFiles = Directory.GetFiles(Project_Dir + "/.cache/Windows", "*.wem", SearchOption.AllDirectories);
-                }
                 else
-                {
                     GetWEMFiles = Directory.GetFiles(Project_Dir + "/.cache/" + CachePath, "*.wem", SearchOption.AllDirectories);
-                }
                 foreach (string File_Now in GetWEMFiles)
-                {
                     Sub_Code.File_Delete_V2(File_Now);
-                }
                 Actor_Mixer_Hierarchy.Clear();
                 Add_Wav_Files.Clear();
                 Add_All_Files.Clear();
                 Add_All_Files_Time.Clear();
+                Delete_FIles.Clear();
                 Project_Dir = "";
                 Battle_Number = 0;
             }
@@ -265,7 +235,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         }
         //以下の文字を指定した行に追加
         //GUIDやSourceIDはどんな数でも問題ないっぽいのでランダムに作成させる
-        bool List_Add_File(int Line_Number, string FileName, string Language, uint Set_Media_ID = 0, string Effect = "")
+        bool List_Add_File(int Line_Number, string FileName, string Language, uint Set_Media_ID = 0, string Effect = "", int Set_Volume = 0)
         {
             try
             {
@@ -276,9 +246,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 uint Sound_ID = WwiseHash.HashGUID(Sound_GUID);
                 uint AudioFileSource_ID = WwiseHash.HashGUID(AudioFileSource_GUID);
                 if (Set_Media_ID != 0)
-                {
                     AudioFileSource_ID = Set_Media_ID;
-                }
                 //BGMはあとから変更できるように500000000から始まるように設定
                 if (FileName.Contains("battle_bgm_"))
                 {
@@ -287,12 +255,18 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 }
                 More_Class.List_Init(Line_Number);
                 More_Class.List_Add(Actor_Mixer_Hierarchy, "<Sound Name=\"" + Replace_Name + "\" ID=\"{" + Sound_GUID + "}\" ShortID=\"" + Sound_ID + "\">");
+                More_Class.List_Add(Actor_Mixer_Hierarchy, "<PropertyList>");
                 if (Language != "SFX")
-                {
-                    More_Class.List_Add(Actor_Mixer_Hierarchy, "<PropertyList>");
                     More_Class.List_Add(Actor_Mixer_Hierarchy, "<Property Name=\"IsVoice\" Type=\"bool\" Value=\"True\"/>");
-                    More_Class.List_Add(Actor_Mixer_Hierarchy, "</PropertyList>");
+                if (Set_Volume != 0)
+                {
+                    More_Class.List_Add(Actor_Mixer_Hierarchy, "<Property Name=\"Volume\" Type=\"Real64\">");
+                    More_Class.List_Add(Actor_Mixer_Hierarchy, "<ValueList>");
+                    More_Class.List_Add(Actor_Mixer_Hierarchy, "<Value>" + Set_Volume + "</Value>");
+                    More_Class.List_Add(Actor_Mixer_Hierarchy, "</ValueList>");
+                    More_Class.List_Add(Actor_Mixer_Hierarchy, "</Property>");
                 }
+                More_Class.List_Add(Actor_Mixer_Hierarchy, "</PropertyList>");
                 More_Class.List_Add(Actor_Mixer_Hierarchy, "<ReferenceList>");
                 More_Class.List_Add(Actor_Mixer_Hierarchy, "<Reference Name=\"Conversion\">");
                 More_Class.List_Add(Actor_Mixer_Hierarchy, "<ObjectRef Name=\"Vorbis Quality High\" ID=\"{" + Vorbis_Quality_High_ID + "}\" WorkUnitID=\"{" + Vorbis_Quality_High_WorkID + "}\"/>");
@@ -340,13 +314,9 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             {
                 string Name_Only;
                 if (Path.GetFileNameWithoutExtension(Voice_Now).Contains("reload"))
-                {
                     Name_Only = Voice_Mod_Create.Get_Voice_Type_V2(Voice_Now);
-                }
                 else
-                {
                     Name_Only = Voice_Mod_Create.Get_Voice_Type_V1(Voice_Now);
-                }
                 switch (Name_Only)
                 {
                     case "battle_bgm":
@@ -356,50 +326,60 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             }
         }
         //ロードBGMをプロジェクトに追加
-        public void Loading_Music_Add_Wwise(string Music_File, int Music_Index, Music_Play_Time Time, bool IsFeed_In_Mode)
+        public void Loading_Music_Add_Wwise(string Music_File, int Music_Index, Music_Play_Time Time, bool IsFeed_In_Mode, int Set_Volume)
         {
             string Mode = "";
             Music_Play_Time Time_Set = new Music_Play_Time(Time.Start_Time, Time.End_Time);
             if (Time.End_Time == 0)
-            {
                 Time_Set.End_Time = 9999;
-            }
             if (IsFeed_In_Mode)
-            {
                 Mode = "Feed_In";
+            if (Music_Index == 12 || Music_Index == 14 || Music_Index == 16)
+            {
+                string From_File = Music_File;
+                Music_File = Voice_Set.Special_Path + "\\Encode_Mp3\\Temp_" + Sub_Code.Generate_Random_String(2, 6) + ".mp3";
+                Delete_FIles.Add(Music_File);
+                Sub_Code.Audio_Encode_To_Other(From_File, Music_File, "mp3", false);
+                Sub_Code.Volume_Set_Start(Music_File);
             }
             if (Music_Index == 0)
-                Add_Sound("205170598", Music_File, "ja", true, Time_Set, Mode);
-            if (Music_Index == 1)
-                Add_Sound("148841988", Music_File, "ja", true, Time_Set, Mode);
-            if (Music_Index == 2)
-                Add_Sound("1067185674", Music_File, "ja", true, Time_Set, Mode);
-            if (Music_Index == 3)
-                Add_Sound("99202684", Music_File, "ja", true, Time_Set, Mode);
-            if (Music_Index == 4)
-                Add_Sound("493356780", Music_File, "ja", true, Time_Set, Mode);
-            if (Music_Index == 5)
-                Add_Sound("277287194", Music_File, "ja", true, Time_Set, Mode);
-            if (Music_Index == 6)
-                Add_Sound("321403539", Music_File, "ja", true, Time_Set, Mode);
-            if (Music_Index == 7)
-                Add_Sound("603412881", Music_File, "ja", true, Time_Set, Mode);
-            if (Music_Index == 8)
-                Add_Sound("256533957", Music_File, "ja", true, Time_Set, Mode);
-            if (Music_Index == 9)
-                Add_Sound("520751345", Music_File, "ja", true, Time_Set, Mode);
-            if (Music_Index == 10)
-                Add_Sound("307041675", Music_File, "ja", true, Time_Set, Mode);
-            if (Music_Index == 11)
-                Add_Sound("960016609", Music_File, "ja", true, Time_Set, Mode);
-            if (Music_Index == 12)
-                Add_Sound("404033224", Music_File, "ja", true, Time_Set, Mode);
-            if (Music_Index == 13)
-                Add_Sound("797792182", Music_File, "ja", true, Time_Set, Mode);
-            if (Music_Index == 14)
-                Add_Sound("434309394", Music_File, "ja", true, Time_Set, Mode);
-            if (Music_Index == 15)
-                Add_Sound("868083406", Music_File, "ja", true, Time_Set, Mode);
+                Add_Sound("205170598", Music_File, "ja", true, Time_Set, Mode, Set_Volume);
+            else if (Music_Index == 1)
+                Add_Sound("148841988", Music_File, "ja", true, Time_Set, Mode, Set_Volume);
+            else if (Music_Index == 2)
+                Add_Sound("1067185674", Music_File, "ja", true, Time_Set, Mode, Set_Volume);
+            else if (Music_Index == 3)
+                Add_Sound("99202684", Music_File, "ja", true, Time_Set, Mode, Set_Volume);
+            else if (Music_Index == 4)
+                Add_Sound("493356780", Music_File, "ja", true, Time_Set, Mode, Set_Volume);
+            else if (Music_Index == 5)
+                Add_Sound("277287194", Music_File, "ja", true, Time_Set, Mode, Set_Volume);
+            else if (Music_Index == 6)
+                Add_Sound("321403539", Music_File, "ja", true, Time_Set, Mode, Set_Volume);
+            else if (Music_Index == 7)
+                Add_Sound("603412881", Music_File, "ja", true, Time_Set, Mode, Set_Volume);
+            else if (Music_Index == 8)
+                Add_Sound("256533957", Music_File, "ja", true, Time_Set, Mode, Set_Volume);
+            else if (Music_Index == 9)
+                Add_Sound("520751345", Music_File, "ja", true, Time_Set, Mode, Set_Volume);
+            else if (Music_Index == 10)
+                Add_Sound("307041675", Music_File, "ja", true, Time_Set, Mode, Set_Volume);
+            else if (Music_Index == 11)
+                Add_Sound("960016609", Music_File, "ja", true, Time_Set, Mode, Set_Volume);
+            else if (Music_Index == 12)
+                Add_Sound("737229060", Music_File, "ja", true, Time_Set, Mode, Set_Volume);
+            else if (Music_Index == 13)
+                Add_Sound("404033224", Music_File, "ja", true, Time_Set, Mode, Set_Volume);
+            else if (Music_Index == 14)
+                Add_Sound("480862388", Music_File, "ja", true, Time_Set, Mode, Set_Volume);
+            else if (Music_Index == 15)
+                Add_Sound("797792182", Music_File, "ja", true, Time_Set, Mode, Set_Volume);
+            else if (Music_Index == 16)
+                Add_Sound("761638380", Music_File, "ja", true, Time_Set, Mode, Set_Volume);
+            else if (Music_Index == 17)
+                Add_Sound("434309394", Music_File, "ja", true, Time_Set, Mode, Set_Volume);
+            else if (Music_Index == 18)
+                Add_Sound("868083406", Music_File, "ja", true, Time_Set, Mode, Set_Volume);
         }
         //音声をプロジェクトに追加
         public void Sound_Add_Wwise(string Dir_Name, bool IsWoT_Project = false, bool IsNotIncludeBGM = false)
@@ -409,13 +389,9 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             {
                 string Name_Only;
                 if (Path.GetFileNameWithoutExtension(Voice_Now).Contains("reload"))
-                {
                     Name_Only = Voice_Mod_Create.Get_Voice_Type_V2(Voice_Now);
-                }
                 else
-                {
                     Name_Only = Voice_Mod_Create.Get_Voice_Type_V1(Voice_Now);
-                }
                 if (IsWoT_Project)
                 {
                     switch (Name_Only)
@@ -688,9 +664,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                             break;
                         case "battle_bgm":
                             if (!IsNotIncludeBGM)
-                            {
                                 Add_Sound("649358221", Voice_Now, "ja");
-                            }
                             break;
                         case "load_bgm":
                             Add_Sound("915105627", Voice_Now, "ja");
@@ -719,9 +693,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 }
             }
             if (ShortID_Line == 0)
-            {
                 return;
-            }
             More_Class.List_Init(ShortID_Line + 1);
             More_Class.List_Add(Lines, "<PropertyList>");
             More_Class.List_Add(Lines, "<Property Name=\"Inclusion\" Type=\"bool\">");
@@ -760,6 +732,10 @@ public class More_Class
     {
         Init_Line = Line_Number;
     }
+    public static int List_Get_Line()
+    {
+        return Init_Line;
+    }
     public static void List_Add(List<string> Lists, string Text)
     {
         Lists.Insert(Init_Line, Text);
@@ -791,9 +767,7 @@ public class WwiseHash
         List<byte> guidBytes = new List<byte>();
         int[] byteOrder = { 3, 2, 1, 0, 5, 4, 7, 6, 8, 9, 10, 11, 12, 13, 14, 15 };
         for (int i = 0; i < byteOrder.Length; i++)
-        {
             guidBytes.Add(byte.Parse(filtered.Substring(byteOrder[i] * 2, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture));
-        }
         return FnvHash(guidBytes.ToArray(), false);
     }
     public static uint HashString(string Name)
@@ -812,12 +786,8 @@ public class WwiseHash
             hash ^= input[i];
         }
         if (use32bits)
-        {
             return hash;
-        }
         else
-        {
             return (hash >> 30) ^ (hash & mask);
-        }
     }
 }
