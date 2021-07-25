@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Net;
+using System.Runtime.InteropServices;
 using System.Security.Authentication;
 using System.Text;
 using System.Threading.Tasks;
@@ -60,7 +61,7 @@ public class SRTTbacon_Server
     public const string IP_Global = "非公開";
     public const string Name = "非公開";
     public const string Password = "非公開";
-    public const string Version = "1.4.0";
+    public const string Version = "1.4.2";
     public const int Port = -1;
     public static bool IsSRTTbaconOwnerMode = false;
     public static string IP = "";
@@ -80,6 +81,10 @@ namespace WoTB_Voice_Mod_Creater
         int Chat_Mode = 0;
         readonly List<string> Server_Names_List = new List<string>();
         BrushConverter bc = new BrushConverter();
+        [DllImport("user32.dll")]
+        public static extern IntPtr GetForegroundWindow();
+        [DllImport("user32.dll", EntryPoint = "GetWindowText", CharSet = CharSet.Auto)]
+        public static extern int GetWindowText(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
         public MainCode()
         {
             try
@@ -362,6 +367,9 @@ namespace WoTB_Voice_Mod_Creater
                     }
                 }
                 Flash.Handle = this;
+                System.Drawing.Bitmap source = Sub_Code.BassRenderWaveForm_To_Bitmap(Voice_Set.Special_Path + "\\Test_03.mp3");
+                source.Save(Voice_Set.Special_Path + "\\Temp_WaveForm.png", System.Drawing.Imaging.ImageFormat.Png);
+                source.Dispose();
             }
             catch (Exception e)
             {
@@ -406,24 +414,12 @@ namespace WoTB_Voice_Mod_Creater
         {
             Opacity = 0;
             Load_Window_Set();
+            Loop();
             while (Opacity < 1 && !IsClosing)
             {
-                Opacity += 0.025;
+                Opacity += Sub_Code.Window_Feed_Time;
                 await Task.Delay(1000 / 60);
             }
-            /*Message_T.Text = "BNKファイルを解析しています...";
-            await Task.Delay(50);
-            string a = Voice_Set.Special_Path + "/Wwise_Parse";
-            List<string> BNK_Files = new List<string>();
-            BNK_Files.Add(a + "/engine.bnk");
-            BNK_Files.Add(a + "/engine_basic.bnk");
-            List<string> PCK_Files = new List<string>();
-            PCK_Files.Add(a + "/engine.pck");
-            PCK_Files.Add(a + "/engine_basic.pck");
-            BNK_To_Wwise_Projects BNK_To_Project = new BNK_To_Wwise_Projects(a + "/Init.bnk", BNK_Files, PCK_Files, a + "/SoundbanksInfo.json");
-            await BNK_To_Project.Create_Project_All(Voice_Set.Special_Path + "/Back/WoTB_Wwise_Project_Japanese", false, Message_T);
-            BNK_To_Project.Clear();
-            Message_Feed_Out("完了しました。");*/
         }
         async void Load_Window_Set()
         {
@@ -772,6 +768,7 @@ namespace WoTB_Voice_Mod_Creater
                 StreamReader str = new StreamReader(Voice_Set.FTP_Server.OpenRead("/WoTB_Voice_Mod/Update/Wwise/Version_01.txt"));
                 Sub_Code.IsWwise_Blitz_Update = str.ReadLine();
                 Sub_Code.IsWwise_Blitz_Actor_Update = str.ReadLine();
+                Sub_Code.IsWwise_Hits_Update = str.ReadLine();
                 str.Close();
                 StreamReader str3 = new StreamReader(Voice_Set.FTP_Server.OpenRead("/WoTB_Voice_Mod/Update/Wwise/Version_02.txt"));
                 Sub_Code.IsWwise_WoT_Update = str3.ReadLine();
@@ -1422,6 +1419,8 @@ namespace WoTB_Voice_Mod_Creater
             {
                 return;
             }
+            if (Chat_Send_T.IsFocused)
+                return;
             //アンインストール
             if ((System.Windows.Forms.Control.ModifierKeys & System.Windows.Forms.Keys.Shift) == System.Windows.Forms.Keys.Shift && e.Key == System.Windows.Input.Key.Escape)
             {
@@ -1959,11 +1958,18 @@ namespace WoTB_Voice_Mod_Creater
         {
             string[] Drag_Files = (string[])e.Data.GetData(DataFormats.FileDrop);
             string Ex = System.IO.Path.GetExtension(Drag_Files[0]);
-            if (Ex == ".wvs" || Ex == ".wms")
+            if (Ex == ".wvs" || Ex == ".wms" || Ex == ".wse")
                 e.Effects = DragDropEffects.Copy;
-            else if (Other_Window.Visibility == Visibility.Visible || Sound_Editor_Window.Visibility == Visibility.Visible)
+            else if (Other_Window.Visibility == Visibility.Visible)
             {
                 if (Ex == ".mp3" || Ex == ".wav" || Ex == ".ogg" || Ex == ".aiff" || Ex == ".flac" || Ex == ".m4a" || Ex == ".mp4")
+                    e.Effects = DragDropEffects.Copy;
+                else
+                    e.Effects = DragDropEffects.None;
+            }
+            else if (Sound_Editor_Window.Visibility == Visibility.Visible)
+            {
+                if (Ex == ".mp3" || Ex == ".wav")
                     e.Effects = DragDropEffects.Copy;
                 else
                     e.Effects = DragDropEffects.None;
@@ -1982,27 +1988,38 @@ namespace WoTB_Voice_Mod_Creater
                 {
                     string[] Drop_Files = e.Data.GetData(DataFormats.FileDrop) as string[];
                     string Ex = System.IO.Path.GetExtension(Drop_Files[0]);
-                    if (Other_Window.Visibility == Visibility.Visible || Sound_Editor_Window.Visibility == Visibility.Visible)
+                    if (Other_Window.Visibility == Visibility.Visible)
                     {
                         if (Ex == ".mp3" || Ex == ".wav" || Ex == ".ogg" || Ex == ".aiff" || Ex == ".flac" || Ex == ".m4a" || Ex == ".mp4")
-                        {
-                            if (Sound_Editor_Window.Visibility == Visibility.Visible)
-                                Sound_Editor_Window.Add_Sound_File(Drop_Files);
-                            else
-                                Other_Window.Add_Music_From_Drop(Drop_Files);
-                        }
+                            Other_Window.Add_Music_From_Drop(Drop_Files);
+                        else
+                            Message_Feed_Out("対応したファイルをドラッグしてください。");
+                    }
+                    else if (Sound_Editor_Window.Visibility == Visibility.Visible)
+                    {
+                        if (Ex == ".mp3" || Ex == ".wav")
+                            Sound_Editor_Window.Add_Sound_File(Drop_Files);
+                        else if (Ex == ".wse")
+                            Sound_Editor_Window.Contents_Load(Drop_Files[0]);
                         else
                             Message_Feed_Out("対応したファイルをドラッグしてください。");
                     }
                     else if (Ex == ".wvs")
                     {
-                        Voice_Create_Window.Window_Show(true);
+                        if (Voice_Create_Window.Visibility != Visibility.Visible)
+                            Voice_Create_Window.Window_Show(true);
                         Voice_Create_Window.Voice_Load_From_File(Drop_Files[0]);
                     }
                     else if (Ex == ".wms")
                     {
-                        Create_Loading_BGM_Window.Window_Show();
+                        if (Create_Loading_BGM_Window.Visibility != Visibility.Visible)
+                            Create_Loading_BGM_Window.Window_Show();
                         Create_Loading_BGM_Window.Load_From_File(Drop_Files[0]);
+                    }
+                    else if (Ex == ".wse")
+                    {
+                        Sound_Editor_Window.Window_Show();
+                        Sound_Editor_Window.Contents_Load(Drop_Files[0]);
                     }
                     else
                         Message_Feed_Out("対応したファイルをドラッグしてください。");
@@ -2020,17 +2037,20 @@ namespace WoTB_Voice_Mod_Creater
                 return;
             ChangeLog_Window.Window_Show();
         }
-        private void Window_Deactivated(object sender, EventArgs e)
+        //IsActiveの方が精度が高いと感じたため、IsActiveを定期的にSound_Editor_Windowに反映させる
+        async void Loop()
         {
-            if (Sound_Editor_Window.Visibility == Visibility.Visible)
-                Sound_Editor_Window.IsFocusMode = false;
+            while (true)
+            {
+                StringBuilder sb = new StringBuilder(65535);
+                GetWindowText(GetForegroundWindow(), sb, 65535);
+                if (sb.ToString() == "WoTB_Voice_Mod_Creater")
+                    Sound_Editor_Window.IsFocusMode = true;
+                else
+                    Sound_Editor_Window.IsFocusMode = false;
+                await Task.Delay(250);
+            }
         }
-        private void Window_Activated(object sender, EventArgs e)
-        {
-            if (Sound_Editor_Window.Visibility == Visibility.Visible)
-                Sound_Editor_Window.IsFocusMode = true;
-        }
-
         private void Sound_Editor_B_Click(object sender, RoutedEventArgs e)
         {
             if (IsProcessing || NotConnectedLoginMessage())

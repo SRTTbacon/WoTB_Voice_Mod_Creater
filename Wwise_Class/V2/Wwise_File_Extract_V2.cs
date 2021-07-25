@@ -356,6 +356,27 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 return false;
             }
         }
+        public void Set_Sound_Name(string SoundbanksInfo, string Dir)
+        {
+            if (!File.Exists(SoundbanksInfo) || !Directory.Exists(Dir) || IsClear)
+                return;
+            string[] Lines = File.ReadAllLines(SoundbanksInfo);
+            for (int Number = 0; Number < Lines.Length; Number++)
+            {
+                if (Lines[Number].Contains("\"Id\": \"") && Lines[Number + 2].Contains("\"ShortName\": \""))
+                {
+                    string Temp_01 = Lines[Number].Substring(0, Lines[Number].LastIndexOf('\"'));
+                    string Temp_02 = Temp_01.Substring(Temp_01.LastIndexOf('\"') + 1);
+                    string Temp_03 = Lines[Number + 2].Substring(0, Lines[Number + 2].LastIndexOf('\"'));
+                    string Temp_04 = Temp_03.Substring(Temp_03.LastIndexOf('\"') + 1);
+                    if (Temp_04.Contains("\\"))
+                        Temp_04 = Temp_04.Substring(Temp_04.LastIndexOf('\\') + 1);
+                    string Temp_05 = Temp_04.Substring(0, Temp_04.LastIndexOf('.'));
+                    Sub_Code.File_Move_V2(Dir + "\\" + Temp_02, Dir + "\\" + Temp_05, true);
+                    Number += 2;
+                }
+            }
+        }
         //.wemファイルを.bnkファイルに書き込む
         //LOL.Save()をしない場合ファイルには書き込まれず、メモリに情報を保存するだけになります。
         public bool Bank_Edit_Sound(int Index, string From_File, bool Save)

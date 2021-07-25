@@ -630,6 +630,15 @@
   <ItemGroup>
     <EmbeddedResource Include="Resources\bassmix.dll" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\Check_01.png" />
+    <EmbeddedResource Include="Resources\Check_02.png" />
+    <EmbeddedResource Include="Resources\Check_03.png" />
+    <EmbeddedResource Include="Resources\Check_04.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\Temp_WaveForm.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>cd $(ProjectDir)

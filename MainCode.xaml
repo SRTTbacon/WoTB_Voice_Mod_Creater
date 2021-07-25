@@ -14,7 +14,7 @@
         Icon="may17_wallpaper_2560x1600.ico"
         KeyDown="DockPanel_KeyDown"
         AllowDrop="True"
-        Title="WoTB_Voice_Mod_Creater" Height="1080" Width="1920" Closing="Window_Closing" PreviewDragOver="Window_PreviewDragOver" Drop="Window_Drop" Deactivated="Window_Deactivated" Activated="Window_Activated">
+        Title="WoTB_Voice_Mod_Creater" Height="1080" Width="1920" Closing="Window_Closing" PreviewDragOver="Window_PreviewDragOver" Drop="Window_Drop">
     <Window.Resources>
         <SolidColorBrush x:Key="CyanBrush" Color="Gray"/>
         <SolidColorBrush x:Key="PinkBrush" Color="Gray"/>
