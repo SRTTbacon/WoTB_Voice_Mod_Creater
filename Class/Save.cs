@@ -868,7 +868,7 @@ public class Voice_Mod_Create
     //例:"battle_01.mp3"->"battle"
     public static string Get_Voice_Type_V1(string FilePath)
     {
-        string NameOnly = System.IO.Path.GetFileName(FilePath);
+        string NameOnly = System.IO.Path.GetFileNameWithoutExtension(FilePath);
         if (!NameOnly.Contains("_"))
         {
             return NameOnly;
@@ -877,7 +877,7 @@ public class Voice_Mod_Create
     }
     public static string Get_Voice_Type_V2(string FilePath)
     {
-        string NameOnly = System.IO.Path.GetFileName(FilePath);
+        string NameOnly = System.IO.Path.GetFileNameWithoutExtension(FilePath);
         if (!NameOnly.Contains("_"))
         {
             return NameOnly;

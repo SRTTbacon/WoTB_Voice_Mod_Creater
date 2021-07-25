@@ -59,14 +59,11 @@
         <DockPanel Width="1920" Height="1080">
             <Border BorderBrush="Black" BorderThickness="1" Background="Black" Height="1080" VerticalAlignment="Top" Width="1920" Opacity="0.6"/>
             <Border BorderBrush="Aqua" BorderThickness="1" Background="#80512216" Height="970" VerticalAlignment="Top" Width="1700" Margin="-1920,0,0,0"/>
-            <Button x:Name="Back_B" Content="戻る" Height="70" VerticalAlignment="Top" Width="250" Background="Transparent" Margin="-3370,900,0,0" Foreground="Aqua" BorderBrush="Aqua" FontSize="38" Focusable="False" Click="Back_B_Click"/>
-            <CheckBox x:Name="Cut_Pos_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-1680,850,0,0" Focusable="False"/>
-            <TextBlock FontSize="35" Height="50" Width="694" TextWrapping="Wrap" Text="カット後のトラックの位置と元トラックの位置を同期" VerticalAlignment="Top" Margin="-950,830,0,0" Foreground="Aqua" TextAlignment="Center"/>
             <Button x:Name="Save_Dir_B" Content="保存先のフォルダを指定" Height="70" VerticalAlignment="Top" Width="412" Background="Transparent" Margin="-2900,50,0,0" Foreground="Aqua" BorderBrush="Aqua" FontSize="35" Focusable="False" Click="Save_Dir_B_Click"/>
             <TextBlock FontSize="28" Height="70" Width="478" TextWrapping="Wrap" Text="これらの項目は'1つ1つ保存先を設定'にチェックがない場合に有効化されます。" VerticalAlignment="Top" Margin="-1975,50,0,0" Foreground="Aqua" TextAlignment="Center"/>
             <TextBlock x:Name="Select_Dir_T" FontSize="33" Height="50" Width="714" TextWrapping="Wrap" Text="未指定" VerticalAlignment="Top" Margin="-2900,135,0,0" Foreground="Aqua" TextAlignment="Center"/>
-            <CheckBox x:Name="Save_Once_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-1680,775,0,0" Focusable="False"/>
-            <TextBlock FontSize="35" Height="50" Width="310" TextWrapping="Wrap" Text="1つ1つ保存先を指定" VerticalAlignment="Top" Margin="-1345,760,0,0" Foreground="Aqua" TextAlignment="Center"/>
+            <CheckBox x:Name="Set_Loop_Mode_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-1680,325,0,0" Focusable="False"/>
+            <TextBlock FontSize="35" Height="50" Width="530" TextWrapping="Wrap" Text="すべてのトラックが終了したら0秒に戻る" VerticalAlignment="Top" Margin="-1122,310,0,0" Foreground="Aqua" TextAlignment="Center"/>
             <CheckBox x:Name="Set_Speed_Mode_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-1680,400,0,0" Focusable="False" IsChecked="True"/>
             <TextBlock FontSize="35" Height="50" Width="530" TextWrapping="Wrap" Text="書き出し時、速度の設定を反映させる" VerticalAlignment="Top" Margin="-1122,385,0,0" Foreground="Aqua" TextAlignment="Center"/>
             <CheckBox x:Name="Cut_Volume_Sync_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-1680,475,0,0" Focusable="False" IsChecked="True"/>
@@ -76,8 +73,14 @@
             <CheckBox x:Name="Cut_Volume_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-1680,625,0,0" Focusable="False"/>
             <TextBlock FontSize="35" Height="50" Width="500" TextWrapping="Wrap" Text="カット後、元トラックの音量を0にする" VerticalAlignment="Top" Margin="-1147,610,0,0" Foreground="Aqua" TextAlignment="Center"/>
             <CheckBox x:Name="Save_Track_Delete_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-1680,700,0,0" Focusable="False"/>
+            <Canvas x:Name="Check_Canvas" Margin="0,0,0,0" Width="1920" Height="1080" HorizontalAlignment="Left" VerticalAlignment="Top"/>
             <TextBlock FontSize="35" Height="50" Width="625" TextWrapping="Wrap" Text="保存後トラックを削除(1つのみの場合に限る)" VerticalAlignment="Top" Margin="-1025,685,0,0" Foreground="Aqua" TextAlignment="Center"/>
+            <CheckBox x:Name="Save_Once_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-1680,775,0,0" Focusable="False"/>
+            <TextBlock FontSize="35" Height="50" Width="310" TextWrapping="Wrap" Text="1つ1つ保存先を指定" VerticalAlignment="Top" Margin="-1345,760,0,0" Foreground="Aqua" TextAlignment="Center"/>
+            <CheckBox x:Name="Cut_Pos_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-1680,850,0,0" Focusable="False"/>
+            <TextBlock FontSize="35" Height="50" Width="694" TextWrapping="Wrap" Text="カット後のトラックの位置と元トラックの位置を同期" VerticalAlignment="Top" Margin="-950,830,0,0" Foreground="Aqua" TextAlignment="Center"/>
             <TextBlock x:Name="Save_File_View_T" FontSize="30" Height="41" Width="619" TextWrapping="Wrap" Text="保存先のファイル名:Test_001.mp3" VerticalAlignment="Top" Margin="-3000,234,0,0" Foreground="Aqua" TextAlignment="Center"/>
+            <Button x:Name="Back_B" Content="戻る" Height="70" VerticalAlignment="Top" Width="250" Background="Transparent" Margin="-3370,900,0,0" Foreground="Aqua" BorderBrush="Aqua" FontSize="38" Focusable="False" Click="Back_B_Click"/>
             <TextBox x:Name="Save_File_Name_T" Height="45" FontSize="33" TextWrapping="Wrap" Text="Test_" VerticalAlignment="Top" Width="275" Margin="-3325,290,0,0" TextAlignment="Center" TextChanged="Save_File_Name_T_TextChanged"/>
             <TextBlock FontSize="35" Height="55" Width="50" TextWrapping="Wrap" Text="+" VerticalAlignment="Top" Margin="-2972,285,0,0" Foreground="Aqua" TextAlignment="Center"/>
             <ComboBox x:Name="Save_File_Mode_C" Height="45" VerticalAlignment="Top" Width="250" FontSize="30" Margin="-2645,290,0,0" Focusable="False" SelectionChanged="Save_File_Mode_C_SelectionChanged"/>
@@ -85,8 +88,8 @@
             <ComboBox x:Name="Save_Ex_C" Height="45" VerticalAlignment="Top" Width="250" FontSize="30" Margin="-3000,425,0,0" Focusable="False" SelectionChanged="Save_Ex_C_SelectionChanged"/>
             <Button x:Name="Save_Ex_Help_B" Content="?" Height="45" VerticalAlignment="Top" Width="45" Background="Transparent" Margin="-2690,425,0,0" Foreground="Aqua" BorderBrush="Aqua" FontSize="30" Focusable="False" Click="Save_Ex_Help_B_Click"/>
             <TextBlock x:Name="Message_T" Height="110" Width="850" TextWrapping="Wrap" Text="" Foreground="Aqua" FontSize="35" Margin="-2700,775,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
-            <TextBlock FontSize="33" Height="44" Width="310" TextWrapping="Wrap" Text="フレームレート" VerticalAlignment="Top" Margin="-1000,200,0,0" Foreground="Aqua" TextAlignment="Center"/>
-            <ComboBox x:Name="Framerate_C" Height="45" VerticalAlignment="Top" Width="250" FontSize="30" Margin="-1000,260,0,0" Focusable="False"/>
+            <TextBlock FontSize="33" Height="44" Width="310" TextWrapping="Wrap" Text="フレームレート" VerticalAlignment="Top" Margin="-1000,100,0,0" Foreground="Aqua" TextAlignment="Center"/>
+            <ComboBox x:Name="Framerate_C" Height="45" VerticalAlignment="Top" Width="250" FontSize="30" Margin="-1000,160,0,0" Focusable="False"/>
             <Slider x:Name="Volume_S" Height="27" VerticalAlignment="Top" Width="400" Margin="-2225,700,0,0" Style="{StaticResource CustomSliderStyle_Yoko}" Maximum="100" Minimum="0" Focusable="False" SmallChange="0" ValueChanged="Volume_S_ValueChanged"/>
             <TextBlock x:Name="Volume_T" FontSize="35" Height="50" Width="354" TextWrapping="Wrap" Text="追加時の音量:75" VerticalAlignment="Top" Margin="-2225,635,0,0" Foreground="Aqua" TextAlignment="Center"/>
         </DockPanel>

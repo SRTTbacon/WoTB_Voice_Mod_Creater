@@ -5,6 +5,7 @@ using System.IO;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Un4seen.Bass;
@@ -39,6 +40,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         string Save_File_Dir = "";
         int FPS = 60;
         int Save_Serial_Number = 0;
+        int Max_Sound_Index = 0;
         double Play_Time = 0;
         double Time_Line_Move_Width_Scrool = 0;
         double Pitch_Value = 0;
@@ -56,10 +58,16 @@ namespace WoTB_Voice_Mod_Creater.Class
         bool IsRightKeyDown = false;
         bool IsSpaceKeyDown = false;
         bool IsCKeyDown = false;
+        bool IsAKeyDown = false;
+        bool IsSKeyDown = false;
+        bool IsDeleteDown = false;
         bool IsSoundMoving = false;
         bool IsTimeMoveMode = false;
         bool IsTimeMoveMode_IsPlaying = false;
         bool IsBusy = false;
+        bool IsFeedIn = false;
+        bool IsFeedOut = false;
+        bool IsVolume_Speed_Changed_By_Key = false;
         public bool IsFocusMode = true;
         //xamlに配置するコントロールを置く
         List<Image> Sound_Images = new List<Image>();
@@ -74,15 +82,19 @@ namespace WoTB_Voice_Mod_Creater.Class
         List<double> Sound_Positions = new List<double>();
         List<double> Sound_Plus_Play_Time = new List<double>();
         List<double> Sound_Minus_Play_Time = new List<double>();
+        List<double> Sound_Max_Length = new List<double>();
         List<double> Time_Side_Values = new List<double>();
         List<int> Sound_Images_Y_Pos = new List<int>();
         List<int> Setting_Canvas_Y_Pos = new List<int>();
         List<int> Sound_Streams = new List<int>();
         List<int> Sound_Selected_Index = new List<int>();
         List<float> Sound_Frequencys = new List<float>();
+        List<bool> IsNumberKeyDown = new List<bool>();
         List<Time_Relation> Time_Info = new List<Time_Relation>();
-        System.Windows.Point Mouse_Point = new System.Windows.Point(0, 0);
+        List<Sound_Index_Relation> Sound_Index_Info = new List<Sound_Index_Relation>();
         List<System.Windows.Point> Image_Point = new List<System.Windows.Point>();
+        BitmapFrame Temp_WaveForm;
+        System.Windows.Point Mouse_Point = new System.Windows.Point(0, 0);
         public Sound_Editor()
         {
             InitializeComponent();
@@ -111,6 +123,8 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Time_Text[Number].Margin = new Thickness(-3320 + 555 * Number, 250, 0, 0);
                 Parent_Dock.Children.Add(Time_Text[Number]);
             }
+            for (int Number = 0; Number < 9; Number++)
+                IsNumberKeyDown.Add(false);
             //.NameはSound_Image以外必要ないけど一応指定
             Time_Text.Add(new TextBlock());
             Time_Text[6].Name = "Time_Text_Unit";
@@ -123,6 +137,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             Time_Text[6].TextWrapping = TextWrapping.NoWrap;
             Time_Text[6].TextAlignment = TextAlignment.Center;
             Time_Text[6].Margin = new Thickness(-300, 250, 0, 0);
+            //再生時間バーの▼マーク
             Time_Text.Add(new TextBlock());
             Time_Text[7].Name = "Time_Tri";
             Time_Text[7].Width = 35;
@@ -140,10 +155,13 @@ namespace WoTB_Voice_Mod_Creater.Class
             Save_Combo.SelectedIndex = 0;
             Parent_Dock.Children.Add(Time_Text[6]);
             Time_Tri_Canvas.Children.Add(Time_Text[7]);
-            Pitch_S.AddHandler(MouseDownEvent, new System.Windows.Input.MouseButtonEventHandler(Pitch_S_MouseDown), true);
-            Pitch_S.AddHandler(MouseUpEvent, new System.Windows.Input.MouseButtonEventHandler(Pitch_S_MouseUp), true);
+            Pitch_S.AddHandler(MouseDownEvent, new MouseButtonEventHandler(Pitch_S_MouseDown), true);
+            Pitch_S.AddHandler(MouseUpEvent, new MouseButtonEventHandler(Pitch_S_MouseUp), true);
+            Time_Scrool.Value = 20;
+            System.Reflection.Assembly sra = System.Reflection.Assembly.GetExecutingAssembly();
+            Temp_WaveForm = BitmapFrame.Create(sra.GetManifestResourceStream("WoTB_Voice_Mod_Creater.Resources.Temp_WaveForm.png"));
         }
-        private void Slider_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        private void Slider_PreviewKeyDown(object sender, KeyEventArgs e)
         {
             e.Handled = true;
         }
@@ -159,19 +177,6 @@ namespace WoTB_Voice_Mod_Creater.Class
                     Time_Info.Add(new Time_Relation(new List<double>() { 0, 0.2, 0.4, 0.6, 0.8, 1 }, Time_Unit));
                 else
                     Time_Info.Add(new Time_Relation(new List<double>() { 0, 0.4, 0.8, 1.2, 1.6, 2 }, Time_Unit));
-                /*Time_Info.Add(new Time_Relation(new List<double>() { 0, 1, 2, 3 }, Time_Unit));
-                Time_Info.Add(new Time_Relation(new List<double>() { 0, 1, 2, 3, 4, 5 }, Time_Unit));
-                Time_Info.Add(new Time_Relation(new List<double>() { 0, 2, 4, 6, 8 }, Time_Unit));
-                Time_Info.Add(new Time_Relation(new List<double>() { 0, 3, 6, 9, 12, 15 }, Time_Unit));
-                Time_Info.Add(new Time_Relation(new List<double>() { 0, 4, 8, 12, 16, 20 }, Time_Unit));
-                Time_Info.Add(new Time_Relation(new List<double>() { 0, 5, 10, 15, 20, 25 }, Time_Unit));
-                Time_Info.Add(new Time_Relation(new List<double>() { 0, 6, 12, 18, 24, 30 }, Time_Unit));
-                Time_Info.Add(new Time_Relation(new List<double>() { 0, 7, 14, 21, 28, 35 }, Time_Unit));
-                Time_Info.Add(new Time_Relation(new List<double>() { 0, 8, 16, 24, 32, 40 }, Time_Unit));
-                Time_Info.Add(new Time_Relation(new List<double>() { 0, 9, 18, 27, 36, 45 }, Time_Unit));
-                Time_Info.Add(new Time_Relation(new List<double>() { 0, 10, 20, 30, 40, 50 }, Time_Unit));
-                Time_Info.Add(new Time_Relation(new List<double>() { 0, 11, 22, 33, 44, 55 }, Time_Unit));
-                Time_Info.Add(new Time_Relation(new List<double>() { 0, 12, 24, 36, 48, 60 }, Time_Unit));*/
                 Time_Info.Add(new Time_Relation(new List<double>() { 0, 1, 2, 3 }, Time_Unit));
                 Time_Info.Add(new Time_Relation(new List<double>() { 0, 1, 2, 3, 4, 5 }, Time_Unit));
                 Time_Info.Add(new Time_Relation(new List<double>() { 0, 1.5, 3, 4.5, 6, 7.5 }, Time_Unit));
@@ -202,19 +207,16 @@ namespace WoTB_Voice_Mod_Creater.Class
         //引数:FPS値(基本は60fです)
         async void Loop_FPS()
         {
-            double nextFrame = (double)System.Environment.TickCount;
+            double nextFrame = (double)Environment.TickCount;
             float period = 1000f / FPS;
             while (Visibility == Visibility.Visible)
             {
                 //60FPSを上回っていたらスキップ
-                double tickCount = (double)System.Environment.TickCount;
+                double tickCount = (double)Environment.TickCount;
                 if (tickCount < nextFrame)
                 {
                     if (nextFrame - tickCount > 1)
-                    {
                         await Task.Delay((int)(nextFrame - tickCount));
-                    }
-                    System.Windows.Forms.Application.DoEvents();
                     continue;
                 }
                 //再生中なら実行
@@ -228,6 +230,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                         Max_Time_Seconds *= 60 * 60;
                     double Parcent = Play_Time / Max_Time_Seconds;
                     Time_Line.Margin = new Thickness(1400 * Parcent - 1400 * Time_Line_Move_Width_Scrool, Time_Line.Margin.Top, 0, 0);
+                    double Max_Track_Length = 0;
                     for (int Number = 0; Number < Sound_Images.Count; Number++)
                     {
                         if (Sound_Images.Count - 1 >= Number)
@@ -245,73 +248,202 @@ namespace WoTB_Voice_Mod_Creater.Class
                             else if (Bass.BASS_ChannelIsActive(Sound_Streams[Number]) == BASSActive.BASS_ACTIVE_PLAYING)
                                 Bass.BASS_ChannelPause(Sound_Streams[Number]);
                         }
+                        double End_Time = Sound_Max_Length[Number] * Sound_Minus_Play_Time[Number] + Sound_Positions[Number];
+                        if (Max_Track_Length < End_Time)
+                            Max_Track_Length = End_Time;
                     }
+                    if (Setting_Window.Set_Loop_Mode_C.IsChecked.Value && Max_Track_Length > 0 && Max_Track_Length < Play_Time && !IsImageClicked)
+                        Play_Time = 0;
                     IsSoundPosChanged = false;
                 }
                 if (Time_Text[7].Margin.Left < -30 || Time_Text[7].Margin.Left > 1380)
                     Time_Text[7].Visibility = Visibility.Hidden;
                 else
                     Time_Text[7].Visibility = Visibility.Visible;
-                //Ctrlキーが押されているか
-                bool IsControlDown = (System.Windows.Forms.Control.ModifierKeys & System.Windows.Forms.Keys.Control) == System.Windows.Forms.Keys.Control;
-                if (IsControlDown && !IsControlMode)
+                if (!IsBusy)
                 {
-                    IsControlMode = true;
-                    Music_Minus_B.Content = "-10秒";
-                    Music_Plus_B.Content = "+10秒";
-                }
-                else if (!IsControlDown && IsControlMode)
-                {
-                    IsControlMode = false;
-                    Music_Minus_B.Content = "-5秒";
-                    Music_Plus_B.Content = "+5秒";
-                }
-                //ウィンドウにフォーカスがあれば実行
-                //このソフトが最前面にある場合はフォーカスが与えられ実行できるようになります。(MainCode.csに記載)
-                if (IsFocusMode)
-                {
-                    //数秒戻る
-                    if ((System.Windows.Input.Keyboard.GetKeyStates(System.Windows.Input.Key.Left) & System.Windows.Input.KeyStates.Down) > 0)
+                    //Ctrlキーが押されているか
+                    bool IsControlDown = (System.Windows.Forms.Control.ModifierKeys & System.Windows.Forms.Keys.Control) == System.Windows.Forms.Keys.Control;
+                    if (IsControlDown && !IsControlMode)
                     {
-                        if (!IsLeftKeyDown)
-                            Music_Minus_B.PerformClick();
-                        IsLeftKeyDown = true;
+                        IsControlMode = true;
+                        Music_Minus_B.Content = "-10秒";
+                        Music_Plus_B.Content = "+10秒";
                     }
-                    else
-                        IsLeftKeyDown = false;
-                    //数秒進む
-                    if ((System.Windows.Input.Keyboard.GetKeyStates(System.Windows.Input.Key.Right) & System.Windows.Input.KeyStates.Down) > 0)
+                    else if (!IsControlDown && IsControlMode)
                     {
-                        if (!IsRightKeyDown)
-                            Music_Plus_B.PerformClick();
-                        IsRightKeyDown = true;
+                        IsControlMode = false;
+                        Music_Minus_B.Content = "-5秒";
+                        Music_Plus_B.Content = "+5秒";
                     }
-                    else
-                        IsRightKeyDown = false;
-                    //再生・停止
-                    if ((System.Windows.Input.Keyboard.GetKeyStates(System.Windows.Input.Key.Space) & System.Windows.Input.KeyStates.Down) > 0)
+                    //ウィンドウにフォーカスがあれば実行
+                    //このソフトが最前面にある場合はフォーカスが与えられ実行できるようになります。(MainCode.cs 2036行目に記載)
+                    if (IsFocusMode)
                     {
-                        if (!IsSpaceKeyDown)
+                        //数秒戻る
+                        if ((Keyboard.GetKeyStates(Key.Left) & KeyStates.Down) > 0)
                         {
-                            if (IsPlaying)
-                            {
-                                Music_Pause_B.PerformClick();
-                            }
-                            else
-                                Music_Start_B.PerformClick();
+                            if (!IsLeftKeyDown)
+                                Music_Minus_B.PerformClick();
+                            IsLeftKeyDown = true;
                         }
-                        IsSpaceKeyDown = true;
+                        else
+                            IsLeftKeyDown = false;
+                        //数秒進む
+                        if ((Keyboard.GetKeyStates(Key.Right) & KeyStates.Down) > 0)
+                        {
+                            if (!IsRightKeyDown)
+                                Music_Plus_B.PerformClick();
+                            IsRightKeyDown = true;
+                        }
+                        else
+                            IsRightKeyDown = false;
+                        //再生・停止
+                        if ((Keyboard.GetKeyStates(Key.Space) & KeyStates.Down) > 0)
+                        {
+                            if (!IsSpaceKeyDown)
+                            {
+                                if (IsPlaying)
+                                {
+                                    Music_Pause_B.PerformClick();
+                                }
+                                else
+                                    Music_Start_B.PerformClick();
+                            }
+                            IsSpaceKeyDown = true;
+                        }
+                        else
+                            IsSpaceKeyDown = false;
+                        if ((Keyboard.GetKeyStates(Key.C) & KeyStates.Down) > 0 && IsControlDown)
+                        {
+                            if (!IsCKeyDown && Setting_Window.Cut_ShortCut_C.IsChecked.Value)
+                                Music_Cut_B.PerformClick();
+                            IsCKeyDown = true;
+                        }
+                        else
+                            IsCKeyDown = false;
+                        if ((Keyboard.GetKeyStates(Key.A) & KeyStates.Down) > 0 && IsControlDown)
+                        {
+                            if (!IsAKeyDown)
+                            {
+                                bool IsAllSelected = true;
+                                for (int Number = 0; Number < Sound_Images.Count; Number++)
+                                {
+                                    if (!Sound_Selected_Index.Contains(Number))
+                                        IsAllSelected = false;
+                                }
+                                Sound_Select_Unlock();
+                                if (!IsAllSelected)
+                                {
+                                    for (int Number = 0; Number < Sound_Images.Count; Number++)
+                                    {
+                                        Sound_Selected_Index.Add(Number);
+                                        Image_Point.Add(new Point(Sound_Images[Number].Margin.Left, Sound_Images[Number].Margin.Top));
+                                        Sound_Select_Lines[Number].Opacity = 0.5;
+                                    }
+                                }
+                            }
+                            IsAKeyDown = true;
+                        }
+                        else
+                            IsAKeyDown = false;
+                        if ((Keyboard.GetKeyStates(Key.S) & KeyStates.Down) > 0 && IsControlDown)
+                        {
+                            if (!IsSKeyDown)
+                                Music_Save_B.PerformClick();
+                            IsSKeyDown = true;
+                        }
+                        else
+                            IsSKeyDown = false;
+                        if ((Keyboard.GetKeyStates(Key.Delete) & KeyStates.Down) > 0)
+                        {
+                            if (!IsDeleteDown)
+                                Sound_Remove_Index();
+                            IsDeleteDown = true;
+                        }
+                        else
+                            IsDeleteDown = false;
+                        if ((Keyboard.GetKeyStates(Key.D1) & KeyStates.Down) > 0)
+                            Number_Key_Down(0);
+                        else
+                            IsNumberKeyDown[0] = false;
+                        if ((Keyboard.GetKeyStates(Key.D2) & KeyStates.Down) > 0)
+                            Number_Key_Down(1);
+                        else
+                            IsNumberKeyDown[1] = false;
+                        if ((Keyboard.GetKeyStates(Key.D3) & KeyStates.Down) > 0)
+                            Number_Key_Down(2);
+                        else
+                            IsNumberKeyDown[2] = false;
+                        if ((Keyboard.GetKeyStates(Key.D4) & KeyStates.Down) > 0)
+                            Number_Key_Down(3);
+                        else
+                            IsNumberKeyDown[3] = false;
+                        if ((Keyboard.GetKeyStates(Key.D5) & KeyStates.Down) > 0)
+                            Number_Key_Down(4);
+                        else
+                            IsNumberKeyDown[4] = false;
+                        if ((Keyboard.GetKeyStates(Key.D6) & KeyStates.Down) > 0)
+                            Number_Key_Down(5);
+                        else
+                            IsNumberKeyDown[5] = false;
+                        if ((Keyboard.GetKeyStates(Key.D7) & KeyStates.Down) > 0)
+                            Number_Key_Down(6);
+                        else
+                            IsNumberKeyDown[6] = false;
+                        if ((Keyboard.GetKeyStates(Key.D8) & KeyStates.Down) > 0)
+                            Number_Key_Down(7);
+                        else
+                            IsNumberKeyDown[7] = false;
+                        if ((Keyboard.GetKeyStates(Key.D9) & KeyStates.Down) > 0)
+                            Number_Key_Down(8);
+                        else
+                            IsNumberKeyDown[8] = false;
+                        if ((Keyboard.GetKeyStates(Key.V) & KeyStates.Down) > 0 && (Keyboard.GetKeyStates(Key.Up) & KeyStates.Down) > 0)
+                            foreach (int Index in Sound_Selected_Index)
+                            {
+                                double Increase = 0.65 * 60 / FPS;
+                                if (Sound_Volumes[Index].Value + Increase > 100)
+                                    Sound_Volumes[Index].Value = 100;
+                                else
+                                    Sound_Volumes[Index].Value += Increase;
+                            }
+                        else if ((Keyboard.GetKeyStates(Key.V) & KeyStates.Down) > 0 && (Keyboard.GetKeyStates(Key.Down) & KeyStates.Down) > 0)
+                            foreach (int Index in Sound_Selected_Index)
+                            {
+                                double Decrease = 0.65 * 60 / FPS;
+                                if (Sound_Volumes[Index].Value - Decrease < 0)
+                                    Sound_Volumes[Index].Value = 0;
+                                else
+                                    Sound_Volumes[Index].Value -= Decrease;
+                            }
+                        if ((Keyboard.GetKeyStates(Key.S) & KeyStates.Down) > 0 && (Keyboard.GetKeyStates(Key.Up) & KeyStates.Down) > 0)
+                        {
+                            double Increase = 0.3 * 60 / FPS;
+                            if (Pitch_S.Value + Increase > 100)
+                                Pitch_S.Value = 100;
+                            else
+                                Pitch_S.Value += Increase;
+                            IsVolume_Speed_Changed_By_Key = true;
+                        }
+                        else if ((Keyboard.GetKeyStates(Key.S) & KeyStates.Down) > 0 && (Keyboard.GetKeyStates(Key.Down) & KeyStates.Down) > 0)
+                        {
+                            double Decrease = 0.3 * 60 / FPS;
+                            if (Pitch_S.Value + Decrease < 0)
+                                Pitch_S.Value = 0;
+                            else
+                                Pitch_S.Value -= Decrease;
+                            IsVolume_Speed_Changed_By_Key = true;
+                        }
+                        if (IsPlaying)
+                        {
+                            if (IsVolume_Speed_Changed_By_Key && (Keyboard.GetKeyStates(Key.S) & KeyStates.Down) == 0 && (Keyboard.GetKeyStates(Key.Up) & KeyStates.Down) == 0 && (Keyboard.GetKeyStates(Key.Down) & KeyStates.Down) == 0)
+                            {
+                                IsVolume_Speed_Changed_By_Key = false;
+                                Pitch_Change_Await();
+                            }
+                        }
                     }
-                    else
-                        IsSpaceKeyDown = false;
-                    if ((System.Windows.Input.Keyboard.GetKeyStates(System.Windows.Input.Key.C) & System.Windows.Input.KeyStates.Down) > 0 && IsControlDown)
-                    {
-                        if (!IsCKeyDown && Setting_Window.Cut_ShortCut_C.IsChecked.Value)
-                            Music_Cut_B.PerformClick();
-                        IsCKeyDown = true;
-                    }
-                    else
-                        IsCKeyDown = false;
                 }
                 //現在時間を表示(秒)
                 Time_T.Text = Math.Round(Play_Time, 1, MidpointRounding.AwayFromZero) + "秒";
@@ -319,7 +451,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 if (period != 1000f / FPS)
                     period = 1000f / FPS;
                 //次のフレーム時間を計算
-                if ((double)System.Environment.TickCount >= nextFrame + period)
+                if ((double)System.Environment.TickCount >= nextFrame + (double)period)
                 {
                     nextFrame += period;
                     continue;
@@ -368,6 +500,41 @@ namespace WoTB_Voice_Mod_Creater.Class
                 await Task.Delay(1000 / 60);
             }
         }
+        //押された数字キーのトラックを選択または未選択状態にする(Ctrlキーが押されたら複数選択)
+        void Number_Key_Down(int Number)
+        {
+            if (!IsNumberKeyDown[Number] && Sound_Images.Count > Number)
+            {
+                IsNumberKeyDown[Number] = true;
+                for (int Number_01 = 0; Number_01 < Sound_Images_Y_Pos.Count; Number_01++)
+                {
+                    if (Sound_Images_Y_Pos[Number_01] == 125 * Number + 10 * Number + 10)
+                    {
+                        Number = Number_01;
+                        break;
+                    }
+                }
+                if (!IsControlMode && !Sound_Selected_Index.Contains(Number))
+                    Sound_Select_Unlock();
+                else if (!IsControlMode && Sound_Selected_Index.Count >= 2)
+                    Sound_Select_Unlock();
+                if (Sound_Selected_Index.Contains(Number))
+                {
+                    int Index = Sound_Selected_Index.IndexOf(Number);
+                    if (Index == -1)
+                        return;
+                    Sound_Selected_Index.RemoveAt(Index);
+                    Image_Point.RemoveAt(Index);
+                    Sound_Select_Lines[Number].Opacity = 0;
+                }
+                else
+                {
+                    Sound_Selected_Index.Add(Number);
+                    Image_Point.Add(new Point(Sound_Images[Number].Margin.Left, Sound_Images[Number].Margin.Top));
+                    Sound_Select_Lines[Number].Opacity = 0.5;
+                }
+            }
+        }
         //メッセージを表示してフェードアウト
         async void Message_Feed_Out(string Message)
         {
@@ -412,7 +579,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             }
         }
         //ファイルを追加
-        private void Music_Add_B_Click(object sender, RoutedEventArgs e)
+        private async void Music_Add_B_Click(object sender, RoutedEventArgs e)
         {
             if (IsClosing || IsBusy)
                 return;
@@ -424,11 +591,20 @@ namespace WoTB_Voice_Mod_Creater.Class
             };
             if (Add_File_Dir != "")
                 ofd.InitialDirectory = Add_File_Dir;
+            bool IsPlaying_Temp = IsPlaying;
+            IsPlaying = false;
+            All_Sound_Pause();
+            await Task.Delay(100);
             if (ofd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
                 Add_File_Dir = Path.GetDirectoryName(ofd.FileName);
                 Add_Sound_File(ofd.FileNames);
                 Configs_Save();
+            }
+            if (IsPlaying_Temp)
+            {
+                IsPlaying = true;
+                All_Sound_Play(10f);
             }
             ofd.Dispose();
         }
@@ -437,6 +613,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         {
             if (IsClosing || IsBusy)
                 return;
+            IsPlaying = false;
             All_Sound_Pause();
             foreach (string File_Now in Sound_File)
             {
@@ -444,23 +621,14 @@ namespace WoTB_Voice_Mod_Creater.Class
                     continue;
                 Message_T.Text = "波形を生成しています...";
                 await Task.Delay(50);
-                BitmapImage Image_Wave = null;
+                ImageSource Image_Wave = null;
                 string Ex = Path.GetExtension(File_Now);
-                //波形を読み込む(NAudioはデザインが気に入らなかったため未使用)
-                //Bass Audio Libraryの機能を使用します
-                /*if (Ex == ".mp3" || Ex == ".wav")
-                {
-                    try
-                    {
-                        Image_Wave = Sub_Code.Bitmap_To_BitmapImage(NAudioRenderWaveForm(File_Now));
-                    }
-                    catch
-                    {
-                        Image_Wave = BassRenderWaveForm(File_Now);
-                    }
-                }
-                else*/
-                    Image_Wave = BassRenderWaveForm(File_Now);
+                int StreamHandle = Bass.BASS_StreamCreateFile(File_Now, 0, 0, BASSFlag.BASS_STREAM_DECODE);
+                if (Bass.BASS_ChannelBytes2Seconds(StreamHandle, Bass.BASS_ChannelGetLength(StreamHandle, BASSMode.BASS_POS_BYTES)) > 600)
+                    Image_Wave = Temp_WaveForm;
+                else
+                    Image_Wave = Sub_Code.BassRenderWaveForm(File_Now);
+                Bass.BASS_StreamFree(StreamHandle);
                 if (Image_Wave == null)
                     continue;
                 Message_T.Text = "サウンドを読み込んでいます...";
@@ -471,13 +639,11 @@ namespace WoTB_Voice_Mod_Creater.Class
             Message_Feed_Out("サウンドを読み込みました。");
         }
         //サウンドの追加(単体)
-        async Task Add_Sound(string File_Now, BitmapImage Image_Wave, int Add_Index_Pos = -1, double Set_Volume = -1)
+        async Task Add_Sound(string File_Now, ImageSource Image_Wave, int Add_Index_Pos = -1, double Set_Volume = -1, int Image_Y_Pos = -1)
         {
             IsBusy = true;
-            if (Add_Index_Pos >= Sound_Images.Count)
-                Add_Index_Pos = -1;
             //Bassの設定
-            int StreamHandle = Bass.BASS_StreamCreateFile(File_Now, 0, 0, BASSFlag.BASS_SAMPLE_FLOAT | BASSFlag.BASS_STREAM_DECODE | BASSFlag.BASS_ASYNCFILE | BASSFlag.BASS_STREAM_PRESCAN);
+            int StreamHandle = Bass.BASS_StreamCreateFile(File_Now, 0, 0, BASSFlag.BASS_SAMPLE_FLOAT | BASSFlag.BASS_STREAM_DECODE | BASSFlag.BASS_STREAM_PRESCAN);
             BASS_CHANNELINFO info = new BASS_CHANNELINFO();
             Bass.BASS_ChannelGetInfo(StreamHandle, info);
             if (Path.GetExtension(File_Now) == ".mp3")
@@ -496,7 +662,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                             if (Sub_Code.File_Move(Path.GetDirectoryName(File_Now) + "\\" + Path.GetFileNameWithoutExtension(File_Now) + "_Temp.mp3", File_Now, true))
                             {
                                 Bass.BASS_StreamFree(StreamHandle);
-                                StreamHandle = Bass.BASS_StreamCreateFile(File_Now, 0, 0, BASSFlag.BASS_SAMPLE_FLOAT | BASSFlag.BASS_STREAM_DECODE | BASSFlag.BASS_ASYNCFILE | BASSFlag.BASS_STREAM_PRESCAN);
+                                StreamHandle = Bass.BASS_StreamCreateFile(File_Now, 0, 0, BASSFlag.BASS_SAMPLE_FLOAT | BASSFlag.BASS_STREAM_DECODE | BASSFlag.BASS_STREAM_PRESCAN);
                             }
                             else
                                 IsError = true;
@@ -510,17 +676,25 @@ namespace WoTB_Voice_Mod_Creater.Class
                 }
             }
             Sound_Streams.Add(BassFx.BASS_FX_TempoCreate(StreamHandle, BASSFlag.BASS_FX_FREESOURCE));
+            Sound_Max_Length.Add(Bass.BASS_ChannelBytes2Seconds(StreamHandle, Bass.BASS_ChannelGetLength(StreamHandle, BASSMode.BASS_POS_BYTES)));
             float Temp_Freq = 44100;
             Bass.BASS_ChannelSetDevice(Sound_Streams[Sound_Streams.Count - 1], Video_Mode.Sound_Device);
             Bass.BASS_ChannelGetAttribute(Sound_Streams[Sound_Streams.Count - 1], BASSAttribute.BASS_ATTRIB_TEMPO_FREQ, ref Temp_Freq);
-            if (Set_Volume != -1)
-                Bass.BASS_ChannelSetAttribute(Sound_Streams[Sound_Streams.Count - 1], BASSAttribute.BASS_ATTRIB_VOL, (float)(Set_Volume / 100));
+            if (IsPlaying)
+            {
+                if (Set_Volume != -1)
+                    Bass.BASS_ChannelSetAttribute(Sound_Streams[Sound_Streams.Count - 1], BASSAttribute.BASS_ATTRIB_VOL, (float)(Set_Volume / 100));
+                else
+                    Bass.BASS_ChannelSetAttribute(Sound_Streams[Sound_Streams.Count - 1], BASSAttribute.BASS_ATTRIB_VOL, 0.75f);
+            }
             else
-                Bass.BASS_ChannelSetAttribute(Sound_Streams[Sound_Streams.Count - 1], BASSAttribute.BASS_ATTRIB_VOL, 0.75f);
+                Bass.BASS_ChannelSetAttribute(Sound_Streams[Sound_Streams.Count - 1], BASSAttribute.BASS_ATTRIB_VOL, 0f);
             Bass.BASS_ChannelSetAttribute(Sound_Streams[Sound_Streams.Count - 1], BASSAttribute.BASS_ATTRIB_TEMPO_FREQ, Temp_Freq * Play_Pitch_Percent);
             Sound_Frequencys.Add(Temp_Freq);
             //追加する画像の表示位置(高さ)を指定
             int Set_Top = 125 * Sound_Images.Count + 10 * Sound_Images.Count + 10;
+            if (Image_Y_Pos != -1)
+                Set_Top = Image_Y_Pos;
             //それぞれの初期値を保存
             Sound_Images_Y_Pos.Add(Set_Top);
             Setting_Canvas_Y_Pos.Add(Set_Top);
@@ -535,6 +709,9 @@ namespace WoTB_Voice_Mod_Creater.Class
             Sound_Names.Add(new TextBlock());
             Setting_Canvases.Add(new Canvas());
             int This_Image_Index = Sound_Images.Count - 1;
+            int Now_Sound_Index = Max_Sound_Index;
+            Sound_Index_Info.Add(new Sound_Index_Relation(Now_Sound_Index, This_Image_Index));
+            Max_Sound_Index++;
             //右クリックしたときに表示されるメニューを追加
             ContextMenu pMenu = new ContextMenu();
             MenuItem item1 = new MenuItem();
@@ -543,9 +720,16 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 Sound_Remove_Index();
             };
+            MenuItem item2 = new MenuItem();
+            item2.Header = "0秒に配置";
+            item2.Click += delegate
+            {
+                Sound_Move_Zero();
+            };
             pMenu.Items.Add(item1);
+            pMenu.Items.Add(item2);
             //Canvas
-            Setting_Canvases[This_Image_Index].Name = "Setting_Canvas_" + This_Image_Index;
+            Setting_Canvases[This_Image_Index].Name = "Setting_Canvas_" + Now_Sound_Index;
             Setting_Canvases[This_Image_Index].VerticalAlignment = VerticalAlignment.Top;
             Setting_Canvases[This_Image_Index].HorizontalAlignment = HorizontalAlignment.Left;
             Setting_Canvases[This_Image_Index].Width = 1;
@@ -553,7 +737,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             Setting_Canvases[This_Image_Index].Focusable = false;
             Setting_Canvases[This_Image_Index].Margin = new Thickness(0, Set_Top, 0, 0);
             //波形
-            Sound_Images[This_Image_Index].Name = "Sound_Wave_Image_" + This_Image_Index;
+            Sound_Images[This_Image_Index].Name = "Sound_Wave_Image_" + Now_Sound_Index;
             Sound_Images[This_Image_Index].VerticalAlignment = VerticalAlignment.Top;
             Sound_Images[This_Image_Index].HorizontalAlignment = HorizontalAlignment.Left;
             Sound_Images[This_Image_Index].Width = 800;
@@ -565,15 +749,15 @@ namespace WoTB_Voice_Mod_Creater.Class
             Sound_Images[This_Image_Index].MouseLeftButtonDown += delegate
             {
                 IsSoundMoving = true;
-                Sound_Select_Change(This_Image_Index);
+                Sound_Select_Change(Now_Sound_Index);
             };
             Sound_Images[This_Image_Index].MouseRightButtonUp += delegate
             {
-                Sound_Select_Change(This_Image_Index);
+                Sound_Select_Change(Now_Sound_Index);
             };
             Sound_Images[This_Image_Index].ContextMenu = pMenu;
             //左の線
-            Border_Lines[This_Image_Index].Name = "Border_Line_" + This_Image_Index;
+            Border_Lines[This_Image_Index].Name = "Border_Line_" + Now_Sound_Index;
             Border_Lines[This_Image_Index].VerticalAlignment = VerticalAlignment.Top;
             Border_Lines[This_Image_Index].HorizontalAlignment = HorizontalAlignment.Left;
             Border_Lines[This_Image_Index].Width = 250;
@@ -585,15 +769,15 @@ namespace WoTB_Voice_Mod_Creater.Class
             Border_Lines[This_Image_Index].Margin = new Thickness(5, 125, 0, 0);
             Border_Lines[This_Image_Index].MouseRightButtonUp += delegate
             {
-                Sound_Select_Change(This_Image_Index);
+                Sound_Select_Change(Now_Sound_Index);
             };
             Border_Lines[This_Image_Index].MouseLeftButtonUp += delegate
             {
-                Sound_Select_Change(This_Image_Index);
+                Sound_Select_Change(Now_Sound_Index);
             };
             Border_Lines[This_Image_Index].ContextMenu = pMenu;
             //一列選択する用のBorder
-            Sound_Select_Lines[This_Image_Index].Name = "Sound_Select_Line_" + This_Image_Index;
+            Sound_Select_Lines[This_Image_Index].Name = "Sound_Select_Line_" + Now_Sound_Index;
             Sound_Select_Lines[This_Image_Index].VerticalAlignment = VerticalAlignment.Top;
             Sound_Select_Lines[This_Image_Index].HorizontalAlignment = HorizontalAlignment.Left;
             Sound_Select_Lines[This_Image_Index].Width = 258;
@@ -607,14 +791,14 @@ namespace WoTB_Voice_Mod_Creater.Class
             Sound_Select_Lines[This_Image_Index].ContextMenu = pMenu;
             Sound_Select_Lines[This_Image_Index].MouseRightButtonUp += delegate
             {
-                Sound_Select_Change(This_Image_Index);
+                Sound_Select_Change(Now_Sound_Index);
             };
             Sound_Select_Lines[This_Image_Index].MouseLeftButtonUp += delegate
             {
-                Sound_Select_Change(This_Image_Index);
+                Sound_Select_Change(Now_Sound_Index);
             };
             //音量バー
-            Sound_Volumes[This_Image_Index].Name = "Volume_Slider_" + This_Image_Index;
+            Sound_Volumes[This_Image_Index].Name = "Volume_Slider_" + Now_Sound_Index;
             Sound_Volumes[This_Image_Index].VerticalAlignment = VerticalAlignment.Top;
             Sound_Volumes[This_Image_Index].HorizontalAlignment = HorizontalAlignment.Left;
             Sound_Volumes[This_Image_Index].Width = 175;
@@ -632,7 +816,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 int Index_Temp = -1;
                 for (int Number = 0; Number < Sound_Images.Count; Number++)
                 {
-                    if (int.Parse(Sound_Images[Number].Name.Substring(Sound_Images[Number].Name.LastIndexOf('_') + 1)) == This_Image_Index)
+                    if (int.Parse(Sound_Images[Number].Name.Substring(Sound_Images[Number].Name.LastIndexOf('_') + 1)) == Now_Sound_Index)
                     {
                         Index_Temp = Number;
                         break;
@@ -643,7 +827,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Bass.BASS_ChannelSetAttribute(Sound_Streams[Index_Temp], BASSAttribute.BASS_ATTRIB_VOL, (float)Sound_Volumes[Index_Temp].Value / 100);
             };
             //曲名
-            Sound_Names[This_Image_Index].Name = "Sound_Title_" + This_Image_Index;
+            Sound_Names[This_Image_Index].Name = "Sound_Title_" + Now_Sound_Index;
             Sound_Names[This_Image_Index].Text = Path.GetFileName(File_Now);
             Sound_Names[This_Image_Index].VerticalAlignment = VerticalAlignment.Top;
             Sound_Names[This_Image_Index].HorizontalAlignment = HorizontalAlignment.Left;
@@ -657,11 +841,11 @@ namespace WoTB_Voice_Mod_Creater.Class
             Sound_Names[This_Image_Index].Margin = new Thickness(0, 5, 0, 0);
             Sound_Names[This_Image_Index].MouseRightButtonUp += delegate
             {
-                Sound_Select_Change(This_Image_Index);
+                Sound_Select_Change(Now_Sound_Index);
             };
             Sound_Names[This_Image_Index].MouseLeftButtonUp += delegate
             {
-                Sound_Select_Change(This_Image_Index);
+                Sound_Select_Change(Now_Sound_Index);
             };
             Sound_Names[This_Image_Index].ContextMenu = pMenu;
             Child_Canvas.Children.Add(Sound_Images[This_Image_Index]);
@@ -674,38 +858,26 @@ namespace WoTB_Voice_Mod_Creater.Class
             //カットされたサウンドの場合はカット元の位置の下に来るように
             if (Add_Index_Pos != -1)
             {
-                List<int> Move_Index = new List<int>();
                 int Set_Top_New = 0;
                 //カット元のY座標を計算
-                for (int Number = 0; Number < Sound_Images.Count; Number++)
+                for (int Number = 0; Number < Sound_Images_Y_Pos.Count; Number++)
                 {
-                    if (Sound_Images_Y_Pos[Number] >= 125 * Add_Index_Pos + 10 * Add_Index_Pos + 10)
+                    if (Sound_Images_Y_Pos[Number] > Sound_Images_Y_Pos[Add_Index_Pos - 1])
                     {
                         Sound_Images[Number].Margin = new Thickness(Sound_Images[Number].Margin.Left, Sound_Images[Number].Margin.Top + 135, 0, 0);
                         Setting_Canvases[Number].Margin = new Thickness(0, Setting_Canvases[Number].Margin.Top + 135, 0, 0);
                         Sound_Images_Y_Pos[Number] += 135;
                         Setting_Canvas_Y_Pos[Number] += 135;
                     }
-                    if (Sound_Images_Y_Pos[Number] == 125 * (Add_Index_Pos - 1) + 10 * (Add_Index_Pos - 1) + 10)
-                        Set_Top_New = Sound_Images_Y_Pos[Number];
+                    if (Sound_Images[Number].Margin.Top == Sound_Images[Add_Index_Pos - 1].Margin.Top)
+                    {
+                        Set_Top_New = Sound_Images_Y_Pos[Add_Index_Pos - 1];
+                        Sound_Images[This_Image_Index].Margin = new Thickness(0, Set_Top_New + 135, 0, 0);
+                        Setting_Canvases[This_Image_Index].Margin = new Thickness(0, Set_Top_New + 135, 0, 0);
+                        Sound_Images_Y_Pos[This_Image_Index] = Set_Top_New + 135;
+                        Setting_Canvas_Y_Pos[This_Image_Index] = Set_Top_New + 135;
+                    }
                 }
-                //カット元のY座標が0以上の場合
-                if (Set_Top_New > 0)
-                {
-                    Sound_Images[This_Image_Index].Margin = new Thickness(0, Set_Top_New + 135, 0, 0);
-                    Setting_Canvases[This_Image_Index].Margin = new Thickness(0, Set_Top_New + 135, 0, 0);
-                    Sound_Images_Y_Pos[This_Image_Index] = Set_Top_New + 135;
-                    Setting_Canvas_Y_Pos[This_Image_Index] = Set_Top_New + 135;
-                }
-                //基本あり得ませんが、カット元が存在しない場合
-                else
-                {
-                    Sound_Images[This_Image_Index].Margin = new Thickness(0, Sound_Images[This_Image_Index - 1].Margin.Top + 135, 0, 0);
-                    Setting_Canvases[This_Image_Index].Margin = new Thickness(0, Setting_Canvases[This_Image_Index - 1].Margin.Top + 135, 0, 0);
-                    Sound_Images_Y_Pos[This_Image_Index] = (int)Setting_Canvases[This_Image_Index - 1].Margin.Top + 135;
-                    Setting_Canvas_Y_Pos[This_Image_Index] =(int) Setting_Canvases[This_Image_Index - 1].Margin.Top + 135;
-                }
-                //Sound_Index_Info.Add(new Sound_Index_Relation(This_Image_Index, Add_Index_Pos));
             }
             //全体の高さが600以上の場合Y軸を動かすバーを表示
             if (Set_Top + 125 > 600)
@@ -714,6 +886,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                     Track_Scrool.Visibility = Visibility.Visible;
                 Track_Scrool.Maximum = Set_Top - 470;
             }
+            Set_Time_Slider((int)Time_Scrool.Value);
             IsBusy = false;
         }
         //指定したIndexを選択状態に
@@ -721,11 +894,11 @@ namespace WoTB_Voice_Mod_Creater.Class
         {
             //正確なIndexを取得
             int Index_Temp = -1;
-            for (int Number = 0; Number < Sound_Images.Count; Number++)
+            for (int Number = 0; Number < Sound_Index_Info.Count; Number++)
             {
-                if (int.Parse(Sound_Images[Number].Name.Substring(Sound_Images[Number].Name.LastIndexOf('_') + 1)) == Index)
+                if (Sound_Index_Info[Number].Sound_Index == Index)
                 {
-                    Index_Temp = Number;
+                    Index_Temp = Sound_Index_Info[Number].Add_Sound_Index;
                     break;
                 }
             }
@@ -975,9 +1148,9 @@ namespace WoTB_Voice_Mod_Creater.Class
                         Track_Scrool.Value -= 135;
                 }
             }
-            else if (e.Delta < 0 && Time_Scrool.Value < (int)Time_Scrool.Maximum)
+            else if (e.Delta < 0)
             {
-                if (IsControlMode && !IsImageClicked)
+                if (IsControlMode && !IsImageClicked && Time_Scrool.Value < (int)Time_Scrool.Maximum)
                     Time_Scrool.Value = (int)Time_Scrool.Value + 1;
                 else
                 {
@@ -1010,7 +1183,9 @@ namespace WoTB_Voice_Mod_Creater.Class
                     Volume_Now.Add(Volume_Now_Stream);
                     Volume_Minus.Add(Volume_Now_Stream / Feed_Time);
                 }
-                while (true)
+                IsFeedIn = false;
+                IsFeedOut = true;
+                while (IsFeedOut)
                 {
                     List<int> End_Index = new List<int>();
                     for (int Number = 0; Number < Sound_Streams.Count; Number++)
@@ -1033,7 +1208,11 @@ namespace WoTB_Voice_Mod_Creater.Class
                     await Task.Delay(1000 / 60);
                 }
                 for (int Number = 0; Number < Sound_Streams.Count; Number++)
+                {
                     Bass.BASS_ChannelPause(Sound_Streams[Number]);
+                    Bass.BASS_ChannelSetAttribute(Sound_Streams[Number], BASSAttribute.BASS_ATTRIB_VOL, 0f);
+                }
+                IsFeedOut = false;
             }
         }
         async void All_Sound_Play(float Feed_Time = 0)
@@ -1052,7 +1231,9 @@ namespace WoTB_Voice_Mod_Creater.Class
                     Volume_Now.Add(Volume_Now_Stream);
                     Volume_Plus.Add((float)Sound_Volumes[Number].Value / 100f / Feed_Time);
                 }
-                while (true)
+                IsFeedIn = true;
+                IsFeedOut = false;
+                while (IsFeedIn)
                 {
                     List<int> End_Index = new List<int>();
                     for (int Number = 0; Number < Sound_Streams.Count; Number++)
@@ -1077,6 +1258,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                     }
                     await Task.Delay(1000 / 60);
                 }
+                IsFeedIn = false;
             }
         }
         //NAudioを使用して波形を作成
@@ -1100,31 +1282,6 @@ namespace WoTB_Voice_Mod_Creater.Class
             settings.DecibelScale = false;
             WaveFormRenderer render = new WaveFormRenderer();
             return render.Render(Audio_File, settings);
-        }
-        //Bass Audio Libraryを使用して波形を作成
-        BitmapImage BassRenderWaveForm(string Audio_File)
-        {
-            Un4seen.Bass.Misc.WaveForm WF_Color = new Un4seen.Bass.Misc.WaveForm();
-            BitmapImage Temp_Image = null;
-            WF_Color = new Un4seen.Bass.Misc.WaveForm(Audio_File);
-            WF_Color.CallbackFrequency = 0;
-            WF_Color.ColorBackground = System.Drawing.Color.Transparent;
-            WF_Color.ColorLeft = System.Drawing.Color.Aqua;
-            WF_Color.ColorMiddleLeft = System.Drawing.Color.DarkBlue;
-            WF_Color.ColorMiddleRight = System.Drawing.Color.DarkBlue;
-            WF_Color.ColorRight = System.Drawing.Color.Aqua;
-            WF_Color.ColorLeft2 = System.Drawing.Color.Transparent;
-            WF_Color.ColorRight2 = System.Drawing.Color.Transparent;
-            WF_Color.ColorLeftEnvelope = System.Drawing.Color.Transparent;
-            WF_Color.ColorRightEnvelope = System.Drawing.Color.Transparent;
-            WF_Color.RenderStart(true, BASSFlag.BASS_DEFAULT);
-            while (!WF_Color.IsRendered)
-            {
-                System.Threading.Thread.Sleep(50);
-            }
-            Temp_Image = Sub_Code.Bitmap_To_BitmapImage(WF_Color.CreateBitmap(1920, 300, -1, -1, false));
-            WF_Color.RenderStop();
-            return Temp_Image;
         }
         //タイムラインの時間単位によって波形の横の長さを調整
         void Set_Sound_Width(Time_Relation Time_R)
@@ -1228,20 +1385,22 @@ namespace WoTB_Voice_Mod_Creater.Class
         {
             Pitch_Value = Pitch_S.Value;
         }
-        private async void Pitch_S_MouseUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        private void Pitch_S_MouseUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
-            await Task.Delay(500);
-            if (Pitch_S.Value != Pitch_Value)
-                IsSoundPosChanged = true;
+            Pitch_Change_Await();
         }
-        private async void Pitch_S_MouseRightButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        private void Pitch_S_MouseRightButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             if (Pitch_S.Value != 50)
             {
                 Pitch_S.Value = 50;
-                await Task.Delay(500);
-                IsSoundPosChanged = true;
+                Pitch_Change_Await();
             }
+        }
+        async void Pitch_Change_Await()
+        {
+            await Task.Delay(500);
+            IsSoundPosChanged = true;
         }
         //選択状態を解除
         void Sound_Select_Unlock()
@@ -1266,7 +1425,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                     Bass.BASS_StreamFree(Sound_Streams[Index]);
                     Error_Number++;
                     //選択されている項目のY座標より大きいサウンドを1つ上に上げる(語彙力)
-                    if (Sound_Images.Count - 1 > Index)
+                    if (Sound_Images.Count - 1 >= Index)
                     {
                         for (int Number = 0; Number < Sound_Images.Count; Number++)
                         {
@@ -1278,6 +1437,19 @@ namespace WoTB_Voice_Mod_Creater.Class
                                 Setting_Canvas_Y_Pos[Number] -= 135;
                             }
                         }
+                    }
+                    for (int Number = 0; Number < Sound_Index_Info.Count; Number++)
+                    {
+                        if (Sound_Index_Info[Number].Add_Sound_Index == Index)
+                        {
+                            Sound_Index_Info.RemoveAt(Number);
+                            break;
+                        }
+                    }
+                    for (int Number = 0; Number < Sound_Index_Info.Count; Number++)
+                    {
+                        if (Sound_Index_Info[Number].Add_Sound_Index >= Index)
+                            Sound_Index_Info[Number].Add_Sound_Index--;
                     }
                     //それぞれの項目を削除(エラーが怒る可能性があるためError_Numberを増やしていきどこでエラーが起こったかわかりやすくしています)
                     Error_Number++;
@@ -1313,6 +1485,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                     Error_Number++;
                     Sound_Plus_Play_Time.RemoveAt(Index);
                     Sound_Minus_Play_Time.RemoveAt(Index);
+                    Sound_Max_Length.RemoveAt(Index);
                     Error_Number++;
                     //Y軸のスクロールバーを調整
                     if (Track_Scrool.Visibility == Visibility.Visible)
@@ -1337,31 +1510,6 @@ namespace WoTB_Voice_Mod_Creater.Class
             }
             IsDeleted = true;
         }
-        //キーが押されたら実行
-        //なぜかユーザーコントロールウィンドウではキーを取得できなかったためMain_Code.csから呼び出されます。
-        public void Get_KeyDown(System.Windows.Input.KeyEventArgs e)
-        {
-            if (e.Key == System.Windows.Input.Key.LeftCtrl)
-                return;
-            Pitch_S.Value += 1;
-            if (e.Key == System.Windows.Input.Key.Left)
-                Music_Minus_B.PerformClick();
-            else if (e.Key == System.Windows.Input.Key.Right)
-                Music_Plus_B.PerformClick();
-            else if (e.Key == System.Windows.Input.Key.Space)
-            {
-                if (IsPlaying)
-                {
-                    All_Sound_Pause();
-                    IsPlaying = false;
-                }
-                else
-                {
-                    IsPlaying = true;
-                    All_Sound_Play(10f);
-                }
-            }
-        }
         //サウンドをカット
         private async void Music_Cut_B_Click(object sender, RoutedEventArgs e)
         {
@@ -1371,27 +1519,26 @@ namespace WoTB_Voice_Mod_Creater.Class
             if (Sound_Selected_Index.Count > 1)
                 Message_Feed_Out("トラックが複数選択されています。");
             if (IsDeleted)
+            {
+                Message_Feed_Out("カットするトラックが選択されていません。");
                 return;
+            }
             foreach (int Index in Sound_Selected_Index)
             {
                 IsExist = true;
                 //選択されているサウンドの波形がタイムラインバーの中にある場合実行
                 if (Time_Line.Margin.Left >= Sound_Images[Index].Margin.Left && Time_Line.Margin.Left < Sound_Images[Index].Margin.Left + Sound_Images[Index].Width)
                 {
-                    //正確なIndexを取得
-                    int New_Index = Get_Child_Index_From_Selected();
-                    if (New_Index == -1)
-                        Message_Feed_Out("エラーが発生しました。コピーを作成できません。");
                     //複雑な計算(説明が難しいため詳しく書きません)
                     double Size_Percent = ((Time_Line.Margin.Left + 1400 * Time_Line_Move_Width_Scrool) - (Sound_Images[Index].Margin.Left + 1400 * Time_Line_Move_Width_Scrool)) / Sound_Images[Index].Width;
-                    BitmapImage From_Image = null;
-                    BitmapImage To_Image = null;
-                    Sub_Code.Resize_From_BitmapImage((BitmapImage)Sound_Images[Index].Source, (int)(Sound_Images[Index].Source.Width * Size_Percent), (int)Sound_Images[Index].Source.Height, ref From_Image, ref To_Image);
+                    BitmapSource From_Image = null;
+                    BitmapSource To_Image = null;
+                    Sub_Code.Resize_From_BitmapImage((BitmapSource)Sound_Images[Index].Source, (int)(Sound_Images[Index].Source.Width * Size_Percent), (int)Sound_Images[Index].Source.Height, ref From_Image, ref To_Image);
                     Sound_Images[Index].Source = From_Image;
                     if (Setting_Window.Cut_Volume_Sync_C.IsChecked.Value)
-                        await Add_Sound(Sound_Files[Index], To_Image, New_Index + 1, Sound_Volumes[Sound_Selected_Index[0]].Value);
+                        await Add_Sound(Sound_Files[Index], To_Image, Index + 1, Sound_Volumes[Sound_Selected_Index[0]].Value);
                     else
-                        await Add_Sound(Sound_Files[Index], To_Image, New_Index + 1, Setting_Window.Volume_S.Value);
+                        await Add_Sound(Sound_Files[Index], To_Image, Index + 1, Setting_Window.Volume_S.Value);
                     double Max_Time_Seconds = Time_Info[(int)Time_Scrool.Value].Times[Time_Info[(int)Time_Scrool.Value].Times.Count - 1];
                     if (Time_Info[(int)Time_Scrool.Value].Unit == "分")
                         Max_Time_Seconds *= 60;
@@ -1406,7 +1553,9 @@ namespace WoTB_Voice_Mod_Creater.Class
                     double Parcent_X = (Sound_Images[Index].Margin.Left + 1400 * Time_Line_Move_Width_Scrool + Plus_Width) / 1400;
                     Sound_Positions[Sound_Images.Count - 1] = Max_Time_Seconds * Parcent_X;
                     Sound_Images[Sound_Images.Count - 1].Margin = new Thickness(Sound_Images[Index].Margin.Left + 1400 * Time_Line_Move_Width_Scrool + Plus_Width, Sound_Images[Index].Margin.Top + 135, 0, 0);
-                    Sound_Images[Sound_Images.Count - 1].Width = Sound_Images[Index].Source.Width * (1 - Size_Percent);
+                    Setting_Canvases[Sound_Images.Count - 1].Margin = new Thickness(0, Setting_Canvases[Index].Margin.Top + 135, 0, 0);
+                    Sound_Images_Y_Pos[Sound_Images.Count - 1] = Sound_Images_Y_Pos[Index] + 135;
+                    Setting_Canvas_Y_Pos[Sound_Images.Count - 1] = Setting_Canvas_Y_Pos[Index] + 135;
                     Setting_Canvases[Sound_Images.Count - 1].Margin = new Thickness(0, Setting_Canvases[Index].Margin.Top + 135, 0, 0);
                     Sound_Plus_Play_Time[Sound_Images.Count - 1] = Play_Time - Sound_Positions[Index] + Sound_Plus_Play_Time[Index];
                     Sound_Minus_Play_Time[Index] *= Size_Percent;
@@ -1461,7 +1610,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             double Parcent = Play_Time / Max_Time_Now;
             Time_Line.Margin = new Thickness(1400 * Parcent - 1400 * Time_Line_Move_Width_Scrool, Time_Line.Margin.Top, 0, 0);
         }
-        //現在追加されているサウンドの中で、一番長いサウンドの最大秒数を取得
+        //現在追加されているサウンドの中で、一番長いサウンドの最大秒数を取得(トラックの開始位置は考慮しません)
         double Get_Max_Stream_Length()
         {
             double Length = 0;
@@ -1473,21 +1622,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             }
             return Length;
         }
-        int Get_Child_Index_From_Selected()
-        {
-            int New_Index = -1;
-            if (Sound_Selected_Index.Count == 0)
-                return -1;
-            for (int Number_01 = 0; Number_01 < Child_Canvas.Children.Count; Number_01++)
-            {
-                if (Sound_Images_Y_Pos[Sound_Selected_Index[0]] == 125 * Number_01 + 10 * Number_01 + 10)
-                {
-                    New_Index = Number_01;
-                    break;
-                }
-            }
-            return New_Index;
-        }
+        //保存先のファイル名を連番にするとき用
         void Set_Serial_Number(string File_Path)
         {
             if (!Sub_Code.File_Exists(File_Path + "1") && !Sub_Code.File_Exists(File_Path + "01") && !Sub_Code.File_Exists(File_Path + "001"))
@@ -1572,6 +1707,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Save_Serial_Number = 2;
             Save_Serial_Number--;
         }
+        //保存先のファイル名を現在時刻にするとき用
         string Get_Now_Time_To_File_Path(string File_Path)
         {
             string Time = DateTime.Now.Hour.ToString() + DateTime.Now.Minute + DateTime.Now.Second;
@@ -1607,6 +1743,11 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Message_Feed_Out("詳細設定から保存先のファイル名を設定してください。");
                 return;
             }
+            if (Pitch_S.Value < 10 && Setting_Window.Set_Speed_Mode_C.IsChecked.Value)
+            {
+                Message_Feed_Out("速度が10以下の場合は保存できません。");
+                return;
+            }
             else if (Setting_Window.Save_Track_Delete_C.IsChecked.Value)
             {
                 bool IsMessage = false;
@@ -1620,6 +1761,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                     return;
                 }
             }
+            //ファイル名を事前に決めておく
             if (!Setting_Window.Save_Once_C.IsChecked.Value)
             {
                 string To_File = Setting_Window.Save_Dir + "\\" + Setting_Window.Save_File_Name_T.Text;
@@ -1704,10 +1846,12 @@ namespace WoTB_Voice_Mod_Creater.Class
                 else if (Setting_Window.Save_File_Mode_C.SelectedIndex == 4)
                     To_File += Sub_Code.Generate_Random_String(To_File, 2, 6);
                 To_File += Setting_Window.Save_Ex_C.SelectedItem;
+                //生成されたファイル名で出力
                 Sound_Export(To_File);
             }
             else
             {
+                //保存先を指定して出力
                 System.Windows.Forms.SaveFileDialog ofd = new System.Windows.Forms.SaveFileDialog()
                 {
                     Title = "保存先を指定してください。",
@@ -1720,58 +1864,91 @@ namespace WoTB_Voice_Mod_Creater.Class
                 ofd.Dispose();
             }
         }
+        //トラックをファイルに出力
         async void Sound_Export(string To_File)
         {
+            //再生中の場合停止させる
             IsPlaying = false;
             IsBusy = true;
+            All_Sound_Pause();
             Save_File_Dir = Path.GetDirectoryName(To_File);
             Configs_Save();
             Message_T.Text = "ファイルに書き出しています...";
             await Task.Delay(50);
             try
             {
+                //トラック情報を一時的に保存
                 List<string> Output_Files = new List<string>();
                 List<double> Pos = new List<double>();
                 List<double> Volumes = new List<double>();
                 List<double> Speeds = new List<double>();
+                //すべてのトラックを保存
                 if (Save_Combo.SelectedIndex == 0)
                 {
                     for (int Number = 0; Number < Sound_Images.Count; Number++)
                     {
-                        string Out_File = Voice_Set.Special_Path + "\\Encode_Mp3\\Sound_Editor_TMP_" + Output_Files.Count + Path.GetExtension(Sound_Files[Number]);
-                        File.Copy(Sound_Files[Number], Out_File, true);
-                        Output_Files.Add(Out_File);
-                        Pos.Add(Sound_Positions[Number] / (Pitch_S.Value / 50));
-                        Volumes.Add(Sound_Volumes[Number].Value);
-                        if (Setting_Window.Set_Speed_Mode_C.IsChecked.Value)
-                            Speeds.Add(Pitch_S.Value / 50);
-                        else
-                            Speeds.Add(1.0);
-                        double Stream_Time_Seconds = Bass.BASS_ChannelBytes2Seconds(Sound_Streams[Number], Bass.BASS_ChannelGetLength(Sound_Streams[Number], BASSMode.BASS_POS_BYTES));
-                        double End_Time = Stream_Time_Seconds * Sound_Minus_Play_Time[Number];
-                        if (Sound_Minus_Play_Time[Number] < 1)
-                            ffmpeg.Sound_Cut_From_To(Out_File, Out_File, Sound_Plus_Play_Time[Number], Sound_Plus_Play_Time[Number] + End_Time);
+                        if (Sound_Volumes[Number].Value > 0)
+                        {
+                            //トラックの元ファイルをコピー
+                            string Out_File = Voice_Set.Special_Path + "\\Encode_Mp3\\Sound_Editor_TMP_" + Output_Files.Count + Path.GetExtension(Sound_Files[Number]);
+                            File.Copy(Sound_Files[Number], Out_File, true);
+                            Output_Files.Add(Out_File);
+                            double Pos_Now = Sound_Positions[Number] / (Pitch_S.Value / 50);
+                            if (Pos_Now >= 0)
+                                Pos.Add(Pos_Now);
+                            else
+                                Pos.Add(0);
+                            Volumes.Add(Sound_Volumes[Number].Value);
+                            if (Setting_Window.Set_Speed_Mode_C.IsChecked.Value)
+                                Speeds.Add(Pitch_S.Value / 50);
+                            else
+                                Speeds.Add(1.0);
+                            double Stream_Time_Seconds = Bass.BASS_ChannelBytes2Seconds(Sound_Streams[Number], Bass.BASS_ChannelGetLength(Sound_Streams[Number], BASSMode.BASS_POS_BYTES));
+                            double End_Time = Stream_Time_Seconds * Sound_Minus_Play_Time[Number];
+                            if (Sound_Minus_Play_Time[Number] < 1)
+                            {
+                                //ffmpegを使用して指定時間以外をカット(再生開始位置が0秒より小さかった場合処理を少し変更させています)
+                                if (Pos_Now < 0)
+                                    ffmpeg.Sound_Cut_From_To(Out_File, Out_File, Sound_Plus_Play_Time[Number] - Pos_Now, Sound_Plus_Play_Time[Number] + End_Time);
+                                else
+                                    ffmpeg.Sound_Cut_From_To(Out_File, Out_File, Sound_Plus_Play_Time[Number], Sound_Plus_Play_Time[Number] + End_Time);
+                            }
+                        }
                     }
                 }
+                //選択中のトラックのみ保存
                 else
                 {
                     foreach (int Index in Sound_Selected_Index)
                     {
-                        string Out_File = Voice_Set.Special_Path + "\\Encode_Mp3\\Sound_Editor_TMP_" + Output_Files.Count + Path.GetExtension(Sound_Files[Index]);
-                        File.Copy(Sound_Files[Index], Out_File, true);
-                        Output_Files.Add(Out_File);
-                        Pos.Add(Sound_Positions[Index] / (Pitch_S.Value / 50));
-                        Volumes.Add(Sound_Volumes[Index].Value);
-                        if (Setting_Window.Set_Speed_Mode_C.IsChecked.Value)
-                            Speeds.Add(Pitch_S.Value / 50);
-                        else
-                            Speeds.Add(1.0);
-                        double Stream_Time_Seconds = Bass.BASS_ChannelBytes2Seconds(Sound_Streams[Index], Bass.BASS_ChannelGetLength(Sound_Streams[Index], BASSMode.BASS_POS_BYTES));
-                        double End_Time = Stream_Time_Seconds * Sound_Minus_Play_Time[Index];
-                        if (Sound_Minus_Play_Time[Index] < 1)
-                            ffmpeg.Sound_Cut_From_To(Out_File, Out_File, Sound_Plus_Play_Time[Index], End_Time);
+                        if (Sound_Volumes[Index].Value > 0)
+                        {
+                            string Out_File = Voice_Set.Special_Path + "\\Encode_Mp3\\Sound_Editor_TMP_" + Output_Files.Count + Path.GetExtension(Sound_Files[Index]);
+                            File.Copy(Sound_Files[Index], Out_File, true);
+                            Output_Files.Add(Out_File);
+                            double Pos_Now = Sound_Positions[Index] / (Pitch_S.Value / 50);
+                            if (Pos_Now >= 0)
+                                Pos.Add(Pos_Now);
+                            else
+                                Pos.Add(0);
+                            Volumes.Add(Sound_Volumes[Index].Value);
+                            if (Setting_Window.Set_Speed_Mode_C.IsChecked.Value)
+                                Speeds.Add(Pitch_S.Value / 50);
+                            else
+                                Speeds.Add(1.0);
+                            double Stream_Time_Seconds = Bass.BASS_ChannelBytes2Seconds(Sound_Streams[Index], Bass.BASS_ChannelGetLength(Sound_Streams[Index], BASSMode.BASS_POS_BYTES));
+                            double End_Time = Stream_Time_Seconds * Sound_Minus_Play_Time[Index];
+                            if (Sound_Minus_Play_Time[Index] < 1)
+                            {
+                                if (Pos_Now < 0)
+                                    ffmpeg.Sound_Cut_From_To(Out_File, Out_File, Sound_Plus_Play_Time[Index] - Pos_Now, Sound_Plus_Play_Time[Index] + End_Time);
+                                else
+                                    ffmpeg.Sound_Cut_From_To(Out_File, Out_File, Sound_Plus_Play_Time[Index], Sound_Plus_Play_Time[Index] + End_Time);
+                            }
+                        }
                     }
                 }
+                //カットしたファイル同士をつなげる
                 if (Setting_Window.Save_Ex_C.Items[Setting_Window.Save_Ex_C.SelectedIndex].ToString() == ".mp3")
                     ffmpeg.Sound_Combine(Output_Files, Pos, Volumes, Speeds, To_File, true, true);
                 else
@@ -1779,6 +1956,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 foreach (string FIle_Now in Output_Files)
                     if (File.Exists(FIle_Now))
                         File.Delete(FIle_Now);
+                //クリア
                 Output_Files.Clear();
                 Pos.Clear();
                 Volumes.Clear();
@@ -1803,6 +1981,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             }
             IsBusy = false;
         }
+        //ファイル選択の場所と保存先の場所を記録
         void Configs_Save()
         {
             try
@@ -1818,6 +1997,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Sub_Code.Error_Log_Write(e.Message);
             }
         }
+        //詳細設定の画面を表示(FPSは瞬時に反映されるように)
         private async void Setting_B_Click(object sender, RoutedEventArgs e)
         {
             if (IsClosing || IsBusy)
@@ -1840,6 +2020,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             }
             Set_Serial_Number(Setting_Window.Save_Dir + "\\" + Setting_Window.Save_File_Name_T.Text);
         }
+        //クリックした位置に再生時間を移動
         private void Time_Border_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             IsTimeMoveMode = true;
@@ -1852,6 +2033,168 @@ namespace WoTB_Voice_Mod_Creater.Class
             }
             Time_Line.Margin = new Thickness(e.GetPosition(Time_Border).X, Time_Line.Margin.Top, 0, 0);
             Time_Line_Left = Time_Line.Margin.Left;
+            double Time_Left_Percent = (Time_Line.Margin.Left + 1400 * Time_Line_Move_Width_Scrool) / 1400;
+            double Max_Time_Seconds = Time_Info[(int)Time_Scrool.Value].Times[Time_Info[(int)Time_Scrool.Value].Times.Count - 1];
+            if (Time_Info[(int)Time_Scrool.Value].Unit == "分")
+                Max_Time_Seconds *= 60;
+            else if (Time_Info[(int)Time_Scrool.Value].Unit == "時間")
+                Max_Time_Seconds *= 60 * 60;
+            Play_Time = Max_Time_Seconds * Time_Left_Percent;
+        }
+        //選択中のトラックを0秒に戻す
+        void Sound_Move_Zero()
+        {
+            foreach (int Number_01 in Sound_Selected_Index)
+            {
+                Sound_Positions[Number_01] = 0;
+                Set_Sound_Width(Time_Info[(int)Time_Scrool.Value]);
+                Bass.BASS_ChannelSetPosition(Sound_Streams[Number_01], Play_Time + Sound_Plus_Play_Time[Number_01]);
+            }
+        }
+        //ファイルにトラック情報を保存
+        private async void Save_B_Click(object sender, RoutedEventArgs e)
+        {
+            if (IsClosing || IsBusy)
+                return;
+            IsPlaying = false;
+            All_Sound_Pause();
+            await Task.Delay(100);
+            System.Windows.Forms.SaveFileDialog sfd = new System.Windows.Forms.SaveFileDialog()
+            {
+                Title = "保存先を指定してください。",
+                InitialDirectory = Directory.GetCurrentDirectory(),
+                Filter = "セーブファイル(*.wse)|*.wse"
+            };
+            if (sfd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                if (!Sub_Code.CanDirectoryAccess(Path.GetDirectoryName(sfd.FileName)))
+                {
+                    Message_Feed_Out("指定したフォルダにアクセスできませんでした。");
+                    sfd.Dispose();
+                    return;
+                }
+                try
+                {
+                    StreamWriter stw = File.CreateText(sfd.FileName + ".tmp");
+                    stw.WriteLine(Pitch_S.Value);
+                    for (int Index = 0; Index < Sound_Images.Count; Index++)
+                    {
+                        stw.WriteLine(Sound_Files[Index] + "|" + Sound_Volumes[Index].Value + "|" + Sound_Images_Y_Pos[Index] + "|" + Sound_Positions[Index] + "|" + Sound_Plus_Play_Time[Index] + "|" +
+                            Sound_Minus_Play_Time[Index]);
+                    }
+                    stw.Write("WoTB_Sound_Editor_Save_File_End");
+                    stw.Close();
+                    stw.Dispose();
+                    Sub_Code.File_Encrypt(sfd.FileName + ".tmp", sfd.FileName, "Sound_Editor_Save_File", true);
+                    Message_Feed_Out("内容を保存しました。");
+                }
+                catch (Exception e1)
+                {
+                    Sub_Code.Error_Log_Write(e1.Message);
+                    Message_Feed_Out("エラーが発生しました。Error_Log.txtを参照してください。");
+                }
+            }
+            sfd.Dispose();
+        }
+        //ファイルをロード
+        private async void Load_B_Click(object sender, RoutedEventArgs e)
+        {
+            if (IsClosing || IsBusy)
+                return;
+            IsPlaying = false;
+            All_Sound_Pause();
+            await Task.Delay(100);
+            System.Windows.Forms.OpenFileDialog ofd = new System.Windows.Forms.OpenFileDialog()
+            {
+                Title = "セーブファイルを指定してください。",
+                Multiselect = false,
+                InitialDirectory = Directory.GetCurrentDirectory(),
+                Filter = "セーブファイル(*.wse)|*.wse"
+            };
+            if (ofd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                Contents_Load(ofd.FileName);
+            ofd.Dispose();
+        }
+        //保存したトラック情報をロード
+        public async void Contents_Load(string File_Path)
+        {
+            IsBusy = true;
+            if (IsPlaying)
+            {
+                IsPlaying = false;
+                All_Sound_Pause();
+                await Task.Delay(100);
+            }
+            if (!File.Exists(File_Path))
+            {
+                Message_Feed_Out("指定したファイルが見つかりませんでした。");
+                IsBusy = false;
+                return;
+            }
+            //既に存在するトラックをすべてクリア
+            Sound_Selected_Index.Clear();
+            for (int Number = 0; Number < Sound_Images.Count; Number++)
+                Sound_Selected_Index.Add(Number);
+            Sound_Remove_Index();
+            IsDeleted = false;
+            Play_Time = 0;
+            //.wseファイルから読み込む
+            Sub_Code.File_Decrypt(File_Path, File_Path + ".tmp", "Sound_Editor_Save_File", false);
+            string[] Read_Lines = File.ReadAllLines(File_Path + ".tmp");
+            File.Delete(File_Path + ".tmp");
+            //1行目は速度の設定
+            Pitch_S.Value = double.Parse(Read_Lines[0]);
+            //トラックの数だけループ
+            List<ImageSource> Temp_Images = new List<ImageSource>();
+            List<string> Temp_Files = new List<string>();
+            for (int Number = 1; Number < Read_Lines.Length; Number++)
+            {
+                if (Read_Lines[Number].Contains("WoTB_Sound_Editor_Save_File_End"))
+                    break;
+                string[] Split = Read_Lines[Number].Split('|');
+                Message_T.Text = "波形を生成しています...";
+                await Task.Delay(50);
+                ImageSource Image_Wave = null;
+                if (Temp_Files.Contains(Split[0]))
+                {
+                    int Index_Image = Temp_Files.IndexOf(Split[0]);
+                    Image_Wave = Temp_Images[Index_Image];
+                }
+                else
+                {
+                    Temp_Files.Add(Split[0]);
+                    string Ex = Path.GetExtension(Split[0]);
+                    int StreamHandle = Bass.BASS_StreamCreateFile(Split[0], 0, 0, BASSFlag.BASS_STREAM_DECODE);
+                    if (Bass.BASS_ChannelBytes2Seconds(StreamHandle, Bass.BASS_ChannelGetLength(StreamHandle, BASSMode.BASS_POS_BYTES)) > 600)
+                        Image_Wave = Temp_WaveForm;
+                    else
+                        Image_Wave = Sub_Code.BassRenderWaveForm(Split[0]);
+                    Bass.BASS_StreamFree(StreamHandle);
+                    Temp_Images.Add(Image_Wave);
+                }
+                if (Image_Wave == null)
+                    continue;
+                Message_T.Text = "サウンドを読み込んでいます...";
+                await Task.Delay(50);
+                await Add_Sound(Split[0], Image_Wave, -1, double.Parse(Split[1]), int.Parse(Split[2]));
+                int Index = Sound_Images.Count - 1;
+                Sound_Positions[Index] = double.Parse(Split[3]);
+                Sound_Plus_Play_Time[Index] = double.Parse(Split[4]);
+                Sound_Minus_Play_Time[Index] = double.Parse(Split[5]);
+                //波形をカット
+                double Start_Pos = 1920 * Sound_Plus_Play_Time[Index] / Sound_Max_Length[Index];
+                double End_Pos = 1920 * Sound_Minus_Play_Time[Index] + Start_Pos;
+                BitmapSource Temp;
+                Sub_Code.Resize_From_BitmapImage((BitmapSource)Sound_Images[Index].Source, (int)(End_Pos - Start_Pos), (int)Sound_Images[Index].Source.Height, (int)Start_Pos, out Temp);
+                Sound_Images[Index].Source = Temp;
+                //波形の横の長さや配置場所を設定するため実行
+                Set_Sound_Width(Time_Info[(int)Time_Scrool.Value]);
+                Time_Line.Margin = new Thickness(-1400 * Time_Line_Move_Width_Scrool, Time_Line.Margin.Top, 0, 0);
+            }
+            Temp_Images.Clear();
+            Temp_Files.Clear();
+            Message_Feed_Out("ロードしました。");
+            IsBusy = false;
         }
     }
 }

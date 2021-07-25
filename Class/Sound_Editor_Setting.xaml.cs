@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media.Imaging;
 using WK.Libraries.BetterFolderBrowserNS;
 
 namespace WoTB_Voice_Mod_Creater.Class
@@ -13,6 +15,13 @@ namespace WoTB_Voice_Mod_Creater.Class
         bool IsClosing = false;
         bool IsMessageShowing = false;
         public bool IsConfigsLoaded = false;
+        List<Image> Check_Images = new List<Image>();
+        List<string> Check_Names = new List<string>();
+        List<bool> Check_IsChecked = new List<bool>();
+        BitmapFrame Check_01;
+        BitmapFrame Check_02;
+        BitmapFrame Check_03;
+        BitmapFrame Check_04;
         public Sound_Editor_Setting()
         {
             InitializeComponent();
@@ -32,6 +41,174 @@ namespace WoTB_Voice_Mod_Creater.Class
             Volume_S.Value = 75;
             Save_Once_C.IsChecked = true;
             Save_File_Name_T.IsEnabled = false;
+            Set_Loop_Mode_C.Visibility = Visibility.Hidden;
+            Set_Speed_Mode_C.Visibility = Visibility.Hidden;
+            Cut_Volume_Sync_C.Visibility = Visibility.Hidden;
+            Cut_ShortCut_C.Visibility = Visibility.Hidden;
+            Cut_Volume_C.Visibility = Visibility.Hidden;
+            Save_Track_Delete_C.Visibility = Visibility.Hidden;
+            Save_Once_C.Visibility = Visibility.Hidden;
+            Cut_Pos_C.Visibility = Visibility.Hidden;
+            System.Reflection.Assembly sra = System.Reflection.Assembly.GetExecutingAssembly();
+            Check_01 = BitmapFrame.Create(sra.GetManifestResourceStream("WoTB_Voice_Mod_Creater.Resources.Check_01.png"));
+            Check_02 = BitmapFrame.Create(sra.GetManifestResourceStream("WoTB_Voice_Mod_Creater.Resources.Check_02.png"));
+            Check_03 = BitmapFrame.Create(sra.GetManifestResourceStream("WoTB_Voice_Mod_Creater.Resources.Check_03.png"));
+            Check_04 = BitmapFrame.Create(sra.GetManifestResourceStream("WoTB_Voice_Mod_Creater.Resources.Check_04.png"));
+            Check_Names.Add("Set_Loop_Mode_C_Image");
+            Check_Names.Add("Set_Speed_Mode_C_Image");
+            Check_Names.Add("Cut_Volume_Sync_C_Image");
+            Check_Names.Add("Cut_ShortCut_C_Image");
+            Check_Names.Add("Cut_Volume_C_Image");
+            Check_Names.Add("Save_Track_Delete_C_Image");
+            Check_Names.Add("Save_Once_C_Image");
+            Check_Names.Add("Cut_Pos_C_Image");
+            for (int Number = 0; Number < 8; Number++)
+            {
+                Check_Images.Add(new Image());
+                Check_IsChecked.Add(false);
+                int Check_Index = Number;
+                Check_Images[Check_Index].Name = Check_Names[Check_Index];
+                Check_Images[Check_Index].Margin = new Thickness(-1690, 322 + 75 * Check_Index, 0, 0);
+                Check_Images[Check_Index].Width = 30;
+                Check_Images[Check_Index].Height = 30;
+                Check_Images[Check_Index].Stretch = System.Windows.Media.Stretch.Fill;
+                Check_Images[Check_Index].HorizontalAlignment = HorizontalAlignment.Center;
+                Check_Images[Check_Index].VerticalAlignment = VerticalAlignment.Top;
+                Check_Images[Check_Index].Focusable = false;
+                Check_Images[Check_Index].Source = Check_01;
+                Check_Images[Check_Index].MouseEnter += delegate
+                {
+                    if (Check_IsChecked[Check_Index])
+                        Check_Images[Check_Index].Source = Check_04;
+                    else
+                        Check_Images[Check_Index].Source = Check_02;
+                };
+                Check_Images[Check_Index].MouseLeave += delegate
+                {
+                    if (Check_IsChecked[Check_Index])
+                        Check_Images[Check_Index].Source = Check_03;
+                    else
+                        Check_Images[Check_Index].Source = Check_01;
+                };
+                Check_Images[Check_Index].MouseDown += delegate
+                {
+                    if (Check_IsChecked[Check_Index])
+                    {
+                        Check_IsChecked[Check_Index] = false;
+                        Check_Images[Check_Index].Source = Check_02;
+                        Check_Image_Down_Change_Value(Check_Names[Check_Index], false);
+                    }
+                    else
+                    {
+                        Check_IsChecked[Check_Index] = true;
+                        Check_Images[Check_Index].Source = Check_04;
+                        Check_Image_Down_Change_Value(Check_Names[Check_Index], true);
+                    }
+                };
+                Check_Canvas.Children.Add(Check_Images[Check_Index]);
+            }
+        }
+        void Check_Image_Down_Change_Value(string Check_Name, bool IsCheckMode)
+        {
+            if (Check_Name == "Set_Loop_Mode_C_Image")
+                Set_Loop_Mode_C.IsChecked = IsCheckMode;
+            else if (Check_Name == "Set_Speed_Mode_C_Image")
+                Set_Speed_Mode_C.IsChecked = IsCheckMode;
+            else if (Check_Name == "Cut_Volume_Sync_C_Image")
+                Cut_Volume_Sync_C.IsChecked = IsCheckMode;
+            else if (Check_Name == "Cut_ShortCut_C_Image")
+                Cut_ShortCut_C.IsChecked = IsCheckMode;
+            else if (Check_Name == "Cut_Volume_C_Image")
+                Cut_Volume_C.IsChecked = IsCheckMode;
+            else if (Check_Name == "Save_Track_Delete_C_Image")
+                Save_Track_Delete_C.IsChecked = IsCheckMode;
+            else if (Check_Name == "Save_Once_C_Image")
+                Save_Once_C.IsChecked = IsCheckMode;
+            else if (Check_Name == "Cut_Pos_C_Image")
+                Cut_Pos_C.IsChecked = IsCheckMode;
+        }
+        void Check_Image_Set_Source()
+        {
+            if (Set_Loop_Mode_C.IsChecked.Value)
+            {
+                Check_IsChecked[0] = true;
+                Check_Images[0].Source = Check_03;
+            }
+            else
+            {
+                Check_IsChecked[0] = false;
+                Check_Images[0].Source = Check_01;
+            }
+            if (Set_Speed_Mode_C.IsChecked.Value)
+            {
+                Check_IsChecked[1] = true;
+                Check_Images[1].Source = Check_03;
+            }
+            else
+            {
+                Check_IsChecked[1] = false;
+                Check_Images[1].Source = Check_01;
+            }
+            if (Cut_Volume_Sync_C.IsChecked.Value)
+            {
+                Check_IsChecked[2] = true;
+                Check_Images[2].Source = Check_03;
+            }
+            else
+            {
+                Check_IsChecked[2] = false;
+                Check_Images[2].Source = Check_01;
+            }
+            if (Cut_ShortCut_C.IsChecked.Value)
+            {
+                Check_IsChecked[3] = true;
+                Check_Images[3].Source = Check_03;
+            }
+            else
+            {
+                Check_IsChecked[3] = false;
+                Check_Images[3].Source = Check_01;
+            }
+            if (Cut_Volume_C.IsChecked.Value)
+            {
+                Check_IsChecked[4] = true;
+                Check_Images[4].Source = Check_03;
+            }
+            else
+            {
+                Check_IsChecked[4] = false;
+                Check_Images[4].Source = Check_01;
+            }
+            if (Save_Track_Delete_C.IsChecked.Value)
+            {
+                Check_IsChecked[5] = true;
+                Check_Images[5].Source = Check_03;
+            }
+            else
+            {
+                Check_IsChecked[5] = false;
+                Check_Images[5].Source = Check_01;
+            }
+            if (Save_Once_C.IsChecked.Value)
+            {
+                Check_IsChecked[6] = true;
+                Check_Images[6].Source = Check_03;
+            }
+            else
+            {
+                Check_IsChecked[6] = false;
+                Check_Images[6].Source = Check_01;
+            }
+            if (Cut_Pos_C.IsChecked.Value)
+            {
+                Check_IsChecked[7] = true;
+                Check_Images[7].Source = Check_03;
+            }
+            else
+            {
+                Check_IsChecked[7] = false;
+                Check_Images[7].Source = Check_01;
+            }
         }
         public async void Window_Show()
         {
@@ -65,6 +242,11 @@ namespace WoTB_Voice_Mod_Creater.Class
                     Volume_S.Value = double.Parse(str.ReadLine());
                     Cut_Volume_Sync_C.IsChecked = bool.Parse(str.ReadLine());
                     Set_Speed_Mode_C.IsChecked = bool.Parse(str.ReadLine());
+                    try
+                    {
+                        Set_Loop_Mode_C.IsChecked = bool.Parse(str.ReadLine());
+                    }
+                    catch { }
                     if (Save_Dir == "")
                         Select_Dir_T.Text = "未指定";
                     else
@@ -72,6 +254,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                     Volume_T.Text = "追加時の音量:" + Math.Round(Volume_S.Value, 1, MidpointRounding.AwayFromZero);
                     str.Close();
                     Save_Text_Change();
+                    Check_Image_Set_Source();
                     File.Delete(Voice_Set.Special_Path + "/Configs/Sound_Editor_Setting.tmp");
                 }
                 catch (Exception e)
@@ -100,7 +283,8 @@ namespace WoTB_Voice_Mod_Creater.Class
                 stw.WriteLine(Framerate_C.SelectedIndex);
                 stw.WriteLine(Volume_S.Value);
                 stw.WriteLine(Cut_Volume_Sync_C.IsChecked.Value);
-                stw.Write(Set_Speed_Mode_C.IsChecked.Value);
+                stw.WriteLine(Set_Speed_Mode_C.IsChecked.Value);
+                stw.WriteLine(Set_Loop_Mode_C.IsChecked.Value);
                 stw.Close();
                 Sub_Code.File_Encrypt(Voice_Set.Special_Path + "/Configs/Sound_Editor_Setting.tmp", Voice_Set.Special_Path + "/Configs/Sound_Editor_Setting.conf", "Sound_Editor_Setting_Configs_Save", true);
             }

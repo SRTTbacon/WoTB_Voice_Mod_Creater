@@ -104,13 +104,15 @@ namespace WoTB_Voice_Mod_Creater.Class
             else
                 return false;
         }
-        //複数のサウンドを合体
+        //複数のサウンドを合体(Posにマイナスが含まれている場合バグります
+        //引数:合体させるファイル, サウンドの開始位置, 音量, 再生速度, 保存先, MP3として保存するか(falseの場合は.wav形式), 元のファイルを削除するか
         public static void Sound_Combine(List<string> Files, List<double> Pos, List<double>Volume, List<double> Speed, string To_File, bool IsEncodeMP3, bool IsFromFileDelete = false)
         {
             int mixer = BassMix.BASS_Mixer_StreamCreate(44100, 2, BASSFlag.BASS_STREAM_DECODE);
             long Mixer_Max_Length = 0;
             List<int> Streams = new List<int>();
             List<int> Stream_Handles = new List<int>();
+            //ファイルをミックスする
             for (int Number = 0; Number < Files.Count; Number++)
             {
                 Streams.Add(Bass.BASS_StreamCreateFile(Files[Number], 0, 0, BASSFlag.BASS_SAMPLE_FLOAT | BASSFlag.BASS_STREAM_DECODE));
@@ -125,6 +127,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 if (Mixer_Max_Length < Now_Stream_Length + start)
                     Mixer_Max_Length = Now_Stream_Length + start;
             }
+            //.wavでエンコード(こっちの方が速い + 安定性が高い)
             EncoderWAV l = new EncoderWAV(mixer);
             l.InputFile = null;
             l.OutputFile = To_File + ".tmp";
@@ -140,11 +143,13 @@ namespace WoTB_Voice_Mod_Creater.Class
                     break;
             }
             l.Stop();
+            //メモリ解放
             Bass.BASS_StreamFree(mixer);
             foreach (int Stream in Stream_Handles)
                 Bass.BASS_StreamFree(Stream);
             foreach (int Stream in Streams)
                 Bass.BASS_StreamFree(Stream);
+            //MP3形式にエンコード
             if (IsEncodeMP3)
             {
                 Un4seen.Bass.Misc.EncoderLAME mc = new Un4seen.Bass.Misc.EncoderLAME(0);

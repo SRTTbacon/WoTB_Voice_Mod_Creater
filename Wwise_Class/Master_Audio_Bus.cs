@@ -138,9 +138,9 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 _bytes[i] = 0x5f;
             }
         }
-        public string Bruteforce(int length, uint match)
+        public string Bruteforce(int Length, uint match)
         {
-            Initialize(length);
+            Initialize(Length);
             while (true)
             {
                 var depth = _bytes.Length - 1;

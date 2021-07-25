@@ -1196,7 +1196,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class.BNK_To_Wwise_Project
             More_Class.List_Init(Line_Start + 2);
             if (Name == "Priority")
                 More_Class.List_Add(BNK_Info.Actor_Mixer_Hierarchy_Project, "<Property Name=\"OverridePriority\" Type=\"bool\" Value=\"True\"/>");
-            More_Class.List_Add(BNK_Info.Actor_Mixer_Hierarchy_Project, "<Property Name=\"" + Name + "\" Type=\"" + Type + "\">");
+            More_Class.List_Add(BNK_Info.Actor_Mixer_Hierarchy_Project, "<Property Name=\"" + Name + "\" Type=\"" + Type.ToString() + "\">");
             More_Class.List_Add(BNK_Info.Actor_Mixer_Hierarchy_Project, "<ValueList>");
             if (IsIntMode)
                 More_Class.List_Add(BNK_Info.Actor_Mixer_Hierarchy_Project, "<Value>" + (int)double.Parse(Value) + "</Value>");

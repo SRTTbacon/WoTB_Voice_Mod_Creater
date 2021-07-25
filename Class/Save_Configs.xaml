@@ -23,6 +23,8 @@
             <ListBox x:Name="Voice_Lists" Height="500" VerticalAlignment="Top" Width="600" BorderBrush="Aqua" Background="Transparent" Margin="-1100,150,0,0" Foreground="Aqua" FontSize="35" SelectionChanged="Voice_Lists_SelectionChanged" MouseDown="Voice_Lists_MouseDown"/>
             <TextBlock x:Name="Voice_Select_T" Height="58" Width="860" FontSize="40" Foreground="Aqua" TextWrapping="Wrap" Text="" Margin="-1100,675,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
             <Button x:Name="Save_B" Content="作成" Height="77" VerticalAlignment="Top" Width="296" Margin="-520,888,0,0" FontSize="40" BorderBrush="Aqua" Foreground="Aqua" Background="Transparent" Click="Save_B_Click"/>
+            <CheckBox x:Name="Default_Voice_Mode_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-1250,775,0,0" Click="Default_Voice_Mode_C_Click"/>
+            <TextBlock x:Name="Default_Voice_Mode_T" Height="89" Width="390" FontSize="32" Foreground="Aqua" TextWrapping="Wrap" Text="音声がない項目は標準の音声を再生させる" Margin="-825,740,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
             <CheckBox x:Name="Volume_Set_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-2050,775,0,0"/>
             <TextBlock x:Name="Volume_Set_T" Height="58" Width="285" FontSize="40" Foreground="Aqua" TextWrapping="Wrap" Text="音量を均一にする" Margin="-1700,755,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
             <CheckBox x:Name="DVPL_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-2050,845,0,0" Click="DVPL_C_Click"/>

@@ -5,6 +5,23 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class.BNK_To_Wwise_Project
 {
     public class SoundbanksInfo
     {
+        //SoundbanksInfo.jsonを指定しない場合
+        public static void Init()
+        {
+            //名前をランダムに生成
+            //なるべく文字が被らないようにGenerate_Random_Stringの引数を(6～12)に設定(6～12文字のランダムな文字列を生成)
+            for (int Number_01 = 0; Number_01 < BNK_Info.RTPC_Info.Count; Number_01++)
+                BNK_Info.RTPC_Info[Number_01].Name = Sub_Code.Generate_Random_String(6, 12);
+            for (int Number_01 = 0; Number_01 < Switch.Switch_Info.Count; Number_01++)
+            {
+                Switch.Switch_Info[Number_01].Name = Sub_Code.Generate_Random_String(6, 12);
+                for (int Number_02 = 0; Number_02 < Switch.Switch_Info[Number_01].Children.Count; Number_02++)
+                    Switch.Switch_Info[Number_01].Children[Number_02].Name = Sub_Code.Generate_Random_String(6, 12);
+            }
+            for (int Number_01 = 0; Number_01 < Events.Event_Info.Count; Number_01++)
+                Events.Event_Info[Number_01].Name = Sub_Code.Generate_Random_String(6, 12);
+        }
+        //SoundbanksInfo.jsonを指定する場合
         public static void Init(string SoundbanksInfo)
         {
             List<string> Read_Info = new List<string>();

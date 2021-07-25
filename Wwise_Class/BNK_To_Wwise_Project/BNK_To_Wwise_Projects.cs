@@ -102,7 +102,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class.BNK_To_Wwise_Project
         bool IsSelected = false;
         Random r = new Random();
         //解析するファイルが1つのみの場合
-        public BNK_To_Wwise_Projects(string Init_File, string BNK_File, string PCK_File = null, string SoundbanksInfo = null)
+        public BNK_To_Wwise_Projects(string Init_File, string BNK_File, string PCK_File = null, string SoundbanksInfo = null, bool IsNoSoundInfo = false)
         {
             List<string> BNK_Files = new List<string>();
             BNK_Files.Add(BNK_File);
@@ -110,23 +110,23 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class.BNK_To_Wwise_Project
             {
                 List<string> PCK_Files = new List<string>();
                 PCK_Files.Add(PCK_File);
-                BNK_To_Wwise_Projects_Init(Init_File, BNK_Files, PCK_Files, SoundbanksInfo);
+                BNK_To_Wwise_Projects_Init(Init_File, BNK_Files, PCK_Files, SoundbanksInfo, IsNoSoundInfo);
             }
             else
-                BNK_To_Wwise_Projects_Init(Init_File, BNK_Files, null, SoundbanksInfo);
+                BNK_To_Wwise_Projects_Init(Init_File, BNK_Files, null, SoundbanksInfo, IsNoSoundInfo);
         }
         //解析するファイルが複数存在する場合
-        public BNK_To_Wwise_Projects(string Init_File, List<string> BNK_File, List<string> PCK_File = null, string SoundbanksInfo = null)
+        public BNK_To_Wwise_Projects(string Init_File, List<string> BNK_File, List<string> PCK_File = null, string SoundbanksInfo = null, bool IsNoSoundInfo = false)
         {
             if (PCK_File != null && PCK_File.Count > 0)
             {
-                BNK_To_Wwise_Projects_Init(Init_File, BNK_File, PCK_File, SoundbanksInfo);
+                BNK_To_Wwise_Projects_Init(Init_File, BNK_File, PCK_File, SoundbanksInfo, IsNoSoundInfo);
             }
             else
-                BNK_To_Wwise_Projects_Init(Init_File, BNK_File, null, SoundbanksInfo);
+                BNK_To_Wwise_Projects_Init(Init_File, BNK_File, null, SoundbanksInfo, IsNoSoundInfo);
         }
         //.bnkファイルを解析
-        public void BNK_To_Wwise_Projects_Init(string Init_File, List<string> BNK_File, List<string> PCK_File = null, string SoundbanksInfo = null)
+        public void BNK_To_Wwise_Projects_Init(string Init_File, List<string> BNK_File, List<string> PCK_File = null, string SoundbanksInfo = null, bool IsNoSoundInfo = false)
         {
             if (Init_File == null || BNK_File == null)
                 return;
@@ -221,7 +221,9 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class.BNK_To_Wwise_Project
             Master_Mixer.Init();
             Events.Init();
             BlendTracks.Init();
-            if (SoundbanksInfo != null)
+            if (IsNoSoundInfo)
+                BNK_To_Wwise_Project.SoundbanksInfo.Init();
+            else if (SoundbanksInfo != null)
                 BNK_To_Wwise_Project.SoundbanksInfo.Init(SoundbanksInfo);
             foreach (string BNK_Now in BNK_File)
                 BNK_Info.BNK_File.Add(new Wwise_File_Extract_V2(BNK_Now));

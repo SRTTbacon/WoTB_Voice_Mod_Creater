@@ -19,7 +19,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         static List<string> From_Files = new List<string>();
         //マルチスレッドで.mp3や.oggを.wav形式にエンコード
         //拡張子とファイル内容が異なっていた場合実行されない(ファイル拡張子が.mp3なのに実際は.oggだった場合など)
-        public static async Task Convert_To_Wav(List<string> Files, List<string> ToFilePath, List<Music_Play_Time> Time, bool IsFromFileDelete)
+        public static async Task Convert_To_Wav(List<string> Files, List<string> ToFilePath, List<Music_Play_Time> Time = null, bool IsFromFileDelete = false)
         {
             try
             {
@@ -28,7 +28,10 @@ namespace WoTB_Voice_Mod_Creater.Class
                 var tasks = new List<Task>();
                 for (int i = 0; i < From_Files.Count; i++)
                 {
-                    tasks.Add(To_WAV(i, ToFilePath[i], Time[i], IsFromFileDelete));
+                    if (Time != null)
+                        tasks.Add(To_WAV(i, ToFilePath[i], Time[i], IsFromFileDelete));
+                    else
+                        tasks.Add(To_WAV(i, ToFilePath[i], IsFromFileDelete, false, true));
                 }
                 await Task.WhenAll(tasks);
                 From_Files.Clear();

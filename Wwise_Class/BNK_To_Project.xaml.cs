@@ -269,6 +269,9 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 Message_Feed_Out("SoundbanksInfo.jsonファイルが選択されていません。");
                 return;
             }
+            MessageBoxResult result = MessageBox.Show("現在のバージョンでは、Advanced SettingとStateの設定が反映されません。実行しますか?", "警告", MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.Yes);
+            if (result == MessageBoxResult.No)
+                return;
             BetterFolderBrowser bfb = new BetterFolderBrowser()
             {
                 Title = "保存先のフォルダを選択してください。",
@@ -285,7 +288,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 }*/
                 Message_T.Text = "BNKファイルを解析しています...";
                 await Task.Delay(50);
-                BNK_To_Wwise_Projects BNK_To_Project = new BNK_To_Wwise_Projects(Init_File, BNK_File, PCK_File, SoundbankInfo_File);
+                BNK_To_Wwise_Projects BNK_To_Project = new BNK_To_Wwise_Projects(Init_File, BNK_File, PCK_File, SoundbankInfo_File, No_SoundInfo_C.IsChecked.Value);
                 if (Include_Sound_C.IsChecked.Value)
                     await BNK_To_Project.Create_Project_All(bfb.SelectedFolder, false, Message_T);
                 else
@@ -337,6 +340,15 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             foreach (uint Counts in BNK_Sound_Count)
                 All_Count += Counts;
             Info_List.Items[4] = "サウンド数:" + All_Count;
+        }
+        private void No_SoundInfo_C_Click(object sender, RoutedEventArgs e)
+        {
+            if (No_SoundInfo_C.IsChecked.Value)
+            {
+                MessageBoxResult result = MessageBox.Show("この設定を有効にすると、Wwise側でビルドできなくなります。続行しますか?", "警告", MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.Yes);
+                if (result == MessageBoxResult.No)
+                    No_SoundInfo_C.IsChecked = false;
+            }
         }
     }
 }

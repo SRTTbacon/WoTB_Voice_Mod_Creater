@@ -20,8 +20,10 @@
             <TextBlock x:Name="Message_T" Height="105" Width="1220" TextWrapping="Wrap" Text="" Foreground="Aqua" FontSize="37" Margin="-1920,905,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
             <Button x:Name="Attention_B" Content="注意事項" Height="70" VerticalAlignment="Top" Width="300" Background="Transparent" Margin="-3540,0,0,0" Foreground="Aqua" BorderBrush="Aqua" FontSize="36" Click="Attention_B_Click"/>
             <Button x:Name="Delete_B" Content="取消" Height="75" VerticalAlignment="Top" Width="250" Background="Transparent" Margin="-3450,850,0,0" Foreground="Aqua" BorderBrush="Aqua" FontSize="38" Click="Delete_B_Click"/>
-            <CheckBox x:Name="Include_Sound_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-1750,425,0,0"/>
-            <TextBlock Height="50" TextWrapping="Wrap" Text="サウンドを抽出しない" VerticalAlignment="Top" Width="338" Foreground="Aqua" FontSize="40" Margin="-1365,400,0,0" TextAlignment="Center"/>
+            <CheckBox x:Name="Include_Sound_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-1750,375,0,0"/>
+            <CheckBox x:Name="No_SoundInfo_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-1750,455,0,0" Click="No_SoundInfo_C_Click"/>
+            <TextBlock Height="50" TextWrapping="Wrap" Text="SoundbanksInfoを無視" VerticalAlignment="Top" Width="375" Foreground="Aqua" FontSize="37" Margin="-1325,435,0,0" TextAlignment="Center"/>
+            <TextBlock Height="50" TextWrapping="Wrap" Text="サウンドを抽出しない" VerticalAlignment="Top" Width="305" Foreground="Aqua" FontSize="37" Margin="-1395,360,0,0" TextAlignment="Center"/>
         </DockPanel>
     </Viewbox>
 </UserControl>

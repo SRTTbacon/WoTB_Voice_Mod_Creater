@@ -23,6 +23,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         int Select_Language = 10;
         int Stream;
         double Wwise_Version = 1.0;
+        double SizeMB = 0;
         bool IsBusy = false;
         bool IsNewMode = false;
         bool IsMessageShowing = false;
@@ -85,12 +86,16 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Android_C.Visibility = Visibility.Hidden;
                 Android_T.Visibility = Visibility.Hidden;
                 Android_Help_B.Visibility = Visibility.Hidden;
+                Default_Voice_Mode_C.Visibility = Visibility.Visible;
+                Default_Voice_Mode_T.Visibility = Visibility.Visible;
             }
             else
             {
                 Android_C.Visibility = Visibility.Visible;
                 Android_T.Visibility = Visibility.Visible;
                 Android_Help_B.Visibility = Visibility.Visible;
+                Default_Voice_Mode_C.Visibility = Visibility.Hidden;
+                Default_Voice_Mode_T.Visibility = Visibility.Hidden;
             }
             Configs_Load();
             SE_Dir = Voice_Set.Special_Path + "/Server/" + Voice_Set.SRTTbacon_Server_Name + "/Voices/SE";
@@ -106,6 +111,8 @@ namespace WoTB_Voice_Mod_Creater.Class
             //画面を表示(オフラインモードで行った場合)
             Volume_Set_C.Visibility = Visibility.Visible;
             Volume_Set_T.Visibility = Visibility.Visible;
+            Default_Voice_Mode_C.Visibility = Visibility.Visible;
+            Default_Voice_Mode_T.Visibility = Visibility.Visible;
             Exit_B.Visibility = Visibility.Visible;
             Save_B.Content = "作成";
             if (IsNewMode)
@@ -151,6 +158,8 @@ namespace WoTB_Voice_Mod_Creater.Class
             DVPL_C.Visibility = Visibility.Hidden;
             DVPL_T.Visibility = Visibility.Hidden;
             Exit_B.Visibility = Visibility.Hidden;
+            Default_Voice_Mode_C.Visibility = Visibility.Hidden;
+            Default_Voice_Mode_T.Visibility = Visibility.Hidden;
             Save_B.Content = "保存";
             Configs_Load();
             SE_Dir = Voice_Set.Special_Path + "/SE";
@@ -183,8 +192,18 @@ namespace WoTB_Voice_Mod_Creater.Class
                         }
                     }
                     StreamReader str = new StreamReader(Voice_Set.Special_Path + "/Configs/Save_Configs.tmp");
-                    Volume_Set_C.IsChecked = bool.Parse(str.ReadLine());
+                    bool IsNewVersionMode = false;
+                    string One_Line = str.ReadLine();
+                    if (One_Line.Contains("V1.4_Save_Mode"))
+                    {
+                        IsNewVersionMode = true;
+                        Volume_Set_C.IsChecked = bool.Parse(str.ReadLine());
+                    }
+                    else
+                        Volume_Set_C.IsChecked = bool.Parse(One_Line);
                     DVPL_C.IsChecked = bool.Parse(str.ReadLine());
+                    if (IsNewVersionMode)
+                        Default_Voice_Mode_C.IsChecked = bool.Parse(str.ReadLine());
                     for (int Number = 0; Number <= 14; Number++)
                     {
                         Voice_Set.SE_Enable_Disable[Number] = bool.Parse(str.ReadLine());
@@ -464,6 +483,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Sub_Code.DVPL_Encode = DVPL_C.IsChecked.Value;
                 Sub_Code.AndroidMode = Android_C.IsChecked.Value;
                 Sub_Code.SetLanguage = Languages[Select_Language];
+                Sub_Code.Default_Voice = Default_Voice_Mode_C.IsChecked.Value;
                 Configs_Save();
                 while (Opacity > 0)
                 {
@@ -548,21 +568,16 @@ namespace WoTB_Voice_Mod_Creater.Class
             try
             {
                 StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Configs/Save_Configs.tmp");
+                stw.WriteLine("V1.4_Save_Mode");
                 stw.WriteLine(Volume_Set_C.IsChecked.Value);
                 stw.WriteLine(DVPL_C.IsChecked.Value);
+                stw.WriteLine(Default_Voice_Mode_C.IsChecked.Value);
                 foreach (bool Value in Voice_Set.SE_Enable_Disable)
                 {
                     stw.WriteLine(Value);
                 }
                 stw.Close();
-                using (var eifs = new FileStream(Voice_Set.Special_Path + "/Configs/Save_Configs.tmp", FileMode.Open, FileAccess.Read))
-                {
-                    using (var eofs = new FileStream(Voice_Set.Special_Path + "/Configs/Save_Configs.conf", FileMode.Create, FileAccess.Write))
-                    {
-                        FileEncode.FileEncryptor.Encrypt(eifs, eofs, "Save_Configs_Configs_Save");
-                    }
-                }
-                File.Delete(Voice_Set.Special_Path + "/Configs/Save_Configs.tmp");
+                Sub_Code.File_Encrypt(Voice_Set.Special_Path + "/Configs/Save_Configs.tmp", Voice_Set.Special_Path + "/Configs/Save_Configs.conf", "Save_Configs_Configs_Save", true);
             }
             catch (Exception e)
             {
@@ -601,6 +616,32 @@ namespace WoTB_Voice_Mod_Creater.Class
                 SE_Lists.Items[Number] = SE_Lists.Items[Number].ToString().Replace("| 有効", "| 無効");
             }
             SE_Lists.SelectedIndex = SelectedIndex;
+        }
+        private async void Default_Voice_Mode_C_Click(object sender, RoutedEventArgs e)
+        {
+            if (!File.Exists(Voice_Set.Special_Path + "\\SE\\Voices\\armor_pierced_by_player_10.mp3"))
+            {
+                if (SizeMB == 0)
+                {
+                    SizeMB = (double)(Voice_Set.FTP_Server.GetFileSize("/WoTB_Voice_Mod/Update/Wwise/Default_Voices.zip") / 1024.0 / 1024.0);
+                    SizeMB = (Math.Floor(SizeMB * 10)) / 10;
+                }
+                MessageBoxResult result = MessageBox.Show("音声データをサーバーからダウンロードする必要があります。続行しますか?\nサイズ:およそ" + SizeMB + "MB", "確認",
+                    MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.Yes);
+                if (result == MessageBoxResult.Yes)
+                {
+                    Message_T.Text = "サーバーからデータをダウンロードしています...";
+                    await Task.Delay(75);
+                    if (Directory.Exists(Voice_Set.Special_Path + "/SE/Voices"))
+                        Directory.Delete(Voice_Set.Special_Path + "/SE/Voices", true);
+                    Voice_Set.FTP_Server.DownloadFile(Voice_Set.Special_Path + "/Default_Voices.dat", "/WoTB_Voice_Mod/Update/Wwise/Default_Voices.zip");
+                    System.IO.Compression.ZipFile.ExtractToDirectory(Voice_Set.Special_Path + "/Default_Voices.dat", Voice_Set.Special_Path + "/SE/Voices");
+                    File.Delete(Voice_Set.Special_Path + "/Default_Voices.dat");
+                    Message_Feed_Out("正常にダウンロードされました。");
+                }
+                else
+                    Default_Voice_Mode_C.IsChecked = false;
+            }
         }
     }
 }
