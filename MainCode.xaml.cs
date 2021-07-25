@@ -61,8 +61,8 @@ public class SRTTbacon_Server
     public const string IP_Global = "非公開";
     public const string Name = "非公開";
     public const string Password = "非公開";
-    public const string Version = "1.4.2";
-    public const int Port = -1;
+    public const string Version = "1.4.2.1";
+    public const int Port = 50000;
     public static bool IsSRTTbaconOwnerMode = false;
     public static string IP = "";
 }
@@ -367,9 +367,6 @@ namespace WoTB_Voice_Mod_Creater
                     }
                 }
                 Flash.Handle = this;
-                System.Drawing.Bitmap source = Sub_Code.BassRenderWaveForm_To_Bitmap(Voice_Set.Special_Path + "\\Test_03.mp3");
-                source.Save(Voice_Set.Special_Path + "\\Temp_WaveForm.png", System.Drawing.Imaging.ImageFormat.Png);
-                source.Dispose();
             }
             catch (Exception e)
             {
