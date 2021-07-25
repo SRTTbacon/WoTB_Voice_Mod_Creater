@@ -825,57 +825,87 @@ namespace WoTB_Voice_Mod_Creater.Class
                     bfb.Dispose();
                     return;
                 }
-                IsPaused = true;
-                float Volume_Now = 1f;
-                Bass.BASS_ChannelGetAttribute(Stream, BASSAttribute.BASS_ATTRIB_VOL, ref Volume_Now);
-                float Volume_Minus = Volume_Now / 10f;
-                while (Volume_Now > 0f && IsPaused)
+                try
                 {
-                    Volume_Now -= Volume_Minus;
-                    if (Volume_Now < 0f)
-                        Volume_Now = 0f;
-                    Bass.BASS_ChannelSetAttribute(Stream, BASSAttribute.BASS_ATTRIB_VOL, Volume_Now);
-                    await Task.Delay(1000 / 60);
-                }
-                if (Volume_Now <= 0f)
-                    Bass.BASS_ChannelPause(Stream);
-                Message_T.Text = "プロジェクトファイルを作成しています...";
-                await Task.Delay(50);
-                FileInfo fi = new FileInfo(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Default Work Unit.wwu");
-                if (File.Exists(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Backup.tmp") && fi.Length >= 1000000)
-                    File.Copy(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Backup.tmp", Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Default Work Unit.wwu", true);
-                if (!File.Exists(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Backup.tmp"))
-                    File.Copy(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Default Work Unit.wwu", Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Backup.tmp", true);
-                if (File.Exists(Voice_Set.Special_Path + "/Wwise/WoTB_Hits_Sound/Actor-Mixer Hierarchy/Backup.tmp") && fi.Length >= 1000000)
-                    File.Copy(Voice_Set.Special_Path + "/Wwise/WoTB_Hits_Sound/Actor-Mixer Hierarchy/Backup.tmp", Voice_Set.Special_Path + "/Wwise/WoTB_Hits_Sound/Actor-Mixer Hierarchy/Default Work Unit.wwu", true);
-                if (!File.Exists(Voice_Set.Special_Path + "/Wwise/WoTB_Hits_Sound/Actor-Mixer Hierarchy/Backup.tmp"))
-                    File.Copy(Voice_Set.Special_Path + "/Wwise/WoTB_Hits_Sound/Actor-Mixer Hierarchy/Default Work Unit.wwu", Voice_Set.Special_Path + "/Wwise/WoTB_Hits_Sound/Actor-Mixer Hierarchy/Backup.tmp", true);
-                int Set_Volume = (int)(-40 * (1 - Volume_WoTB_S.Value / 100));
-                Wwise_Project_Create Wwise = new Wwise_Project_Create(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod");
-                //数を合わせるため使用しない項目を入れています。
-                string[] Loading_Music_Name = { "America_lakville", "America_overlord", "Chinese", "Desert_airfield", "Desert_sand_river","Europe_himmelsdorf",
+                    IsPaused = true;
+                    float Volume_Now = 1f;
+                    Bass.BASS_ChannelGetAttribute(Stream, BASSAttribute.BASS_ATTRIB_VOL, ref Volume_Now);
+                    float Volume_Minus = Volume_Now / 10f;
+                    while (Volume_Now > 0f && IsPaused)
+                    {
+                        Volume_Now -= Volume_Minus;
+                        if (Volume_Now < 0f)
+                            Volume_Now = 0f;
+                        Bass.BASS_ChannelSetAttribute(Stream, BASSAttribute.BASS_ATTRIB_VOL, Volume_Now);
+                        await Task.Delay(1000 / 60);
+                    }
+                    if (Volume_Now <= 0f)
+                        Bass.BASS_ChannelPause(Stream);
+                    Message_T.Text = "プロジェクトファイルを作成しています...";
+                    await Task.Delay(50);
+                    FileInfo fi = new FileInfo(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Default Work Unit.wwu");
+                    if (File.Exists(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Backup.tmp") && fi.Length >= 1000000)
+                        File.Copy(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Backup.tmp", Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Default Work Unit.wwu", true);
+                    if (!File.Exists(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Backup.tmp"))
+                        File.Copy(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Default Work Unit.wwu", Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Backup.tmp", true);
+                    if (File.Exists(Voice_Set.Special_Path + "/Wwise/WoTB_Hits_Sound/Actor-Mixer Hierarchy/Backup.tmp") && fi.Length >= 1000000)
+                        File.Copy(Voice_Set.Special_Path + "/Wwise/WoTB_Hits_Sound/Actor-Mixer Hierarchy/Backup.tmp", Voice_Set.Special_Path + "/Wwise/WoTB_Hits_Sound/Actor-Mixer Hierarchy/Default Work Unit.wwu", true);
+                    if (!File.Exists(Voice_Set.Special_Path + "/Wwise/WoTB_Hits_Sound/Actor-Mixer Hierarchy/Backup.tmp") && File.Exists(Voice_Set.Special_Path + "/Wwise/WoTB_Hits_Sound/Actor-Mixer Hierarchy/Default Work Unit.wwu"))
+                        File.Copy(Voice_Set.Special_Path + "/Wwise/WoTB_Hits_Sound/Actor-Mixer Hierarchy/Default Work Unit.wwu", Voice_Set.Special_Path + "/Wwise/WoTB_Hits_Sound/Actor-Mixer Hierarchy/Backup.tmp", true);
+                    int Set_Volume = (int)(-40 * (1 - Volume_WoTB_S.Value / 100));
+                    Wwise_Project_Create Wwise = new Wwise_Project_Create(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod");
+                    //数を合わせるため使用しない項目を入れています。
+                    string[] Loading_Music_Name = { "America_lakville", "America_overlord", "Chinese", "Desert_airfield", "Desert_sand_river","Europe_himmelsdorf",
                 "Europe_mannerheim","Europe_ruinberg","Japan","Russian_malinovka","Russian_prokhorovka","リザルト(勝利)","リザルト(勝利)","リザルト(敗北、または引き分け)","リザルト(敗北、または引き分け)",
                 "リザルト(敗北、または引き分け)","リザルト(敗北、または引き分け)","優勢(敵味方両方)","優勢(敵味方両方)"};
-                string[] Loading_Music_Type = { "music_maps_america_lakville", "music_maps_america_overlord", "music_maps_chinese", "music_maps_desert_airfield",
+                    string[] Loading_Music_Type = { "music_maps_america_lakville", "music_maps_america_overlord", "music_maps_chinese", "music_maps_desert_airfield",
                 "music_maps_desert_sand_river","music_maps_europe_himmelsdorf","music_maps_europe_mannerheim","music_maps_europe_ruinberg","music_maps_japan",
                 "music_maps_russian_malinovka","music_maps_russian_prokhorovka","music_result_screen_basic","music_result_screen_basic", "music_result_screen","music_result_screen",
                 "music_result_screen","music_result_screen","music_battle","music_battle"};
-                IList<int> Selection_Index = ListBoxEx.SelectedIndexs(BGM_Type_L);
-                List<string> Build_Names = new List<string>();
-                if (!IsSelectedOnly)
-                {
-                    for (int Number = 0; Number < Music_Type_Music.Count; Number++)
-                        for (int Number_01 = 0; Number_01 < Music_Type_Music[Number].Count; Number_01++)
-                            Wwise.Loading_Music_Add_Wwise(Music_Type_Music[Number][Number_01], Number, Music_Play_Times[Number][Number_01], Music_Feed_In[Number][Number_01], Set_Volume);
-                    Message_T.Text = "ファイルを.wavにエンコードしています...";
-                    await Task.Delay(50);
-                    await Wwise.Sound_To_WAV();
-                    Wwise.Save();
-                    for (int Number = 0; Number < BGM_Type_L.Items.Count; Number++)
+                    IList<int> Selection_Index = ListBoxEx.SelectedIndexs(BGM_Type_L);
+                    List<string> Build_Names = new List<string>();
+                    if (!IsSelectedOnly)
                     {
-                        if (Number != 19 && Number != 20)
+                        for (int Number = 0; Number < Music_Type_Music.Count; Number++)
+                            for (int Number_01 = 0; Number_01 < Music_Type_Music[Number].Count; Number_01++)
+                                Wwise.Loading_Music_Add_Wwise(Music_Type_Music[Number][Number_01], Number, Music_Play_Times[Number][Number_01], Music_Feed_In[Number][Number_01], Set_Volume);
+                        Message_T.Text = "ファイルを.wavにエンコードしています...";
+                        await Task.Delay(50);
+                        await Wwise.Sound_To_WAV();
+                        Wwise.Save();
+                        for (int Number = 0; Number < BGM_Type_L.Items.Count; Number++)
                         {
-                            if (Music_Type_Music[Number].Count > 0)
+                            if (Number != 19 && Number != 20)
+                            {
+                                if (Music_Type_Music[Number].Count > 0)
+                                {
+                                    if (Build_Names.Contains(Loading_Music_Type[Number]))
+                                        continue;
+                                    Build_Names.Add(Loading_Music_Type[Number]);
+                                    Message_T.Text = Loading_Music_Name[Number] + "をビルドしています...";
+                                    await Task.Delay(100);
+                                    Wwise.Project_Build(Loading_Music_Type[Number], bfb.SelectedFolder + "/" + Loading_Music_Type[Number] + ".bnk");
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        Message_T.Text = "ファイルを.wavにエンコードしています...";
+                        await Task.Delay(50);
+                        foreach (int Number in Selection_Index)
+                        {
+                            if (Number != 19 && Number != 20)
+                            {
+                                for (int Number_01 = 0; Number_01 < Music_Type_Music[Number].Count; Number_01++)
+                                    Wwise.Loading_Music_Add_Wwise(Music_Type_Music[Number][Number_01], Number, Music_Play_Times[Number][Number_01], Music_Feed_In[Number][Number_01], Set_Volume);
+                            }
+                        }
+                        await Wwise.Sound_To_WAV();
+                        Wwise.Save();
+                        foreach (int Number in Selection_Index)
+                        {
+                            if (Number != 19 && Number != 20 && Music_Type_Music[Number].Count > 0)
                             {
                                 if (Build_Names.Contains(Loading_Music_Type[Number]))
                                     continue;
@@ -886,59 +916,44 @@ namespace WoTB_Voice_Mod_Creater.Class
                             }
                         }
                     }
-                }
-                else
-                {
-                    foreach (int Number in Selection_Index)
+                    Build_Names.Clear();
+                    await Task.Delay(100);
+                    Wwise.Clear();
+                    if (File.Exists(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Backup.tmp"))
+                        File.Copy(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Backup.tmp", Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Default Work Unit.wwu", true);
+                    if (!IsSelectedOnly || Selection_Index.Contains(19) || Selection_Index.Contains(20))
                     {
-                        Message_T.Text = "ファイルを.wavにエンコードしています...";
-                        await Task.Delay(50);
-                        if (Number != 19 && Number != 20)
+                        Wwise_Project_Create Wwise_Hits = new Wwise_Project_Create(Voice_Set.Special_Path + "/Wwise/WoTB_Hits_Sound");
+                        for (int Number = 19; Number < Music_Type_Music.Count; Number++)
                         {
-                            for (int Number_01 = 0; Number_01 < Music_Type_Music[Number].Count; Number_01++)
-                                Wwise.Loading_Music_Add_Wwise(Music_Type_Music[Number][Number_01], Number, Music_Play_Times[Number][Number_01], Music_Feed_In[Number][Number_01], Set_Volume);
-                            if (Build_Names.Contains(Loading_Music_Type[Number]))
-                                continue;
-                            Build_Names.Add(Loading_Music_Type[Number]);
-                            Message_T.Text = Loading_Music_Name[Number] + "をビルドしています...";
-                            await Task.Delay(100);
-                            Wwise.Project_Build(Loading_Music_Type[Number], bfb.SelectedFolder + "/" + Loading_Music_Type[Number] + ".bnk");
+                            foreach (string File_Now in Music_Type_Music[Number])
+                            {
+                                if (Number == 19)
+                                    Wwise_Hits.Add_Sound("618741068", File_Now, "SFX");
+                                else if (Number == 20)
+                                    Wwise_Hits.Add_Sound("48041438", File_Now, "SFX");
+                            }
                         }
+                        await Wwise_Hits.Sound_To_WAV();
+                        Wwise_Hits.Save();
+                        Message_T.Text = "hits.bnkとhits_basic.bnkをビルドしています...";
+                        await Task.Delay(75);
+                        Wwise_Hits.Project_Build("hits", bfb.SelectedFolder + "/hits.bnk", null, true);
+                        Wwise_Hits.Project_Build("hits_basic", bfb.SelectedFolder + "/hits_basic.bnk", null, true);
+                        Wwise_Hits.Clear(null, true);
+                        if (File.Exists(Voice_Set.Special_Path + "/Wwise/WoTB_Hits_Sound/Actor-Mixer Hierarchy/Backup.tmp"))
+                            File.Copy(Voice_Set.Special_Path + "/Wwise/WoTB_Hits_Sound/Actor-Mixer Hierarchy/Backup.tmp", Voice_Set.Special_Path + "/Wwise/WoTB_Hits_Sound/Actor-Mixer Hierarchy/Default Work Unit.wwu", true);
                     }
-                    await Wwise.Sound_To_WAV();
-                    Wwise.Save();
+                    Message_Feed_Out("完了しました。指定したフォルダを参照してください。");
+                    Flash.Flash_Start();
+                    IsBusy = false;
                 }
-                Build_Names.Clear();
-                await Task.Delay(100);
-                Wwise.Clear();
-                if (File.Exists(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Backup.tmp"))
-                    File.Copy(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Backup.tmp", Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Default Work Unit.wwu", true);
-                if (!IsSelectedOnly || Selection_Index.Contains(19) || Selection_Index.Contains(20))
+                catch (Exception e)
                 {
-                    Wwise_Project_Create Wwise_Hits = new Wwise_Project_Create(Voice_Set.Special_Path + "/Wwise/WoTB_Hits_Sound");
-                    for (int Number = 19; Number < Music_Type_Music.Count; Number++)
-                    {
-                        foreach (string File_Now in Music_Type_Music[Number])
-                        {
-                            if (Number == 19)
-                                Wwise_Hits.Add_Sound("618741068", File_Now, "SFX");
-                            else if (Number == 20)
-                                Wwise_Hits.Add_Sound("48041438", File_Now, "SFX");
-                        }
-                    }
-                    await Wwise_Hits.Sound_To_WAV();
-                    Wwise_Hits.Save();
-                    Message_T.Text = "hits.bnkとhits_basic.bnkをビルドしています...";
-                    await Task.Delay(75);
-                    Wwise_Hits.Project_Build("hits", bfb.SelectedFolder + "/hits.bnk", null, true);
-                    Wwise_Hits.Project_Build("hits_basic", bfb.SelectedFolder + "/hits_basic.bnk", null, true);
-                    Wwise_Hits.Clear(null, true);
-                    if (File.Exists(Voice_Set.Special_Path + "/Wwise/WoTB_Hits_Sound/Actor-Mixer Hierarchy/Backup.tmp"))
-                        File.Copy(Voice_Set.Special_Path + "/Wwise/WoTB_Hits_Sound/Actor-Mixer Hierarchy/Backup.tmp", Voice_Set.Special_Path + "/Wwise/WoTB_Hits_Sound/Actor-Mixer Hierarchy/Default Work Unit.wwu", true);
+                    Sub_Code.Error_Log_Write(e.Message);
+                    Message_Feed_Out("エラーが発生しました。");
+                    IsBusy = false;
                 }
-                Message_Feed_Out("完了しました。指定したフォルダを参照してください。");
-                Flash.Flash_Start();
-                IsBusy = false;
             }
             bfb.Dispose();
         }
