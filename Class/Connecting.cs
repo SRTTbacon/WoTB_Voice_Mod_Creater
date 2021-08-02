@@ -13,9 +13,9 @@ namespace WoTB_Voice_Mod_Creater
         {
             while (true)
             {
-                if (Connectiong != Voice_Set.FTP_Server.IsConnected && !IsClosing)
+                if (Connectiong != Voice_Set.FTPClient.IsConnected && !IsClosing)
                 {
-                    Connectiong = Voice_Set.FTP_Server.IsConnected;
+                    Connectiong = Voice_Set.FTPClient.IsConnected;
                     Connect_Mode_Layout();
                     Message_T.Text = "サーバーとの接続が切断されました。";
                     break;
@@ -26,8 +26,7 @@ namespace WoTB_Voice_Mod_Creater
         //アカウントが存在するか
         bool Account_Exist(string UserName, string Password)
         {
-            Stream stream = Voice_Set.FTP_Server.OpenRead("/WoTB_Voice_Mod/Accounts.dat");
-            StreamReader streamReader = new StreamReader(stream);
+            StreamReader streamReader = Voice_Set.FTPClient.GetFileRead("/WoTB_Voice_Mod/Accounts.dat");
             while (streamReader.EndOfStream == false)
             {
                 string Line = streamReader.ReadLine();
@@ -42,17 +41,13 @@ namespace WoTB_Voice_Mod_Creater
                     }
                 }
             }
-            streamReader.Close();
             streamReader.Dispose();
-            stream.Close();
-            stream.Dispose();
             return false;
         }
         //ユーザー名が既に存在するか
         bool UserExist(string UserName)
         {
-            Stream stream = Voice_Set.FTP_Server.OpenRead("/WoTB_Voice_Mod/Accounts.dat");
-            StreamReader streamReader = new StreamReader(stream);
+            StreamReader streamReader = Voice_Set.FTPClient.GetFileRead("/WoTB_Voice_Mod/Accounts.dat");
             while (streamReader.EndOfStream == false)
             {
                 string Line = streamReader.ReadLine();
@@ -66,10 +61,7 @@ namespace WoTB_Voice_Mod_Creater
                     }
                 }
             }
-            streamReader.Close();
             streamReader.Dispose();
-            stream.Close();
-            stream.Dispose();
             return false;
         }
         //管理者が設定を変更した場合それを反映
@@ -83,15 +75,11 @@ namespace WoTB_Voice_Mod_Creater
                     Directory.Move(Voice_Set.Special_Path + "/Server/" + Voice_Set.SRTTbacon_Server_Name, Voice_Set.Special_Path + "/Server/" + Server_Rename);
                     Voice_Set.SRTTbacon_Server_Name = Server_Rename;
                 }
-                if (Voice_Set.FTP_Server.FileExists("/WoTB_Voice_Mod/" + Voice_Set.SRTTbacon_Server_Name + "/Remove_Files.dat"))
+                if (Voice_Set.FTPClient.File_Exist("/WoTB_Voice_Mod/" + Voice_Set.SRTTbacon_Server_Name + "/Remove_Files.dat"))
                 {
-                    Stream stream = Voice_Set.FTP_Server.OpenRead("/WoTB_Voice_Mod/" + Voice_Set.SRTTbacon_Server_Name + "/Remove_Files.dat");
-                    StreamReader str = new StreamReader(stream);
+                    StreamReader str = Voice_Set.FTPClient.GetFileRead("/WoTB_Voice_Mod/" + Voice_Set.SRTTbacon_Server_Name + "/Remove_Files.dat");
                     string[] Read = str.ReadToEnd().Split('\n');
-                    str.Close();
                     str.Dispose();
-                    stream.Close();
-                    stream.Dispose();
                     foreach (string Line in Read)
                     {
                         if (Line != "")
@@ -106,23 +94,19 @@ namespace WoTB_Voice_Mod_Creater
                         }
                     }
                 }
-                if (Voice_Set.FTP_Server.FileExists("/WoTB_Voice_Mod/" + Voice_Set.SRTTbacon_Server_Name + "/Add_Files.dat"))
+                if (Voice_Set.FTPClient.File_Exist("/WoTB_Voice_Mod/" + Voice_Set.SRTTbacon_Server_Name + "/Add_Files.dat"))
                 {
                     bool IsChanged = false;
-                    Stream stream = Voice_Set.FTP_Server.OpenRead("/WoTB_Voice_Mod/" + Voice_Set.SRTTbacon_Server_Name + "/Add_Files.dat");
-                    StreamReader str = new StreamReader(stream);
+                    StreamReader str = Voice_Set.FTPClient.GetFileRead("/WoTB_Voice_Mod/" + Voice_Set.SRTTbacon_Server_Name + "/Add_Files.dat");
                     string[] Read = str.ReadToEnd().Split('\n');
-                    str.Close();
                     str.Dispose();
-                    stream.Close();
-                    stream.Dispose();
                     foreach (string Line in Read)
                     {
                         if (Line != "")
                         {
                             try
                             {
-                                Voice_Set.FTP_Server.DownloadFile(Voice_Set.Special_Path + "/Server/" + Voice_Set.SRTTbacon_Server_Name + "/Voices/" + Line, "/WoTB_Voice_Mod/" + Voice_Set.SRTTbacon_Server_Name + "/Voices/" + Line);
+                                Voice_Set.FTPClient.DownloadFile("/WoTB_Voice_Mod/" + Voice_Set.SRTTbacon_Server_Name + "/Voices/" + Line, Voice_Set.Special_Path + "/Server/" + Voice_Set.SRTTbacon_Server_Name + "/Voices/" + Line);
                                 IsChanged = true;
                             }
                             catch
@@ -135,12 +119,8 @@ namespace WoTB_Voice_Mod_Creater
                         string[] Temp = Directory.GetFiles(Voice_Set.Special_Path + "/Server/" + Voice_Set.SRTTbacon_Server_Name + "/Voices");
                         List<string> Temp_01 = new List<string>();
                         for (int Number = 0; Number <= Temp.Length - 1; Number++)
-                        {
                             if (!Voice_Set.Voice_Name_Hide(Temp[Number]))
-                            {
                                 Temp_01.Add(System.IO.Path.GetFileName(Temp[Number]));
-                            }
-                        }
                         Voice_Set.Voice_Files = Temp_01;
                     }
                 }

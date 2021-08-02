@@ -1,5 +1,4 @@
-﻿using SimpleTCP;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
@@ -37,6 +36,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         bool IsLocationChanging = false;
         bool IsPaused = false;
         bool IsEnded = false;
+        bool IsOpenDialog = false;
         Random r = new Random();
         SYNCPROC IsMusicEnd;
         public Create_Loading_BGM()
@@ -753,7 +753,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                     str.Close();
                     if (Sub_Code.IsWwise_Hits_Update != Ver)
                     {
-                        double SizeMB = (double)(Voice_Set.FTP_Server.GetFileSize("/WoTB_Voice_Mod/Update/Wwise/Wwise_Hits_Project_01.zip") / 1024.0 / 1024.0);
+                        double SizeMB = (double)(Voice_Set.FTPClient.GetFileSize("/WoTB_Voice_Mod/Update/Wwise/Wwise_Hits_Project_01.zip") / 1024.0 / 1024.0);
                         SizeMB = (Math.Floor(SizeMB * 10)) / 10;
                         MessageBoxResult result = MessageBox.Show("被弾音のアップデートがあります。データをダウンロードしますか?\nサイズ:およそ" + SizeMB + "MB", "確認", MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.Yes);
                         if (result == MessageBoxResult.Yes)
@@ -765,7 +765,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                             if (Directory.Exists(Voice_Set.Special_Path + "/Wwise/WoTB_Hits_Sound"))
                                 Directory.Delete(Voice_Set.Special_Path + "/Wwise/WoTB_Hits_Sound", true);
                             File.Delete(Voice_Set.Special_Path + "/Wwise_Hits_Project.dat");
-                            Voice_Set.FTP_Server.DownloadFile(Voice_Set.Special_Path + "/Wwise_Hits_Project.dat", "/WoTB_Voice_Mod/Update/Wwise/Wwise_Hits_Project_01.zip");
+                            Voice_Set.FTPClient.DownloadFile("/WoTB_Voice_Mod/Update/Wwise/Wwise_Hits_Project_01.zip", Voice_Set.Special_Path + "/Wwise_Hits_Project.dat");
                             System.IO.Compression.ZipFile.ExtractToDirectory(Voice_Set.Special_Path + "/Wwise_Hits_Project.dat", Voice_Set.Special_Path + "/Wwise/WoTB_Hits_Sound");
                             File.Delete(Voice_Set.Special_Path + "/Wwise_Hits_Project.dat");
                             File.WriteAllText(Voice_Set.Special_Path + "/Wwise/WoTB_Hits_Sound/Version.dat", Sub_Code.IsWwise_Hits_Update);
@@ -777,7 +777,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 }
                 else
                 {
-                    double SizeMB = (double)(Voice_Set.FTP_Server.GetFileSize("/WoTB_Voice_Mod/Update/Wwise/Wwise_Hits_Project_01.zip") / 1024.0 / 1024.0);
+                    double SizeMB = (double)(Voice_Set.FTPClient.GetFileSize("/WoTB_Voice_Mod/Update/Wwise/Wwise_Hits_Project_01.zip") / 1024.0 / 1024.0);
                     SizeMB = (Math.Floor(SizeMB * 10)) / 10;
                     MessageBoxResult result = MessageBox.Show("被弾音のプロジェクトデータが存在しません。ダウンロードしますか?\nサイズ:およそ" + SizeMB + "MB", "確認", MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.Yes);
                     if (result == MessageBoxResult.Yes)
@@ -789,7 +789,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                         if (Directory.Exists(Voice_Set.Special_Path + "/Wwise/WoTB_Hits_Sound"))
                             Directory.Delete(Voice_Set.Special_Path + "/Wwise/WoTB_Hits_Sound", true);
                         File.Delete(Voice_Set.Special_Path + "/Wwise_Hits_Project.dat");
-                        Voice_Set.FTP_Server.DownloadFile(Voice_Set.Special_Path + "/Wwise_Hits_Project.dat", "/WoTB_Voice_Mod/Update/Wwise/Wwise_Hits_Project_01.zip");
+                        Voice_Set.FTPClient.DownloadFile("/WoTB_Voice_Mod/Update/Wwise/Wwise_Hits_Project_01.zip", Voice_Set.Special_Path + "/Wwise_Hits_Project.dat");
                         System.IO.Compression.ZipFile.ExtractToDirectory(Voice_Set.Special_Path + "/Wwise_Hits_Project.dat", Voice_Set.Special_Path + "/Wwise/WoTB_Hits_Sound");
                         File.Delete(Voice_Set.Special_Path + "/Wwise_Hits_Project.dat");
                         File.WriteAllText(Voice_Set.Special_Path + "/Wwise/WoTB_Hits_Sound/Version.dat", Sub_Code.IsWwise_Hits_Update);
@@ -804,8 +804,9 @@ namespace WoTB_Voice_Mod_Creater.Class
         //すべて作成する場合は-1
         async void Music_Mod_Create(bool IsSelectedOnly)
         {
-            if (IsClosing || IsBusy)
+            if (IsClosing || IsBusy || IsOpenDialog)
                 return;
+            IsOpenDialog = true;
             BetterFolderBrowser bfb = new BetterFolderBrowser()
             {
                 Title = "保存先を指定してください。",
@@ -823,6 +824,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                     Message_Feed_Out("指定したフォルダにアクセスできません。");
                     IsBusy = false;
                     bfb.Dispose();
+                    IsOpenDialog = false;
                     return;
                 }
                 IsPaused = true;
@@ -947,6 +949,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 IsBusy = false;
             }
             bfb.Dispose();
+            IsOpenDialog = false;
         }
         //クリア
         private async void Clear_B_Click(object sender, RoutedEventArgs e)

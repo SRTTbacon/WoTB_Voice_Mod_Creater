@@ -1,6 +1,4 @@
-﻿using FluentFTP;
-using SimpleTCP;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
@@ -9,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Xml.Linq;
+using WoTB_Voice_Mod_Creater.Class;
 
 namespace WoTB_Voice_Mod_Creater
 {
@@ -17,38 +16,28 @@ namespace WoTB_Voice_Mod_Creater
         bool Connectiong = false;
         bool IsProcessing = false;
         bool Server_OK = false;
-        readonly FtpDataConnectionType ConnectType;
         //サーバーに接続(参加ではない)
         void Server_Connect()
         {
             try
             {
-                Voice_Set.TCP_Server = new SimpleTcpClient();
-                Task task = Task.Run(() =>
+                Voice_Set.TCP_Server = new TCP_Client();
+                try
                 {
-                    try
-                    {
-                        Voice_Set.TCP_Server.Connect(SRTTbacon_Server.IP, SRTTbacon_Server.Port);
-                        Voice_Set.TCP_Server.StringEncoder = Encoding.UTF8;
-                        Voice_Set.TCP_Server.Delimiter = 0x00;
-                        Message_T.Text = "";
-                    }
-                    catch
+                    Voice_Set.TCP_Server.Connect(SRTTbacon_Server.IP, SRTTbacon_Server.TCP_Port);
+                    Message_T.Text = "";
+                    if (!Voice_Set.TCP_Server.IsConnected)
                     {
                         Connectiong = false;
                         Server_OK = false;
                     }
-                });
-                Voice_Set.FTP_Server = new FtpClient(SRTTbacon_Server.IP)
+                }
+                catch
                 {
-                    Credentials = new NetworkCredential(SRTTbacon_Server.Name, SRTTbacon_Server.Password),
-                    SocketKeepAlive = false,
-                    DataConnectionType = ConnectType,
-                    SslProtocols = SslProtocols.Tls,
-                    ConnectTimeout = 1000,
-                };
-                Voice_Set.FTP_Server.ValidateCertificate += new FtpSslValidation(OnValidateCertificate);
-                Voice_Set.FTP_Server.Connect();
+                    Connectiong = false;
+                    Server_OK = false;
+                }
+                Voice_Set.FTPClient = new SFTP_Client(SRTTbacon_Server.IP, SRTTbacon_Server.Name, SRTTbacon_Server.Password, SRTTbacon_Server.SFTP_Port);
                 Server_OK = true;
                 Message_T.Text = "";
                 if (Login())
@@ -79,7 +68,7 @@ namespace WoTB_Voice_Mod_Creater
                 Update_B.Visibility = Visibility.Hidden;
                 Connect_Mode_Layout();
                 Message_T.Text = "エラー:サーバーが開いていない可能性があります。";
-                Sub_Code.Error_Log_Write(e.Message.Replace(SRTTbacon_Server.IP_Global + ":" + SRTTbacon_Server.Port, "").Replace(SRTTbacon_Server.IP_Local + ":" + SRTTbacon_Server.Port, ""));
+                Sub_Code.Error_Log_Write(e.Message.Replace(SRTTbacon_Server.IP_Global + ":" + SRTTbacon_Server.TCP_Port, "").Replace(SRTTbacon_Server.IP_Local + ":" + SRTTbacon_Server.TCP_Port, ""));
             }
         }
         //ログインできるか
@@ -102,9 +91,7 @@ namespace WoTB_Voice_Mod_Creater
                         return true;
                     }
                     else
-                    {
                         return false;
-                    }
                 }
                 catch (Exception e)
                 {
@@ -133,11 +120,9 @@ namespace WoTB_Voice_Mod_Creater
                 Other_Window.Pause_Volume_Animation(true, 25);
                 try
                 {
-                    if (Voice_Set.FTP_Server.IsConnected)
+                    if (Voice_Set.FTPClient.IsConnected)
                     {
-                        Voice_Set.FTP_Server.Disconnect();
-                        Voice_Set.TCP_Server.Disconnect();
-                        Voice_Set.FTP_Server.Dispose();
+                        Voice_Set.FTPClient.Close();
                         Voice_Set.TCP_Server.Dispose();
                     }
                 }
@@ -172,11 +157,9 @@ namespace WoTB_Voice_Mod_Creater
         {
             try
             {
-                if (Voice_Set.FTP_Server.IsConnected)
+                if (Voice_Set.FTPClient.IsConnected)
                 {
-                    Voice_Set.FTP_Server.Disconnect();
-                    Voice_Set.TCP_Server.Disconnect();
-                    Voice_Set.FTP_Server.Dispose();
+                    Voice_Set.FTPClient.Close();
                     Voice_Set.TCP_Server.Dispose();
                 }
             }

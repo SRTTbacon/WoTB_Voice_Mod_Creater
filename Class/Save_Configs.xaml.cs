@@ -517,7 +517,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         }
         private void Android_C_Click(object sender, RoutedEventArgs e)
         {
-            if (Android_C.IsChecked.Value && !Voice_Set.FTP_Server.IsConnected)
+            if (Android_C.IsChecked.Value && !Voice_Set.FTPClient.IsConnected)
             {
                 MessageBox.Show("サーバーに接続されていないためAndroid用の音声を作成することはできません。");
                 Android_C.IsChecked = false;
@@ -623,7 +623,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 if (SizeMB == 0)
                 {
-                    SizeMB = (double)(Voice_Set.FTP_Server.GetFileSize("/WoTB_Voice_Mod/Update/Wwise/Default_Voices.zip") / 1024.0 / 1024.0);
+                    SizeMB = (double)(Voice_Set.FTPClient.GetFileSize("/WoTB_Voice_Mod/Update/Wwise/Default_Voices.zip") / 1024.0 / 1024.0);
                     SizeMB = (Math.Floor(SizeMB * 10)) / 10;
                 }
                 MessageBoxResult result = MessageBox.Show("音声データをサーバーからダウンロードする必要があります。続行しますか?\nサイズ:およそ" + SizeMB + "MB", "確認",
@@ -634,7 +634,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                     await Task.Delay(75);
                     if (Directory.Exists(Voice_Set.Special_Path + "/SE/Voices"))
                         Directory.Delete(Voice_Set.Special_Path + "/SE/Voices", true);
-                    Voice_Set.FTP_Server.DownloadFile(Voice_Set.Special_Path + "/Default_Voices.dat", "/WoTB_Voice_Mod/Update/Wwise/Default_Voices.zip");
+                    Voice_Set.FTPClient.DownloadFile("/WoTB_Voice_Mod/Update/Wwise/Default_Voices.zip", Voice_Set.Special_Path + "/Default_Voices.dat");
                     System.IO.Compression.ZipFile.ExtractToDirectory(Voice_Set.Special_Path + "/Default_Voices.dat", Voice_Set.Special_Path + "/SE/Voices");
                     File.Delete(Voice_Set.Special_Path + "/Default_Voices.dat");
                     Message_Feed_Out("正常にダウンロードされました。");

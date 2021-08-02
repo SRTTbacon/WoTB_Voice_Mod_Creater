@@ -23,6 +23,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         float Pitch = 0f;
         bool IsBusy = false;
         bool IsMessageShowing = false;
+        bool IsOpenDialog = false;
         Cauldron.FMOD.EVENT_LOADINFO ELI = new Cauldron.FMOD.EVENT_LOADINFO();
         Cauldron.FMOD.EventProject EP = new Cauldron.FMOD.EventProject();
         Cauldron.FMOD.EventGroup EG = new Cauldron.FMOD.EventGroup();
@@ -1183,8 +1184,9 @@ namespace WoTB_Voice_Mod_Creater.Class
         }
         private async void DVPL_Extract_Dir_B_Click(object sender, RoutedEventArgs e)
         {
-            if (IsBusy)
+            if (IsBusy || IsOpenDialog)
                 return;
+            IsOpenDialog = true;
             BetterFolderBrowser bfb = new BetterFolderBrowser()
             {
                 Title = ".dvplファイルが存在するフォルダを選択してください。",
@@ -1204,6 +1206,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                         Message_Feed_Out("フォルダ内のファイル数が多すぎます。");
                         DVPL_Files.Clear();
                         IsBusy = false;
+                        IsOpenDialog = false;
                         return;
                     }
                     if (Path.GetExtension(file) == ".dvpl")
@@ -1214,6 +1217,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 {
                     Message_Feed_Out(".dvplファイルが見つかりませんでした。");
                     IsBusy = false;
+                    IsOpenDialog = false;
                     return;
                 }
                 Message_T.Text = ".dvplファイルを変換しています...";
@@ -1223,11 +1227,13 @@ namespace WoTB_Voice_Mod_Creater.Class
             }
             bfb.Dispose();
             IsBusy = false;
+            IsOpenDialog = false;
         }
         private async void DVPL_Create_Dir_B_Click(object sender, RoutedEventArgs e)
         {
-            if (IsBusy)
+            if (IsBusy || IsOpenDialog)
                 return;
+            IsOpenDialog = true;
             BetterFolderBrowser bfb = new BetterFolderBrowser()
             {
                 Title = ".dvplファイルが存在するフォルダを選択してください。",
@@ -1247,6 +1253,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                         Message_Feed_Out("フォルダ内のファイル数が多すぎます。");
                         Add_Files.Clear();
                         IsBusy = false;
+                        IsOpenDialog = false;
                         return;
                     }
                     if (Path.GetExtension(file) != ".dvpl")
@@ -1257,6 +1264,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 {
                     Message_Feed_Out("ファイルが見つかりませんでした。");
                     IsBusy = false;
+                    IsOpenDialog = false;
                     return;
                 }
                 IsMessageShowing = false;
@@ -1267,6 +1275,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             }
             bfb.Dispose();
             IsBusy = false;
+            IsOpenDialog = false;
         }
     }
 }

@@ -42,15 +42,10 @@ namespace WoTB_Voice_Mod_Creater.Class
             List<string> Temp = new List<string>();
             try
             {
-                Stream stream = Voice_Set.FTP_Server.OpenRead(From_File);
-                StreamReader str = new StreamReader(stream);
+                StreamReader str = Voice_Set.FTPClient.GetFileRead(From_File);
                 while (str.EndOfStream == false)
-                {
                     Temp.Add(str.ReadLine());
-                }
-                str.Close();
-                stream.Close();
-                stream.Dispose();
+                str.Dispose();
             }
             catch (Exception e)
             {
@@ -102,13 +97,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 try
                 {
-                    using (var eifs = new FileStream(Voice_Set.Special_Path + "/Configs/Voice_Mod.conf", FileMode.Open, FileAccess.Read))
-                    {
-                        using (var eofs = new FileStream(Voice_Set.Special_Path + "/Configs/Temp_Voice_Mod.tmp", FileMode.Create, FileAccess.Write))
-                        {
-                            FileEncode.FileEncryptor.Decrypt(eifs, eofs, "Voice_Mod_Configs_Save");
-                        }
-                    }
+                    Sub_Code.File_Decrypt(Voice_Set.Special_Path + "/Configs/Voice_Mod.conf", Voice_Set.Special_Path + "/Configs/Temp_Voice_Mod.tmp", "Voice_Mod_Configs_Save", false);
                     StreamReader str = new StreamReader(Voice_Set.Special_Path + "/Configs/Temp_Voice_Mod.tmp");
                     Voice_Volume_S.Value = double.Parse(str.ReadLine());
                     List_Change_C.IsChecked = bool.Parse(str.ReadLine());
@@ -217,7 +206,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             try
             {
                 string Bank_Name = Fmod_Bank_List.Items[Fmod_Bank_List.SelectedIndex].ToString();
-                if (!Voice_Set.FTP_Server.DirectoryExists("/WoTB_Voice_Mod/Mods/" + Bank_Name))
+                if (!Voice_Set.FTPClient.Directory_Exist("/WoTB_Voice_Mod/Mods/" + Bank_Name))
                 {
                     Message_Feed_Out("Modが見つかりませんでした。削除された可能性があります。");
                     return;
@@ -236,20 +225,15 @@ namespace WoTB_Voice_Mod_Creater.Class
                     Download_P.Visibility = Visibility.Visible;
                     Download_T.Visibility = Visibility.Visible;
                     Download_Border.Visibility = Visibility.Visible;
-                    List<string> strList = new List<string>();
-                    foreach (FluentFTP.FtpListItem item in Voice_Set.FTP_Server.GetListing("/WoTB_Voice_Mod/Mods/" + Bank_Name + "/Files"))
-                    {
-                        strList.Add(item.Name);
-                    }
-                    foreach (string File_Name in strList)
+                    foreach (string File_Name in Voice_Set.FTPClient.GetFiles("/WoTB_Voice_Mod/Mods/" + Bank_Name + "/Files", false, false))
                     {
                         try
                         {
                             Message_T.Text = File_Name + "をダウンロードしています...";
-                            long File_Size_Full = Voice_Set.FTP_Server.GetFileSize("/WoTB_Voice_Mod/Mods/" + Bank_Name + "/Files/" + File_Name);
+                            long File_Size_Full = Voice_Set.FTPClient.GetFileSize("/WoTB_Voice_Mod/Mods/" + Bank_Name + "/Files/" + File_Name);
                             Task task = Task.Run(() =>
                             {
-                                Voice_Set.FTP_Server.DownloadFile(Voice_Set.Special_Path + "/Server/Download_Mods/" + Bank_Name + "/" + File_Name, "/WoTB_Voice_Mod/Mods/" + Bank_Name + "/Files/" + File_Name);
+                                Voice_Set.FTPClient.DownloadFile("/WoTB_Voice_Mod/Mods/" + Bank_Name + "/Files/" + File_Name, Voice_Set.Special_Path + "/Server/Download_Mods/" + Bank_Name + "/" + File_Name);
                             });
                             while (true)
                             {
@@ -374,13 +358,13 @@ namespace WoTB_Voice_Mod_Creater.Class
                 else
                 {
                     //Modが選択されたら詳細を表示
-                    if (!Voice_Set.FTP_Server.FileExists("/WoTB_Voice_Mod/Mods/" + Bank_Name + "/Configs.dat"))
+                    if (!Voice_Set.FTPClient.File_Exist("/WoTB_Voice_Mod/Mods/" + Bank_Name + "/Configs.dat"))
                     {
                         Fmod_Bank_List.SelectedIndex = -1;
                         Message_Feed_Out("選択したModは現在利用できません。");
                         return;
                     }
-                    XDocument xml2 = XDocument.Load(Voice_Set.FTP_Server.OpenRead("/WoTB_Voice_Mod/Mods/" + Bank_Name + "/Configs.dat"));
+                    XDocument xml2 = XDocument.Load(Voice_Set.FTPClient.GetFileRead("/WoTB_Voice_Mod/Mods/" + Bank_Name + "/Configs.dat"));
                     XElement item2 = xml2.Element("Mod_Upload_Config");
                     if (bool.Parse(item2.Element("IsPassword").Value))
                     {
@@ -914,19 +898,11 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 try
                 {
-                    /*FluentFTP.FtpStatus result2 = Voice_Set.FTP_Server.DownloadFile(Voice_Set.WoTB_Path + "/Data/sounds.yaml.dvpl", "/WoTB_Voice_Mod/Mods/Backup/sounds.yaml.dvpl", FluentFTP.FtpLocalExists.Overwrite);
-                    Voice_Set.FTP_Server.DownloadFile(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_high.yaml.dvpl", "/WoTB_Voice_Mod/Mods/Backup/sfx_high.yaml.dvpl", FluentFTP.FtpLocalExists.Overwrite);
-                    Voice_Set.FTP_Server.DownloadFile(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_low.yaml.dvpl", "/WoTB_Voice_Mod/Mods/Backup/sfx_low.yaml.dvpl", FluentFTP.FtpLocalExists.Overwrite);
-                    Voice_Set.FTP_Server.DownloadFile(Voice_Set.WoTB_Path + "/Data/Sfx/GUI_battle_streamed.fsb.dvpl", "/WoTB_Voice_Mod/Mods/Backup/GUI_battle_streamed.fsb.dvpl", FluentFTP.FtpLocalExists.Overwrite);
-                    Voice_Set.FTP_Server.DownloadFile(Voice_Set.WoTB_Path + "/Data/Sfx/GUI_notifications_FX_howitzer_load.fsb.dvpl", "/WoTB_Voice_Mod/Mods/Backup/GUI_notifications_FX_howitzer_load.fsb.dvpl", FluentFTP.FtpLocalExists.Overwrite);
-                    Voice_Set.FTP_Server.DownloadFile(Voice_Set.WoTB_Path + "/Data/Sfx/GUI_quick_commands.fsb.dvpl", "/WoTB_Voice_Mod/Mods/Backup/GUI_quick_commands.fsb.dvpl", FluentFTP.FtpLocalExists.Overwrite);
-                    Voice_Set.FTP_Server.DownloadFile(Voice_Set.WoTB_Path + "/Data/Sfx/GUI_sirene.fsb.dvpl", "/WoTB_Voice_Mod/Mods/Backup/GUI_sirene.fsb.dvpl", FluentFTP.FtpLocalExists.Overwrite);*/
-                    double SizeMB = (double)(Voice_Set.FTP_Server.GetFileSize("/WoTB_Voice_Mod/Mods/Backup/New_Sound_Engine.zip") / 1000000);
+                    double SizeMB = (double)(Voice_Set.FTPClient.GetFileSize("/WoTB_Voice_Mod/Mods/Backup/New_Sound_Engine.zip") / 1000000);
                     SizeMB = (Math.Floor(SizeMB * 10)) / 10;
                     Message_T.Text = "サーバーからデータをダウンロードしています...\nファイルサイズ:約" + SizeMB + "MB";
                     await Task.Delay(50);
-                    FluentFTP.FtpStatus result2 = Voice_Set.FTP_Server.DownloadFile(Voice_Set.Special_Path + "/Backup.dat", "/WoTB_Voice_Mod/Mods/Backup/New_Sound_Engine.zip", FluentFTP.FtpLocalExists.Overwrite);
-                    if (result2 == FluentFTP.FtpStatus.Success)
+                    if (Voice_Set.FTPClient.DownloadFile("/WoTB_Voice_Mod/Mods/Backup/New_Sound_Engine.zip", Voice_Set.Special_Path + "/Backup.dat"))
                     {
                         System.IO.Compression.ZipFile.ExtractToDirectory(Voice_Set.Special_Path + "/Backup.dat", Voice_Set.Special_Path + "/Backup");
                         string[] Files = Directory.GetFiles(Voice_Set.Special_Path + "\\Backup", "*", SearchOption.AllDirectories);
@@ -937,16 +913,11 @@ namespace WoTB_Voice_Mod_Creater.Class
                             Sub_Code.DVPL_File_Copy(File_Now, Voice_Set.WoTB_Path + "/Data/WwiseSound/" + FileName, true);
                             File.Delete(File_Now);
                         }
-                        /*File.Delete(Voice_Set.WoTB_Path + "/Data/sounds.yaml");
-                        File.Delete(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_high.yaml");
-                        File.Delete(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_low.yaml");*/
                         File.Delete(Voice_Set.Special_Path + "/Backup.dat");
                         Message_Feed_Out("サーバーから復元しました。");
                     }
                     else
-                    {
                         Message_Feed_Out("エラー:サーバーから復元できませんでした。");
-                    }
                 }
                 catch (Exception e1)
                 {
@@ -975,7 +946,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 return;
             }
             //Modにパスワードがかかっている場合テキストボックスに入力されている文字と比較して同じだったらダウンロードが開始される
-            XDocument xml2 = XDocument.Load(Voice_Set.FTP_Server.OpenRead("/WoTB_Voice_Mod/Mods/" + Fmod_Bank_List.Items[Fmod_Bank_List.SelectedIndex] + "/Configs.dat"));
+            XDocument xml2 = XDocument.Load(Voice_Set.FTPClient.GetFileRead("/WoTB_Voice_Mod/Mods/" + Fmod_Bank_List.Items[Fmod_Bank_List.SelectedIndex] + "/Configs.dat"));
             XElement item2 = xml2.Element("Mod_Upload_Config");
             if (item2.Element("Password").Value == Mod_Password_T.Text)
             {

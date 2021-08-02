@@ -13,15 +13,13 @@ namespace WoTB_Voice_Mod_Creater
     public class DVPL
     {
         static Random r = new Random();
-        public static void DDS_DLL_Extract()
+        public static void Resources_Extract(string FileName)
         {
             if (!Directory.Exists(Directory.GetCurrentDirectory() + "/dll"))
-            {
                 Directory.CreateDirectory(Directory.GetCurrentDirectory() + "/dll");
-            }
-            using (Stream stream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("WoTB_Voice_Mod_Creater.Resources.DdsFileTypePlusIO_x86.dll"))
+            using (Stream stream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("WoTB_Voice_Mod_Creater.Resources." + FileName))
             {
-                using (FileStream bw = new FileStream(Directory.GetCurrentDirectory() + "/dll/DdsFileTypePlusIO_x86.dll", FileMode.Create))
+                using (FileStream bw = new FileStream(Directory.GetCurrentDirectory() + "/dll/" + FileName, FileMode.Create))
                 {
                     while (stream.Position < stream.Length)
                     {
@@ -29,58 +27,7 @@ namespace WoTB_Voice_Mod_Creater
                         stream.Read(bits, 0, (int)stream.Length);
                         bw.Write(bits, 0, (int)stream.Length);
                     }
-                }
-                stream.Close();
-            }
-        }
-        public static void LAME_DLL_Extract()
-        {
-            if (!Directory.Exists(Directory.GetCurrentDirectory() + "/dll"))
-            {
-                Directory.CreateDirectory(Directory.GetCurrentDirectory() + "/dll");
-            }
-            using (Stream stream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("WoTB_Voice_Mod_Creater.Resources.libmp3lame.32.dll"))
-            {
-                using (FileStream bw = new FileStream(Directory.GetCurrentDirectory() + "/dll/libmp3lame.32.dll", FileMode.Create))
-                {
-                    while (stream.Position < stream.Length)
-                    {
-                        byte[] bits = new byte[stream.Length];
-                        stream.Read(bits, 0, (int)stream.Length);
-                        bw.Write(bits, 0, (int)stream.Length);
-                    }
-                }
-                stream.Close();
-            }
-        }
-        public static void BASS_DLL_Extract()
-        {
-            using (Stream stream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("WoTB_Voice_Mod_Creater.Resources.bassenc.dll"))
-            {
-                using (FileStream bw = new FileStream(Directory.GetCurrentDirectory() + "/dll/bassenc.dll", FileMode.Create))
-                {
-                    while (stream.Position < stream.Length)
-                    {
-                        byte[] bits = new byte[stream.Length];
-                        stream.Read(bits, 0, (int)stream.Length);
-                        bw.Write(bits, 0, (int)stream.Length);
-                    }
-                }
-                stream.Close();
-            }
-        }
-        public static void BASS_MIX_DLL_Extract()
-        {
-            using (Stream stream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("WoTB_Voice_Mod_Creater.Resources.bassmix.dll"))
-            {
-                using (FileStream bw = new FileStream(Directory.GetCurrentDirectory() + "/dll/bassmix.dll", FileMode.Create))
-                {
-                    while (stream.Position < stream.Length)
-                    {
-                        byte[] bits = new byte[stream.Length];
-                        stream.Read(bits, 0, (int)stream.Length);
-                        bw.Write(bits, 0, (int)stream.Length);
-                    }
+                    bw.Close();
                 }
                 stream.Close();
             }

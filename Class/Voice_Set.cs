@@ -1,10 +1,9 @@
-﻿using FluentFTP;
-using SimpleTCP;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Windows;
+using WoTB_Voice_Mod_Creater.Class;
 using WoTB_Voice_Mod_Creater.FMOD;
 
 namespace WoTB_Voice_Mod_Creater
@@ -22,8 +21,8 @@ namespace WoTB_Voice_Mod_Creater
         static string WoT_Mod_Location = "";
         static int Voice_Number = 0;
         static bool IsBusy = false;
-        static FtpClient FTPClient = new FtpClient();
-        static SimpleTcpClient TCPClient = new SimpleTcpClient();
+        public static SFTP_Client FTPClient { get; set; }
+        static TCP_Client TCPClient = new TCP_Client();
         public static List<string> Voice_Files
         {
             get { return Voice_Lists; }
@@ -39,12 +38,7 @@ namespace WoTB_Voice_Mod_Creater
             get { return Voice_Number; }
             set { Voice_Number = value; }
         }
-        public static FtpClient FTP_Server
-        {
-            get { return FTPClient; }
-            set { FTPClient = value; }
-        }
-        public static SimpleTcpClient TCP_Server
+        public static TCP_Client TCP_Server
         {
             get { return TCPClient; }
             set { TCPClient = value; }
@@ -92,54 +86,17 @@ namespace WoTB_Voice_Mod_Creater
             return false;
         }
         //サーバー内のファイルに追記
-        public static void AppendString(string To_Path, byte[] data)
+        public static void AppendString(string To_Path, string Text)
         {
             if (!IsBusy)
-            {
-                using (Stream ostream = FTPClient.OpenAppend(To_Path))
-                {
-                    try
-                    {
-                        ostream.Write(data, 0, data.Length);
-                    }
-                    finally
-                    {
-                        ostream.Close();
-                    }
-                }
-            }
+                FTPClient.File_Append(To_Path, Text);
         }
         //サーバー内に空のファイルを追加
         //引数:ファイル場所,途中のフォルダがなければ作成するか
         //戻り値:ファイルが存在せず、作成できればtrue(既にファイルが存在している場合もtrue)、それ以外はfalse
         public static bool Create_File_Server(string ToFilePath, bool IsOverWrite = false, bool Directory_Create = false)
         {
-            try
-            {
-                string Name = Path.GetFileName(ToFilePath);
-                FtpRemoteExists Over;
-                if (IsOverWrite)
-                {
-                    Over = FtpRemoteExists.Overwrite;
-                }
-                else
-                {
-                    Over = FtpRemoteExists.Skip;
-                }
-                if (!FTPClient.FileExists(ToFilePath))
-                {
-                    StreamWriter stw = File.CreateText(Special_Path + "/Temp_" + Name);
-                    stw.Close();
-                    FTPClient.UploadFile(Special_Path + "/Temp_" + Name, ToFilePath, Over, Directory_Create);
-                    File.Delete(Special_Path + "/Temp_" + Name);
-                    return true;
-                }
-                return false;
-            }
-            catch
-            {
-                return false;
-            }
+            return FTPClient.File_Create(ToFilePath, IsOverWrite);
         }
         //音声の変更をサーバーに反映
         public static void Voice_Set_Name(string To_File_Name)
@@ -170,9 +127,9 @@ namespace WoTB_Voice_Mod_Creater
                 }
                 try
                 {
-                    AppendString("/WoTB_Voice_Mod/" + Server_Name + "/Change_Names.dat", Encoding.UTF8.GetBytes(Voice_Lists[Voice_Number] + "->" + File_Name_Temp + "\n"));
-                    FTPClient.MoveFile("/WoTB_Voice_Mod/" + Server_Name + "/Voices/" + Voice_Lists[Voice_Number], "/WoTB_Voice_Mod/" + Server_Name + "/Voices/" + File_Name_Temp);
-                    TCPClient.WriteLine(Server_Name + "|Rename|" + Voice_Lists[Voice_Number] + "|" + File_Name_Temp + '\0');
+                    AppendString("/WoTB_Voice_Mod/" + Server_Name + "/Change_Names.dat", Voice_Lists[Voice_Number] + "->" + File_Name_Temp + "\n");
+                    FTPClient.File_Move("/WoTB_Voice_Mod/" + Server_Name + "/Voices/" + Voice_Lists[Voice_Number], "/WoTB_Voice_Mod/" + Server_Name + "/Voices/" + File_Name_Temp, true);
+                    TCPClient.Send(Server_Name + "|Rename|" + Voice_Lists[Voice_Number] + "|" + File_Name_Temp);
                 }
                 catch (Exception e)
                 {

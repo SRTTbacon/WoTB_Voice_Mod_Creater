@@ -14,14 +14,11 @@ namespace WoTB_Voice_Mod_Creater.Class
         public string Save_Dir = "";
         bool IsClosing = false;
         bool IsMessageShowing = false;
+        bool IsOpenDialog = false;
         public bool IsConfigsLoaded = false;
         List<Image> Check_Images = new List<Image>();
         List<string> Check_Names = new List<string>();
         List<bool> Check_IsChecked = new List<bool>();
-        BitmapFrame Check_01;
-        BitmapFrame Check_02;
-        BitmapFrame Check_03;
-        BitmapFrame Check_04;
         public Sound_Editor_Setting()
         {
             InitializeComponent();
@@ -50,10 +47,10 @@ namespace WoTB_Voice_Mod_Creater.Class
             Save_Once_C.Visibility = Visibility.Hidden;
             Cut_Pos_C.Visibility = Visibility.Hidden;
             System.Reflection.Assembly sra = System.Reflection.Assembly.GetExecutingAssembly();
-            Check_01 = BitmapFrame.Create(sra.GetManifestResourceStream("WoTB_Voice_Mod_Creater.Resources.Check_01.png"));
-            Check_02 = BitmapFrame.Create(sra.GetManifestResourceStream("WoTB_Voice_Mod_Creater.Resources.Check_02.png"));
-            Check_03 = BitmapFrame.Create(sra.GetManifestResourceStream("WoTB_Voice_Mod_Creater.Resources.Check_03.png"));
-            Check_04 = BitmapFrame.Create(sra.GetManifestResourceStream("WoTB_Voice_Mod_Creater.Resources.Check_04.png"));
+            Sub_Code.Check_01 = BitmapFrame.Create(sra.GetManifestResourceStream("WoTB_Voice_Mod_Creater.Resources.Check_01.png"));
+            Sub_Code.Check_02 = BitmapFrame.Create(sra.GetManifestResourceStream("WoTB_Voice_Mod_Creater.Resources.Check_02.png"));
+            Sub_Code.Check_03 = BitmapFrame.Create(sra.GetManifestResourceStream("WoTB_Voice_Mod_Creater.Resources.Check_03.png"));
+            Sub_Code.Check_04 = BitmapFrame.Create(sra.GetManifestResourceStream("WoTB_Voice_Mod_Creater.Resources.Check_04.png"));
             Check_Names.Add("Set_Loop_Mode_C_Image");
             Check_Names.Add("Set_Speed_Mode_C_Image");
             Check_Names.Add("Cut_Volume_Sync_C_Image");
@@ -75,33 +72,33 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Check_Images[Check_Index].HorizontalAlignment = HorizontalAlignment.Center;
                 Check_Images[Check_Index].VerticalAlignment = VerticalAlignment.Top;
                 Check_Images[Check_Index].Focusable = false;
-                Check_Images[Check_Index].Source = Check_01;
+                Check_Images[Check_Index].Source = Sub_Code.Check_01;
                 Check_Images[Check_Index].MouseEnter += delegate
                 {
                     if (Check_IsChecked[Check_Index])
-                        Check_Images[Check_Index].Source = Check_04;
+                        Check_Images[Check_Index].Source = Sub_Code.Check_04;
                     else
-                        Check_Images[Check_Index].Source = Check_02;
+                        Check_Images[Check_Index].Source = Sub_Code.Check_02;
                 };
                 Check_Images[Check_Index].MouseLeave += delegate
                 {
                     if (Check_IsChecked[Check_Index])
-                        Check_Images[Check_Index].Source = Check_03;
+                        Check_Images[Check_Index].Source = Sub_Code.Check_03;
                     else
-                        Check_Images[Check_Index].Source = Check_01;
+                        Check_Images[Check_Index].Source = Sub_Code.Check_01;
                 };
                 Check_Images[Check_Index].MouseDown += delegate
                 {
                     if (Check_IsChecked[Check_Index])
                     {
                         Check_IsChecked[Check_Index] = false;
-                        Check_Images[Check_Index].Source = Check_02;
+                        Check_Images[Check_Index].Source = Sub_Code.Check_02;
                         Check_Image_Down_Change_Value(Check_Names[Check_Index], false);
                     }
                     else
                     {
                         Check_IsChecked[Check_Index] = true;
-                        Check_Images[Check_Index].Source = Check_04;
+                        Check_Images[Check_Index].Source = Sub_Code.Check_04;
                         Check_Image_Down_Change_Value(Check_Names[Check_Index], true);
                     }
                 };
@@ -132,82 +129,82 @@ namespace WoTB_Voice_Mod_Creater.Class
             if (Set_Loop_Mode_C.IsChecked.Value)
             {
                 Check_IsChecked[0] = true;
-                Check_Images[0].Source = Check_03;
+                Check_Images[0].Source = Sub_Code.Check_03;
             }
             else
             {
                 Check_IsChecked[0] = false;
-                Check_Images[0].Source = Check_01;
+                Check_Images[0].Source = Sub_Code.Check_01;
             }
             if (Set_Speed_Mode_C.IsChecked.Value)
             {
                 Check_IsChecked[1] = true;
-                Check_Images[1].Source = Check_03;
+                Check_Images[1].Source = Sub_Code.Check_03;
             }
             else
             {
                 Check_IsChecked[1] = false;
-                Check_Images[1].Source = Check_01;
+                Check_Images[1].Source = Sub_Code.Check_01;
             }
             if (Cut_Volume_Sync_C.IsChecked.Value)
             {
                 Check_IsChecked[2] = true;
-                Check_Images[2].Source = Check_03;
+                Check_Images[2].Source = Sub_Code.Check_03;
             }
             else
             {
                 Check_IsChecked[2] = false;
-                Check_Images[2].Source = Check_01;
+                Check_Images[2].Source = Sub_Code.Check_01;
             }
             if (Cut_ShortCut_C.IsChecked.Value)
             {
                 Check_IsChecked[3] = true;
-                Check_Images[3].Source = Check_03;
+                Check_Images[3].Source = Sub_Code.Check_03;
             }
             else
             {
                 Check_IsChecked[3] = false;
-                Check_Images[3].Source = Check_01;
+                Check_Images[3].Source = Sub_Code.Check_01;
             }
             if (Cut_Volume_C.IsChecked.Value)
             {
                 Check_IsChecked[4] = true;
-                Check_Images[4].Source = Check_03;
+                Check_Images[4].Source = Sub_Code.Check_03;
             }
             else
             {
                 Check_IsChecked[4] = false;
-                Check_Images[4].Source = Check_01;
+                Check_Images[4].Source = Sub_Code.Check_01;
             }
             if (Save_Track_Delete_C.IsChecked.Value)
             {
                 Check_IsChecked[5] = true;
-                Check_Images[5].Source = Check_03;
+                Check_Images[5].Source = Sub_Code.Check_03;
             }
             else
             {
                 Check_IsChecked[5] = false;
-                Check_Images[5].Source = Check_01;
+                Check_Images[5].Source = Sub_Code.Check_01;
             }
             if (Save_Once_C.IsChecked.Value)
             {
                 Check_IsChecked[6] = true;
-                Check_Images[6].Source = Check_03;
+                Check_Images[6].Source = Sub_Code.Check_03;
             }
             else
             {
                 Check_IsChecked[6] = false;
-                Check_Images[6].Source = Check_01;
+                Check_Images[6].Source = Sub_Code.Check_01;
             }
             if (Cut_Pos_C.IsChecked.Value)
             {
                 Check_IsChecked[7] = true;
-                Check_Images[7].Source = Check_03;
+                Check_Images[7].Source = Sub_Code.Check_03;
             }
             else
             {
                 Check_IsChecked[7] = false;
-                Check_Images[7].Source = Check_01;
+                Check_Images[7].Source = Sub_Code.Check_01;
             }
         }
         public async void Window_Show()
@@ -379,8 +376,9 @@ namespace WoTB_Voice_Mod_Creater.Class
         }
         private void Save_Dir_B_Click(object sender, System.Windows.RoutedEventArgs e)
         {
-            if (IsClosing)
+            if (IsClosing || IsOpenDialog)
                 return;
+            IsOpenDialog = true;
             BetterFolderBrowser bfb = new BetterFolderBrowser()
             {
                 Title = "保存先のフォルダを指定してください。",
@@ -399,6 +397,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                     Message_Feed_Out("指定したフォルダのアクセス権がありませんでした。");
             }
             bfb.Dispose();
+            IsOpenDialog = false;
         }
         private void Volume_S_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {

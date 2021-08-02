@@ -1,0 +1,32 @@
+﻿<UserControl x:Class="WoTB_Voice_Mod_Creater.Class.Vocal_Inst_Cut"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="1080" d:DesignWidth="1920">
+    <Viewbox>
+        <DockPanel Width="1920" Height="1080">
+            <Border BorderBrush="Black" BorderThickness="1" Background="Black" Height="1080" VerticalAlignment="Top" Width="1920" Opacity="0.6"/>
+            <Border BorderBrush="Aqua" Background="#D9A890DC" BorderThickness="2" Height="968" VerticalAlignment="Top" Width="1700" Opacity="1" Margin="-1920,0,0,0"/>
+            <ListBox x:Name="Music_List" Height="650" Width="800" VerticalAlignment="Top" FontSize="38" Foreground="Aqua" BorderBrush="Aqua" Background="Transparent" Margin="-2800,110,0,0" Focusable="False" SelectionChanged="Music_List_SelectionChanged" MouseDown="Music_List_MouseDown"/>
+            <TextBlock TextWrapping="Wrap" Text="変換リスト" VerticalAlignment="Top" FontSize="37" Foreground="Aqua" Margin="-2800,45,0,0" Width="155"/>
+            <Button x:Name="Music_Add_B" Content="変換する曲を追加" Height="70" VerticalAlignment="Top" Width="300" Foreground="Aqua" FontSize="36" Margin="-1100,70,0,0" BorderBrush="Aqua" Background="Transparent" Focusable="False" Click="Music_Add_B_Click"/>
+            <Button x:Name="Music_Upload_B" Content="アップロード+切り分け" Height="70" VerticalAlignment="Top" Width="450" Foreground="Aqua" FontSize="36" Margin="-1100,285,0,0" BorderBrush="Aqua" Background="Transparent" Focusable="False" Click="Music_Upload_B_Click"/>
+            <ComboBox x:Name="MP3_OR_WAV_C" Height="45" VerticalAlignment="Top" Width="250" FontSize="30" Margin="-1100,225,0,0" Focusable="False" SelectionChanged="MP3_OR_WAV_C_SelectionChanged"/>
+            <TextBlock TextWrapping="Wrap" Text="出力形式" VerticalAlignment="Top" FontSize="37" Foreground="Aqua" Margin="-1100,165,0,0" Width="150"/>
+            <Button x:Name="MP3_OR_WAV_Help_B" Content="?" Height="45" VerticalAlignment="Top" Width="45" Foreground="Aqua" FontSize="30" Margin="-750,225,0,0" BorderBrush="Aqua" Background="Transparent" Focusable="False" Click="MP3_OR_WAV_Help_B_Click"/>
+            <Button x:Name="Out_Dir_B" Content="保存先を指定" Height="70" VerticalAlignment="Top" Width="350" Foreground="Aqua" FontSize="36" Margin="-1100,400,0,0" BorderBrush="Aqua" Background="Transparent" Focusable="False" Click="Out_Dir_B_Click"/>
+            <TextBlock x:Name="Out_Dir_T" TextWrapping="Wrap" Text="" VerticalAlignment="Top" FontSize="33" Foreground="Aqua" Margin="-1100,480,0,0" Width="878" Height="45" TextAlignment="Center"/>
+            <Button x:Name="Download_Vocal_B" Content="ボーカル部分をDL" Height="65" VerticalAlignment="Top" Width="325" Foreground="Aqua" FontSize="35" Margin="-1435,600,0,0" BorderBrush="Aqua" Background="Transparent" Focusable="False" Click="Download_Vocal_B_Click"/>
+            <Button x:Name="Download_Inst_B" Content="楽器部分をDL" Height="65" VerticalAlignment="Top" Width="325" Foreground="Aqua" FontSize="35" Margin="-765,600,0,0" BorderBrush="Aqua" Background="Transparent" Focusable="False" Click="Download_Inst_B_Click"/>
+            <ProgressBar x:Name="Download_P" Height="30" VerticalAlignment="Top" Width="425" Margin="-1100,725,0,0"/>
+            <TextBlock x:Name="Download_T" Height="45" Width="500" Margin="-1100,675,0,0" Foreground="Aqua" FontSize="35" TextWrapping="Wrap" Text="" VerticalAlignment="Top" TextAlignment="Center"/>
+            <Button x:Name="Music_Delete_B" Content="リストから削除" Height="65" VerticalAlignment="Top" Width="325" Foreground="Aqua" FontSize="35" Margin="-2800,760,0,0" BorderBrush="Aqua" Background="Transparent" Focusable="False" Click="Music_Delete_B_Click"/>
+            <TextBlock x:Name="Message_T" Height="110" Width="1100" TextWrapping="Wrap" Text="" Foreground="Aqua" FontSize="37" Margin="-1920,835,0,0" VerticalAlignment="Top" TextAlignment="Center" Focusable="False"/>
+            <Button x:Name="Back_B" Content="戻る" Height="70" VerticalAlignment="Top" Width="300" Foreground="Aqua" FontSize="40" Margin="-3318,897,0,0" BorderBrush="Aqua" Background="Transparent" Focusable="False" Click="Back_B_Click"/>
+            <Button x:Name="Attention_B" Content="注意事項" Height="65" VerticalAlignment="Top" Width="250" Foreground="Aqua" FontSize="40" Margin="-471,903,0,0" BorderBrush="Aqua" Background="Transparent" Focusable="False" Click="Attention_B_Click"/>
+            <TextBlock x:Name="Waiting_Thread_T" TextWrapping="Wrap" Text="サーバー全体の変換中の数:0" VerticalAlignment="Top" FontSize="30" Foreground="Aqua" Margin="-1900,775,0,0" Width="500" TextAlignment="Center"/>
+        </DockPanel>
+    </Viewbox>
+</UserControl>

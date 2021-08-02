@@ -406,10 +406,10 @@ namespace WoTB_Voice_Mod_Creater.Class
             }
             if (IsAndroid)
             {
-                Voice_Set.FTP_Server.DownloadDirectory(Voice_Dir + "/GUI_battle_streamed", "/WoTB_Voice_Mod/Android/GUI_battle_streamed");
-                Voice_Set.FTP_Server.DownloadDirectory(Voice_Dir + "/GUI_notifications_FX_howitzer_load", "/WoTB_Voice_Mod/Android/GUI_notifications_FX_howitzer_load");
-                Voice_Set.FTP_Server.DownloadDirectory(Voice_Dir + "/GUI_quick_commands", "/WoTB_Voice_Mod/Android/GUI_quick_commands");
-                Voice_Set.FTP_Server.DownloadDirectory(Voice_Dir + "/GUI_sirene", "/WoTB_Voice_Mod/Android/GUI_sirene");
+                Voice_Set.FTPClient.DownloadDirectory("/WoTB_Voice_Mod/Android/GUI_battle_streamed", Voice_Dir + "/GUI_battle_streamed");
+                Voice_Set.FTPClient.DownloadDirectory("/WoTB_Voice_Mod/Android/GUI_notifications_FX_howitzer_load", Voice_Dir + "/GUI_notifications_FX_howitzer_load");
+                Voice_Set.FTPClient.DownloadDirectory("/WoTB_Voice_Mod/Android/GUI_quick_commands", Voice_Dir + "/GUI_quick_commands");
+                Voice_Set.FTPClient.DownloadDirectory("/WoTB_Voice_Mod/Android/GUI_sirene", Voice_Dir + "/GUI_sirene");
             }
             else
             {

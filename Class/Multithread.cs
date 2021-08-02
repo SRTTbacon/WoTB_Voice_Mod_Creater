@@ -1,7 +1,6 @@
 ﻿using K4os.Compression.LZ4;
 using NAudio.Lame;
 using NAudio.Wave;
-using SimpleTCP;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -475,9 +474,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                             goto start;
                         }
                         else
-                        {
                             Sub_Code.Error_Log_Write(e.Message);
-                        }
                     }
                 });
             }

@@ -179,11 +179,16 @@
     <Compile Include="Class\NAudio\StandardWaveFormRendererSettings.cs" />
     <Compile Include="Class\NAudio\WaveFormRenderer.cs" />
     <Compile Include="Class\NAudio\WaveFormRendererSettings.cs" />
+    <Compile Include="Class\SFTP_Client.cs" />
     <Compile Include="Class\Sound_Editor.xaml.cs">
       <DependentUpon>Sound_Editor.xaml</DependentUpon>
     </Compile>
     <Compile Include="Class\Sound_Editor_Setting.xaml.cs">
       <DependentUpon>Sound_Editor_Setting.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Class\TCP_Client.cs" />
+    <Compile Include="Class\Vocal_Inst_Cut.xaml.cs">
+      <DependentUpon>Vocal_Inst_Cut.xaml</DependentUpon>
     </Compile>
     <Compile Include="Multiplayer\Administrator_Control.xaml.cs">
       <DependentUpon>Administrator_Control.xaml</DependentUpon>
@@ -298,6 +303,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Class\Sound_Editor_Setting.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Class\Vocal_Inst_Cut.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -520,9 +529,6 @@
     <PackageReference Include="DdsFileTypePlusHack">
       <Version>1.0.4</Version>
     </PackageReference>
-    <PackageReference Include="FluentFTP">
-      <Version>33.0.3</Version>
-    </PackageReference>
     <PackageReference Include="Fody">
       <Version>6.3.0</Version>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -566,8 +572,8 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="SimpleTCP">
-      <Version>1.0.24</Version>
+    <PackageReference Include="SSH.NET">
+      <Version>2020.0.1</Version>
     </PackageReference>
     <PackageReference Include="System.Buffers">
       <Version>4.5.1</Version>

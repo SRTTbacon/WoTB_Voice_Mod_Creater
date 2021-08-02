@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Windows;
 
@@ -9,27 +10,27 @@ namespace WoTB_Voice_Mod_Creater
         //サーバー内のファイルを直接読み込む
         public static string Server_Open_File(string From_File)
         {
-            Stream stream = Voice_Set.FTP_Server.OpenRead(From_File);
-            StreamReader str = new StreamReader(stream);
+            StreamReader str = Voice_Set.FTPClient.GetFileRead(From_File);
             string Temp = str.ReadToEnd();
-            str.Close();
-            stream.Close();
-            stream.Dispose();
+            str.Dispose();
+            if (Temp == "" || Temp == null)
+                throw new Exception("指定したファイルは存在しません。");
             return Temp;
         }
         //サーバー内のファイルを直接読み込む(改行で分ける)
         public static string[] Server_Open_File_Line(string From_File)
         {
             List<string> Temp = new List<string>();
-            Stream stream = Voice_Set.FTP_Server.OpenRead(From_File);
-            StreamReader str = new StreamReader(stream);
-            while (str.EndOfStream == false)
-            {
-                Temp.Add(str.ReadLine());
-            }
-            str.Close();
-            stream.Close();
+            StreamReader stream = Voice_Set.FTPClient.GetFileRead(From_File);
+            while (stream.EndOfStream == false)
+                Temp.Add(stream.ReadLine());
             stream.Dispose();
+            if (Temp.Count == 0)
+                throw new Exception("指定したファイルは存在しません。");
+            else if (Temp.Count == 1 && Temp[0] == "")
+                throw new Exception("指定したファイルは存在しません。");
+            else if (Temp.Count == 1 && Temp[0] == null)
+                throw new Exception("指定したファイルは存在しません。");
             return Temp.ToArray();
         }
     }

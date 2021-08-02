@@ -1,5 +1,4 @@
-﻿using NAudio.WaveFormRenderer;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
@@ -211,12 +210,13 @@ namespace WoTB_Voice_Mod_Creater.Class
             float period = 1000f / FPS;
             while (Visibility == Visibility.Visible)
             {
-                //60FPSを上回っていたらスキップ
+                //FPSを上回っていたらスキップ
                 double tickCount = (double)Environment.TickCount;
                 if (tickCount < nextFrame)
                 {
                     if (nextFrame - tickCount > 1)
                         await Task.Delay((int)(nextFrame - tickCount));
+                    System.Windows.Forms.Application.DoEvents();
                     continue;
                 }
                 //再生中なら実行
@@ -494,6 +494,10 @@ namespace WoTB_Voice_Mod_Creater.Class
             Loop_FPS();
             if (!Setting_Window.Save_Once_C.IsChecked.Value)
                 Set_Serial_Number(Setting_Window.Save_Dir + "\\" + Setting_Window.Save_File_Name_T.Text);
+            if (Sub_Code.IsWindowBarShow)
+                Window_Bar_Canvas.Margin = new Thickness(0, 25, 0, 0);
+            else
+                Window_Bar_Canvas.Margin = new Thickness(0, 0, 0, 0);
             while (Opacity < 1 && !IsClosing)
             {
                 Opacity += Sub_Code.Window_Feed_Time;
@@ -1261,28 +1265,6 @@ namespace WoTB_Voice_Mod_Creater.Class
                 IsFeedIn = false;
             }
         }
-        //NAudioを使用して波形を作成
-        System.Drawing.Image NAudioRenderWaveForm(string Audio_File)
-        {
-            System.Drawing.Color Set_Start_Color = System.Drawing.Color.White;
-            System.Drawing.Color Set_End_Color = System.Drawing.Color.Aqua;
-            WaveFormRendererSettings settings = new SoundCloudBlockWaveFormSettings(System.Drawing.Color.FromArgb(196, 197, 53, 0), System.Drawing.Color.FromArgb(64, 83, 22, 3),
-                System.Drawing.Color.FromArgb(196, 79, 26, 0), System.Drawing.Color.FromArgb(64, 79, 79, 79))
-            {
-                Name = "SoundCloud Orange Transparent Blocks",
-                PixelsPerPeak = 2,
-                SpacerPixels = 1,
-                TopSpacerGradientStartColor = System.Drawing.Color.FromArgb(64, 83, 22, 3),
-                BackgroundColor = System.Drawing.Color.Transparent
-            };
-            settings.TopHeight = 75;
-            settings.BottomHeight = 75;
-            settings.Width = 1920;
-            settings.BackgroundColor = System.Drawing.Color.Transparent;
-            settings.DecibelScale = false;
-            WaveFormRenderer render = new WaveFormRenderer();
-            return render.Render(Audio_File, settings);
-        }
         //タイムラインの時間単位によって波形の横の長さを調整
         void Set_Sound_Width(Time_Relation Time_R)
         {
@@ -1508,6 +1490,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                     MessageBox.Show("正常に処理できませんでした。次の文字を開発者に送信してください。\n" + Index + " | " + (Sound_Images.Count - 1) + "\n + Error_Code:" + Error_Number);
                 }
             }
+            Sound_Selected_Index.Clear();
             IsDeleted = true;
         }
         //サウンドをカット
@@ -1531,9 +1514,9 @@ namespace WoTB_Voice_Mod_Creater.Class
                 {
                     //複雑な計算(説明が難しいため詳しく書きません)
                     double Size_Percent = ((Time_Line.Margin.Left + 1400 * Time_Line_Move_Width_Scrool) - (Sound_Images[Index].Margin.Left + 1400 * Time_Line_Move_Width_Scrool)) / Sound_Images[Index].Width;
-                    BitmapSource From_Image = null;
-                    BitmapSource To_Image = null;
-                    Sub_Code.Resize_From_BitmapImage((BitmapSource)Sound_Images[Index].Source, (int)(Sound_Images[Index].Source.Width * Size_Percent), (int)Sound_Images[Index].Source.Height, ref From_Image, ref To_Image);
+                    BitmapSource From_Image;
+                    BitmapSource To_Image;
+                    Sub_Code.Resize_From_BitmapImage((BitmapSource)Sound_Images[Index].Source, (int)(Sound_Images[Index].Source.Width * Size_Percent), (int)Sound_Images[Index].Source.Height, out From_Image, out To_Image);
                     Sound_Images[Index].Source = From_Image;
                     if (Setting_Window.Cut_Volume_Sync_C.IsChecked.Value)
                         await Add_Sound(Sound_Files[Index], To_Image, Index + 1, Sound_Volumes[Sound_Selected_Index[0]].Value);
@@ -2138,62 +2121,75 @@ namespace WoTB_Voice_Mod_Creater.Class
             Sound_Remove_Index();
             IsDeleted = false;
             Play_Time = 0;
-            //.wseファイルから読み込む
-            Sub_Code.File_Decrypt(File_Path, File_Path + ".tmp", "Sound_Editor_Save_File", false);
-            string[] Read_Lines = File.ReadAllLines(File_Path + ".tmp");
-            File.Delete(File_Path + ".tmp");
-            //1行目は速度の設定
-            Pitch_S.Value = double.Parse(Read_Lines[0]);
-            //トラックの数だけループ
-            List<ImageSource> Temp_Images = new List<ImageSource>();
-            List<string> Temp_Files = new List<string>();
-            for (int Number = 1; Number < Read_Lines.Length; Number++)
+            try
             {
-                if (Read_Lines[Number].Contains("WoTB_Sound_Editor_Save_File_End"))
-                    break;
-                string[] Split = Read_Lines[Number].Split('|');
-                Message_T.Text = "波形を生成しています...";
-                await Task.Delay(50);
-                ImageSource Image_Wave = null;
-                if (Temp_Files.Contains(Split[0]))
+                //.wseファイルから読み込む
+                Sub_Code.File_Decrypt(File_Path, File_Path + ".tmp", "Sound_Editor_Save_File", false);
+                string[] Read_Lines = File.ReadAllLines(File_Path + ".tmp");
+                File.Delete(File_Path + ".tmp");
+                //1行目は速度の設定
+                Pitch_S.Value = double.Parse(Read_Lines[0]);
+                //トラックの数だけループ
+                List<ImageSource> Temp_Images = new List<ImageSource>();
+                List<string> Temp_Files = new List<string>();
+                for (int Number = 1; Number < Read_Lines.Length; Number++)
                 {
-                    int Index_Image = Temp_Files.IndexOf(Split[0]);
-                    Image_Wave = Temp_Images[Index_Image];
-                }
-                else
-                {
-                    Temp_Files.Add(Split[0]);
-                    string Ex = Path.GetExtension(Split[0]);
-                    int StreamHandle = Bass.BASS_StreamCreateFile(Split[0], 0, 0, BASSFlag.BASS_STREAM_DECODE);
-                    if (Bass.BASS_ChannelBytes2Seconds(StreamHandle, Bass.BASS_ChannelGetLength(StreamHandle, BASSMode.BASS_POS_BYTES)) > 600)
-                        Image_Wave = Temp_WaveForm;
+                    if (Read_Lines[Number].Contains("WoTB_Sound_Editor_Save_File_End"))
+                        break;
+                    string[] Split = Read_Lines[Number].Split('|');
+                    Message_T.Text = "波形を生成しています...";
+                    await Task.Delay(50);
+                    ImageSource Image_Wave = null;
+                    if (Temp_Files.Contains(Split[0]))
+                    {
+                        int Index_Image = Temp_Files.IndexOf(Split[0]);
+                        Image_Wave = Temp_Images[Index_Image];
+                    }
                     else
-                        Image_Wave = Sub_Code.BassRenderWaveForm(Split[0]);
-                    Bass.BASS_StreamFree(StreamHandle);
-                    Temp_Images.Add(Image_Wave);
+                    {
+                        Temp_Files.Add(Split[0]);
+                        string Ex = Path.GetExtension(Split[0]);
+                        int StreamHandle = Bass.BASS_StreamCreateFile(Split[0], 0, 0, BASSFlag.BASS_STREAM_DECODE);
+                        if (Bass.BASS_ChannelBytes2Seconds(StreamHandle, Bass.BASS_ChannelGetLength(StreamHandle, BASSMode.BASS_POS_BYTES)) > 600)
+                            Image_Wave = Temp_WaveForm;
+                        else
+                            Image_Wave = Sub_Code.BassRenderWaveForm(Split[0]);
+                        Bass.BASS_StreamFree(StreamHandle);
+                        Temp_Images.Add(Image_Wave);
+                    }
+                    if (Image_Wave == null)
+                        continue;
+                    Message_T.Text = "サウンドを読み込んでいます...";
+                    await Task.Delay(50);
+                    await Add_Sound(Split[0], Image_Wave, -1, double.Parse(Split[1]), int.Parse(Split[2]));
+                    int Index = Sound_Images.Count - 1;
+                    Sound_Positions[Index] = double.Parse(Split[3]);
+                    Sound_Plus_Play_Time[Index] = double.Parse(Split[4]);
+                    Sound_Minus_Play_Time[Index] = double.Parse(Split[5]);
+                    //波形をカット
+                    double Start_Pos = 1920 * Sound_Plus_Play_Time[Index] / Sound_Max_Length[Index];
+                    double End_Pos = 1920 * Sound_Minus_Play_Time[Index] + Start_Pos;
+                    BitmapSource Temp;
+                    Sub_Code.Resize_From_BitmapImage((BitmapSource)Sound_Images[Index].Source, (int)(End_Pos - Start_Pos), (int)Sound_Images[Index].Source.Height, (int)Start_Pos, out Temp);
+                    Sound_Images[Index].Source = Temp;
+                    //波形の横の長さや配置場所を設定するため実行
+                    Set_Sound_Width(Time_Info[(int)Time_Scrool.Value]);
+                    Time_Line.Margin = new Thickness(-1400 * Time_Line_Move_Width_Scrool, Time_Line.Margin.Top, 0, 0);
                 }
-                if (Image_Wave == null)
-                    continue;
-                Message_T.Text = "サウンドを読み込んでいます...";
-                await Task.Delay(50);
-                await Add_Sound(Split[0], Image_Wave, -1, double.Parse(Split[1]), int.Parse(Split[2]));
-                int Index = Sound_Images.Count - 1;
-                Sound_Positions[Index] = double.Parse(Split[3]);
-                Sound_Plus_Play_Time[Index] = double.Parse(Split[4]);
-                Sound_Minus_Play_Time[Index] = double.Parse(Split[5]);
-                //波形をカット
-                double Start_Pos = 1920 * Sound_Plus_Play_Time[Index] / Sound_Max_Length[Index];
-                double End_Pos = 1920 * Sound_Minus_Play_Time[Index] + Start_Pos;
-                BitmapSource Temp;
-                Sub_Code.Resize_From_BitmapImage((BitmapSource)Sound_Images[Index].Source, (int)(End_Pos - Start_Pos), (int)Sound_Images[Index].Source.Height, (int)Start_Pos, out Temp);
-                Sound_Images[Index].Source = Temp;
-                //波形の横の長さや配置場所を設定するため実行
-                Set_Sound_Width(Time_Info[(int)Time_Scrool.Value]);
-                Time_Line.Margin = new Thickness(-1400 * Time_Line_Move_Width_Scrool, Time_Line.Margin.Top, 0, 0);
+                Temp_Images.Clear();
+                Temp_Files.Clear();
+                Message_Feed_Out("ロードしました。");
             }
-            Temp_Images.Clear();
-            Temp_Files.Clear();
-            Message_Feed_Out("ロードしました。");
+            catch (Exception e)
+            {
+                Sub_Code.Error_Log_Write(e.Message);
+                Message_Feed_Out("エラーが発生しました。");
+                Sound_Selected_Index.Clear();
+                for (int Number = 0; Number < Sound_Images.Count; Number++)
+                    Sound_Selected_Index.Add(Number);
+                Sound_Remove_Index();
+                IsDeleted = false;
+            }
             IsBusy = false;
         }
     }

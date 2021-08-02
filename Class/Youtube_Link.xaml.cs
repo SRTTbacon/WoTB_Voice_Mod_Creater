@@ -17,6 +17,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         bool IsClosing = false;
         bool IsMessageShowing = false;
         bool IsSaveOK = false;
+        bool IsOpenDialog = false;
         YoutubeClient youtube = new YoutubeClient();
         public Youtube_Link()
         {
@@ -91,10 +92,9 @@ namespace WoTB_Voice_Mod_Creater.Class
         private void Save_Destination_B_Click(object sender, RoutedEventArgs e)
         {
             //保存場所を変更
-            if (IsClosing)
-            {
+            if (IsClosing || IsOpenDialog)
                 return;
-            }
+            IsOpenDialog = true;
             BetterFolderBrowser ofd = new BetterFolderBrowser()
             {
                 Title = "保存先のフォルダを選択してください。",
@@ -107,6 +107,8 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Save_Destination_T.Text = ofd.SelectedFolder + "\\";
                 Configs_Save();
             }
+            ofd.Dispose();
+            IsOpenDialog = false;
         }
         private void Type_L_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {

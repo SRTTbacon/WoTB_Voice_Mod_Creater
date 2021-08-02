@@ -14,9 +14,9 @@ namespace WoTB_Voice_Mod_Creater.Class
         public async void Window_Show()
         {
             Opacity = 0;
-            if (Voice_Set.FTP_Server.FileExists("/WoTB_Voice_Mod/Message.dat"))
+            if (Voice_Set.FTPClient.File_Exist("/WoTB_Voice_Mod/Message.dat"))
             {
-                StreamReader str = new StreamReader(Voice_Set.FTP_Server.OpenRead("/WoTB_Voice_Mod/Message.dat"));
+                StreamReader str = Voice_Set.FTPClient.GetFileRead("/WoTB_Voice_Mod/Message.dat");
                 string Read = str.ReadToEnd();
                 str.Close();
                 Message_T.Text = Read + "\nCreated by SRTTbacon(introwonderful#ベーコン)";

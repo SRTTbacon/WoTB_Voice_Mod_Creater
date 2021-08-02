@@ -87,13 +87,9 @@ namespace WoTB_Voice_Mod_Creater.Class
                                 Download_Size_Now += (ulong)fi.Length;
                             }
                             if (Download_Size_Now >= (ulong)Download_Data_File.Download_Total_Size)
-                            {
                                 IsExtracting = true;
-                            }
                             else
-                            {
                                 Load_Text.Text += "\n" + Math.Round(Download_Size_Now / 1024.0 / 1024.0, 1, MidpointRounding.AwayFromZero) + "MB/" + Math.Round(Download_Data_File.Download_Total_Size / 1024.0 / 1024.0, 1, MidpointRounding.AwayFromZero) + "MB";
-                            }
                         }
                         catch
                         {

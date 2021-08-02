@@ -183,6 +183,18 @@ namespace WoTB_Voice_Mod_Creater.Class
                 ColorMode_C.IsChecked = true;
                 ColorMode_Change();
             }
+            if (Sub_Code.IsWindowBarShow)
+            {
+                Voice_Clear.Margin = new Thickness(0, 25, 0, 0);
+                ColorMode_C.Margin = new Thickness(0, 45, 0, 0);
+                ColorMode_T.Margin = new Thickness(0, 30, 0, 0);
+            }
+            else
+            {
+                Voice_Clear.Margin = new Thickness(0, 0, 0, 0);
+                ColorMode_C.Margin = new Thickness(0, 40, 0, 0);
+                ColorMode_T.Margin = new Thickness(0, 25, 0, 0);
+            }
             Opacity = 0;
             Visibility = Visibility.Visible;
             while (Opacity < 1 && !IsBusy)

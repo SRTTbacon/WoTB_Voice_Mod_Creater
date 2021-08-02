@@ -30,16 +30,13 @@ namespace WoTB_Voice_Mod_Creater.Class
             Delete_Files.Clear();
             Add_Files.Clear();
             //指定したModのファイルを参照
-            FluentFTP.FtpListItem[] Lists = Voice_Set.FTP_Server.GetListing("/WoTB_Voice_Mod/Mods/" + Mod_Name + "/Files", FluentFTP.FtpListOption.AllFiles);
-            foreach (FluentFTP.FtpListItem Items in Lists)
-            {
-                Mod_File_L.Items.Add(Path.GetFileName(Items.FullName));
-            }
+            foreach (string File_Now in Voice_Set.FTPClient.GetFiles("/WoTB_Voice_Mod/Mods/" + Mod_Name + "/Files", false, false))
+                Mod_File_L.Items.Add(Path.GetFileName(File_Now));
             Mod_Name_T.Text = Mod_Name;
             try
             {
                 //Modの情報を取得
-                XDocument xml2 = XDocument.Load(Voice_Set.FTP_Server.OpenRead("/WoTB_Voice_Mod/Mods/" + Mod_Name + "/Configs.dat"));
+                XDocument xml2 = XDocument.Load(Voice_Set.FTPClient.GetFileRead("/WoTB_Voice_Mod/Mods/" + Mod_Name + "/Configs.dat"));
                 XElement item2 = xml2.Element("Mod_Upload_Config");
                 if (bool.Parse(item2.Element("IsPassword").Value))
                 {
@@ -292,7 +289,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Message_Feed_Out("そのMod名は別の目的に使用されています。");
                 return;
             }
-            if (Voice_Set.FTP_Server.DirectoryExists("/WoTB_Voice_Mod/Mods/" + Mod_Name_T.Text) && Mod_Name != Mod_Name_T.Text)
+            if (Voice_Set.FTPClient.Directory_Exist("/WoTB_Voice_Mod/Mods/" + Mod_Name_T.Text) && Mod_Name != Mod_Name_T.Text)
             {
                 Message_Feed_Out("同名のModが既に存在します。");
                 return;
@@ -312,82 +309,6 @@ namespace WoTB_Voice_Mod_Creater.Class
                 return;
             }
             IsBusy = true;
-            //Modを配布
-            /*if (BGM_Mode_C.IsChecked.Value)
-            {
-                //BGMModも一緒に配布する場合は実行
-                try
-                {
-                    bool IsDVPL = false;
-                    bool IsExistBGM = false;
-                    int Number = -1;
-                    foreach (string Files in Mod_File_L.Items)
-                    {
-                        if (Files == "Music.fev" || Files == "Music.fev.dvpl")
-                        {
-                            IsExistBGM = true;
-                        }
-                    }
-                    if (IsExistBGM)
-                    {
-                        for (int Number_01 = 0; Number_01 <= Add_Files.Count - 1; Number_01++)
-                        {
-                            if (Path.GetFileName(Add_Files[Number_01]) == "Music.fev" || Path.GetFileName(Add_Files[Number_01]) == "Music.fev.dvpl")
-                            {
-                                if (Path.GetExtension(Add_Files[Number_01]) == ".dvpl")
-                                {
-                                    IsDVPL = true;
-                                }
-                                Number = Number_01;
-                                break;
-                            }
-                        }
-                        if (Number != -1)
-                        {
-                            Message_T.Text = "BGMファイルを確認しています...";
-                            await Task.Delay(50);
-                            string BGMDir = Path.GetDirectoryName(Add_Files[Number]);
-                            if (IsDVPL)
-                            {
-                                File.Copy(BGMDir + "/Music.fev.dvpl", Voice_Set.Special_Path + "/Music.fev.dvpl", true);
-                                File.Copy(BGMDir + "/Music.fsb.dvpl", Voice_Set.Special_Path + "/Music.fsb.dvpl", true);
-                                DVPL.DVPL_UnPack(Voice_Set.Special_Path + "/Music.fev.dvpl", Voice_Set.Special_Path + "/Music.fev", true);
-                                DVPL.DVPL_UnPack(Voice_Set.Special_Path + "/Music.fsb.dvpl", Voice_Set.Special_Path + "/Music.fsb", true);
-                                Fmod_Player.ESystem.Load(Voice_Set.Special_Path + "/Music.fev", ref ELI, ref EP);
-                            }
-                            else
-                            {
-                                Fmod_Player.ESystem.Load(Add_Files[Number], ref ELI, ref EP);
-                            }
-                            Cauldron.FMOD.RESULT result = Fmod_Player.ESystem.GetEvent("Music/Music/Music", Cauldron.FMOD.EVENT_MODE.DEFAULT, ref FE);
-                            EP.Release();
-                            FE.Release();
-                            if (IsDVPL)
-                            {
-                                File.Delete(Voice_Set.Special_Path + "/Music.fev");
-                                File.Delete(Voice_Set.Special_Path + "/Music.fsb");
-                            }
-                            if (result != Cauldron.FMOD.RESULT.OK)
-                            {
-                                throw new Exception("Music/Music/Musicが存在しません。");
-                            }
-                        }
-                    }
-                    else
-                    {
-                        Message_Feed_Out("BGMModのファイル名はMusic.fev(fsb)でなければいけません。");
-                        IsBusy = false;
-                        return;
-                    }
-                }
-                catch (Exception e1)
-                {
-                    Message_Feed_Out("BGMを付ける場合はファイル構成を\"Music/Music/Music\"にしてください。");
-                    IsBusy = false;
-                    Sub_Code.Error_Log_Write(e1.Message);
-                    return;
-                }
-            }*/
             Message_T.Text = "情報を保存しています...";
             await Task.Delay(50);
             try
@@ -404,21 +325,21 @@ namespace WoTB_Voice_Mod_Creater.Class
                 xml.Add(datas);
                 xml.Save(Voice_Set.Special_Path + "/Temp_Create_Mod.dat");
                 //Mod情報をアップロード
-                Voice_Set.FTP_Server.UploadFile(Voice_Set.Special_Path + "/Temp_Create_Mod.dat", "/WoTB_Voice_Mod/Mods/" + Mod_Name + "/Configs.dat");
+                Voice_Set.FTPClient.UploadFile(Voice_Set.Special_Path + "/Temp_Create_Mod.dat", "/WoTB_Voice_Mod/Mods/" + Mod_Name + "/Configs.dat");
                 File.Delete(Voice_Set.Special_Path + "/Temp_Create_Mod.dat");
                 foreach (string Delete_File in Delete_Files)
                 {
-                    Voice_Set.FTP_Server.DeleteFile("/WoTB_Voice_Mod/Mods/" + Mod_Name + "/Files/" + Delete_File);
+                    Voice_Set.FTPClient.DeleteFile("/WoTB_Voice_Mod/Mods/" + Mod_Name + "/Files/" + Delete_File);
                 }
                 foreach (string Add_File in Add_Files)
                 {
-                    Voice_Set.FTP_Server.UploadFile(Add_File, "/WoTB_Voice_Mod/Mods/" + Mod_Name + "/Files/" + Path.GetFileName(Add_File));
+                    Voice_Set.FTPClient.UploadFile(Add_File, "/WoTB_Voice_Mod/Mods/" + Mod_Name + "/Files/" + Path.GetFileName(Add_File));
                 }
                 if (Mod_Name != Mod_Name_T.Text)
                 {
-                    Voice_Set.FTP_Server.MoveDirectory("/WoTB_Voice_Mod/Mods/" + Mod_Name, "/WoTB_Voice_Mod/Mods/" + Mod_Name_T.Text);
+                    Voice_Set.FTPClient.Directory_Move("/WoTB_Voice_Mod/Mods/" + Mod_Name, "/WoTB_Voice_Mod/Mods/" + Mod_Name_T.Text, true);
                     StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Temp_Mod_Names.dat");
-                    StreamReader str = new StreamReader(Voice_Set.FTP_Server.OpenRead("/WoTB_Voice_Mod/Mods/Mod_Names.dat"));
+                    StreamReader str = Voice_Set.FTPClient.GetFileRead("/WoTB_Voice_Mod/Mods/Mod_Names.dat");
                     string line;
                     while ((line = str.ReadLine()) != null)
                     {
@@ -431,7 +352,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                     }
                     str.Close();
                     stw.Close();
-                    Voice_Set.FTP_Server.UploadFile(Voice_Set.Special_Path + "/Temp_Mod_Names.dat", "/WoTB_Voice_Mod/Mods/Mod_Names.dat");
+                    Voice_Set.FTPClient.UploadFile(Voice_Set.Special_Path + "/Temp_Mod_Names.dat", "/WoTB_Voice_Mod/Mods/Mod_Names.dat");
                     File.Delete(Voice_Set.Special_Path + "/Temp_Mod_Names.dat");
                 }
                 Message_Feed_Out("変更を保存しました。");
@@ -459,7 +380,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 try
                 {
                     StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Temp_Mod_Names.dat");
-                    StreamReader str = new StreamReader(Voice_Set.FTP_Server.OpenRead("/WoTB_Voice_Mod/Mods/Mod_Names.dat"));
+                    StreamReader str = Voice_Set.FTPClient.GetFileRead("/WoTB_Voice_Mod/Mods/Mod_Names.dat");
                     string line;
                     while ((line = str.ReadLine()) != null)
                     {
@@ -470,9 +391,9 @@ namespace WoTB_Voice_Mod_Creater.Class
                     }
                     str.Close();
                     stw.Close();
-                    Voice_Set.FTP_Server.UploadFile(Voice_Set.Special_Path + "/Temp_Mod_Names.dat", "/WoTB_Voice_Mod/Mods/Mod_Names.dat");
+                    Voice_Set.FTPClient.UploadFile(Voice_Set.Special_Path + "/Temp_Mod_Names.dat", "/WoTB_Voice_Mod/Mods/Mod_Names.dat");
                     File.Delete(Voice_Set.Special_Path + "/Temp_Mod_Names.dat");
-                    Voice_Set.FTP_Server.DeleteDirectory("/WoTB_Voice_Mod/Mods/" + Mod_Name, FluentFTP.FtpListOption.AllFiles);
+                    Voice_Set.FTPClient.Directory_Delete("/WoTB_Voice_Mod/Mods/" + Mod_Name);
                     Sub_Code.ModChange = true;
                     Message_Feed_Out("正常に削除しました。");
                 }
