@@ -22,6 +22,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         bool IsLocationChanging = false;
         bool IsMessageShowing = false;
         bool IsPCKFile = false;
+        bool IsOpenDialog = false;
         SYNCPROC IsMusicEnd;
         Wwise_File_Extract_V2 Wwise_Bnk;
         Wwise_File_Extract_V1 Wwise_Pck;
@@ -64,13 +65,9 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                     string Minutes = Time.Minutes.ToString();
                     string Seconds = Time.Seconds.ToString();
                     if (Time.Minutes < 10)
-                    {
                         Minutes = "0" + Time.Minutes;
-                    }
                     if (Time.Seconds < 10)
-                    {
                         Seconds = "0" + Time.Seconds;
-                    }
                     Location_T.Text = Minutes + ":" + Seconds;
                 }
                 await Task.Delay(100);
@@ -79,9 +76,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         void Location_MouseDown(object sender, MouseButtonEventArgs e)
         {
             if (IsClosing)
-            {
                 return;
-            }
             IsLocationChanging = true;
             IsPaused = true;
             Bass.BASS_ChannelSetAttribute(Stream, BASSAttribute.BASS_ATTRIB_VOL, 0f);
@@ -89,9 +84,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         async void Location_MouseUp(object sender, MouseButtonEventArgs e)
         {
             if (IsClosing)
-            {
                 return;
-            }
             IsLocationChanging = false;
             IsPaused = false;
             Bass.BASS_ChannelSetPosition(Stream, Location_S.Value);
@@ -102,9 +95,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             {
                 Volume_Now += Volume_Plus;
                 if (Volume_Now > 1f)
-                {
                     Volume_Now = 1f;
-                }
                 Bass.BASS_ChannelSetAttribute(Stream, BASSAttribute.BASS_ATTRIB_VOL, Volume_Now);
                 await Task.Delay(1000 / 60);
             }
@@ -112,9 +103,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         private void Location_S_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             if (IsLocationChanging)
-            {
                 Music_Pos_Change(Location_S.Value, false);
-            }
         }
         void Music_Pos_Change(double Pos, bool IsBassPosChange)
         {
@@ -130,13 +119,9 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             string Minutes = Time.Minutes.ToString();
             string Seconds = Time.Seconds.ToString();
             if (Time.Minutes < 10)
-            {
                 Minutes = "0" + Time.Minutes;
-            }
             if (Time.Seconds < 10)
-            {
                 Seconds = "0" + Time.Seconds;
-            }
             Location_T.Text = Minutes + ":" + Seconds;
         }
         async void Message_Feed_Out(string Message)
@@ -154,9 +139,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             {
                 Number++;
                 if (Number >= 120)
-                {
                     Message_T.Opacity -= 0.025;
-                }
                 await Task.Delay(1000 / 60);
             }
             IsMessageShowing = false;
@@ -166,16 +149,12 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         void EndSync(int handle, int channel, int data, IntPtr user)
         {
             if (!IsEnded)
-            {
                 IsEnded = true;
-            }
         }
         private void Open_File_B_Click(object sender, System.Windows.RoutedEventArgs e)
         {
             if (IsClosing)
-            {
                 return;
-            }
             System.Windows.Forms.OpenFileDialog ofd = new System.Windows.Forms.OpenFileDialog()
             {
                 Title = "サウンドファイルを選択してください。",
@@ -188,30 +167,22 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 {
                     Sound_List.Items.Clear();
                     if (Wwise_Bnk != null)
-                    {
                         Wwise_Bnk.Bank_Clear();
-                    }
                     if (Wwise_Pck != null)
-                    {
                         Wwise_Pck.Pck_Clear();
-                    }
                     string Ex = Path.GetExtension(ofd.FileName);
                     if (Ex == ".bnk")
                     {
                         Wwise_Bnk = new Wwise_File_Extract_V2(ofd.FileName);
                         foreach (string Name_ID in Wwise_Bnk.Wwise_Get_Names())
-                        {
                             Sound_List.Items.Add((Sound_List.Items.Count + 1) + ":" + Name_ID);
-                        }
                         IsPCKFile = false;
                     }
                     else if (Ex == ".pck")
                     {
                         Wwise_Pck = new Wwise_File_Extract_V1(ofd.FileName);
                         foreach (string Name_ID in Wwise_Pck.Wwise_Get_Banks_ID())
-                        {
                             Sound_List.Items.Add((Sound_List.Items.Count + 1) + ":" + Name_ID);
-                        }
                         IsPCKFile = true;
                     }
                 }
@@ -236,24 +207,16 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 if (IsPCKFile)
                 {
                     if (Wwise_Pck.Wwise_Extract_To_Ogg_File(Sound_List.SelectedIndex, Voice_Set.Special_Path + "/Wwise/Temp_02.ogg", true))
-                    {
                         Message_Feed_Out("変換しました。");
-                    }
                     else
-                    {
                         Message_Feed_Out("変換できませんでした。");
-                    }
                 }
                 else
                 {
                     if (Wwise_Bnk.Wwise_Extract_To_Ogg_File(Sound_List.SelectedIndex, Voice_Set.Special_Path + "/Wwise/Temp_02.ogg", true))
-                    {
                         Message_Feed_Out("変換しました。");
-                    }
                     else
-                    {
                         Message_Feed_Out("変換できませんでした。");
-                    }
                 }
             }
         }
@@ -375,9 +338,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         private void File_Encode_B_Click(object sender, RoutedEventArgs e)
         {
             if (IsClosing)
-            {
                 return;
-            }
             System.Windows.Forms.OpenFileDialog ofd = new System.Windows.Forms.OpenFileDialog()
             {
                 Title = "サウンドファイルを選択してください。",
@@ -395,15 +356,14 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         }
         private async void Extract_All_B_Click(object sender, RoutedEventArgs e)
         {
-            if (IsClosing)
-            {
+            if (IsClosing || IsOpenDialog)
                 return;
-            }
             if (Sound_List.Items.Count == 0)
             {
                 Message_Feed_Out("ファイルが選択されていません。");
                 return;
             }
+            IsOpenDialog = true;
             BetterFolderBrowser ofd = new BetterFolderBrowser()
             {
                 Title = "抽出先を指定してください。",
@@ -419,24 +379,19 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                     await Task.Delay(30);
                     string Name = Sound_List.Items[i].ToString().Substring(Sound_List.Items[i].ToString().IndexOf(':') + 1);
                     if (IsPCKFile)
-                    {
                         Wwise_Pck.Wwise_Extract_To_Ogg_File(i, ofd.SelectedFolder + "/" + Name + ".ogg", true);
-                    }
                     else
-                    {
                         Wwise_Bnk.Wwise_Extract_To_Ogg_File(i, ofd.SelectedFolder + "/" + Name + ".ogg", true);
-                    }
                 }
                 Message_Feed_Out(Sound_List.Items.Count + "個のファイルを抽出しました。");
                 IsClosing = false;
             }
+            IsOpenDialog = false;
         }
         private void Search_B_Click(object sender, RoutedEventArgs e)
         {
             if (IsClosing)
-            {
                 return;
-            }
             int Number = 0;
             bool IsExist = false;
             foreach (string Name_Now in Sound_List.Items)
@@ -460,9 +415,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         private async void File_Encode_V2_B_Click(object sender, RoutedEventArgs e)
         {
             if (IsClosing)
-            {
                 return;
-            }
             System.Windows.Forms.OpenFileDialog ofd = new System.Windows.Forms.OpenFileDialog()
             {
                 Title = "WEMファイルを選択してください。",
@@ -477,15 +430,9 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                     {
                         bool IsOK = false;
                         using (FileStream fs = new FileStream(File_Now, FileMode.Open))
-                        {
                             using (BinaryReader br = new BinaryReader(fs))
-                            {
                                 if (System.Text.Encoding.ASCII.GetString(br.ReadBytes(4)) == "RIFF")
-                                {
                                     IsOK = true;
-                                }
-                            }
-                        }
                         if (IsOK)
                         {
                             Message_T.Text = Path.GetFileName(File_Now) + "を変換しています...";
@@ -505,9 +452,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         private async void Extract_Select_B_Click(object sender, RoutedEventArgs e)
         {
             if (IsClosing)
-            {
                 return;
-            }
             if (Sound_List.Items.Count == 0)
             {
                 Message_Feed_Out("ファイルが選択されていません。");
@@ -530,20 +475,25 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 await Task.Delay(50);
                 string SaveExtention = ".mp3";
                 if (Path.GetExtension(sfd.FileName) == ".wav")
-                {
                     SaveExtention = ".wav";
-                }
                 if (IsPCKFile)
-                {
                     Wwise_Pck.Wwise_Extract_To_Ogg_File(Sound_List.SelectedIndex, Voice_Set.Special_Path + "/" + Name + ".ogg", true);
-                }
                 else
-                {
                     Wwise_Bnk.Wwise_Extract_To_Ogg_File(Sound_List.SelectedIndex, Voice_Set.Special_Path + "/" + Name + ".ogg", true);
-                }
                 Sub_Code.Audio_Encode_To_Other(Voice_Set.Special_Path + "/" + Name + ".ogg", sfd.FileName, SaveExtention, true);
                 Message_Feed_Out("保存しました。");
             }
+        }
+        private void Clear_B_Click(object sender, RoutedEventArgs e)
+        {
+            if (IsClosing)
+                return;
+            Sound_List.Items.Clear();
+            if (Wwise_Bnk != null)
+                Wwise_Bnk.Bank_Clear();
+            if (Wwise_Pck != null)
+                Wwise_Pck.Pck_Clear();
+            IsPCKFile = false;
         }
     }
 }

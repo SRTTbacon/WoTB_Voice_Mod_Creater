@@ -18,6 +18,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         bool IsClosing = false;
         bool IsMessageShowing = false;
         bool IsBusy = false;
+        bool IsOpenDialog = false;
         public BNK_To_Project()
         {
             InitializeComponent();
@@ -25,6 +26,10 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         }
         public async void Window_Show()
         {
+            if (Sub_Code.IsWindowBarShow)
+                Attention_B.Margin = new Thickness(0, 25, 0, 0);
+            else
+                Attention_B.Margin = new Thickness(0, 0, 0, 0);
             Opacity = 0;
             Visibility = Visibility.Visible;
             while (Opacity < 1 && !IsClosing)
@@ -252,7 +257,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         }
         private async void Create_B_Click(object sender, RoutedEventArgs e)
         {
-            if (IsClosing || IsBusy)
+            if (IsClosing || IsBusy || IsOpenDialog)
                 return;
             if (BNK_File.Count == 0)
             {
@@ -272,6 +277,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             MessageBoxResult result = MessageBox.Show("現在のバージョンでは、Advanced SettingとStateの設定が反映されません。実行しますか?", "警告", MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.Yes);
             if (result == MessageBoxResult.No)
                 return;
+            IsOpenDialog = true;
             BetterFolderBrowser bfb = new BetterFolderBrowser()
             {
                 Title = "保存先のフォルダを選択してください。",
@@ -297,6 +303,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 Flash.Flash_Start();
                 Message_Feed_Out("完了しました。");
             }
+            IsOpenDialog = false;
         }
         private void Attention_B_Click(object sender, RoutedEventArgs e)
         {

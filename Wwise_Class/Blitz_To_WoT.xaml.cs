@@ -24,6 +24,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         bool IsPaused = false;
         bool IsLocationChanging = false;
         bool IsModeChanging = false;
+        bool IsOpenDialog = false;
         Random r = new Random((int)DateTime.Now.Ticks & 0x0000FFFF);
         List<List<string>> BNK_FSB_Voices = new List<List<string>>();
         List<List<bool>> BNK_FSB_Enable = new List<List<bool>>();
@@ -580,15 +581,14 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         }
         private async void Start_B_Click(object sender, RoutedEventArgs e)
         {
-            if (IsClosing || IsBusy)
-            {
+            if (IsClosing || IsBusy || IsOpenDialog)
                 return;
-            }
             if (BNK_FSB_Voices.Count == 0)
             {
                 Message_Feed_Out("音声ファイルが選択されていません。");
                 return;
             }
+            IsOpenDialog = true;
             BetterFolderBrowser fbd = new BetterFolderBrowser()
             {
                 Title = "保存先を選択してください。",
@@ -605,6 +605,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 {
                     Message_Feed_Out("指定したフォルダにアクセスできませんでした。");
                     IsBusy = false;
+                    IsOpenDialog = false;
                     return;
                 }
                 try
@@ -626,9 +627,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                     }
                     Message_T.Text = "ファイルをコピーしています...";
                     if (Directory.Exists(To_Dir + "/Voices"))
-                    {
                         Directory.Delete(To_Dir + "/Voices", true);
-                    }
                     await Task.Delay(50);
                     string Log_01 = Sub_Code.Set_Voice_Type_Change_Name_By_Index(To_Dir, To_Dir + "/Voices", BNK_FSB_Voices, BNK_FSB_Enable);
                     if (Log_01 != "")
@@ -636,6 +635,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                         Message_Feed_Out("ファイルをコピーできませんでした。詳しくは\"Error_Log.txt\"を参照してください。");
                         Directory.Delete(To_Dir + "/Voices", true);
                         IsBusy = false;
+                        IsOpenDialog = false;
                         return;
                     }
                     await BNK_Create_V2(To_Dir + "/Voices", SetPath);
@@ -652,13 +652,9 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                             try
                             {
                                 if (!Directory.Exists(Voice_Set.WoT_Mod_Path + "/audioww"))
-                                {
                                     Directory.CreateDirectory(Voice_Set.WoT_Mod_Path + "/audioww");
-                                }
                                 if (File.Exists(Voice_Set.WoT_Mod_Path + "/audioww/voiceover.bnk"))
-                                {
                                     File.Copy(Voice_Set.WoT_Mod_Path + "/audioww/voiceover.bnk", Voice_Set.WoT_Mod_Path + "/audioww/voiceover_bak.bnk", true);
-                                }
                                 File.Copy(SetPath + "/voiceover.bnk", Voice_Set.WoT_Mod_Path + "/audioww/voiceover.bnk", true);
                             }
                             catch (Exception e1)
@@ -667,6 +663,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                                 Message_Feed_Out("WoTにインストールできませんでした。Error_Log.txtを確認してください。");
                                 IsBusy = false;
                                 fbd.Dispose();
+                                IsOpenDialog = false;
                                 return;
                             }
                         }
@@ -679,6 +676,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                     Message_Feed_Out("エラーが発生しました。Error_Log.txtを参照してください。");
                 }
                 IsBusy = false;
+                IsOpenDialog = false;
             }
             fbd.Dispose();
         }

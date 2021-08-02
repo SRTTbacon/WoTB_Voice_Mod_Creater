@@ -44,13 +44,11 @@ namespace WEMSharp
             {
                 string magic = Encoding.ASCII.GetString(br.ReadBytes(4));
                 if (magic != "RIFF")
-                throw new Exception("指定したファイルはwemファイルではありません。");
-
+                    throw new Exception("指定したファイルはwemファイルではありません。");
                 uint riffSize = br.ReadUInt32() + 8;
-
                 string waveMagic = Encoding.ASCII.GetString(br.ReadBytes(4));
                 if (waveMagic != "WAVE")
-                throw new Exception("WAVE形式のファイルではないため、処理を実行できません。");
+                    throw new Exception("WAVE形式のファイルではないため、処理を実行できません。");
                 uint chunkOffset = 12;
                 while (chunkOffset < riffSize)
                 {
@@ -90,44 +88,38 @@ namespace WEMSharp
                     chunkOffset += chunkSize + 8;
                 }
                 if (chunkOffset > riffSize)
-                throw new Exception("指定したファイルを正常に読み込めませんでした。");
+                    throw new Exception("指定したファイルを正常に読み込めませんでした。");
                 if (this._fmtChunkOffset == 0xFFFFFFFF && this._dataChunkOffset == 0xFFFFFFFF)
-                throw new Exception("指定したファイルを正常に読み込めませんでした。");
-
-                //Read FMT Chunk
+                    throw new Exception("指定したファイルを正常に読み込めませんでした。");
                 if (this._vorbChunkOffset == 0xFFFFFFFF && this._fmtChunkSize != 0x42)
-                throw new Exception("指定したファイルを正常に読み込めませんでした。");
+                    throw new Exception("指定したファイルを正常に読み込めませんでした。");
                 if (this._vorbChunkOffset != 0xFFFFFFFF && this._fmtChunkSize != 0x28 && this._fmtChunkSize != 0x18 && this._fmtChunkSize != 0x12)
-                throw new Exception("指定したファイルを正常に読み込めませんでした。");
+                    throw new Exception("指定したファイルを正常に読み込めませんでした。");
                 if (this._vorbChunkOffset == 0xFFFFFFFF && this._fmtChunkSize == 0x42)
-                {
                     this._vorbChunkOffset = this._fmtChunkOffset + 0x18;
-                }
                 br.BaseStream.Seek(this._fmtChunkOffset, SeekOrigin.Begin);
                 ushort codecID = br.ReadUInt16();
                 if (codecID != 0xFFFF)
-                throw new Exception("FMT Chunk - コーディックのIDが間違えています。");
+                    throw new Exception("FMT Chunk - コーディックのIDが間違えています。");
                 this.Channels = br.ReadUInt16();
                 this.SampleRate = br.ReadUInt32();
                 this.AverageBytesPerSecond = br.ReadUInt32();
                 ushort blockAlign = br.ReadUInt16();
                 if (blockAlign != 0)
-                throw new Exception("FMT Chunk - ブロック配列が間違えています。");
+                    throw new Exception("FMT Chunk - ブロック配列が間違えています。");
                 ushort bitsPerSample = br.ReadUInt16();
                 if (bitsPerSample != 0)
-                throw new Exception("FMT Chunk - サンプルごとに、間違ったビットが設定されています。");
+                    throw new Exception("FMT Chunk - サンプルごとに、間違ったビットが設定されています。");
                 ushort extraFmtLength = br.ReadUInt16();
                 if (extraFmtLength != (this._fmtChunkSize - 0x12))
-                throw new Exception("FMT Chunk - チャンクサイズを間違えています。");
+                    throw new Exception("FMT Chunk - チャンクサイズを間違えています。");
                 if (this._fmtChunkSize == 0x28)
                 {
                     byte[] unknownBufferCheck = new byte[] { 1, 0, 0, 0, 0, 0, 0x10, 0, 0x80, 0, 0, 0xAA, 0, 0x38, 0x9b, 0x71 };
                     byte[] unknownBuffer;
-
                     unknownBuffer = br.ReadBytes(16);
-
                     if (unknownBuffer.SequenceEqual(unknownBufferCheck))
-                    throw new Exception("FMT Chunk - 未知のバッファが読み込まれました。");
+                        throw new Exception("FMT Chunk - 未知のバッファが読み込まれました。");
                 }
                 if (this._cueChunkOffset != 0xFFFFFFFF)
                 {
@@ -139,7 +131,7 @@ namespace WEMSharp
                     br.BaseStream.Seek(this._smplChunkOffset, SeekOrigin.Begin);
                     this._loopCount = br.ReadUInt32();
                     if (this._loopCount != 1)
-                    throw new Exception("SMPL Chunk - ループカウントを取得できませんでした。");
+                        throw new Exception("SMPL Chunk - ループカウントを取得できませんでした。");
                     br.BaseStream.Seek(this._smplChunkOffset + 0x2C, SeekOrigin.Begin);
                     this._loopStart = br.ReadUInt32();
                     this._loopEnd = br.ReadUInt32();
@@ -167,9 +159,7 @@ namespace WEMSharp
                             br.BaseStream.Seek(this._vorbChunkOffset + 4, SeekOrigin.Begin);
                             uint modSignal = br.ReadUInt32();
                             if (modSignal != 0x4A && modSignal != 0x4B && modSignal != 0x69 && modSignal != 0x70)
-                            {
                                 this._modPackets = true;
-                            }
                             br.BaseStream.Seek(this._vorbChunkOffset + 0x10, SeekOrigin.Begin);
                             break;
                         }
@@ -178,13 +168,9 @@ namespace WEMSharp
                         break;
                 }
                 if (forcePacketFormat == WEMForcePacketFormat.ForceNoModPackets)
-                {
                     this._modPackets = false;
-                }
                 else if (forcePacketFormat == WEMForcePacketFormat.ForceModPackets)
-                {
                     this._modPackets = true;
-                }
                 this._setupPacketOffset = br.ReadUInt32();
                 this._firstAudioPacketOffset = br.ReadUInt32();
                 switch (this._vorbChunkSize)
@@ -217,13 +203,9 @@ namespace WEMSharp
                 if (this._loopCount != 0)
                 {
                     if (this._loopEnd == 0)
-                    {
                         this._loopEnd = this._sampleCount;
-                    }
                     else
-                    {
                         this._loopEnd++;
-                    }
                     if (this._loopStart >= this._sampleCount || this._loopEnd > this._sampleCount || this._loopStart > this._loopEnd)
                     throw new Exception("範囲外のループが実行されました。");
                 }
@@ -237,200 +219,174 @@ namespace WEMSharp
         public void GenerateOGG(string fileLocation, string codebooksLocation, bool inlineCodebooks, bool fullSetup)
         {
             if (inlineCodebooks && string.IsNullOrEmpty(codebooksLocation))
-            {
                 throw new ArgumentException("コードブックが複数設定されています。");
-            }
             else if (!inlineCodebooks && string.IsNullOrEmpty(codebooksLocation))
-            {
                 throw new ArgumentException("コードブックが設定されていません。");
-            }
             using (OggStream ogg = new OggStream(File.Create(fileLocation)))
             {
                 bool[] modeBlockFlag = null;
                 uint modeBits = 0;
                 bool previousBlockFlag = false;
                 if (this._headerTriadPresent)
-                {
                     GenerateOGGHeaderTriad(ogg);
-                }
                 else
-                {
                     GenerateOGGHeader(ogg, codebooksLocation, inlineCodebooks, fullSetup, ref modeBlockFlag, ref modeBits);
-                }
-                {
                     uint offset = this._dataChunkOffset + this._firstAudioPacketOffset;
-                    while (offset < this._dataChunkOffset + this._dataChunkSize)
+                while (offset < this._dataChunkOffset + this._dataChunkSize)
+                {
+                    uint size;
+                    uint granule;
+                    uint packetHeaderSize;
+                    uint packetPayloadOffset;
+                    uint nextOffset;
+                    if (this._oldPacketHeaders)
                     {
-                        uint size;
-                        uint granule;
-                        uint packetHeaderSize;
-                        uint packetPayloadOffset;
-                        uint nextOffset;
-                        if (this._oldPacketHeaders)
-                        {
-                            Packet8 audioPacket = new Packet8(this._wemFile, offset);
-                            packetHeaderSize = audioPacket.GetHeaderSize();
-                            size = audioPacket.GetSize();
-                            packetPayloadOffset = audioPacket.GetOffset();
-                            granule = audioPacket.GetGranule();
-                            nextOffset = audioPacket.NextOffset();
-                        }
-                        else
-                        {
-                            Packet audioPacket = new Packet(this._wemFile, offset, this._noGranule);
-                            packetHeaderSize = audioPacket.GetHeaderSize();
-                            size = audioPacket.GetSize();
-                            packetPayloadOffset = audioPacket.GetOffset();
-                            granule = audioPacket.GetGranule();
-                            nextOffset = audioPacket.NextOffset();
-                        }
-                        if (offset + packetHeaderSize > this._dataChunkOffset + this._dataChunkSize)
-                        throw new Exception("Vorbisパケットの生成中にエラーが発生しました。");
-                        offset = packetPayloadOffset;
-                        this._wemFile.Seek(offset, SeekOrigin.Begin);
-                        if (granule == 0xFFFFFFFF)
-                        {
-                            ogg.SetGranule(1);
-                        }
-                        else
-                        {
-                            ogg.SetGranule(granule);
-                        }
-                        if (this._modPackets)
-                        {
-                            if (modeBlockFlag == null)
-                            throw new Exception("Vorbisパケットの生成中にエラーが発生しました。");
-                            byte packetType = 0;
-                            ogg.WriteBit(packetType);
-                            uint modeNumber = 0;
-                            uint remainder = 0;
-                            {
-                                BitStream bitStream = new BitStream(this._wemFile);
-                                modeNumber = bitStream.Read((int)modeBits);
-                                ogg.BitWrite(modeNumber, (byte)modeBits);
-                                remainder = bitStream.Read(8 - (int)modeBits);
-                            }
-                            if (modeBlockFlag[modeNumber])
-                            {
-                                this._wemFile.Seek(nextOffset, SeekOrigin.Begin);
-                                bool nextBlockFlag = false;
-                                if (nextOffset + packetHeaderSize <= this._dataChunkOffset + this._dataChunkSize)
-                                {
-                                    Packet audioPacket = new Packet(this._wemFile, nextOffset, this._noGranule);
-                                    uint nextPacketSize = audioPacket.GetSize();
-                                    if (nextPacketSize != 0xFFFFFFFF)
-                                    {
-                                        this._wemFile.Seek(audioPacket.GetOffset(), SeekOrigin.Begin);
-                                        BitStream bitStream = new BitStream(this._wemFile);
-                                        uint nextModeNumber = bitStream.Read((int)modeBits);
-                                        nextBlockFlag = modeBlockFlag[nextModeNumber];
-                                    }
-                                }
-                                byte previousWindowType = previousBlockFlag ? (byte)1 : (byte)0;
-                                ogg.WriteBit(previousWindowType);
-                                byte nextWindowType = previousBlockFlag ? (byte)1 : (byte)0;
-                                ogg.WriteBit(nextWindowType);
-                                this._wemFile.Seek(offset + 1, SeekOrigin.Begin);
-                            }
-                            previousBlockFlag = modeBlockFlag[modeNumber];
-                            ogg.BitWrite(remainder, (byte)(8 - modeBits));
-                        }
-                        else
-                        {
-                            int b = this._wemFile.ReadByte();
-                            if (b < 0)
-                            throw new Exception("Vorbisパケットの生成中にエラーが発生しました。");
-                            ogg.BitWrite((byte)b);
-                        }
-                        for (int i = 1; i < size; i++)
-                        {
-                            int b = this._wemFile.ReadByte();
-                            if (b < 0)
-                            throw new Exception("Vorbisパケットの生成中にエラーが発生しました。");
-                            ogg.BitWrite((byte)b);
-                        }
-                        offset = nextOffset;
-                        ogg.FlushPage(false, (offset == this._dataChunkOffset + this._dataChunkSize));
+                        Packet8 audioPacket = new Packet8(this._wemFile, offset);
+                        packetHeaderSize = audioPacket.GetHeaderSize();
+                        size = audioPacket.GetSize();
+                        packetPayloadOffset = audioPacket.GetOffset();
+                        granule = audioPacket.GetGranule();
+                        nextOffset = audioPacket.NextOffset();
                     }
-                    if (offset > this._dataChunkOffset + this._dataChunkSize)
-                    throw new Exception("OGGファイルを生成中にエラーが発生しました。");
+                    else
+                    {
+                        Packet audioPacket = new Packet(this._wemFile, offset, this._noGranule);
+                        packetHeaderSize = audioPacket.GetHeaderSize();
+                        size = audioPacket.GetSize();
+                        packetPayloadOffset = audioPacket.GetOffset();
+                        granule = audioPacket.GetGranule();
+                        nextOffset = audioPacket.NextOffset();
+                    }
+                    if (offset + packetHeaderSize > this._dataChunkOffset + this._dataChunkSize)
+                        throw new Exception("Vorbisパケットの生成中にエラーが発生しました。");
+                    offset = packetPayloadOffset;
+                    this._wemFile.Seek(offset, SeekOrigin.Begin);
+                    if (granule == 0xFFFFFFFF)
+                        ogg.SetGranule(1);
+                    else
+                        ogg.SetGranule(granule);
+                    if (this._modPackets)
+                    {
+                        if (modeBlockFlag == null)
+                            throw new Exception("Vorbisパケットの生成中にエラーが発生しました。");
+                        byte packetType = 0;
+                        ogg.WriteBit(packetType);
+                        uint modeNumber = 0;
+                        uint remainder = 0;
+                        {
+                            BitStream bitStream = new BitStream(this._wemFile);
+                            modeNumber = bitStream.Read((int)modeBits);
+                            ogg.BitWrite(modeNumber, (byte)modeBits);
+                            remainder = bitStream.Read(8 - (int)modeBits);
+                        }
+                        if (modeBlockFlag[modeNumber])
+                        {
+                            this._wemFile.Seek(nextOffset, SeekOrigin.Begin);
+                            bool nextBlockFlag = false;
+                            if (nextOffset + packetHeaderSize <= this._dataChunkOffset + this._dataChunkSize)
+                            {
+                                Packet audioPacket = new Packet(this._wemFile, nextOffset, this._noGranule);
+                                uint nextPacketSize = audioPacket.GetSize();
+                                if (nextPacketSize != 0xFFFFFFFF)
+                                {
+                                    this._wemFile.Seek(audioPacket.GetOffset(), SeekOrigin.Begin);
+                                    BitStream bitStream = new BitStream(this._wemFile);
+                                    uint nextModeNumber = bitStream.Read((int)modeBits);
+                                    nextBlockFlag = modeBlockFlag[nextModeNumber];
+                                }
+                            }
+                            byte previousWindowType = previousBlockFlag ? (byte)1 : (byte)0;
+                            ogg.WriteBit(previousWindowType);
+                            byte nextWindowType = previousBlockFlag ? (byte)1 : (byte)0;
+                            ogg.WriteBit(nextWindowType);
+                            this._wemFile.Seek(offset + 1, SeekOrigin.Begin);
+                        }
+                        previousBlockFlag = modeBlockFlag[modeNumber];
+                        ogg.BitWrite(remainder, (byte)(8 - modeBits));
+                    }
+                    else
+                    {
+                        int b = this._wemFile.ReadByte();
+                        if (b < 0)
+                            throw new Exception("Vorbisパケットの生成中にエラーが発生しました。");
+                        ogg.BitWrite((byte)b);
+                    }
+                    for (int i = 1; i < size; i++)
+                    {
+                        int b = this._wemFile.ReadByte();
+                        if (b < 0)
+                            throw new Exception("Vorbisパケットの生成中にエラーが発生しました。");
+                        ogg.BitWrite((byte)b);
+                    }
+                    offset = nextOffset;
+                    ogg.FlushPage(false, (offset == this._dataChunkOffset + this._dataChunkSize));
                 }
+                if (offset > this._dataChunkOffset + this._dataChunkSize)
+                    throw new Exception("OGGファイルを生成中にエラーが発生しました。");
             }
         }
         private void GenerateOGGHeaderTriad(OggStream ogg)
         {
             uint offset = this._dataChunkOffset + this._setupPacketOffset;
+            Packet8 informationPacket = new Packet8(this._wemFile, offset);
+            uint informationPacketSize = informationPacket.GetSize();
+            if (informationPacket.GetGranule() != 0)
+                throw new Exception("ヘッダーの生成中にエラーが発生しました。");
+            this._wemFile.Seek(informationPacket.GetOffset(), SeekOrigin.Begin);
+            byte[] informationPacketType = new byte[1];
+            this._wemFile.Read(informationPacketType, 0, 1);
+            if (informationPacketType[0] != 1)
+                throw new Exception("ヘッダーの生成中にエラーが発生しました。");
+            ogg.BitWrite(informationPacketType[0]);
+            byte[] b = new byte[1];
+            for (int i = 0; i < informationPacketSize; i++)
             {
-                Packet8 informationPacket = new Packet8(this._wemFile, offset);
-                uint informationPacketSize = informationPacket.GetSize();
-                if (informationPacket.GetGranule() != 0)
-                throw new Exception("ヘッダーの生成中にエラーが発生しました。");
-                this._wemFile.Seek(informationPacket.GetOffset(), SeekOrigin.Begin);
-                byte[] informationPacketType = new byte[1];
-                this._wemFile.Read(informationPacketType, 0, 1);
-                if (informationPacketType[0] != 1)
-                throw new Exception("ヘッダーの生成中にエラーが発生しました。");
-                ogg.BitWrite(informationPacketType[0]);
-                byte[] b = new byte[1];
-                for (int i = 0; i < informationPacketSize; i++)
-                {
-                    this._wemFile.Read(b, 0, 1);
-                    ogg.BitWrite(b[0]);
-                }
-                ogg.FlushPage();
-                offset = informationPacket.NextOffset();
+                this._wemFile.Read(b, 0, 1);
+                ogg.BitWrite(b[0]);
             }
+            ogg.FlushPage();
+            offset = informationPacket.NextOffset();
+            Packet8 commentPacket = new Packet8(this._wemFile, offset);
+            uint commentPacketSize = commentPacket.GetSize();
+            if (commentPacket.GetGranule() != 0)
+                throw new Exception("ヘッダーの生成中にエラーが発生しました。");
+            this._wemFile.Seek(commentPacket.GetOffset(), SeekOrigin.Begin);
+            byte[] commentPacketType = new byte[1];
+            this._wemFile.Read(commentPacketType, 0, 1);
+            if (commentPacketType[0] != 3)
+                throw new Exception("ヘッダーの生成中にエラーが発生しました。");
+            ogg.BitWrite(commentPacketType[0]);
+            byte[] c = new byte[1];
+            for (int i = 0; i < commentPacketSize; i++)
             {
-                Packet8 commentPacket = new Packet8(this._wemFile, offset);
-                uint commentPacketSize = commentPacket.GetSize();
-                if (commentPacket.GetGranule() != 0)
-                throw new Exception("ヘッダーの生成中にエラーが発生しました。");
-                this._wemFile.Seek(commentPacket.GetOffset(), SeekOrigin.Begin);
-                byte[] commentPacketType = new byte[1];
-                this._wemFile.Read(commentPacketType, 0, 1);
-                if (commentPacketType[0] != 3)
-                throw new Exception("ヘッダーの生成中にエラーが発生しました。");
-                ogg.BitWrite(commentPacketType[0]);
-                byte[] b = new byte[1];
-                for (int i = 0; i < commentPacketSize; i++)
-                {
-                    this._wemFile.Read(b, 0, 1);
-                    ogg.BitWrite(b[0]);
-                }
-                ogg.FlushPage();
-                offset = commentPacket.NextOffset();
+                this._wemFile.Read(c, 0, 1);
+                ogg.BitWrite(c[0]);
             }
-            {
-                Packet8 setupPacket = new Packet8(this._wemFile, offset);
-                this._wemFile.Seek(setupPacket.GetOffset(), SeekOrigin.Begin);
-                if (setupPacket.GetGranule() != 0)
+            ogg.FlushPage();
+            offset = commentPacket.NextOffset();
+            Packet8 setupPacket = new Packet8(this._wemFile, offset);
+            this._wemFile.Seek(setupPacket.GetOffset(), SeekOrigin.Begin);
+            if (setupPacket.GetGranule() != 0)
                 throw new Exception("ヘッダーの生成中にエラーが発生しました。");
-                BitStream bitStream = new BitStream(this._wemFile);
-                byte setupPacketType = (byte)bitStream.Read(8);
-                if (setupPacketType != 5)
+            BitStream bitStream = new BitStream(this._wemFile);
+            byte setupPacketType = (byte)bitStream.Read(8);
+            if (setupPacketType != 5)
                 throw new Exception("ヘッダーの生成中にエラーが発生しました。");
-                ogg.BitWrite(setupPacketType);
-                for (int i = 0; i < 6; i++)
-                {
-                    ogg.BitWrite((byte)bitStream.Read(8));
-                }
-                byte codebookCount = (byte)bitStream.Read(8);
-                ogg.BitWrite(codebookCount);
-                codebookCount++;
-                CodebookLibrary codebook = new CodebookLibrary();
-                for (int i = 0; i < codebookCount; i++)
-                {
-                    codebook.Copy(bitStream, ogg);
-                }
-                while (bitStream.TotalBitsRead < setupPacket.GetSize() * 8)
-                {
-                    ogg.WriteBit((byte)bitStream.Read(1));
-                }
-                ogg.FlushPage();
-                offset = setupPacket.NextOffset();
-            }
+            ogg.BitWrite(setupPacketType);
+            for (int i = 0; i < 6; i++)
+                ogg.BitWrite((byte)bitStream.Read(8));
+            byte codebookCount = (byte)bitStream.Read(8);
+            ogg.BitWrite(codebookCount);
+            codebookCount++;
+            CodebookLibrary codebook = new CodebookLibrary();
+            for (int i = 0; i < codebookCount; i++)
+                codebook.Copy(bitStream, ogg);
+            while (bitStream.TotalBitsRead < setupPacket.GetSize() * 8)
+                ogg.WriteBit((byte)bitStream.Read(1));
+            ogg.FlushPage();
+            offset = setupPacket.NextOffset();
             if (offset != this._dataChunkOffset + this._firstAudioPacketOffset)
-            throw new Exception("ヘッダーの生成中にエラーが発生しました。");
+                throw new Exception("ヘッダーの生成中にエラーが発生しました。");
         }
         private void GenerateOGGHeader(OggStream ogg, string codebooksLocation, bool inlineCodebooks, bool fullSetup, ref bool[] modeBlockFlag, ref uint modeBits)
         {
@@ -445,272 +401,256 @@ namespace WEMSharp
             ogg.BitWrite(this._blocksize1Pow, 4);
             ogg.WriteBit(1);
             ogg.FlushPage();
+            ogg.WriteVorbisHeader(3);
+            byte[] vendor = Encoding.UTF8.GetBytes("Converted from Audiokinetic Wwise by SRTTbacon");
+            ogg.BitWrite((uint)vendor.Length);
+            for (int i = 0; i < vendor.Length; i++)
+                ogg.BitWrite(vendor[i]);
+            if (this._loopCount == 0)
+                ogg.BitWrite((uint)0);
+            else
             {
-                ogg.WriteVorbisHeader(3);
-                byte[] vendor = Encoding.UTF8.GetBytes("Converted from Audiokinetic Wwise by SRTTbacon");
-                ogg.BitWrite((uint)vendor.Length);
-                for (int i = 0; i < vendor.Length; i++)
-                {
-                    ogg.BitWrite(vendor[i]);
-                }
-                if (this._loopCount == 0)
-                {
-                    ogg.BitWrite((uint)0);
-                }
-                else
-                {
-                    ogg.BitWrite((uint)2);
-                    byte[] loopStart = Encoding.UTF8.GetBytes("LoopStart=" + this._loopStart.ToString());
-                    ogg.BitWrite((uint)loopStart.Length);
-                    for (int i = 0; i < loopStart.Length; i++)
-                    {
-                        ogg.BitWrite(loopStart[i]);
-                    }
-                    byte[] loopEnd = Encoding.UTF8.GetBytes("LoopEnd=" + this._loopEnd.ToString());
-                    ogg.BitWrite((uint)loopEnd.Length);
-                    for (int i = 0; i < loopEnd.Length; i++)
-                    {
-                        ogg.BitWrite(loopEnd[i]);
-                    }
-                }
-                ogg.WriteBit(1);
-                ogg.FlushPage();
+                ogg.BitWrite((uint)2);
+                byte[] loopStart = Encoding.UTF8.GetBytes("LoopStart=" + this._loopStart.ToString());
+                ogg.BitWrite((uint)loopStart.Length);
+                for (int i = 0; i < loopStart.Length; i++)
+                    ogg.BitWrite(loopStart[i]);
+                byte[] loopEnd = Encoding.UTF8.GetBytes("LoopEnd=" + this._loopEnd.ToString());
+                ogg.BitWrite((uint)loopEnd.Length);
+                for (int i = 0; i < loopEnd.Length; i++)
+                    ogg.BitWrite(loopEnd[i]);
             }
+            ogg.WriteBit(1);
+            ogg.FlushPage();
+            ogg.WriteVorbisHeader(5);
+            Packet setupPacket = new Packet(this._wemFile, this._dataChunkOffset + this._setupPacketOffset, this._noGranule);
+            this._wemFile.Seek(setupPacket.GetOffset(), SeekOrigin.Begin);
+            if (setupPacket.GetGranule() != 0)
+                throw new Exception("Vorbisパケットの生成中にエラーが発生しました。");
+            BitStream bitStream = new BitStream(this._wemFile);
+            uint codebookCount = bitStream.Read(8);
+            ogg.BitWrite((byte)codebookCount);
+            codebookCount++;
+            if (inlineCodebooks)
             {
-                ogg.WriteVorbisHeader(5);
-                Packet setupPacket = new Packet(this._wemFile, this._dataChunkOffset + this._setupPacketOffset, this._noGranule);
-                this._wemFile.Seek(setupPacket.GetOffset(), SeekOrigin.Begin);
-                if (setupPacket.GetGranule() != 0)
-                    throw new Exception("Vorbisパケットの生成中にエラーが発生しました。");
-                BitStream bitStream = new BitStream(this._wemFile);
-                uint codebookCount = bitStream.Read(8);
-                ogg.BitWrite((byte)codebookCount);
-                codebookCount++;
-                if (inlineCodebooks)
+                CodebookLibrary codebook = new CodebookLibrary();
+                for (int i = 0; i < codebookCount; i++)
                 {
-                    CodebookLibrary codebook = new CodebookLibrary();
-                    for (int i = 0; i < codebookCount; i++)
-                    {
-                        if (fullSetup)
-                            codebook.Copy(bitStream, ogg);
-                        else
-                            codebook.Rebuild(bitStream, 0, ogg);
-                    }
+                    if (fullSetup)
+                        codebook.Copy(bitStream, ogg);
+                    else
+                        codebook.Rebuild(bitStream, 0, ogg);
                 }
-                else
+            }
+            else
+            {
+                CodebookLibrary codebook = new CodebookLibrary(codebooksLocation);
+                for (int i = 0; i < codebookCount; i++)
                 {
-                    CodebookLibrary codebook = new CodebookLibrary(codebooksLocation);
-                    for (int i = 0; i < codebookCount; i++)
-                    {
-                        ushort codebookID = (ushort)bitStream.Read(10);
-                        codebook.Rebuild(codebookID, ogg);
-                    }
+                    ushort codebookID = (ushort)bitStream.Read(10);
+                    codebook.Rebuild(codebookID, ogg);
                 }
-                byte timeCountLess1 = 0;
-                ushort dummyTimeValue = 0;
-                ogg.BitWrite(timeCountLess1, 6);
-                ogg.BitWrite(dummyTimeValue);
-                if (fullSetup)
+            }
+            byte timeCountLess1 = 0;
+            ushort dummyTimeValue = 0;
+            ogg.BitWrite(timeCountLess1, 6);
+            ogg.BitWrite(dummyTimeValue);
+            if (fullSetup)
+                while (bitStream.TotalBitsRead < setupPacket.GetSize() * 8U)
+                    ogg.WriteBit((byte)bitStream.Read(1));
+            else
+            {
+                byte floorCount = (byte)bitStream.Read(6);
+                ogg.BitWrite(floorCount, 6);
+                floorCount++;
+                for (int i = 0; i < floorCount; i++)
                 {
-                    while (bitStream.TotalBitsRead < setupPacket.GetSize() * 8U)
+                    ushort floorType = 1;
+                    ogg.BitWrite(floorType);
+                    byte floor1Partitions = (byte)bitStream.Read(5);
+                    ogg.BitWrite(floor1Partitions, 5);
+                    uint[] floor1PartitionClassList = new uint[floor1Partitions];
+                    uint maximumClass = 0;
+                    for (int j = 0; j < floor1Partitions; j++)
                     {
-                        ogg.WriteBit((byte)bitStream.Read(1));
+                        byte floor1PartitionClass = (byte)bitStream.Read(4);
+                        ogg.BitWrite(floor1PartitionClass, 4);
+                        floor1PartitionClassList[j] = floor1PartitionClass;
+                        if (floor1PartitionClass > maximumClass)
+                            maximumClass = floor1PartitionClass;
                     }
-                }
-                else
-                {
-                    byte floorCount = (byte)bitStream.Read(6);
-                    ogg.BitWrite(floorCount, 6);
-                    floorCount++;
-                    for (int i = 0; i < floorCount; i++)
+                    uint[] floor1ClassDimensionList = new uint[maximumClass + 1];
+                    for (int j = 0; j <= maximumClass; j++)
                     {
-                        ushort floorType = 1;
-                        ogg.BitWrite(floorType);
-                        byte floor1Partitions = (byte)bitStream.Read(5);
-                        ogg.BitWrite(floor1Partitions, 5);
-                        uint[] floor1PartitionClassList = new uint[floor1Partitions];
-                        uint maximumClass = 0;
-                        for (int j = 0; j < floor1Partitions; j++)
+                        byte classDimension = (byte)bitStream.Read(3);
+                        ogg.BitWrite(classDimension, 3);
+                        floor1ClassDimensionList[j] = classDimension + 1U;
+                        byte classSubclasses = (byte)bitStream.Read(2);
+                        ogg.BitWrite(classSubclasses, 2);
+                        if (classSubclasses != 0)
                         {
-                            byte floor1PartitionClass = (byte)bitStream.Read(4);
-                            ogg.BitWrite(floor1PartitionClass, 4);
-                            floor1PartitionClassList[j] = floor1PartitionClass;
-                            if (floor1PartitionClass > maximumClass)
-                                maximumClass = floor1PartitionClass;
-                        }
-                        uint[] floor1ClassDimensionList = new uint[maximumClass + 1];
-                        for (int j = 0; j <= maximumClass; j++)
-                        {
-                            byte classDimension = (byte)bitStream.Read(3);
-                            ogg.BitWrite(classDimension, 3);
-                            floor1ClassDimensionList[j] = classDimension + 1U;
-                            byte classSubclasses = (byte)bitStream.Read(2);
-                            ogg.BitWrite(classSubclasses, 2);
-                            if (classSubclasses != 0)
-                            {
-                                byte masterbook = (byte)bitStream.Read(8);
-                                ogg.BitWrite(masterbook);
-                                if (maximumClass >= codebookCount)
-                                    throw new Exception("Vorbisパケットの生成中にエラーが発生しました。");
-                            }
-                            for (int k = 0; k < (1 << classSubclasses); k++)
-                            {
-                                byte subclassBook = (byte)bitStream.Read(8);
-                                ogg.BitWrite(subclassBook);
-                                if ((subclassBook - 1) >= 0 && (subclassBook - 1) >= codebookCount)
-                                    throw new Exception("There was an error generating a vorbis packet.");
-                            }
-                        }
-                        byte floor1Multiplier = (byte)bitStream.Read(2);
-                        ogg.BitWrite(floor1Multiplier, 2);
-                        byte rangeBits = (byte)bitStream.Read(4);
-                        ogg.BitWrite(rangeBits, 4);
-                        for (int j = 0; j < floor1Partitions; j++)
-                        {
-                            uint currentClassNumber = floor1PartitionClassList[j];
-                            for (int k = 0; k < floor1ClassDimensionList[currentClassNumber]; k++)
-                                ogg.BitWrite(bitStream.Read(rangeBits), rangeBits);
-                        }
-                    }
-                    byte residueCount = (byte)bitStream.Read(6);
-                    ogg.BitWrite(residueCount, 6);
-                    residueCount++;
-                    for (int i = 0; i < residueCount; i++)
-                    {
-                        byte residueType = (byte)bitStream.Read(2);
-                        ogg.BitWrite((ushort)residueType);
-                        if (residueType > 2)
-                            throw new Exception("Vorbisパケットの生成中にエラーが発生しました。");
-                        uint residueBegin = bitStream.Read(24);
-                        uint residueEnd = bitStream.Read(24);
-                        uint residuePartitionSize = bitStream.Read(24);
-                        byte residueClassifications = (byte)bitStream.Read(6);
-                        byte residueClassbook = (byte)bitStream.Read(8);
-                        ogg.BitWrite(residueBegin, 24);
-                        ogg.BitWrite(residueEnd, 24);
-                        ogg.BitWrite(residuePartitionSize, 24);
-                        ogg.BitWrite(residueClassifications, 6);
-                        ogg.BitWrite(residueClassbook, 8);
-                        residueClassifications++;
-                        if (residueClassbook >= codebookCount)
-                            throw new Exception("There was an error generating a vorbis packet.");
-                        uint[] residueCascade = new uint[residueClassifications];
-                        for (int j = 0; j < residueClassifications; j++)
-                        {
-                            byte highBits = 0;
-                            byte lowBits = (byte)bitStream.Read(3);
-                            ogg.BitWrite(lowBits, 3);
-                            byte bitFlag = (byte)bitStream.Read(1);
-                            ogg.WriteBit(bitFlag);
-                            if (bitFlag == 1)
-                            {
-                                highBits = (byte)bitStream.Read(5);
-                                ogg.BitWrite(highBits, 5);
-                            }
-                            residueCascade[j] = highBits * 8U + lowBits;
-                        }
-                        for (int j = 0; j < residueClassifications; j++)
-                        {
-                            for (int k = 0; k < 8; k++)
-                            {
-                                if ((residueCascade[j] & (1 << k)) != 0)
-                                {
-                                    byte residueBook = (byte)bitStream.Read(8);
-                                    ogg.BitWrite(residueBook);
-                                    if (residueBook >= codebookCount)
-                                        throw new Exception("Vorbisパケットの生成中にエラーが発生しました。");
-                                }
-                            }
-                        }
-                    }
-                    byte mappingCount = (byte)bitStream.Read(6);
-                    ogg.BitWrite(mappingCount, 6);
-                    mappingCount++;
-                    for (int i = 0; i < mappingCount; i++)
-                    {
-                        ushort mappingType = 0;
-                        ogg.BitWrite(mappingType);
-                        byte submapsFlag = (byte)bitStream.Read(1);
-                        ogg.WriteBit(submapsFlag);
-                        uint submaps = 1;
-                        if (submapsFlag == 1)
-                        {
-                            byte submapsLess = (byte)bitStream.Read(4);
-                            submaps = submapsLess + 1U;
-                            ogg.BitWrite(submapsLess, 4);
-                        }
-                        byte squarePolarFlag = (byte)bitStream.Read(1);
-                        ogg.WriteBit(squarePolarFlag);
-                        if (squarePolarFlag == 1)
-                        {
-                            byte couplingSteps = (byte)bitStream.Read(8);
-                            ogg.BitWrite(couplingSteps);
-                            couplingSteps++;
-                            for (int j = 0; j < couplingSteps; j++)
-                            {
-                                uint magnitude = bitStream.Read((int)ILog(this.Channels - 1U));
-                                uint angle = bitStream.Read((int)ILog(this.Channels - 1U));
-                                ogg.BitWrite(magnitude, (byte)ILog(this.Channels - 1U));
-                                ogg.BitWrite(angle, (byte)ILog(this.Channels - 1U));
-                                if (angle == magnitude || magnitude >= this.Channels || angle >= this.Channels)
-                                    throw new Exception("Vorbisパケットの生成中にエラーが発生しました。");
-                            }
-                        }
-                        byte mappingReserved = (byte)bitStream.Read(2);
-                        ogg.BitWrite(mappingReserved, 2);
-                        if (mappingReserved != 0)
-                            throw new Exception("Vorbisパケットの生成中にエラーが発生しました。");
-                        if (submaps > 1)
-                        {
-                            for (int j = 0; j < this.Channels; j++)
-                            {
-                                byte mappingMux = (byte)bitStream.Read(4);
-                                ogg.BitWrite(mappingMux, 4);
-                                if (mappingMux >= submaps)
-                                    throw new Exception("Vorbisパケットの生成中にエラーが発生しました。");
-                            }
-                        }
-                        for (int j = 0; j < submaps; j++)
-                        {
-                            byte timeConfig = (byte)bitStream.Read(8);
-                            ogg.BitWrite(timeConfig);
-                            byte floorNumber = (byte)bitStream.Read(8);
-                            ogg.BitWrite(floorNumber);
-                            if (floorNumber >= floorCount)
+                            byte masterbook = (byte)bitStream.Read(8);
+                            ogg.BitWrite(masterbook);
+                            if (maximumClass >= codebookCount)
                                 throw new Exception("Vorbisパケットの生成中にエラーが発生しました。");
-                            byte residueNumber = (byte)bitStream.Read(8);
-                            ogg.BitWrite(residueNumber);
-                            if (residueNumber >= residueCount)
+                        }
+                        for (int k = 0; k < (1 << classSubclasses); k++)
+                        {
+                            byte subclassBook = (byte)bitStream.Read(8);
+                            ogg.BitWrite(subclassBook);
+                            if ((subclassBook - 1) >= 0 && (subclassBook - 1) >= codebookCount)
                                 throw new Exception("There was an error generating a vorbis packet.");
                         }
                     }
-                    byte modeCount = (byte)bitStream.Read(6);
-                    ogg.BitWrite(modeCount, 6);
-                    modeCount++;
-                    modeBlockFlag = new bool[modeCount];
-                    modeBits = ILog(modeCount - 1U);
-                    for (int i = 0; i < modeCount; i++)
+                    byte floor1Multiplier = (byte)bitStream.Read(2);
+                    ogg.BitWrite(floor1Multiplier, 2);
+                    byte rangeBits = (byte)bitStream.Read(4);
+                    ogg.BitWrite(rangeBits, 4);
+                    for (int j = 0; j < floor1Partitions; j++)
                     {
-                        byte blockFlag = (byte)bitStream.Read(1);
-                        ogg.WriteBit(blockFlag);
-                        modeBlockFlag[i] = blockFlag == 1;
-                        ushort windowType = 0;
-                        ushort transformType = 0;
-                        ogg.BitWrite(windowType);
-                        ogg.BitWrite(transformType);
-                        byte mapping = (byte)bitStream.Read(8);
-                        ogg.BitWrite(mapping, 8);
-                        if (mapping >= mappingCount)
-                            throw new Exception("Vorbisパケットの生成中にエラーが発生しました。");
+                        uint currentClassNumber = floor1PartitionClassList[j];
+                        for (int k = 0; k < floor1ClassDimensionList[currentClassNumber]; k++)
+                            ogg.BitWrite(bitStream.Read(rangeBits), rangeBits);
                     }
-                    ogg.WriteBit(1);
                 }
-                ogg.FlushPage();
-                if ((bitStream.TotalBitsRead + 7) / 8 != setupPacket.GetSize())
-                    throw new Exception("Vorbisパケットの生成中にエラーが発生しました。");
-                if (setupPacket.NextOffset() != this._dataChunkOffset + this._firstAudioPacketOffset)
-                    throw new Exception("Vorbisパケットの生成中にエラーが発生しました。");
+                byte residueCount = (byte)bitStream.Read(6);
+                ogg.BitWrite(residueCount, 6);
+                residueCount++;
+                for (int i = 0; i < residueCount; i++)
+                {
+                    byte residueType = (byte)bitStream.Read(2);
+                    ogg.BitWrite((ushort)residueType);
+                    if (residueType > 2)
+                        throw new Exception("Vorbisパケットの生成中にエラーが発生しました。");
+                    uint residueBegin = bitStream.Read(24);
+                    uint residueEnd = bitStream.Read(24);
+                    uint residuePartitionSize = bitStream.Read(24);
+                    byte residueClassifications = (byte)bitStream.Read(6);
+                    byte residueClassbook = (byte)bitStream.Read(8);
+                    ogg.BitWrite(residueBegin, 24);
+                    ogg.BitWrite(residueEnd, 24);
+                    ogg.BitWrite(residuePartitionSize, 24);
+                    ogg.BitWrite(residueClassifications, 6);
+                    ogg.BitWrite(residueClassbook, 8);
+                    residueClassifications++;
+                    if (residueClassbook >= codebookCount)
+                        throw new Exception("There was an error generating a vorbis packet.");
+                    uint[] residueCascade = new uint[residueClassifications];
+                    for (int j = 0; j < residueClassifications; j++)
+                    {
+                        byte highBits = 0;
+                        byte lowBits = (byte)bitStream.Read(3);
+                        ogg.BitWrite(lowBits, 3);
+                        byte bitFlag = (byte)bitStream.Read(1);
+                        ogg.WriteBit(bitFlag);
+                        if (bitFlag == 1)
+                        {
+                            highBits = (byte)bitStream.Read(5);
+                            ogg.BitWrite(highBits, 5);
+                        }
+                        residueCascade[j] = highBits * 8U + lowBits;
+                    }
+                    for (int j = 0; j < residueClassifications; j++)
+                    {
+                        for (int k = 0; k < 8; k++)
+                        {
+                            if ((residueCascade[j] & (1 << k)) != 0)
+                            {
+                                byte residueBook = (byte)bitStream.Read(8);
+                                ogg.BitWrite(residueBook);
+                                if (residueBook >= codebookCount)
+                                    throw new Exception("Vorbisパケットの生成中にエラーが発生しました。");
+                            }
+                        }
+                    }
+                }
+                byte mappingCount = (byte)bitStream.Read(6);
+                ogg.BitWrite(mappingCount, 6);
+                mappingCount++;
+                for (int i = 0; i < mappingCount; i++)
+                {
+                    ushort mappingType = 0;
+                    ogg.BitWrite(mappingType);
+                    byte submapsFlag = (byte)bitStream.Read(1);
+                    ogg.WriteBit(submapsFlag);
+                    uint submaps = 1;
+                    if (submapsFlag == 1)
+                    {
+                        byte submapsLess = (byte)bitStream.Read(4);
+                        submaps = submapsLess + 1U;
+                        ogg.BitWrite(submapsLess, 4);
+                    }
+                    byte squarePolarFlag = (byte)bitStream.Read(1);
+                    ogg.WriteBit(squarePolarFlag);
+                    if (squarePolarFlag == 1)
+                    {
+                        byte couplingSteps = (byte)bitStream.Read(8);
+                        ogg.BitWrite(couplingSteps);
+                        couplingSteps++;
+                        for (int j = 0; j < couplingSteps; j++)
+                        {
+                            uint magnitude = bitStream.Read((int)ILog(this.Channels - 1U));
+                            uint angle = bitStream.Read((int)ILog(this.Channels - 1U));
+                            ogg.BitWrite(magnitude, (byte)ILog(this.Channels - 1U));
+                            ogg.BitWrite(angle, (byte)ILog(this.Channels - 1U));
+                            if (angle == magnitude || magnitude >= this.Channels || angle >= this.Channels)
+                                throw new Exception("Vorbisパケットの生成中にエラーが発生しました。");
+                        }
+                    }
+                    byte mappingReserved = (byte)bitStream.Read(2);
+                    ogg.BitWrite(mappingReserved, 2);
+                    if (mappingReserved != 0)
+                        throw new Exception("Vorbisパケットの生成中にエラーが発生しました。");
+                    if (submaps > 1)
+                    {
+                        for (int j = 0; j < this.Channels; j++)
+                        {
+                            byte mappingMux = (byte)bitStream.Read(4);
+                            ogg.BitWrite(mappingMux, 4);
+                            if (mappingMux >= submaps)
+                                throw new Exception("Vorbisパケットの生成中にエラーが発生しました。");
+                        }
+                    }
+                    for (int j = 0; j < submaps; j++)
+                    {
+                        byte timeConfig = (byte)bitStream.Read(8);
+                        ogg.BitWrite(timeConfig);
+                        byte floorNumber = (byte)bitStream.Read(8);
+                        ogg.BitWrite(floorNumber);
+                        if (floorNumber >= floorCount)
+                            throw new Exception("Vorbisパケットの生成中にエラーが発生しました。");
+                        byte residueNumber = (byte)bitStream.Read(8);
+                        ogg.BitWrite(residueNumber);
+                        if (residueNumber >= residueCount)
+                            throw new Exception("There was an error generating a vorbis packet.");
+                    }
+                }
+                byte modeCount = (byte)bitStream.Read(6);
+                ogg.BitWrite(modeCount, 6);
+                modeCount++;
+                modeBlockFlag = new bool[modeCount];
+                modeBits = ILog(modeCount - 1U);
+                for (int i = 0; i < modeCount; i++)
+                {
+                    byte blockFlag = (byte)bitStream.Read(1);
+                    ogg.WriteBit(blockFlag);
+                    modeBlockFlag[i] = blockFlag == 1;
+                    ushort windowType = 0;
+                    ushort transformType = 0;
+                    ogg.BitWrite(windowType);
+                    ogg.BitWrite(transformType);
+                    byte mapping = (byte)bitStream.Read(8);
+                    ogg.BitWrite(mapping, 8);
+                    if (mapping >= mappingCount)
+                        throw new Exception("Vorbisパケットの生成中にエラーが発生しました。");
+                }
+                ogg.WriteBit(1);
             }
+            ogg.FlushPage();
+            if ((bitStream.TotalBitsRead + 7) / 8 != setupPacket.GetSize())
+                throw new Exception("Vorbisパケットの生成中にエラーが発生しました。");
+            if (setupPacket.NextOffset() != this._dataChunkOffset + this._firstAudioPacketOffset)
+                throw new Exception("Vorbisパケットの生成中にエラーが発生しました。");
         }
         private uint ILog(uint value)
         {

@@ -23,6 +23,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         bool IsPaused = false;
         bool IsBGMMode = false;
         bool IsModeChanging = false;
+        bool IsOpenDialog = false;
         int Stream;
         int Max_Stream_Count = 0;
         int Available_Stream_Count = 0;
@@ -681,7 +682,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         }
         private async void Start_B_Click(object sender, RoutedEventArgs e)
         {
-            if (IsClosing || IsBusy)
+            if (IsClosing || IsBusy || IsOpenDialog)
             {
                 return;
             }
@@ -698,6 +699,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                     return;
                 }
             }
+            IsOpenDialog = true;
             BetterFolderBrowser fbd = new BetterFolderBrowser()
             {
                 Title = "保存先を選択してください。",
@@ -713,6 +715,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 {
                     Message_Feed_Out("指定したフォルダにアクセスできませんでした。");
                     IsBusy = false;
+                    IsOpenDialog = false;
                     return;
                 }
                 try
@@ -751,9 +754,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                     await Multithread.Convert_To_Wav(Directory.GetFiles(Voice_Set.Special_Path + "/Wwise/BNK_WAV", "*", SearchOption.TopDirectoryOnly), Voice_Set.Special_Path + "/Wwise/BNK_WAV", true, true);
                     Message_T.Text = "ファイルをコピーしています...";
                     if (Directory.Exists(Voice_Set.Special_Path + "/Wwise/BNK_WAV/Voices"))
-                    {
                         Directory.Delete(Voice_Set.Special_Path + "/Wwise/BNK_WAV/Voices", true);
-                    }
                     await Task.Delay(50);
                     string Log_01 = Sub_Code.Set_Voice_Type_Change_Name_By_Index(Voice_Set.Special_Path + "/Wwise/BNK_WAV", Voice_Set.Special_Path + "/Wwise/BNK_WAV/Voices", BNK_Voices, BNK_Voices_Enable);
                     if (Log_01 != "")
@@ -761,12 +762,11 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                         Message_Feed_Out("ファイルをコピーできませんでした。詳しくは\"Error_Log.txt\"を参照してください。");
                         Directory.Delete(Voice_Set.Special_Path + "/Wwise/BNK_WAV/Voices", true);
                         IsBusy = false;
+                        IsOpenDialog = false;
                         return;
                     }
                     foreach (string BGM_Now in Add_BGM_List)
-                    {
                         Sub_Code.File_Move(BGM_Now, Voice_Set.Special_Path + "/Wwise/BNK_WAV/Voices/" + Path.GetFileName(BGM_Now), true);
-                    }
                     Message_T.Text = "SEの有無をチェックし、適応しています...";
                     await Task.Delay(50);
                     Voice_Set.Set_SE_Change_Name();
@@ -793,9 +793,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                         Sub_Code.DVPL_File_Delete(Voice_Set.WoTB_Path + "/Data/WwiseSound/ui_battle.bnk");
                         Sub_Code.DVPL_File_Delete(Voice_Set.WoTB_Path + "/Data/WwiseSound/ui_battle_basic.bnk");
                         if (!Sub_Code.DVPL_File_Copy(SetPath + "/voiceover_crew.bnk", Voice_Set.WoTB_Path + "/Data/WwiseSound/ja/voiceover_crew.bnk", true))
-                        {
                             IsOK = false;
-                        }
                         Sub_Code.DVPL_File_Copy(SetPath + "/reload.bnk", Voice_Set.WoTB_Path + "/Data/WwiseSound/reload.bnk", true);
                         Sub_Code.DVPL_File_Copy(SetPath + "/ui_chat_quick_commands.bnk", Voice_Set.WoTB_Path + "/Data/WwiseSound/ui_chat_quick_commands.bnk", true);
                         Sub_Code.DVPL_File_Copy(SetPath + "/ui_battle.bnk", Voice_Set.WoTB_Path + "/Data/WwiseSound/ui_battle.bnk", true);
@@ -814,6 +812,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 IsBusy = false;
             }
             fbd.Dispose();
+            IsOpenDialog = false;
         }
         private void DVPL_C_Click(object sender, RoutedEventArgs e)
         {

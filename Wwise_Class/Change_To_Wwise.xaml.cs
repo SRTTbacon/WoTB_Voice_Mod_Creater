@@ -16,6 +16,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         string BGM_FSB_File = "";
         bool IsClosing = false;
         bool IsMessageShowing = false;
+        bool IsOpenDialog = false;
         List<string> BGM_Select_Only = new List<string>();
         List<string> BGM_Add_Only = new List<string>();
         public Change_To_Wwise()
@@ -289,11 +290,12 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         //fsbからwavファイルを抽出し、ファイル名を変更、adpcmの場合ファイルが破損しているため復元してから.bnkを作成
         private async void Chnage_To_Wwise_B_Click(object sender, RoutedEventArgs e)
         {
-            if (IsClosing || Opacity < 1)
+            if (IsClosing || Opacity < 1 || IsOpenDialog)
                 return;
             try
             {
                 IsClosing = true;
+                IsOpenDialog = true;
                 BetterFolderBrowser sfd = new BetterFolderBrowser()
                 {
                     Title = "保存先のフォルダを指定してください。",
@@ -305,13 +307,9 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                     Sub_Code.Set_Directory_Path(sfd.SelectedFolder);
                     FSB_Details_L.Items[4] = "出力先のフォルダ名:" + sfd.SelectedFolder.Substring(sfd.SelectedFolder.LastIndexOf("\\") + 1);
                     if (Directory.Exists(Voice_Set.Special_Path + "/Wwise/FSB_Extract_Voices_TMP"))
-                    {
                         Directory.Delete(Voice_Set.Special_Path + "/Wwise/FSB_Extract_Voices_TMP", true);
-                    }
                     if (Directory.Exists(Voice_Set.Special_Path + "/Wwise/FSB_Extract_Voices"))
-                    {
                         Directory.Delete(Voice_Set.Special_Path + "/Wwise/FSB_Extract_Voices", true);
-                    }
                     Message_T.Text = "FSBファイルから音声を抽出しています...";
                     await Task.Delay(50);
                     Fmod_File_Extract_V2.FSB_Extract_To_Directory(Voice_FSB_File, Voice_Set.Special_Path + "/Wwise/FSB_Extract_Voices_TMP");
@@ -332,13 +330,9 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                         foreach (string File_Now in BGM_Add_Only)
                         {
                             if (!Sub_Code.Audio_IsWAV(File_Now))
-                            {
                                 Sub_Code.Audio_Encode_To_Other(File_Now, Sub_Code.File_Rename_Get_Name(Voice_Set.Special_Path + "/Wwise/FSB_Extract_Voices/battle_bgm") + ".wav", ".wav", false);
-                            }
                             else
-                            {
                                 File.Copy(File_Now, Sub_Code.File_Rename_Get_Name(Voice_Set.Special_Path + "/Wwise/FSB_Extract_Voices/battle_bgm") + ".wav", true);
-                            }
                         }
                     }
                     Message_T.Text = "音声のファイル名を変更しています...";
@@ -349,41 +343,25 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                     {
                         FileInfo fi_reload = new FileInfo(Reload_Now);
                         if (fi_reload.Length == 290340 || fi_reload.Length == 335796 || fi_reload.Length == 336036 || fi_reload.Length == 445836 || fi_reload.Length == 497268 || fi_reload.Length == 541980)
-                        {
                             fi_reload.Delete();
-                        }
                     }
                     string[] Voice_Files = Directory.GetFiles(Voice_Set.Special_Path + "/Wwise/FSB_Extract_Voices", "*.wav", SearchOption.TopDirectoryOnly);
                     //音声の場合はたいていファイル名の語尾に_01や_02と書いているため、書かれていないファイルは削除する
                     foreach (string Voice_Now in Voice_Files)
-                    {
                         if (!Path.GetFileNameWithoutExtension(Voice_Now).Contains("_") || !Sub_Code.IsIncludeInt_From_String(Path.GetFileNameWithoutExtension(Voice_Now), "_"))
-                        {
                             File.Delete(Voice_Now);
-                        }
-                    }
                     if (File.Exists(Voice_Set.Special_Path + "/Wwise/FSB_Extract_Voices/lock_on.wav"))
-                    {
                         File.Delete(Voice_Set.Special_Path + "/Wwise/FSB_Extract_Voices/lock_on.wav");
-                    }
                     if (BGM_Add_List.Items.Count > 0)
-                    {
                         Message_T.Text = ".bnkファイルを作成しています...\nBGMが含まれているため時間がかかります...";
-                    }
                     else
-                    {
                         Message_T.Text = ".bnkファイルを作成しています...";
-                    }
                     await Task.Delay(50);
                     FileInfo fi = new FileInfo(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Default Work Unit.wwu");
                     if (File.Exists(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Backup.tmp") && fi.Length >= 800000)
-                    {
                         File.Copy(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Backup.tmp", Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Default Work Unit.wwu", true);
-                    }
                     if (!File.Exists(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Backup.tmp"))
-                    {
                         File.Copy(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Default Work Unit.wwu", Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Backup.tmp", true);
-                    }
                     Wwise_Class.Wwise_Project_Create Wwise = new Wwise_Class.Wwise_Project_Create(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod");
                     Wwise.Sound_Add_Wwise(Voice_Set.Special_Path + "/Wwise/FSB_Extract_Voices");
                     Wwise.Save();
@@ -399,9 +377,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                     Wwise.Project_Build("reload", sfd.SelectedFolder + "/reload.bnk");
                     Wwise.Clear();
                     if (File.Exists(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Backup.tmp"))
-                    {
                         File.Copy(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Backup.tmp", Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Default Work Unit.wwu", true);
-                    }
                     if (DVPL_C.IsChecked.Value)
                     {
                         Message_T.Text = "DVPL化しています...";
@@ -435,6 +411,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 Message_Feed_Out("エラーが発生しました。詳しくはLog.txtを参照してください。");
             }
             IsClosing = false;
+            IsOpenDialog = false;
         }
         private void Install_Help_B_Click(object sender, RoutedEventArgs e)
         {

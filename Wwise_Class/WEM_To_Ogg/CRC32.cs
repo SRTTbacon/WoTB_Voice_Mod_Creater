@@ -73,9 +73,7 @@
         {
             uint hash = 0;
             for (int i = 0; i < size; i++)
-            {
                 hash = (hash << 8) ^ CRC_LOOKUP[((hash >> 24) & 0xFF) ^ buffer[i]];
-            }
             return hash;
         }
     }

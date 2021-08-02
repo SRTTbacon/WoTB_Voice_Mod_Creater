@@ -202,23 +202,15 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         public bool Wwise_Extract_To_WEM_File(int Index, string To_File, bool IsOverWrite)
         {
             if (File.Exists(To_File) && !IsOverWrite)
-            {
                 return false;
-            }
             if (WEML.Count <= Index || IsClear)
-            {
                 return false;
-            }
             try
             {
                 LoLSoundBankManager.WEMFile File_Index = WEML[Index];
                 using (FileStream ms = new FileStream(To_File, FileMode.Create))
-                {
                     using (BinaryWriter bw = new BinaryWriter(ms))
-                    {
                         bw.Write(LOL.GetFileData(File_Index.ID));
-                    }
-                }
                 return true;
             }
             catch (Exception e)
@@ -262,22 +254,14 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         public bool Wwise_Extract_To_Ogg_File(int Index, string To_File, bool IsOverWrite)
         {
             if (IsClear)
-            {
                 return false;
-            }
             if (File.Exists(To_File) && !IsOverWrite)
-            {
                 return false;
-            }
             try
             {
                 if (Wwise_Extract_To_WEM_File(Index, To_File + ".wem", true))
-                {
                     if (Sub_Code.WEM_To_File(To_File + ".wem", To_File, "ogg", true))
-                    {
                         return true;
-                    }
-                }
                 return false;
             }
             catch (Exception e)

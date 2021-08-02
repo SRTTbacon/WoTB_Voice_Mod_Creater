@@ -29,9 +29,7 @@ namespace WEMSharp
             for (int i = 0; i < bitCount; i++)
             {
                 if (GetBit() == 1)
-                {
                     result |= (1U << i);
-                }
             }
             return result;
         }

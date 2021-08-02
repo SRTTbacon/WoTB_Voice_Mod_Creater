@@ -25,23 +25,17 @@ namespace WEMSharp
         internal void WriteBit(byte bit)
         {
             if (bit == 1)
-            {
                 this._bitBuffer |= (byte)(1U << this._bitsStored);
-            }
             this._bitsStored++;
             if (this._bitsStored == 8)
-            {
                 FlushBits();
-            }
         }
         internal void FlushBits()
         {
             if (this._bitsStored != 0)
             {
                 if (this._payloadBytes == SEGMENT_SIZE * MAX_SEGMENTS)
-                {
                     throw new Exception("OGGパケットのスペースが不足しています。");
-                }
                 this._pageBuffer[HEADER_SIZE + MAX_SEGMENTS + this._payloadBytes] = this._bitBuffer;
                 this._payloadBytes++;
                 this._bitBuffer = 0;
@@ -51,20 +45,14 @@ namespace WEMSharp
         internal void FlushPage(bool nextContinued = false, bool last = false)
         {
             if (this._payloadBytes != MAX_SEGMENTS * SEGMENT_SIZE)
-            {
                 FlushBits();
-            }
             if (this._payloadBytes != 0)
             {
                 uint segments = (this._payloadBytes + SEGMENT_SIZE) / SEGMENT_SIZE;
                 if (segments == MAX_SEGMENTS + 1)
-                {
                     segments = MAX_SEGMENTS;
-                }
                 for (int i = 0; i < this._payloadBytes; i++)
-                {
                     this._pageBuffer[HEADER_SIZE + segments + i] = this._pageBuffer[HEADER_SIZE + MAX_SEGMENTS + i];
-                }
                 this._pageBuffer[0] = (byte)'O';
                 this._pageBuffer[1] = (byte)'g';
                 this._pageBuffer[2] = (byte)'g';
@@ -101,15 +89,11 @@ namespace WEMSharp
                         this._pageBuffer[27 + i] = (byte)SEGMENT_SIZE;
                     }
                     else
-                    {
                         this._pageBuffer[27 + i] = (byte)bytesLeft;
-                    }
                 }
                 Buffer.BlockCopy(BitConverter.GetBytes(CRC32.Compute(this._pageBuffer, HEADER_SIZE + segments + this._payloadBytes)), 0, this._pageBuffer, 22, 4);
                 for (int i = 0; i < HEADER_SIZE + segments + this._payloadBytes; i++)
-                {
                     Write(this._pageBuffer[i]);
-                }
                 this._sequenceNumber++;
                 this._first = false;
                 this._continued = nextContinued;
@@ -131,18 +115,14 @@ namespace WEMSharp
         private void BitWrite(uint value, int size)
         {
             for (int i = 0; i < size; i++)
-            {
                 WriteBit((value & (1 << i)) != 0 ? (byte)1 : (byte)0);
-            }
         }
         internal void WriteVorbisHeader(byte type)
         {
             byte[] vorbisString = Encoding.UTF8.GetBytes("vorbis");
             BitWrite(type);
             for (int i = 0; i < vorbisString.Length; i++)
-            {
                 BitWrite(vorbisString[i]);
-            }
         }
         internal void SetGranule(uint granule)
         {

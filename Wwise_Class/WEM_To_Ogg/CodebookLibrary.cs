@@ -21,9 +21,7 @@ namespace WEMSharp
                 br.BaseStream.Seek(0, SeekOrigin.Begin);
                 this._codebookData = br.ReadBytes((int)offsetOffset);
                 for (int i = 0; i < this.CodebookCount; i++)
-                {
                     this._codebookOffsets[i] = br.ReadUInt32();
-                }
             }
         }
         internal void Copy(BitStream bitStream, OggStream ogg)
@@ -36,11 +34,8 @@ namespace WEMSharp
             };
             ushort dimensions = (ushort)bitStream.Read(16);
             uint entries = bitStream.Read(24);
-
             if (id[0] != 0x42 || id[1] != 0x43 || id[2] != 0x56)
-            {
                 throw new Exception("コードブックのパターンが見つかりませんでした。");
-            }
             ogg.BitWrite(id[0]);
             ogg.BitWrite(id[1]);
             ogg.BitWrite(id[2]);
@@ -61,9 +56,7 @@ namespace WEMSharp
                     currentEntry += number;
                 }
                 if (currentEntry > entries)
-                {
                     throw new Exception("コードブックをコピーできませんでした。");
-                }
             }
             else
             {
@@ -111,9 +104,7 @@ namespace WEMSharp
             byte[] codebook = GetCodebook(index);
             uint codebookSize = GetCodebookSize(index);
             if (codebookSize == 0xFFFFFFFF || codebook == null)
-            {
                 throw new Exception("コードブックのインデックスが破損しています。");
-            }
             Rebuild(new BitStream(new MemoryStream(codebook)), codebookSize, ogg);
         }
         internal void Rebuild(BitStream bitStream, uint codebookSize, OggStream ogg)
@@ -138,9 +129,7 @@ namespace WEMSharp
                     currentEntry += number;
                 }
                 if (currentEntry > entries)
-                {
                     throw new Exception("コードブックをリビルドできませんでした。");
-                }
             }
             else
             {
@@ -148,9 +137,7 @@ namespace WEMSharp
                 byte sparseFlag = (byte)bitStream.Read(1);
                 ogg.WriteBit(sparseFlag);
                 if (codewordLengthLength == 0 || codewordLengthLength > 5)
-                {
                     throw new Exception("コードブックをリビルドできませんでした。");
-                }
                 for (int i = 0; i < entries; i++)
                 {
                     bool presentBool = true;
@@ -184,36 +171,24 @@ namespace WEMSharp
                 }
             }
             else if (lookupType != 0)
-            {
                 throw new Exception("コードブックをコピーできませんでした。");
-            }
             if (codebookSize != 0 && bitStream.TotalBitsRead / 8 + 1 != codebookSize)
-            {
                 throw new Exception("コードブックをリビルドできませんでした。");
-            }
         }
         internal byte[] GetCodebook(uint index)
         {
             if (this._codebookData == null || this._codebookOffsets == null)
-            {
                 throw new Exception("コードブックを初期化できませんでした。");
-            }
             if (index >= this.CodebookCount - 1)
-            {
                 return null;
-            }
             return this._codebookData.ToList().GetRange((int)this._codebookOffsets[index], (int)GetCodebookSize(index)).ToArray();
         }
         internal uint GetCodebookSize(uint index)
         {
             if (this._codebookData == null || this._codebookOffsets == null)
-            {
                 throw new Exception("コードブックを初期化できませんでした。");
-            }
             if (index >= this.CodebookCount - 1)
-            {
                 return 0xFFFFFFFF;
-            }
             return this._codebookOffsets[index + 1] - this._codebookOffsets[index];
         }
         private uint ILog(uint value)
@@ -240,19 +215,13 @@ namespace WEMSharp
                     acc1 *= values + 1;
                 }
                 if (acc <= entries && acc1 > entries)
-                {
                     return values;
-                }
                 else
                 {
                     if (acc > entries)
-                    {
                         values--;
-                    }
                     else
-                    {
                         values++;
-                    }
                 }
             }
         }
