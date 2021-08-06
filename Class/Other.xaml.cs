@@ -549,8 +549,8 @@ namespace WoTB_Voice_Mod_Creater.Class
                 if (Path.GetExtension(File_Full_Path[Music_Select_List][Select_Index]) == ".mp4" && Video_Mode_C.IsChecked.Value)
                 {
                     Video_Mode_Change(true);
-                    Device_T.Margin = new Thickness(-2100, 710, 0, 0);
-                    Device_L.Margin = new Thickness(-2100, 770, 0, 0);
+                    Device_T.Margin = new Thickness(-2100, 700, 0, 0);
+                    Device_L.Margin = new Thickness(-2100, 755, 0, 0);
                     Video_V.Close();
                     Video_V.Source = new Uri(File_Full_Path[Music_Select_List][Select_Index]);
                     Video_V.Volume = 0;
@@ -566,8 +566,8 @@ namespace WoTB_Voice_Mod_Creater.Class
                 }
                 else if (Path.GetExtension(File_Full_Path[Music_Select_List][Select_Index]) == ".mp4")
                 {
-                    Device_T.Margin = new Thickness(-2100, 710, 0, 0);
-                    Device_L.Margin = new Thickness(-2100, 770, 0, 0);
+                    Device_T.Margin = new Thickness(-2100, 700, 0, 0);
+                    Device_L.Margin = new Thickness(-2100, 755, 0, 0);
                     Video_Mode_Change(false);
                     Video_V.Close();
                     Video_V.Source = new Uri(File_Full_Path[Music_Select_List][Select_Index]);
@@ -580,7 +580,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 else
                 {
                     Device_T.Margin = new Thickness(-2100, 640, 0, 0);
-                    Device_L.Margin = new Thickness(-2100, 700, 0, 0);
+                    Device_L.Margin = new Thickness(-2100, 690, 0, 0);
                     Video_Mode_Change(false);
                     Video_V.Stop();
                     Video_V.Close();

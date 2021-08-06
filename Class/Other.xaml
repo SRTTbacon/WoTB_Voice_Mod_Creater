@@ -154,8 +154,8 @@
             <CheckBox x:Name="WAVEForm_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-3350,875,0,0" Click="WAVEForm_C_Click" Visibility="Hidden"/>
             <TextBlock x:Name="Mode_T" FontSize="37" Height="50" Width="280" TextWrapping="Wrap" Text="音程と速度を同期" VerticalAlignment="Top" Margin="-2025,925,0,0" Foreground="Aqua"/>
             <CheckBox x:Name="Mode_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-2350,945,0,0" Click="Mode_C_Click"/>
-            <TextBlock x:Name="Device_T" FontSize="35" Height="50" Width="180" TextWrapping="Wrap" Text="出力デバイス" VerticalAlignment="Top" Margin="-2100,640,0,0" Foreground="Aqua"/>
-            <ListBox x:Name="Device_L" Height="250" VerticalAlignment="Top" Width="300" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="35" Margin="-2100,700,0,0" SelectionChanged="Device_L_SelectionChanged"/>
+            <TextBlock x:Name="Device_T" FontSize="33" Height="50" Width="180" TextWrapping="Wrap" Text="出力デバイス" VerticalAlignment="Top" Margin="-2100,640,0,0" Foreground="Aqua"/>
+            <ListBox x:Name="Device_L" Height="250" VerticalAlignment="Top" Width="300" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="35" Margin="-2100,690,0,0" SelectionChanged="Device_L_SelectionChanged"/>
             <Button x:Name="Video_Change_B" Content="動画として再生" Height="85" VerticalAlignment="Top" Width="325" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Margin="-2100,615,0,0" Click="Video_Change_B_Click"/>
             <Button x:Name="Music_Fix_B" Content="音ズレを修正" Height="70" VerticalAlignment="Top" Width="325" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Margin="-3513,915,0,0" Click="Music_Fix_B_Click"/>
             <Button x:Name="Youtube_Link_B" Content="Youtubeから取得" Height="70" VerticalAlignment="Top" Width="300" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Margin="-2850,1005,0,0" Click="Youtube_Link_B_Click"/>

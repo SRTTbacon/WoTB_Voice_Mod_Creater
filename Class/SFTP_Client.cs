@@ -345,6 +345,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             }
         }
         //サーバーからファイルをダウンロードします
+        bool IsDownloading = false;
         public bool DownloadFile(string From_File, string To_File, bool IsErrorLogMode = false)
         {
             if (!IsConnected)
@@ -353,16 +354,27 @@ namespace WoTB_Voice_Mod_Creater.Class
                 SFTP_Server.Connect();
             try
             {
+                IsDownloading = true;
                 using (Stream fs = File.OpenWrite(To_File))
-                    SFTP_Server.DownloadFile(From_File, fs);
+                    SFTP_Server.DownloadFile(From_File, fs, (ulong upSize) =>
+                    {
+                        if (!IsDownloading)
+                            fs.Close();
+                    });
+                IsDownloading = false;
                 return true;
             }
             catch (Exception e)
             {
-                if (IsErrorLogMode)
+                if (IsErrorLogMode && !IsDownloading)
                     Sub_Code.Error_Log_Write(e.Message);
+                IsDownloading = false;
                 return false;
             }
+        }
+        public void Stop_DownloadFile()
+        {
+            IsDownloading = false;
         }
         //サーバーのフォルダ内すべてのファイルをダウンロードします
         public bool DownloadDirectory(string From_Dir, string To_Dir, bool IsErrorLogMode = false)

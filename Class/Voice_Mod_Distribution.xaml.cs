@@ -158,21 +158,13 @@ namespace WoTB_Voice_Mod_Creater.Class
             List<string> Mods_Read = Server_Open_File_Line("/WoTB_Voice_Mod/Mods/Mod_Names_Wwise.dat");
             Mod_List_Save = Mods_Read;
             if (List_Change_C.IsChecked.Value)
-            {
                 Mods_Read.Sort();
-            }
             foreach (string Line in Mods_Read)
-            {
                 Fmod_Bank_List.Items.Add(Line);
-            }
             if (Fmod_Bank_List.Items.Count == 0)
-            {
                 Message_T.Text = "現在配布されているModはありません。";
-            }
             else if (Message_T.Text == "現在配布されているModはありません。")
-            {
                 Message_T.Text = "";
-            }
         }
         //ランダム再生
         private async void Random_Play_B_Click(object sender, RoutedEventArgs e)
@@ -1094,24 +1086,14 @@ namespace WoTB_Voice_Mod_Creater.Class
         //リストをソート(名前順、公開順)
         private void List_Change_C_Click(object sender, RoutedEventArgs e)
         {
-            if (Mod_Select_Name != "")
-            {
+            if (Mod_Select_Name != "" || Mod_List_Save.Count == 0)
                 return;
-            }
-            if (Mod_List_Save.Count == 0)
-            {
-                return;
-            }
             bool IsSelectedItem = false;
             if (Fmod_Bank_List.SelectedIndex != -1)
-            {
                 IsSelectedItem = true;
-            }
             string SelectModName = "";
             if (IsSelectedItem)
-            {
                 SelectModName = Fmod_Bank_List.SelectedItem.ToString();
-            }
             Fmod_Bank_List.Items.Clear();
             if (List_Change_C.IsChecked.Value)
             {
@@ -1119,16 +1101,12 @@ namespace WoTB_Voice_Mod_Creater.Class
                 List_Temp.AddRange(Mod_List_Save);
                 List_Temp.Sort();
                 foreach (string Name in List_Temp)
-                {
                     Fmod_Bank_List.Items.Add(Name);
-                }
             }
             else
             {
                 foreach (string Name in Mod_List_Save)
-                {
                     Fmod_Bank_List.Items.Add(Name);
-                }
             }
             if (IsSelectedItem)
             {

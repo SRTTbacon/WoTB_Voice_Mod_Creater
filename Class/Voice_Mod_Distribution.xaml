@@ -99,7 +99,7 @@
             </ScrollViewer>
             <Border x:Name="Explanation_Border" BorderBrush="Aqua" Width="538" Height="250" Margin="-1525,600,0,0" BorderThickness="1"/>
             <TextBlock x:Name="Explanation_Text" Height="50" Width="300" Foreground="Aqua" FontSize="40" Margin="-1525,650,0,0" TextWrapping="Wrap" Text="内容(説明)" VerticalAlignment="Top" TextAlignment="Center"/>
-            <TextBlock x:Name="Create_Name_T" Height="50" Width="1000" Foreground="Aqua" FontSize="40" Margin="-1000,50,0,0" TextWrapping="Wrap" Text="配布者:SRTTbacon" VerticalAlignment="Top" TextAlignment="Center"/>
+            <TextBlock x:Name="Create_Name_T" Height="55" Width="1000" Foreground="Aqua" FontSize="40" Margin="-1000,50,0,0" TextWrapping="Wrap" Text="配布者:SRTTbacon" VerticalAlignment="Top" TextAlignment="Center"/>
             <TextBlock x:Name="Mod_Config_T" Height="100" Width="400" Foreground="Aqua" FontSize="40" Margin="-2525,885,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" TextAlignment="Center"/>
             <ProgressBar x:Name="Download_P" Height="30" VerticalAlignment="Top" Width="375" Margin="-1200,400,0,0" Value="50" Foreground="#FF58F0E2" Background="#FFC3C3C3" BorderBrush="#FF6643FF"/>
             <TextBlock x:Name="Download_T" Height="50" Width="300" Foreground="Aqua" FontSize="40" Margin="-1200,340,0,0" TextWrapping="Wrap" Text="進捗:50%" VerticalAlignment="Top" TextAlignment="Center"/>

@@ -740,11 +740,12 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 if (IsBusy || IsCreating)
                     return;
-                if (Voice_Set.WoTB_Path == "")
+                //FMOD時代は必要だったけど今は必要ない
+                /*if (Voice_Set.WoTB_Path == "")
                 {
                     Message_Feed_Out("WoTBのインストール場所を取得できませんでした。");
                     return;
-                }
+                }*/
                 bool IsOK = false;
                 foreach (string Name_Now in Main_Voice_List)
                     if (Name_Now.Contains("選択済み"))
@@ -853,9 +854,6 @@ namespace WoTB_Voice_Mod_Creater.Class
                         await Task.Delay(50);
                         await Multithread.Convert_To_MP3(Sub_Code.Check_MP3_Get_List(Dir_Name + "/Voices", true).ToArray(), Dir_Name + "/Voices", true);
                         Sub_Code.MP3_Volume_Set(Dir_Name + "/Voices");
-                        /*Message_T.Text = "音量を均一にしています...";
-                        await Task.Delay(50);
-                        await Sub_Code.Change_MP3_Encode(Dir_Name + "/Voices");*/
                         await Task.Delay(500);
                     }
                     string File_Name = Project_Name_T.Text.Replace(" ", "_");
@@ -1010,61 +1008,58 @@ namespace WoTB_Voice_Mod_Creater.Class
                         Sub_Code.Error_Log_Write(e1.Message);
                     }
                     Flash.Flash_Start();
-                    Message_T.Text = "ダイアログを表示しています...";
-                    await Task.Delay(50);
-                    MessageBoxResult result = System.Windows.MessageBox.Show("完了しました。WoTBに適応しますか？", "確認", MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.Yes);
-                    if (result == MessageBoxResult.Yes)
+                    if (Voice_Set.WoTB_Path == "")
                     {
-                        if (Voice_Set.WoTB_Path == "")
+                        Message_T.Text = "ダイアログを表示しています...";
+                        await Task.Delay(50);
+                        MessageBoxResult result = System.Windows.MessageBox.Show("完了しました。WoTBに適応しますか？", "確認", MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.Yes);
+                        if (result == MessageBoxResult.Yes)
                         {
-                            Message_Feed_Out("WoTBのインストール場所を取得できませんでした。");
-                            IsCreating = false;
-                            return;
-                        }
-                        try
-                        {
-                            //WoTBのフォルダに作成したファイルをコピー
-                            if (IsNewMode)
+                            try
                             {
-                                string GetDir = Dir_Name + "/" + Project_Name_T.Text + "_Mod/Data/WwiseSound";
-                                Sub_Code.DVPL_File_Delete(Voice_Set.WoTB_Path + "/Data/WwiseSound/" + Sub_Code.SetLanguage + "/voiceover_crew.bnk");
-                                Sub_Code.DVPL_File_Delete(Voice_Set.WoTB_Path + "/Data/WwiseSound/reload.bnk");
-                                Sub_Code.DVPL_File_Delete(Voice_Set.WoTB_Path + "/Data/WwiseSound/ui_chat_quick_commands.bnk");
-                                Sub_Code.DVPL_File_Delete(Voice_Set.WoTB_Path + "/Data/WwiseSound/ui_battle.bnk");
-                                Sub_Code.DVPL_File_Copy(Dir_Name + "/voiceover_crew.bnk", Voice_Set.WoTB_Path + "/Data/WwiseSound/" + Sub_Code.SetLanguage + "/voiceover_crew.bnk", true);
-                                Sub_Code.DVPL_File_Copy(Dir_Name + "/reload.bnk", Voice_Set.WoTB_Path + "/Data/WwiseSound/reload.bnk", true);
-                                Sub_Code.DVPL_File_Copy(Dir_Name + "/ui_chat_quick_commands.bnk", Voice_Set.WoTB_Path + "/Data/WwiseSound/ui_chat_quick_commands.bnk", true);
-                                Sub_Code.DVPL_File_Copy(Dir_Name + "/ui_battle.bnk", Voice_Set.WoTB_Path + "/Data/WwiseSound/ui_battle.bnk", true);
+                                //WoTBのフォルダに作成したファイルをコピー
+                                if (IsNewMode)
+                                {
+                                    string GetDir = Dir_Name + "/" + Project_Name_T.Text + "_Mod/Data/WwiseSound";
+                                    Sub_Code.DVPL_File_Delete(Voice_Set.WoTB_Path + "/Data/WwiseSound/" + Sub_Code.SetLanguage + "/voiceover_crew.bnk");
+                                    Sub_Code.DVPL_File_Delete(Voice_Set.WoTB_Path + "/Data/WwiseSound/reload.bnk");
+                                    Sub_Code.DVPL_File_Delete(Voice_Set.WoTB_Path + "/Data/WwiseSound/ui_chat_quick_commands.bnk");
+                                    Sub_Code.DVPL_File_Delete(Voice_Set.WoTB_Path + "/Data/WwiseSound/ui_battle.bnk");
+                                    Sub_Code.DVPL_File_Copy(Dir_Name + "/voiceover_crew.bnk", Voice_Set.WoTB_Path + "/Data/WwiseSound/" + Sub_Code.SetLanguage + "/voiceover_crew.bnk", true);
+                                    Sub_Code.DVPL_File_Copy(Dir_Name + "/reload.bnk", Voice_Set.WoTB_Path + "/Data/WwiseSound/reload.bnk", true);
+                                    Sub_Code.DVPL_File_Copy(Dir_Name + "/ui_chat_quick_commands.bnk", Voice_Set.WoTB_Path + "/Data/WwiseSound/ui_chat_quick_commands.bnk", true);
+                                    Sub_Code.DVPL_File_Copy(Dir_Name + "/ui_battle.bnk", Voice_Set.WoTB_Path + "/Data/WwiseSound/ui_battle.bnk", true);
+                                }
+                                else if (Sub_Code.AndroidMode)
+                                {
+                                    File.Copy(Dir_Name + "/ingame_voice_ja.fsb.dvpl", Voice_Set.WoTB_Path + "/Data/Sfx/ingame_voice_ja.fsb.dvpl", true);
+                                    File.Copy(Dir_Name + "/GUI_battle_streamed.fsb.dvpl", Voice_Set.WoTB_Path + "/Data/Sfx/GUI_battle_streamed.fsb.dvpl", true);
+                                    File.Copy(Dir_Name + "/GUI_notifications_FX_howitzer_load.fsb.dvpl", Voice_Set.WoTB_Path + "/Data/Sfx/GUI_notifications_FX_howitzer_load.fsb.dvpl", true);
+                                    File.Copy(Dir_Name + "/GUI_quick_commands.fsb.dvpl", Voice_Set.WoTB_Path + "/Data/Sfx/GUI_quick_commands.fsb.dvpl", true);
+                                    File.Copy(Dir_Name + "/GUI_sirene.fsb.dvpl", Voice_Set.WoTB_Path + "/Data/Sfx/GUI_sirene.fsb.dvpl", true);
+                                }
+                                else
+                                {
+                                    Directory.CreateDirectory(Voice_Set.WoTB_Path + "/Data/Mods");
+                                    Sub_Code.DVPL_File_Delete(Voice_Set.WoTB_Path + "/Data/sounds.yaml");
+                                    Sub_Code.DVPL_File_Delete(Voice_Set.WoTB_Path + "/Data/Mods/" + File_Name + ".fev");
+                                    Sub_Code.DVPL_File_Delete(Voice_Set.WoTB_Path + "/Data/Mods/" + File_Name + ".fsb");
+                                    Sub_Code.DVPL_File_Delete(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_high.yaml");
+                                    Sub_Code.DVPL_File_Delete(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_low.yaml");
+                                    Sub_Code.DVPL_File_Copy(Dir_Name + "/" + Project_Name_T.Text + "_Mod/sounds.yaml", Voice_Set.WoTB_Path + "/Data/sounds.yaml", true);
+                                    Sub_Code.DVPL_File_Copy(Dir_Name + "/" + Project_Name_T.Text + "_Mod/Mods/" + File_Name + ".fev", Voice_Set.WoTB_Path + "/Data/Mods/" + File_Name + ".fev", true);
+                                    Sub_Code.DVPL_File_Copy(Dir_Name + "/" + Project_Name_T.Text + "_Mod/Mods/" + File_Name + ".fsb", Voice_Set.WoTB_Path + "/Data/Mods/" + File_Name + ".fsb", true);
+                                    Sub_Code.DVPL_File_Copy(Dir_Name + "/" + Project_Name_T.Text + "_Mod/Configs/Sfx/sfx_high.yaml", Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_high.yaml", true);
+                                    Sub_Code.DVPL_File_Copy(Dir_Name + "/" + Project_Name_T.Text + "_Mod/Configs/Sfx/sfx_low.yaml", Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_low.yaml", true);
+                                }
                             }
-                            else if (Sub_Code.AndroidMode)
+                            catch (Exception e1)
                             {
-                                File.Copy(Dir_Name + "/ingame_voice_ja.fsb.dvpl", Voice_Set.WoTB_Path + "/Data/Sfx/ingame_voice_ja.fsb.dvpl", true);
-                                File.Copy(Dir_Name + "/GUI_battle_streamed.fsb.dvpl", Voice_Set.WoTB_Path + "/Data/Sfx/GUI_battle_streamed.fsb.dvpl", true);
-                                File.Copy(Dir_Name + "/GUI_notifications_FX_howitzer_load.fsb.dvpl", Voice_Set.WoTB_Path + "/Data/Sfx/GUI_notifications_FX_howitzer_load.fsb.dvpl", true);
-                                File.Copy(Dir_Name + "/GUI_quick_commands.fsb.dvpl", Voice_Set.WoTB_Path + "/Data/Sfx/GUI_quick_commands.fsb.dvpl", true);
-                                File.Copy(Dir_Name + "/GUI_sirene.fsb.dvpl", Voice_Set.WoTB_Path + "/Data/Sfx/GUI_sirene.fsb.dvpl", true);
+                                Message_Feed_Out("WoTBに適応できませんでした。");
+                                Sub_Code.Error_Log_Write(e1.Message);
+                                IsCreating = false;
+                                return;
                             }
-                            else
-                            {
-                                Directory.CreateDirectory(Voice_Set.WoTB_Path + "/Data/Mods");
-                                Sub_Code.DVPL_File_Delete(Voice_Set.WoTB_Path + "/Data/sounds.yaml");
-                                Sub_Code.DVPL_File_Delete(Voice_Set.WoTB_Path + "/Data/Mods/" + File_Name + ".fev");
-                                Sub_Code.DVPL_File_Delete(Voice_Set.WoTB_Path + "/Data/Mods/" + File_Name + ".fsb");
-                                Sub_Code.DVPL_File_Delete(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_high.yaml");
-                                Sub_Code.DVPL_File_Delete(Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_low.yaml");
-                                Sub_Code.DVPL_File_Copy(Dir_Name + "/" + Project_Name_T.Text + "_Mod/sounds.yaml", Voice_Set.WoTB_Path + "/Data/sounds.yaml", true);
-                                Sub_Code.DVPL_File_Copy(Dir_Name + "/" + Project_Name_T.Text + "_Mod/Mods/" + File_Name + ".fev", Voice_Set.WoTB_Path + "/Data/Mods/" + File_Name + ".fev", true);
-                                Sub_Code.DVPL_File_Copy(Dir_Name + "/" + Project_Name_T.Text + "_Mod/Mods/" + File_Name + ".fsb", Voice_Set.WoTB_Path + "/Data/Mods/" + File_Name + ".fsb", true);
-                                Sub_Code.DVPL_File_Copy(Dir_Name + "/" + Project_Name_T.Text + "_Mod/Configs/Sfx/sfx_high.yaml", Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_high.yaml", true);
-                                Sub_Code.DVPL_File_Copy(Dir_Name + "/" + Project_Name_T.Text + "_Mod/Configs/Sfx/sfx_low.yaml", Voice_Set.WoTB_Path + "/Data/Configs/Sfx/sfx_low.yaml", true);
-                            }
-                        }
-                        catch (Exception e1)
-                        {
-                            Message_Feed_Out("WoTBに適応できませんでした。");
-                            Sub_Code.Error_Log_Write(e1.Message);
-                            IsCreating = false;
-                            return;
                         }
                     }
                     Sub_Code.DVPL_Encode = false;

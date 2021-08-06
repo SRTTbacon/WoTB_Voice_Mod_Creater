@@ -312,13 +312,20 @@ namespace WoTB_Voice_Mod_Creater.Class
                         await Task.Delay(75);
                         string FileNameOnly = File_Name[Number].Substring(0, File_Name[Number].LastIndexOf('.'));
                         Voice_Set.FTPClient.Directory_Create("/WoTB_Voice_Mod/Users/" + Voice_Set.UserName + "/" + FileNameOnly);
-                        Voice_Set.FTPClient.UploadFile(File_Full_Name[Number], "/WoTB_Voice_Mod/Users/" + Voice_Set.UserName + "/" + FileNameOnly + "/" + File_Name[Number]);
-                        if (MP3_OR_WAV_C.SelectedIndex == 0)
-                            Voice_Set.TCP_Server.Send(Voice_Set.UserName + "_Private|Music_Change|" + File_Name[Number] + "|true");
+                        if (Voice_Set.FTPClient.UploadFile(File_Full_Name[Number], "/WoTB_Voice_Mod/Users/" + Voice_Set.UserName + "/" + FileNameOnly + "/" + File_Name[Number], true))
+                        {
+                            if (MP3_OR_WAV_C.SelectedIndex == 0)
+                                Voice_Set.TCP_Server.Send(Voice_Set.UserName + "_Private|Music_Change|" + File_Name[Number] + "|true");
+                            else
+                                Voice_Set.TCP_Server.Send(Voice_Set.UserName + "_Private|Music_Change|" + File_Name[Number] + "|false");
+                            File_IsUploaded[Number] = true;
+                            Music_Status_Change_V2(Number);
+                        }
                         else
-                            Voice_Set.TCP_Server.Send(Voice_Set.UserName + "_Private|Music_Change|" + File_Name[Number] + "|false");
-                        File_IsUploaded[Number] = true;
-                        Music_Status_Change_V2(Number);
+                        {
+                            Message_Feed_Out("ファイルのアップロード中にエラーが発生しました。");
+                            return;
+                        }
                     }
                 }
                 Configs_Save();
