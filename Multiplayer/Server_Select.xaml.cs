@@ -1,5 +1,4 @@
-﻿using FluentFTP;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
@@ -45,10 +44,6 @@ namespace WoTB_Voice_Mod_Creater.Multiplayer
             IsMessageShowing = false;
             Message_T.Text = "";
             Message_T.Opacity = 1;
-        }
-        void OnValidateCertificate(FtpClient control, FtpSslValidationEventArgs e)
-        {
-            e.Accept = true;
         }
         public async void Window_Show()
         {
@@ -155,7 +150,7 @@ namespace WoTB_Voice_Mod_Creater.Multiplayer
                 {
                     Directory.Delete(Voice_Set.Special_Path + "/Server/" + Directory_Name, true);
                 }
-                XDocument xml2 = XDocument.Load(Voice_Set.FTP_Server.OpenRead("/WoTB_Voice_Mod/Voice_Online/" + Server_Names_List[Server_Lists.SelectedIndex] + "/Server_Config.dat"));
+                XDocument xml2 = XDocument.Load(Voice_Set.FTPClient.GetFileRead("/WoTB_Voice_Mod/Voice_Online/" + Server_Names_List[Server_Lists.SelectedIndex] + "/Server_Config.dat"));
                 XElement item2 = xml2.Element("Server_Create_Config");
                 if (bool.Parse(item2.Element("IsEnablePassword").Value))
                 {
@@ -187,23 +182,23 @@ namespace WoTB_Voice_Mod_Creater.Multiplayer
                 fwr.Abort();
                 Voice_Set.SRTTbacon_Server_Name = Server_Names_List[Server_Lists.SelectedIndex];
                 Directory.CreateDirectory(Voice_Set.Special_Path + "/Server/" + Directory_Name);
-                Voice_Set.FTP_Server.DownloadFile(Voice_Set.Special_Path + "/Server/" + Directory_Name + "/" + Server_Voices.Voice_List[0], "/WoTB_Voice_Mod/Voice_Online/" + Directory_Name + "/" + Server_Voices.Voice_List[0]);
+                Voice_Set.FTPClient.DownloadFile("/WoTB_Voice_Mod/Voice_Online/" + Directory_Name + "/" + Server_Voices.Voice_List[0], Voice_Set.Special_Path + "/Server/" + Directory_Name + "/" + Server_Voices.Voice_List[0]);
                 string Chat_Temp = Server_File.Server_Open_File("/WoTB_Voice_Mod/Voice_Online/" + Voice_Set.SRTTbacon_Server_Name + "/Chat.dat");
                 if (Voice_Set.UserName == item2.Element("Master_User_Name").Value)
                 {
                     if (!Chat_Temp.Contains(Voice_Set.UserName + "(管理者)が参加しました。"))
                     {
-                        Voice_Set.AppendString("/WoTB_Voice_Mod/Voice_Online/" + Voice_Set.SRTTbacon_Server_Name + "/Chat.dat", Encoding.UTF8.GetBytes(Voice_Set.UserName + "が参加しました。\n"));
+                        Voice_Set.AppendString("/WoTB_Voice_Mod/Voice_Online/" + Voice_Set.SRTTbacon_Server_Name + "/Chat.dat", Voice_Set.UserName + "が参加しました。\n");
                     }
                 }
                 else
                 {
                     if (!Chat_Temp.Contains(Voice_Set.UserName + "が参加しました。"))
                     {
-                        Voice_Set.AppendString("/WoTB_Voice_Mod/Voice_Online/" + Voice_Set.SRTTbacon_Server_Name + "/Chat.dat", Encoding.UTF8.GetBytes(Voice_Set.UserName + "が参加しました。\n"));
+                        Voice_Set.AppendString("/WoTB_Voice_Mod/Voice_Online/" + Voice_Set.SRTTbacon_Server_Name + "/Chat.dat", Voice_Set.UserName + "が参加しました。\n");
                     }
                 }
-                Voice_Set.TCP_Server.WriteLine(Voice_Set.SRTTbacon_Server_Name + "|Chat\0");
+                Voice_Set.TCP_Server.Send(Voice_Set.SRTTbacon_Server_Name + "|Chat");
                 Visibility = Visibility.Hidden;
                 Opacity = 0;
             }
@@ -244,7 +239,7 @@ namespace WoTB_Voice_Mod_Creater.Multiplayer
                 Explanation_Scrool.Visibility = Visibility.Visible;
                 Explanation_Text.Visibility = Visibility.Visible;
                 Explanation_Border.Visibility = Visibility.Visible;
-                XDocument xml2 = XDocument.Load(Voice_Set.FTP_Server.OpenRead("/WoTB_Voice_Mod/Voice_Online/" + Server_Names_List[Server_Lists.SelectedIndex] + "/Server_Config.dat"));
+                XDocument xml2 = XDocument.Load(Voice_Set.FTPClient.GetFileRead("/WoTB_Voice_Mod/Voice_Online/" + Server_Names_List[Server_Lists.SelectedIndex] + "/Server_Config.dat"));
                 XElement item2 = xml2.Element("Server_Create_Config");
                 if (bool.Parse(item2.Element("IsEnablePassword").Value))
                 {

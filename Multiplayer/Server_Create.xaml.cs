@@ -1,5 +1,4 @@
-﻿using FluentFTP;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
@@ -258,7 +257,7 @@ namespace WoTB_Voice_Mod_Creater.Multiplayer
                 Message_T.Text = "最低1つは音声ファイルが必要です。";
                 return;
             }
-            if (Voice_Set.FTP_Server.DirectoryExists("/WoTB_Voice_Mod/Voice_Online/" + Project_Name_T.Text))
+            if (Voice_Set.FTPClient.Directory_Exist("/WoTB_Voice_Mod/Voice_Online/" + Project_Name_T.Text))
             {
                 Message_T.Text = "同名のプロジェクトが存在するか、別の目的で使用されています。";
                 return;
@@ -279,18 +278,18 @@ namespace WoTB_Voice_Mod_Creater.Multiplayer
             StreamWriter streamWriter = new StreamWriter(Voice_Set.Special_Path + "/Temp_Create_Server.dat", false, new UTF8Encoding(false));
             xmlSerializer.Serialize(streamWriter, Conf);
             streamWriter.Close();
-            Voice_Set.FTP_Server.CreateDirectory("/WoTB_Voice_Mod/Voice_Online/" + Project_Name_T.Text + "/Voices", true);
-            Voice_Set.FTP_Server.UploadFile(Voice_Set.Special_Path + "/Temp_Create_Server.dat", "/WoTB_Voice_Mod/Voice_Online/" + Project_Name_T.Text + "/Server_Config.dat");
+            Voice_Set.FTPClient.Directory_Create("/WoTB_Voice_Mod/Voice_Online/" + Project_Name_T.Text + "/Voices");
+            Voice_Set.FTPClient.UploadFile(Voice_Set.Special_Path + "/Temp_Create_Server.dat", "/WoTB_Voice_Mod/Voice_Online/" + Project_Name_T.Text + "/Server_Config.dat");
             File.Delete(Voice_Set.Special_Path + "/Temp_Create_Server.dat");
             StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Temp_Change_Names.dat");
             stw.WriteLine("ここにファイルの変更を保存します。");
             stw.Close();
-            Voice_Set.FTP_Server.UploadFile(Voice_Set.Special_Path + "/Temp_Change_Names.dat", "/WoTB_Voice_Mod/Voice_Online/" + Project_Name_T.Text + "/Change_Names.dat");
+            Voice_Set.FTPClient.UploadFile(Voice_Set.Special_Path + "/Temp_Change_Names.dat", "/WoTB_Voice_Mod/Voice_Online/" + Project_Name_T.Text + "/Change_Names.dat");
             File.Delete(Voice_Set.Special_Path + "/Temp_Change_Names.dat");
             StreamWriter Chat_Create = File.CreateText(Voice_Set.Special_Path + "/Temp_Chat_Create.dat");
             Chat_Create.WriteLine(Voice_Set.UserName + "がプロジェクトを作成しました。");
             Chat_Create.Close();
-            Voice_Set.FTP_Server.UploadFile(Voice_Set.Special_Path + "/Temp_Chat_Create.dat", "/WoTB_Voice_Mod/Voice_Online/" + Project_Name_T.Text + "/Chat.dat");
+            Voice_Set.FTPClient.UploadFile(Voice_Set.Special_Path + "/Temp_Chat_Create.dat", "/WoTB_Voice_Mod/Voice_Online/" + Project_Name_T.Text + "/Chat.dat");
             File.Delete(Voice_Set.Special_Path + "/Temp_Chat_Create.dat");
             Message_T.Text = "サーバー内にプロジェクトを作成しています...";
             await Task.Delay(50);
@@ -311,11 +310,11 @@ namespace WoTB_Voice_Mod_Creater.Multiplayer
                 Message_Feed_Out("エラーが発生しました。");
                 return;
             }
-            Voice_Set.FTP_Server.DownloadFile(Voice_Set.Special_Path + "/Server_Names.dat", "/WoTB_Voice_Mod/Voice_Online/Server_Names.dat");
+            Voice_Set.FTPClient.DownloadFile("/WoTB_Voice_Mod/Voice_Online/Server_Names.dat", Voice_Set.Special_Path + "/Server_Names.dat");
             StreamWriter stw2 = new StreamWriter(Voice_Set.Special_Path + "/Server_Names.dat", true, Encoding.UTF8);
             stw2.WriteLine(Project_Name_T.Text + "|" + R_18_C.IsChecked.Value + "|" + Set_Password_C.IsChecked.Value);
             stw2.Close();
-            Voice_Set.FTP_Server.UploadFile(Voice_Set.Special_Path + "/Server_Names.dat", "/WoTB_Voice_Mod/Voice_Online/Server_Names.dat");
+            Voice_Set.FTPClient.UploadFile(Voice_Set.Special_Path + "/Server_Names.dat", "/WoTB_Voice_Mod/Voice_Online/Server_Names.dat");
             Voice_Add_L.Items.Clear();
             R_18_C.IsChecked = false;
             Set_Password_C.IsChecked = false;
@@ -340,7 +339,7 @@ namespace WoTB_Voice_Mod_Creater.Multiplayer
             {
                 for (int i = 0; i < Voice_Add_Files.Count; i++)
                 {
-                    Voice_Set.FTP_Server.UploadFile(Voice_Add_Files[i], "/WoTB_Voice_Mod/Voice_Online/" + Project_Name_T.Text + "/Voices/" + Path.GetFileName(Voice_Add_Files[i]));
+                    Voice_Set.FTPClient.UploadFile(Voice_Add_Files[i], "/WoTB_Voice_Mod/Voice_Online/" + Project_Name_T.Text + "/Voices/" + Path.GetFileName(Voice_Add_Files[i]));
                     await Task.Delay(1);
                     Process_P.Value = i;
                     Process_T.Text = i + "/" + Voice_Add_Files.Count;

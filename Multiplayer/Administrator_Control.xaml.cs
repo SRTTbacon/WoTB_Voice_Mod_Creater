@@ -24,7 +24,7 @@ namespace WoTB_Voice_Mod_Creater.Multiplayer
         {
             try
             {
-                XDocument xml2 = XDocument.Load(Voice_Set.FTP_Server.OpenRead("/WoTB_Voice_Mod/" + Voice_Set.SRTTbacon_Server_Name + "/Server_Config.dat"));
+                XDocument xml2 = XDocument.Load(Voice_Set.FTPClient.GetFileRead("/WoTB_Voice_Mod/" + Voice_Set.SRTTbacon_Server_Name + "/Server_Config.dat"));
                 XElement item2 = xml2.Element("Server_Create_Config");
                 if (bool.Parse(item2.Element("IsEnablePassword").Value))
                 {
@@ -182,7 +182,7 @@ namespace WoTB_Voice_Mod_Creater.Multiplayer
             }
             if (Voice_Set.SRTTbacon_Server_Name != Project_Name_T.Text)
             {
-                if (Voice_Set.FTP_Server.DirectoryExists("/WoTB_Voice_Mod/" + Project_Name_T.Text))
+                if (Voice_Set.FTPClient.Directory_Exist("/WoTB_Voice_Mod/" + Project_Name_T.Text))
                 {
                     Message_T.Text = "同名のプロジェクトが存在します。";
                     return;
@@ -193,20 +193,20 @@ namespace WoTB_Voice_Mod_Creater.Multiplayer
             foreach (string File_Name in Voices_Remove)
             {
                 stw1.WriteLine(File_Name);
-                Voice_Set.FTP_Server.DeleteFile("/WoTB_Voice_Mod/" + Voice_Set.SRTTbacon_Server_Name + "/Voices/" + File_Name);
+                Voice_Set.FTPClient.DeleteFile("/WoTB_Voice_Mod/" + Voice_Set.SRTTbacon_Server_Name + "/Voices/" + File_Name);
             }
             stw1.Close();
-            Voice_Set.FTP_Server.UploadFile(Special_Path + "/Temp_Remove_Files.dat", "/WoTB_Voice_Mod/" + Project_Name_T.Text + "/Remove_Files.dat");
+            Voice_Set.FTPClient.UploadFile(Special_Path + "/Temp_Remove_Files.dat", "/WoTB_Voice_Mod/" + Project_Name_T.Text + "/Remove_Files.dat");
             File.Delete(Special_Path + "/Temp_Remove_Files.dat");
             StreamWriter stw2 = File.CreateText(Special_Path + "/Temp_Add_Files.dat");
             foreach (string File_Name in Voices_Add_FullName)
             {
                 string Name = Path.GetFileName(File_Name);
                 stw2.WriteLine(Name);
-                Voice_Set.FTP_Server.UploadFile(File_Name, "/WoTB_Voice_Mod/" + Voice_Set.SRTTbacon_Server_Name + "/Voices/" + Name);
+                Voice_Set.FTPClient.UploadFile(File_Name, "/WoTB_Voice_Mod/" + Voice_Set.SRTTbacon_Server_Name + "/Voices/" + Name);
             }
             stw2.Close();
-            Voice_Set.FTP_Server.UploadFile(Special_Path + "/Temp_Add_Files.dat", "/WoTB_Voice_Mod/" + Project_Name_T.Text + "/Add_Files.dat");
+            Voice_Set.FTPClient.UploadFile(Special_Path + "/Temp_Add_Files.dat", "/WoTB_Voice_Mod/" + Project_Name_T.Text + "/Add_Files.dat");
             File.Delete(Special_Path + "/Temp_Add_Files.dat");
             Server_Create_Config Conf = new Server_Create_Config
             {
@@ -222,12 +222,12 @@ namespace WoTB_Voice_Mod_Creater.Multiplayer
             StreamWriter streamWriter = new StreamWriter(Special_Path + "/Temp_Create_Server.dat", false, new UTF8Encoding(false));
             xmlSerializer.Serialize(streamWriter, Conf);
             streamWriter.Close();
-            Voice_Set.FTP_Server.UploadFile(Special_Path + "/Temp_Create_Server.dat", "/WoTB_Voice_Mod/" + Project_Name_T.Text + "/Server_Config.dat");
+            Voice_Set.FTPClient.UploadFile(Special_Path + "/Temp_Create_Server.dat", "/WoTB_Voice_Mod/" + Project_Name_T.Text + "/Server_Config.dat");
             if (Voice_Set.SRTTbacon_Server_Name != Project_Name_T.Text)
             {
-                Voice_Set.FTP_Server.MoveDirectory("/WoTB_Voice_Mod/" + Voice_Set.SRTTbacon_Server_Name, "/WoTB_Voice_Mod/" + Project_Name_T.Text);
+                Voice_Set.FTPClient.Directory_Move("/WoTB_Voice_Mod/" + Voice_Set.SRTTbacon_Server_Name, "/WoTB_Voice_Mod/" + Project_Name_T.Text, true);
             }
-            Voice_Set.TCP_Server.WriteLineAndGetReply(Voice_Set.SRTTbacon_Server_Name + "|Change_Configs|" + Project_Name_T.Text + '\0', TimeSpan.FromSeconds(3));
+            Voice_Set.TCP_Server.Send(Voice_Set.SRTTbacon_Server_Name + "|Change_Configs|" + Project_Name_T.Text);
             Message_T.Text = "保存しました。";
             await Task.Delay(500);
             while (Opacity > 0)

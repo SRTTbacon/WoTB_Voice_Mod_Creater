@@ -20,9 +20,11 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         string Project_Dir;
         List<string> Actor_Mixer_Hierarchy = new List<string>();
         List<string> Add_Wav_Files = new List<string>();
+        List<string> Add_Other_Files = new List<string>();
         List<string> Add_All_Files = new List<string>();
         List<string> Delete_FIles = new List<string>();
         List<string> Add_WEM_Files = new List<string>();
+        List<string> Delete_CAkSound_List = new List<string>();
         List<Music_Play_Time> Add_All_Files_Time = new List<Music_Play_Time>();
         int Battle_Number = 0;
         //プロジェクトファイルの内容を取得
@@ -50,7 +52,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 await Multithread.Convert_To_Wav(Add_All_Files, Add_Wav_Files, Add_All_Files_Time, false);
         }
         //取得したデータから指定したイベントにサウンドを追加(Save()が呼ばれるまで保存しない)
-        public bool Add_Sound(string Container_ShortID, string Audio_File, string Language, bool IsSetShortIDMode = false, Music_Play_Time Time = null, string Effect = "", int Set_Volume = 0)
+        public bool Add_Sound(string Container_ShortID, string Audio_File, string Language, bool IsSetShortIDMode = false, Music_Play_Time Time = null, string Effect = "", int Set_Volume = 0, bool IsDeleteCAkSound = false)
         {
             if (Project_Dir == "")
                 return false;
@@ -62,11 +64,19 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                     if (File.Exists(Audio_File))
                     {
                         if (Time == null)
-                            File.Copy(Audio_File, Project_Dir + "/Originals/SFX/" + FileName_Short_ID + Path.GetExtension(Audio_File), true);
+                            Add_All_Files_Time.Add(new Music_Play_Time(0, 9999));
                         else
                             Add_All_Files_Time.Add(Time);
-                        Add_Wav_Files.Add(Project_Dir + "/Originals/SFX/" + FileName_Short_ID + ".wav");
-                        Add_All_Files.Add(Audio_File);
+                        if (Path.GetExtension(Audio_File) != ".wav")
+                        {
+                            Add_Wav_Files.Add(Project_Dir + "/Originals/SFX/" + FileName_Short_ID + ".wav");
+                            Add_All_Files.Add(Audio_File);
+                        }
+                        else
+                        {
+                            File.Copy(Audio_File, Project_Dir + "/Originals/SFX/" + FileName_Short_ID + ".wav", true);
+                            Add_Other_Files.Add(Project_Dir + "/Originals/SFX/" + FileName_Short_ID + ".wav");
+                        }
                         Add_WEM_Files.Add(FileName_Short_ID.ToString());
                     }
                 }
@@ -75,18 +85,22 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                     if (File.Exists(Audio_File))
                     {
                         if (Time == null)
-                        {
-                            File.Copy(Audio_File, Project_Dir + "/Originals/Voices/" + Language + "/" + FileName_Short_ID + Path.GetExtension(Audio_File), true);
                             Add_All_Files_Time.Add(new Music_Play_Time(0, 9999));
-                        }
                         else
                             Add_All_Files_Time.Add(Time);
-                        Add_Wav_Files.Add(Project_Dir + "/Originals/Voices/" + Language + "/" + FileName_Short_ID + ".wav");
-                        Add_All_Files.Add(Audio_File);
+                        if (Path.GetExtension(Audio_File) != ".wav")
+                        {
+                            Add_Wav_Files.Add(Project_Dir + "/Originals/Voices/" + Language + "/" + FileName_Short_ID + ".wav");
+                            Add_All_Files.Add(Audio_File);
+                        }
+                        else
+                        {
+                            File.Copy(Audio_File, Project_Dir + "/Originals/Voices/" + Language + "/" + FileName_Short_ID + ".wav", true);
+                            Add_Other_Files.Add(Project_Dir + "/Originals/Voices/" + Language + "/" + FileName_Short_ID + ".wav");
+                        }
                         Add_WEM_Files.Add(FileName_Short_ID.ToString());
                     }
                 }
-
                 int ShortID_Line = 0;
                 for (int Number = 0; Number < Actor_Mixer_Hierarchy.Count; Number++)
                 {
@@ -98,6 +112,8 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 }
                 if (ShortID_Line == 0)
                     return false;
+                if (IsDeleteCAkSound && !Delete_CAkSound_List.Contains(Container_ShortID))
+                    Delete_CAkSounds(Container_ShortID);
                 int ChildrenList_Line = 0;
                 int ReferenceListEnd_Line = 0;
                 for (int Number = ShortID_Line; Number < Actor_Mixer_Hierarchy.Count; Number++)
@@ -112,6 +128,8 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                     if (Actor_Mixer_Hierarchy[Number].Contains("</RandomSequenceContainer>"))
                         break;
                 }
+                if (!Delete_CAkSound_List.Contains(Container_ShortID))
+                    Delete_CAkSound_List.Add(Container_ShortID);
                 if (ChildrenList_Line == 0 && ReferenceListEnd_Line == 0)
                     return false;
                 else if (ChildrenList_Line == 0)
@@ -200,6 +218,11 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                     Sub_Code.File_Delete_V2(File_Now);
                     Sub_Code.File_Delete_V2(File_Now.Replace(".wav", ".akd"));
                 }
+                foreach (string File_Now in Add_Other_Files)
+                {
+                    Sub_Code.File_Delete_V2(File_Now);
+                    Sub_Code.File_Delete_V2(File_Now.Replace(".wav", ".akd"));
+                }
                 foreach (string File_Now in Delete_FIles)
                     Sub_Code.File_Delete_V2(File_Now);
                 string[] GetWEMFiles;
@@ -236,6 +259,8 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 Add_All_Files_Time.Clear();
                 Delete_FIles.Clear();
                 Add_WEM_Files.Clear();
+                Add_Other_Files.Clear();
+                Delete_CAkSound_List.Clear();
                 Project_Dir = "";
                 Battle_Number = 0;
             }
@@ -336,13 +361,54 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 }
             }
         }
+        //指定したShortIDのコンテナ内のサウンド(CAkSound)を削除
+        void Delete_CAkSounds(string Container_ShortID)
+        {
+            int ShortID_Line = 0;
+            for (int Number = 0; Number < Actor_Mixer_Hierarchy.Count; Number++)
+            {
+                if (Actor_Mixer_Hierarchy[Number].Contains("ShortID=\"" + Container_ShortID + "\""))
+                {
+                    ShortID_Line = Number;
+                    break;
+                }
+            }
+            if (ShortID_Line == 0)
+                return;
+            for (int Number = ShortID_Line; Number < Actor_Mixer_Hierarchy.Count; Number++)
+            {
+                if (Actor_Mixer_Hierarchy.Count - 1 <= Number)
+                    break;
+                if (Actor_Mixer_Hierarchy[Number].Contains("<Sound Name=\""))
+                {
+                    bool IsEnd = false;
+                    while (true)
+                    {
+                        if (Actor_Mixer_Hierarchy[Number].Contains("</Sound>"))
+                            IsEnd = true;
+                        Actor_Mixer_Hierarchy.RemoveAt(Number);
+                        if (IsEnd)
+                        {
+                            Number--;
+                            break;
+                        }
+                    }
+                }
+                if (Actor_Mixer_Hierarchy[Number].Contains("</RandomSequenceContainer>"))
+                    break;
+            }
+        }
         //ロードBGMをプロジェクトに追加
-        public void Loading_Music_Add_Wwise(string Music_File, int Music_Index, Music_Play_Time Time, bool IsFeed_In_Mode, int Set_Volume)
+        public void Loading_Music_Add_Wwise(string Music_File, int Music_Index, Music_Play_Time Time, bool IsFeed_In_Mode, int Set_Volume, int Page = 0)
         {
             string Mode = "";
-            Music_Play_Time Time_Set = new Music_Play_Time(Time.Start_Time, Time.End_Time);
-            if (Time.End_Time == 0)
-                Time_Set.End_Time = 9999;
+            Music_Play_Time Time_Set = null;
+            if (Time != null)
+            {
+                Time_Set = new Music_Play_Time(Time.Start_Time, Time.End_Time);
+                if (Time.End_Time == 0)
+                    Time_Set.End_Time = 9999;
+            }
             if (IsFeed_In_Mode)
                 Mode = "Feed_In";
             if (Music_Index == 12 || Music_Index == 14 || Music_Index == 16)
@@ -353,44 +419,96 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 Sub_Code.Audio_Encode_To_Other(From_File, Music_File, "mp3", false);
                 Sub_Code.Volume_Set_Start(Music_File);
             }
-            if (Music_Index == 0)
-                Add_Sound("205170598", Music_File, "ja", true, Time_Set, Mode, Set_Volume);
-            else if (Music_Index == 1)
-                Add_Sound("148841988", Music_File, "ja", true, Time_Set, Mode, Set_Volume);
-            else if (Music_Index == 2)
-                Add_Sound("1067185674", Music_File, "ja", true, Time_Set, Mode, Set_Volume);
-            else if (Music_Index == 3)
-                Add_Sound("99202684", Music_File, "ja", true, Time_Set, Mode, Set_Volume);
-            else if (Music_Index == 4)
-                Add_Sound("493356780", Music_File, "ja", true, Time_Set, Mode, Set_Volume);
-            else if (Music_Index == 5)
-                Add_Sound("277287194", Music_File, "ja", true, Time_Set, Mode, Set_Volume);
-            else if (Music_Index == 6)
-                Add_Sound("321403539", Music_File, "ja", true, Time_Set, Mode, Set_Volume);
-            else if (Music_Index == 7)
-                Add_Sound("603412881", Music_File, "ja", true, Time_Set, Mode, Set_Volume);
-            else if (Music_Index == 8)
-                Add_Sound("256533957", Music_File, "ja", true, Time_Set, Mode, Set_Volume);
-            else if (Music_Index == 9)
-                Add_Sound("520751345", Music_File, "ja", true, Time_Set, Mode, Set_Volume);
-            else if (Music_Index == 10)
-                Add_Sound("307041675", Music_File, "ja", true, Time_Set, Mode, Set_Volume);
-            else if (Music_Index == 11)
-                Add_Sound("960016609", Music_File, "ja", true, Time_Set, Mode, Set_Volume);
-            else if (Music_Index == 12)
-                Add_Sound("737229060", Music_File, "ja", true, Time_Set, Mode, Set_Volume);
-            else if (Music_Index == 13)
-                Add_Sound("404033224", Music_File, "ja", true, Time_Set, Mode, Set_Volume);
-            else if (Music_Index == 14)
-                Add_Sound("480862388", Music_File, "ja", true, Time_Set, Mode, Set_Volume);
-            else if (Music_Index == 15)
-                Add_Sound("797792182", Music_File, "ja", true, Time_Set, Mode, Set_Volume);
-            else if (Music_Index == 16)
-                Add_Sound("761638380", Music_File, "ja", true, Time_Set, Mode, Set_Volume);
-            else if (Music_Index == 17)
-                Add_Sound("434309394", Music_File, "ja", true, Time_Set, Mode, Set_Volume);
-            else if (Music_Index == 18)
-                Add_Sound("868083406", Music_File, "ja", true, Time_Set, Mode, Set_Volume);
+            if (Page == 0)
+            {
+                if (Music_Index == 0)
+                    Add_Sound("205170598", Music_File, "ja", true, Time_Set, Mode, Set_Volume);
+                else if (Music_Index == 1)
+                    Add_Sound("148841988", Music_File, "ja", true, Time_Set, Mode, Set_Volume);
+                else if (Music_Index == 2)
+                    Add_Sound("1067185674", Music_File, "ja", true, Time_Set, Mode, Set_Volume);
+                else if (Music_Index == 3)
+                    Add_Sound("99202684", Music_File, "ja", true, Time_Set, Mode, Set_Volume);
+                else if (Music_Index == 4)
+                    Add_Sound("493356780", Music_File, "ja", true, Time_Set, Mode, Set_Volume);
+                else if (Music_Index == 5)
+                    Add_Sound("277287194", Music_File, "ja", true, Time_Set, Mode, Set_Volume);
+                else if (Music_Index == 6)
+                    Add_Sound("321403539", Music_File, "ja", true, Time_Set, Mode, Set_Volume);
+                else if (Music_Index == 7)
+                    Add_Sound("603412881", Music_File, "ja", true, Time_Set, Mode, Set_Volume);
+                else if (Music_Index == 8)
+                    Add_Sound("256533957", Music_File, "ja", true, Time_Set, Mode, Set_Volume);
+                else if (Music_Index == 9)
+                    Add_Sound("520751345", Music_File, "ja", true, Time_Set, Mode, Set_Volume);
+                else if (Music_Index == 10)
+                    Add_Sound("307041675", Music_File, "ja", true, Time_Set, Mode, Set_Volume);
+                else if (Music_Index == 11)
+                    Add_Sound("960016609", Music_File, "ja", true, Time_Set, Mode, Set_Volume);
+                else if (Music_Index == 12)
+                    Add_Sound("737229060", Music_File, "ja", true, Time_Set, Mode, Set_Volume);
+                else if (Music_Index == 13)
+                    Add_Sound("404033224", Music_File, "ja", true, Time_Set, Mode, Set_Volume);
+                else if (Music_Index == 14)
+                    Add_Sound("480862388", Music_File, "ja", true, Time_Set, Mode, Set_Volume);
+                else if (Music_Index == 15)
+                    Add_Sound("797792182", Music_File, "ja", true, Time_Set, Mode, Set_Volume);
+                else if (Music_Index == 16)
+                    Add_Sound("761638380", Music_File, "ja", true, Time_Set, Mode, Set_Volume);
+                else if (Music_Index == 17)
+                    Add_Sound("434309394", Music_File, "ja", true, Time_Set, Mode, Set_Volume);
+                else if (Music_Index == 18)
+                    Add_Sound("868083406", Music_File, "ja", true, Time_Set, Mode, Set_Volume);
+            }
+            else if (Page == 1)
+            {
+                if (Music_Index == 0)
+                    Add_Sound("555986239", Music_File, "SFX", true, null, "", 0, true);
+                else if (Music_Index == 1)
+                    Add_Sound("619554811", Music_File, "SFX", true, null, "", 0, true);
+                else if (Music_Index == 2)
+                    Add_Sound("829566014", Music_File, "SFX", true, null, "", 0, true);
+                else if (Music_Index == 3)
+                    Add_Sound("241860450", Music_File, "SFX", true, null, "", 0, true);
+                else if (Music_Index == 4)
+                    Add_Sound("965905418", Music_File, "SFX", true, null, "", 0, true);
+                else if (Music_Index == 5)
+                    Add_Sound("653928250", Music_File, "SFX", true, null, "", 0, true);
+                else if (Music_Index == 6)
+                    Add_Sound("804829376", Music_File, "SFX", true, null, "", 0, true);
+                else if (Music_Index == 7)
+                    Add_Sound("154294053", Music_File, "SFX", true, null, "", 0, true);
+                else if (Music_Index == 8)
+                    Add_Sound("16495624", Music_File, "SFX", true, null, "", 0, true);
+                else if (Music_Index == 9)
+                    Add_Sound("775116295", Music_File, "SFX", true, null, "", 0, true);
+                else if (Music_Index == 10)
+                    Add_Sound("967718012", Music_File, "SFX", true, null, "", 0, true);
+                else if (Music_Index == 11)
+                    Add_Sound("468718711", Music_File, "SFX", true, null, "", 0, true);
+                else if (Music_Index == 12)
+                    Add_Sound("180566240", Music_File, "SFX", true, null, "", 0, true);
+                else if (Music_Index == 13)
+                    Add_Sound("654889295", Music_File, "SFX", true, null, "", 0, true);
+                else if (Music_Index == 14)
+                    Add_Sound("331635238", Music_File, "SFX", true, null, "", 0, true);
+                else if (Music_Index == 15)
+                    Add_Sound("318614965", Music_File, "SFX", true, null, "", 0, true);
+                else if (Music_Index == 16)
+                    Add_Sound("635980657", Music_File, "SFX", true, null, "", 0, true);
+                else if (Music_Index == 17)
+                    Add_Sound("235998534", Music_File, "SFX", true, null, "", 0, true);
+                else if (Music_Index == 18)
+                    Add_Sound("580241268", Music_File, "SFX", true, null, "", 0, true);
+                else if (Music_Index == 19)
+                    Add_Sound("787886846", Music_File, "SFX", true, null, "", 0, true);
+                else if (Music_Index == 20)
+                    Add_Sound("872967597", Music_File, "SFX", true, null, "", 0, true);
+                else if (Music_Index == 21)
+                    Add_Sound("641527237", Music_File, "SFX", true, null, "", 0, true);
+                else if (Music_Index == 22)
+                    Add_Sound("75387743", Music_File, "SFX", true, null, "", 0, true);
+            }
         }
         //音声をプロジェクトに追加
         public void Sound_Add_Wwise(string Dir_Name, bool IsWoT_Project = false, bool IsNotIncludeBGM = false)

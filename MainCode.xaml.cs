@@ -32,9 +32,9 @@ public static partial class StringExtensions
         return count;
     }
 }
-public static class ListBoxEx
+public static class ListBoxExtensions
 {
-    public static IList<int> SelectedIndexs(System.Windows.Controls.ListBox list)
+    public static IList<int> SelectedIndexs(this System.Windows.Controls.ListBox list)
     {
         List<int> Temp = new List<int>();
         foreach (string Now_String in list.SelectedItems)
@@ -60,7 +60,7 @@ public class SRTTbacon_Server
     public const string IP_Global = "非公開";
     public const string Name = "非公開";
     public const string Password = "非公開";
-    public const string Version = "1.4.3";
+    public const string Version = "1.4.4";
     public const int TCP_Port = -1;
     public const int SFTP_Port = -1;
     public static bool IsSRTTbaconOwnerMode = false;
@@ -261,10 +261,6 @@ namespace WoTB_Voice_Mod_Creater
                     Sub_Code.DVPL_File_Copy(Voice_Set.WoTB_Path + "/Data/WwiseSound/ui_chat_quick_commands.bnk", Path + "/Backup/Main/ui_chat_quick_commands.bnk", false);
                     Sub_Code.DVPL_File_Copy(Voice_Set.WoTB_Path + "/Data/WwiseSound/ui_battle.bnk", Path + "/Backup/Main/ui_battle.bnk", false);
                 }
-                System.Drawing.Size MaxSize = System.Windows.Forms.Screen.PrimaryScreen.WorkingArea.Size;
-                MaxWidth = MaxSize.Width;
-                MaxHeight = MaxSize.Height;
-                Video_Mode.Width = Width;
                 Version_T.Text = "V" + SRTTbacon_Server.Version;
                 if (Sub_Code.IsTextIncludeJapanese(Voice_Set.Special_Path))
                 {
@@ -321,6 +317,18 @@ namespace WoTB_Voice_Mod_Creater
                 Application.Current.Shutdown();
             }
         }
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            System.Drawing.Size MaxSize = System.Windows.Forms.Screen.PrimaryScreen.WorkingArea.Size;
+            MaxWidth = MaxSize.Width;
+            MaxHeight = MaxSize.Height;
+            Video_Mode.Width = Width;
+            if (IsFullScreen)
+            {
+                Left = 0;
+                Top = 0;
+            }
+        }
         //アップデートしたとき用
         void Clean()
         {
@@ -368,6 +376,10 @@ namespace WoTB_Voice_Mod_Creater
             }
             if (Voice_Set.TCP_Server.IsConnected)
                 Voice_Set.TCP_Server.Send(Voice_Set.UserName + "|Get_Music_Count");
+            if (Voice_Set.UserName == "")
+                Voice_Set.TCP_Server.Send("Login|ゲスト");
+            else
+                Voice_Set.TCP_Server.Send("Login|" + Voice_Set.UserName);
         }
         async void Load_Window_Set()
         {
@@ -624,6 +636,7 @@ namespace WoTB_Voice_Mod_Creater
                 Sub_Code.IsWwise_Blitz_Update = str.ReadLine();
                 Sub_Code.IsWwise_Blitz_Actor_Update = str.ReadLine();
                 Sub_Code.IsWwise_Hits_Update = str.ReadLine();
+                Sub_Code.IsWwise_Gun_Update = str.ReadLine();
                 str.Dispose();
                 StreamReader str3 = Voice_Set.FTPClient.GetFileRead("/WoTB_Voice_Mod/Update/Wwise/Version_02.txt");
                 Sub_Code.IsWwise_WoT_Update = str3.ReadLine();
@@ -1002,6 +1015,10 @@ namespace WoTB_Voice_Mod_Creater
                         Directory.CreateDirectory(Path + "/Backup/Update");
                         Directory.CreateDirectory(Voice_Set.Special_Path + "/Update");
                         IsProcessing = true;
+                        if (Voice_Set.UserName == "")
+                            Voice_Set.TCP_Server.Send("Update|ゲスト");
+                        else
+                            Voice_Set.TCP_Server.Send("Update|" + Voice_Set.UserName);
                         foreach (string File_Name in Voice_Set.FTPClient.GetFiles("/WoTB_Voice_Mod/Update/" + Line, false, false))
                         {
                             try
@@ -1970,6 +1987,16 @@ namespace WoTB_Voice_Mod_Creater
                     Chat_Send_T.Text = "";
                 else if (Chat_Send_T.Text.Length >= 2)
                     Chat_Send_T.Text = Chat_Send_T.Text.Substring(0, Chat_Send_T.Text.Length - 1);
+            }
+        }
+        private void Window_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            if (Top <= 0 && !IsFullScreen)
+            {
+                double Left_Before = Left;
+                Window_Size_Change(false);
+                Top = 0;
+                Left = Left_Before;
             }
         }
     }

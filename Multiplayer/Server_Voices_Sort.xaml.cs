@@ -74,8 +74,8 @@ namespace WoTB_Voice_Mod_Creater.Multiplayer
         {
             try
             {
-                Voice_Set.FTP_Server.DownloadFile(Voice_Set.Special_Path + "/Server/" + Voice_Set.SRTTbacon_Server_Name + "/Voices/" + Server_Voices.Voice_List[(int)Voice_Select_S.Value],
-                    "/WoTB_Voice_Mod/Voice_Online/" + Voice_Set.SRTTbacon_Server_Name + "/Voices/" + Server_Voices.Voice_List[(int)Voice_Select_S.Value]);
+                Voice_Set.FTPClient.DownloadFile("/WoTB_Voice_Mod/Voice_Online/" + Voice_Set.SRTTbacon_Server_Name + "/Voices/" + Server_Voices.Voice_List[(int)Voice_Select_S.Value],
+                    Voice_Set.Special_Path + "/Server/" + Voice_Set.SRTTbacon_Server_Name + "/Voices/" + Server_Voices.Voice_List[(int)Voice_Select_S.Value]);
             }
             catch (Exception e1)
             {
