@@ -91,7 +91,9 @@
             <TextBlock FontSize="33" Height="44" Width="310" TextWrapping="Wrap" Text="フレームレート" VerticalAlignment="Top" Margin="-1000,100,0,0" Foreground="Aqua" TextAlignment="Center"/>
             <ComboBox x:Name="Framerate_C" Height="45" VerticalAlignment="Top" Width="250" FontSize="30" Margin="-1000,160,0,0" Focusable="False"/>
             <Slider x:Name="Volume_S" Height="27" VerticalAlignment="Top" Width="400" Margin="-2225,700,0,0" Style="{StaticResource CustomSliderStyle_Yoko}" Maximum="100" Minimum="0" Focusable="False" SmallChange="0" ValueChanged="Volume_S_ValueChanged"/>
-            <TextBlock x:Name="Volume_T" FontSize="35" Height="50" Width="354" TextWrapping="Wrap" Text="追加時の音量:75" VerticalAlignment="Top" Margin="-2225,635,0,0" Foreground="Aqua" TextAlignment="Center"/>
+            <TextBlock x:Name="Volume_T" FontSize="33" Height="50" Width="354" TextWrapping="Wrap" Text="追加時の音量:75" VerticalAlignment="Top" Margin="-2225,635,0,0" Foreground="Aqua" TextAlignment="Center"/>
+            <TextBlock x:Name="All_Volume_T" FontSize="33" Height="50" Width="354" TextWrapping="Wrap" Text="全体の音量:100" VerticalAlignment="Top" Margin="-2225,475,0,0" Foreground="Aqua" TextAlignment="Center"/>
+            <Slider x:Name="All_Volume_S" Height="27" VerticalAlignment="Top" Width="400" Margin="-2225,535,0,0" Style="{StaticResource CustomSliderStyle_Yoko}" Maximum="100" Minimum="0" Focusable="False" SmallChange="0" ValueChanged="All_Volume_S_ValueChanged"/>
         </DockPanel>
     </Viewbox>
 </UserControl>

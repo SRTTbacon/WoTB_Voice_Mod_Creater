@@ -16,6 +16,24 @@ namespace WoTB_Voice_Mod_Creater.Class
     public class Multithread
     {
         static List<string> From_Files = new List<string>();
+        static List<double> From_Gains = new List<double>();
+        public static async Task Conert_OGG_To_Wav(string[] Files, bool IsFromFileDelete)
+        {
+            try
+            {
+                From_Files.Clear();
+                From_Files.AddRange(Files);
+                var tasks = new List<Task>();
+                for (int i = 0; i < From_Files.Count; i++)
+                    tasks.Add(OGG_To_WAV(i, Path.GetDirectoryName(Files[i]) + "\\" + Path.GetFileNameWithoutExtension(Files[i]) + ".wav", IsFromFileDelete));
+                await Task.WhenAll(tasks);
+            }
+            catch (Exception e)
+            {
+                Sub_Code.Error_Log_Write(e.Message);
+            }
+            From_Files.Clear();
+        }
         //マルチスレッドで.mp3や.oggを.wav形式にエンコード
         //拡張子とファイル内容が異なっていた場合実行されない(ファイル拡張子が.mp3なのに実際は.oggだった場合など)
         public static async Task Convert_To_Wav(List<string> Files, List<string> ToFilePath, List<Music_Play_Time> Time = null, bool IsFromFileDelete = false)
@@ -33,13 +51,12 @@ namespace WoTB_Voice_Mod_Creater.Class
                         tasks.Add(To_WAV(i, ToFilePath[i], IsFromFileDelete, false, true));
                 }
                 await Task.WhenAll(tasks);
-                From_Files.Clear();
             }
             catch (Exception e)
             {
-                From_Files.Clear();
                 Sub_Code.Error_Log_Write(e.Message);
             }
+            From_Files.Clear();
         }
         public static async Task Convert_To_Wav(string From_Dir, bool IsFromFileDelete, bool IsUseFFmpeg = false, bool BassEncode = false)
         {
@@ -50,33 +67,24 @@ namespace WoTB_Voice_Mod_Creater.Class
             try
             {
                 if (!Directory.Exists(To_Dir))
-                {
                     Directory.CreateDirectory(To_Dir);
-                }
                 From_Files.Clear();
                 string[] Ex;
                 if (IsUseFFmpeg)
-                {
                     Ex = new string[] { ".mp3", ".aac", ".ogg", ".flac", ".wma", ".wav" };
-                }
                 else
-                {
                     Ex = new string[] { ".mp3", ".aac", ".ogg", ".flac", ".wma" };
-                }
                 From_Files.AddRange(DirectoryEx.GetFiles(From_Dir, SearchOption.TopDirectoryOnly, Ex));
                 var tasks = new List<Task>();
                 for (int i = 0; i < From_Files.Count; i++)
-                {
                     tasks.Add(To_WAV(i, To_Dir, IsFromFileDelete, IsUseFFmpeg, BassEncode));
-                }
                 await Task.WhenAll(tasks);
-                From_Files.Clear();
             }
             catch (Exception ex)
             {
-                From_Files.Clear();
                 Sub_Code.Error_Log_Write(ex.Message);
             }
+            From_Files.Clear();
         }
         public static async Task Convert_To_Wav(string[] Files, string To_Dir, bool IsFromFileDelete, bool BassEncode = false)
         {
@@ -86,19 +94,15 @@ namespace WoTB_Voice_Mod_Creater.Class
                 From_Files.AddRange(Files);
                 var tasks = new List<Task>();
                 for (int i = 0; i < From_Files.Count; i++)
-                {
                     if (!Sub_Code.Audio_IsWAV(Files[i]))
-                    {
                         tasks.Add(To_WAV(i, To_Dir, IsFromFileDelete, false, BassEncode));
-                    }
-                }
                 await Task.WhenAll(tasks);
-                From_Files.Clear();
             }
-            catch
+            catch (Exception ex)
             {
-                From_Files.Clear();
+                Sub_Code.Error_Log_Write(ex.Message);
             }
+            From_Files.Clear();
         }
         public static async Task Convert_To_Wav(string FilePath, bool IsFromFileDelete, bool BassEncode)
         {
@@ -109,13 +113,12 @@ namespace WoTB_Voice_Mod_Creater.Class
                 var tasks = new List<Task>();
                 tasks.Add(To_WAV(0, Path.GetDirectoryName(FilePath), IsFromFileDelete, false, BassEncode));
                 await Task.WhenAll(tasks);
-                From_Files.Clear();
             }
             catch (Exception ex)
             {
-                From_Files.Clear();
                 Sub_Code.Error_Log_Write(ex.Message);
             }
+            From_Files.Clear();
         }
         public static async Task Convert_To_MP3(string[] Files, string To_Dir, bool IsFromFileDelete)
         {
@@ -125,17 +128,55 @@ namespace WoTB_Voice_Mod_Creater.Class
                 From_Files.AddRange(Files);
                 var tasks = new List<Task>();
                 for (int i = 0; i < From_Files.Count; i++)
-                {
                     tasks.Add(To_MP3(i, To_Dir, IsFromFileDelete));
-                }
                 await Task.WhenAll(tasks);
-                From_Files.Clear();
             }
             catch (Exception ex)
             {
-                From_Files.Clear();
                 Sub_Code.Error_Log_Write(ex.Message);
             }
+            From_Files.Clear();
+        }
+        public static async Task WAV_Gain(string[] Files, double[] Gain_Values)
+        {
+            try
+            {
+                From_Files.Clear();
+                From_Files.AddRange(Files);
+                From_Gains.Clear();
+                From_Gains.AddRange(Gain_Values);
+                var tasks = new List<Task>();
+                for (int i = 0; i < From_Files.Count; i++)
+                    tasks.Add(Gain(i));
+                await Task.WhenAll(tasks);
+            }
+            catch (Exception ex)
+            {
+                Sub_Code.Error_Log_Write(ex.Message);
+            }
+            From_Files.Clear();
+            From_Gains.Clear();
+        }
+        public static async Task WAV_Gain(string[] Files, double Gain_Values)
+        {
+            try
+            {
+                From_Files.Clear();
+                From_Files.AddRange(Files);
+                From_Gains.Clear();
+                for (int i = 0; i < From_Files.Count; i++)
+                    From_Gains.Add(Gain_Values);
+                var tasks = new List<Task>();
+                for (int i = 0; i < From_Files.Count; i++)
+                    tasks.Add(Gain(i));
+                await Task.WhenAll(tasks);
+            }
+            catch (Exception ex)
+            {
+                Sub_Code.Error_Log_Write(ex.Message);
+            }
+            From_Files.Clear();
+            From_Gains.Clear();
         }
         public static async Task Convert_PSB_To_WAV(string[] Files, bool IsFromFileDelete = false)
         {
@@ -318,6 +359,27 @@ namespace WoTB_Voice_Mod_Creater.Class
             }
             return true;
         }
+        static async Task OGG_To_WAV(int File_Number, string ToFilePath, bool IsFromFileDelete)
+        {
+            StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Other/Audio_WAV_Encode" + File_Number + ".bat");
+            stw.WriteLine("chcp 65001");
+            stw.Write("\"" + Voice_Set.Special_Path + "/Other/oggdec.exe\" -w \"" + ToFilePath + "\" \"" + From_Files[File_Number] + "\"");
+            stw.Close();
+            ProcessStartInfo processStartInfo = new ProcessStartInfo
+            {
+                FileName = Voice_Set.Special_Path + "/Other/Audio_WAV_Encode" + File_Number + ".bat",
+                CreateNoWindow = true,
+                UseShellExecute = false
+            };
+            Process p = Process.Start(processStartInfo);
+            await Task.Run(() =>
+            {
+                p.WaitForExit();
+                if (IsFromFileDelete)
+                    File.Delete(From_Files[File_Number]);
+                File.Delete(Voice_Set.Special_Path + "/Other/Audio_WAV_Encode" + File_Number + ".bat");
+            });
+        }
         static async Task To_WAV(int File_Number, string ToFilePath, Music_Play_Time Time, bool IsFromFileDelete)
         {
             double End = Time.End_Time - Time.Start_Time;
@@ -336,9 +398,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 p.WaitForExit();
                 if (IsFromFileDelete)
-                {
                     File.Delete(From_Files[File_Number]);
-                }
                 File.Delete(Voice_Set.Special_Path + "/Encode_Mp3/Audio_WAV_Encode" + File_Number + ".bat");
             });
         }
@@ -479,6 +539,39 @@ namespace WoTB_Voice_Mod_Creater.Class
                 });
             }
             return true;
+        }
+        static async Task<bool> Gain(int Count)
+        {
+            try
+            {
+                if (From_Gains[Count] <= -20)
+                    From_Gains[Count] = -19.9;
+                else if (From_Gains[Count] >= 12)
+                    From_Gains[Count] = 11.9;
+                int Number = Sub_Code.r.Next(0, 10000);
+                StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Other/WAV_Set_Gain_" + Number + ".bat");
+                stw.WriteLine("chcp 65001");
+                stw.Write("\"" + Voice_Set.Special_Path + "/Other/WaveGain.exe\" -r -y -n -g " + From_Gains[Count] + " \"" + From_Files[Count] + "\"");
+                stw.Close();
+                ProcessStartInfo processStartInfo1 = new ProcessStartInfo
+                {
+                    FileName = Voice_Set.Special_Path + "/Other/WAV_Set_Gain_" + Number + ".bat",
+                    WorkingDirectory = Voice_Set.Special_Path + "\\Other",
+                    CreateNoWindow = true,
+                    UseShellExecute = false
+                };
+                Process p = Process.Start(processStartInfo1);
+                await Task.Run(() =>
+                {
+                    p.WaitForExit();
+                    File.Delete(Voice_Set.Special_Path + "/Other/WAV_Set_Gain_" + Number + ".bat");
+                });
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
 }

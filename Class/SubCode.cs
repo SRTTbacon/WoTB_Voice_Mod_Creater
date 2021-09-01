@@ -1,4 +1,5 @@
 ﻿using Microsoft.Win32;
+using NAudio.Wave;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -22,7 +23,7 @@ namespace WoTB_Voice_Mod_Creater
         public const string Random_String = "0123456789abcdefghijklmnopqrstuvwxyz";
         public const double Window_Feed_Time = 0.04;
         static List<string> IsAutoListAdd = new List<string>();
-        static Random r = new Random();
+        public static Random r = new Random();
         static string IsLanguage = "";
         public static string IsWwise_Blitz_Actor_Update = "1.0";
         public static string IsWwise_Blitz_Update = "1.0";
@@ -1059,7 +1060,7 @@ namespace WoTB_Voice_Mod_Creater
                 string Encode_Style = "";
                 //変換先に合わせて.batファイルを作成
                 if (Encode_Mode == "aac")
-                    Encode_Style = "-y -vn -strict experimental -c:a aac -b:a 256k";
+                    Encode_Style = "-y -vn -strict experimental -c:a aac -b:a 144k";
                 else if (Encode_Mode == "flac")
                     Encode_Style = "-y -vn -ac 2 -ar 44100 -acodec flac -f flac";
                 else if (Encode_Mode == "mp3")
@@ -1204,6 +1205,47 @@ namespace WoTB_Voice_Mod_Creater
             {
             }
         }
+        public static bool WEM_To_OGG_WAV(string From_WEM_File, string To_OGG_WAV_File, bool IsFromFileDelete)
+        {
+            try
+            {
+                if (!File.Exists(From_WEM_File))
+                    return false;
+                Wwise_Class.WEM_To_OGG.Create_OGG(From_WEM_File, Voice_Set.Special_Path + "\\Wwise\\Temp.ogg");
+                if (File.Exists(Voice_Set.Special_Path + "\\Wwise\\Temp.ogg"))
+                {
+                    File_Move(Voice_Set.Special_Path + "\\Wwise\\Temp.ogg", To_OGG_WAV_File + ".ogg", true);
+                    if (IsFromFileDelete)
+                        File.Delete(From_WEM_File);
+                    return true;
+                }
+                else
+                {
+                    Process WEMToWAV = new Process();
+                    WEMToWAV.StartInfo.FileName = Voice_Set.Special_Path + "/WEM_To_WAV/WEM_To_WAV.exe";
+                    WEMToWAV.StartInfo.WorkingDirectory = Voice_Set.Special_Path + "/Wwise";
+                    WEMToWAV.StartInfo.Arguments = "-o \"" + Voice_Set.Special_Path + "\\Wwise\\Temp.wav\" \"" + From_WEM_File + "\"";
+                    WEMToWAV.StartInfo.CreateNoWindow = true;
+                    WEMToWAV.StartInfo.UseShellExecute = false;
+                    WEMToWAV.StartInfo.RedirectStandardError = true;
+                    WEMToWAV.StartInfo.RedirectStandardOutput = true;
+                    WEMToWAV.Start();
+                    WEMToWAV.WaitForExit();
+                    if (File.Exists(Voice_Set.Special_Path + "\\Wwise\\Temp.wav"))
+                    {
+                        File_Move(Voice_Set.Special_Path + "\\Wwise\\Temp.wav", To_OGG_WAV_File + ".wav", true);
+                        if (IsFromFileDelete)
+                            File.Delete(From_WEM_File);
+                        return true;
+                    }
+                }
+                return false;
+            }
+            catch
+            {
+                return false;
+            }
+        }
         //.wemファイルを指定した形式に変換
         public static bool WEM_To_File(string From_WEM_File, string To_Audio_File, string Encode_Mode, bool IsFromFileDelete)
         {
@@ -1211,7 +1253,7 @@ namespace WoTB_Voice_Mod_Creater
             {
                 if (!File.Exists(From_WEM_File))
                     return false;
-                Process wwToOgg = new Process();
+                /*Process wwToOgg = new Process();
                 wwToOgg.StartInfo.FileName = Voice_Set.Special_Path + "/Wwise/ww2ogg.exe";
                 wwToOgg.StartInfo.WorkingDirectory = Voice_Set.Special_Path + "/Wwise";
                 wwToOgg.StartInfo.Arguments = "--pcb packed_codebooks_aoTuV_603.bin -o \"" + Voice_Set.Special_Path + "\\Wwise\\Temp.ogg\" \"" + From_WEM_File + "\"";
@@ -1228,11 +1270,32 @@ namespace WoTB_Voice_Mod_Creater
                 revorb.StartInfo.UseShellExecute = false;
                 revorb.StartInfo.RedirectStandardError = true;
                 revorb.Start();
-                revorb.WaitForExit();
+                revorb.WaitForExit();*/
+                Wwise_Class.WEM_To_OGG.Create_OGG(From_WEM_File, Voice_Set.Special_Path + "\\Wwise\\Temp.ogg");
                 if (File.Exists(Voice_Set.Special_Path + "\\Wwise\\Temp.ogg"))
                 {
                     if (Encode_Mode == "ogg")
-                        File_Move(Voice_Set.Special_Path + "\\Wwise\\Temp.ogg", To_Audio_File, true);
+                    {
+                        Process revorb = new Process();
+                        revorb.StartInfo.FileName = Voice_Set.Special_Path + "/Encode_Mp3/ffmpeg.exe";
+                        revorb.StartInfo.Arguments = "-y -i \"" + Voice_Set.Special_Path + "\\Wwise\\Temp.ogg\" -acodec copy \"" + To_Audio_File + "\"";
+                        revorb.StartInfo.CreateNoWindow = true;
+                        revorb.StartInfo.UseShellExecute = false;
+                        revorb.StartInfo.RedirectStandardError = true;
+                        revorb.Start();
+                        revorb.WaitForExit();
+                        File.Delete(Voice_Set.Special_Path + "\\Wwise\\Temp.ogg");
+                    }
+                    else if (Encode_Mode == "wav")
+                    {
+                        Un4seen.Bass.Misc.EncoderWAV w = new Un4seen.Bass.Misc.EncoderWAV(0);
+                        w.InputFile = Voice_Set.Special_Path + "\\Wwise\\Temp.ogg";
+                        w.OutputFile = To_Audio_File;
+                        w.WAV_BitsPerSample = 24;
+                        w.Start(null, IntPtr.Zero, false);
+                        w.Stop();
+                        File.Delete(Voice_Set.Special_Path + "\\Wwise\\Temp.ogg");
+                    }
                     else
                         Sub_Code.Audio_Encode_To_Other(Voice_Set.Special_Path + "\\Wwise\\Temp.ogg", To_Audio_File, Encode_Mode, true);
                     if (IsFromFileDelete)
@@ -2189,6 +2252,62 @@ namespace WoTB_Voice_Mod_Creater
             System.Drawing.Bitmap Temp = WF_Color.CreateBitmap(1920, 300, -1, -1, false);
             WF_Color.RenderStop();
             return Temp;
+        }
+        public static double Get_WAV_Gain(string WAV_File)
+        {
+            int Number = r.Next(0, 10000);
+            StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Other/WAV_Get_Gain_" + Number + ".bat");
+            stw.WriteLine("chcp 65001");
+            stw.Write("\"" + Voice_Set.Special_Path + "/Other/WaveGain.exe\" -f Gain_Log_" + Number + ".txt \"" + WAV_File + "\"");
+            stw.Close();
+            ProcessStartInfo processStartInfo1 = new ProcessStartInfo
+            {
+                FileName = Voice_Set.Special_Path + "/Other/WAV_Get_Gain_" + Number + ".bat",
+                WorkingDirectory = Voice_Set.Special_Path + "\\Other",
+                CreateNoWindow = true,
+                UseShellExecute = false
+            };
+            Process p = Process.Start(processStartInfo1);
+            p.WaitForExit();
+            File.Delete(Voice_Set.Special_Path + "/Other/WAV_Get_Gain_" + Number + ".bat");
+            StreamReader str = new StreamReader(Voice_Set.Special_Path + "\\Other\\Gain_Log_" + Number + ".txt");
+            string line;
+            double Gain = 0;
+            while ((line = str.ReadLine()) != null)
+            {
+                if (line.Contains("-----------------"))
+                {
+                    string Line_Temp = str.ReadLine().Trim();
+                    string Gain_Temp = Line_Temp.Substring(0, Line_Temp.IndexOf("dB"));
+                    Gain += double.Parse(Gain_Temp) + 0.01;
+                    break;
+                }
+            }
+            str.Close();
+            File.Delete(Voice_Set.Special_Path + "\\Other\\Gain_Log_" + Number + ".txt");
+            return Gain;
+        }
+        public static void Set_WAV_Gain(string WAV_File, double Gain)
+        {
+            if (Gain <= -20)
+                Gain = -19.9;
+            else if (Gain >= 12)
+                Gain = 11.9;
+            int Number = r.Next(0, 10000);
+            StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Other/WAV_Set_Gain_" + Number + ".bat");
+            stw.WriteLine("chcp 65001");
+            stw.Write("\"" + Voice_Set.Special_Path + "/Other/WaveGain.exe\" -r -y -n -g " + Gain + " \"" + WAV_File + "\"");
+            stw.Close();
+            ProcessStartInfo processStartInfo1 = new ProcessStartInfo
+            {
+                FileName = Voice_Set.Special_Path + "/Other/WAV_Set_Gain_" + Number + ".bat",
+                WorkingDirectory = Voice_Set.Special_Path + "\\Other",
+                CreateNoWindow = true,
+                UseShellExecute = false
+            };
+            Process p = Process.Start(processStartInfo1);
+            p.WaitForExit();
+            File.Delete(Voice_Set.Special_Path + "/Other/WAV_Set_Gain_" + Number + ".bat");
         }
     }
     //ウィンドウにフォーカスがないとき、アイコンを光らせる

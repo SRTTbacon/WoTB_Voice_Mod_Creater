@@ -46,7 +46,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             else 
                 return false;
         }
-        //遅延と音量調整と速度(-c copyが使用できないため、時間短縮を兼ねて同時に処理します)
+        //音量調整(-c copyが使用できないため、時間短縮を兼ねて同時に処理します)
         public static bool Sound_Volume(string From_File, string To_File, double Volume)
         {
             if (!File.Exists(From_File))

@@ -160,10 +160,11 @@
                 <Button x:Name="Change_Log_B" Content="変更履歴" HorizontalAlignment="Left" Margin="-300,0,0,0" VerticalAlignment="Top" Width="300" Height="70" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Focusable="False" Click="Change_Log_B_Click"/>
                 <Button x:Name="Sound_Editor_B" Content="サウンド編集" HorizontalAlignment="Left" Margin="-610,0,0,0" VerticalAlignment="Top" Width="300" Height="70" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Focusable="False" Click="Sound_Editor_B_Click"/>
                 <Button x:Name="BNK_To_Project_B" Content="BNKからプロジェクトを復元" HorizontalAlignment="Left" Margin="-500,80,0,0" VerticalAlignment="Top" Width="425" Height="70" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" Focusable="False" FontSize="35" Click="BNK_To_Project_B_Click"/>
+                <Button x:Name="Wwise_Player_B" Content="Wwise Player" HorizontalAlignment="Left" VerticalAlignment="Top" Width="425" Height="70" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" Focusable="False" FontSize="35" Margin="-500,160,0,0" Click="Wwise_Player_B_Click"/>
             </Canvas>
             <Image x:Name="Load_Image" Height="720" VerticalAlignment="Top" Width="1280" Stretch="Fill" Margin="-1920,200,0,0" Visibility="Hidden"/>
             <Button x:Name="Voice_Create_Tool_B" Content="音声作成ツールV1(旧)" HorizontalAlignment="Left" Margin="-1220,50,0,0" VerticalAlignment="Top" Width="525" Height="90" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Click="Voice_Create_Tool_B_Click" Visibility="Hidden"/>
-            <Button x:Name="WoTB_Select_B" Content="WoTBのインストールフォルダを指定" HorizontalAlignment="Left" Margin="-560,225,0,0" VerticalAlignment="Top" Width="500" Height="80" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="35" Focusable="False" Click="WoTB_Select_B_Click"/>
+            <Button x:Name="WoTB_Select_B" Content="WoTBのインストールフォルダを指定" HorizontalAlignment="Left" Margin="-560,250,0,0" VerticalAlignment="Top" Width="500" Height="80" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="35" Focusable="False" Click="WoTB_Select_B_Click"/>
             <Border x:Name="Download_Border" BorderBrush="Transparent" Background="Transparent" BorderThickness="1" Height="1080" VerticalAlignment="Top" Width="1920" Margin="-1920,0,0,0" Visibility="Hidden"/>
             <Button x:Name="Server_B" Content="音声作成(オンライン)" Margin="-600,495,0,0" VerticalAlignment="Top" Width="400" Height="82" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="35" Focusable="False" Click="Server_B_Click"/>
             <Button x:Name="Voice_Create_V2_B" Content="音声Modを作成" HorizontalAlignment="Left" Margin="-1220,100,0,0" VerticalAlignment="Top" Width="525" Height="90" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Focusable="False" Click="Voice_Create_V2_B_Click"/>
@@ -189,6 +190,7 @@
             <Class2:BNK_To_Project x:Name="BNK_To_Project_Window" Width="1920" Height="1080" Margin="-1920,0,0,0" Visibility="Hidden"/>
             <Class1:ChangeLog x:Name="ChangeLog_Window" Width="1920" Height="1080" Margin="-1920,0,0,0" Visibility="Hidden"/>
             <Class1:Sound_Editor x:Name="Sound_Editor_Window" Width="1920" Height="1080" Margin="-1920,0,0,0" Visibility="Hidden"/>
+            <Class2:Wwise_Event_Player x:Name="Wwise_Event_Player_Window" Width="1920" Height="1080" Margin="-1920,0,0,0" Visibility="Hidden"/>
             <Canvas x:Name="WindowBarCanvas" Width="1920" Height="25" Background="White" VerticalAlignment="Top" Margin="-1920,0,0,0" MouseLeftButtonDown="Canvas_MouseLeftButtonDown">
                 <Image x:Name="Icon_Small_Image" Stretch="Fill" Width="22" Height="22" Focusable="False" Margin="2,1,0,0"/>
                 <TextBlock Width="500" Height="20" Text="WoTB_Mod_Creator" FontSize="15" TextDecorations="{x:Null}" Margin="33,2,0,0" Focusable="False"/>

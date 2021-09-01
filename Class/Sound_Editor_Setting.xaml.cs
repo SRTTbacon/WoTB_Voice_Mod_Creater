@@ -242,8 +242,12 @@ namespace WoTB_Voice_Mod_Creater.Class
                     try
                     {
                         Set_Loop_Mode_C.IsChecked = bool.Parse(str.ReadLine());
+                        All_Volume_S.Value = double.Parse(str.ReadLine());
                     }
-                    catch { }
+                    catch
+                    {
+                        All_Volume_S.Value = 100;
+                    }
                     if (Save_Dir == "")
                         Select_Dir_T.Text = "未指定";
                     else
@@ -261,6 +265,8 @@ namespace WoTB_Voice_Mod_Creater.Class
                     Sub_Code.Error_Log_Write(e.Message);
                 }
             }
+            else
+                All_Volume_S.Value = 100;
             IsConfigsLoaded = true;
         }
         void Configs_Save()
@@ -282,6 +288,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 stw.WriteLine(Cut_Volume_Sync_C.IsChecked.Value);
                 stw.WriteLine(Set_Speed_Mode_C.IsChecked.Value);
                 stw.WriteLine(Set_Loop_Mode_C.IsChecked.Value);
+                stw.Write(All_Volume_S.Value);
                 stw.Close();
                 Sub_Code.File_Encrypt(Voice_Set.Special_Path + "/Configs/Sound_Editor_Setting.tmp", Voice_Set.Special_Path + "/Configs/Sound_Editor_Setting.conf", "Sound_Editor_Setting_Configs_Save", true);
             }
@@ -402,6 +409,10 @@ namespace WoTB_Voice_Mod_Creater.Class
         private void Volume_S_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             Volume_T.Text = "追加時の音量:" + Math.Round(Volume_S.Value, 1, MidpointRounding.AwayFromZero);
+        }
+        private void All_Volume_S_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            All_Volume_T.Text = "全体の音量:" + Math.Round(All_Volume_S.Value, 1, MidpointRounding.AwayFromZero);
         }
     }
 }

@@ -20,6 +20,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         bool IsMessageShowing = false;
         bool IsCreating = false;
         bool IsNewMode = false;
+        bool IsExecuteWoTB = false;
         List<string> Main_Voice_List = new List<string>();
         List<string> Sub_Voice_List = new List<string>();
         List<string> Three_Voice_List = new List<string>();
@@ -206,7 +207,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         private async void Exit_B_Click(object sender, RoutedEventArgs e)
         {
             //閉じる
-            if (!IsBusy)
+            if (!IsBusy && !IsCreating)
             {
                 IsBusy = true;
                 Bass.BASS_ChannelStop(Stream);
@@ -239,13 +240,16 @@ namespace WoTB_Voice_Mod_Creater.Class
                     Message_T.Opacity -= 0.025;
                 await Task.Delay(1000 / 60);
             }
-            IsMessageShowing = false;
-            Message_T.Text = "";
+            if (IsMessageShowing)
+            {
+                IsMessageShowing = false;
+                Message_T.Text = "";
+            }
             Message_T.Opacity = 1;
         }
         private void Voice_Back_B_Click(object sender, RoutedEventArgs e)
         {
-            if (IsBusy)
+            if (IsBusy || IsCreating)
                 return;
             //音声リスト1へ移動
             Voice_Next_B.Visibility = Visibility.Visible;
@@ -273,7 +277,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         }
         private void Voice_Next_B_Click(object sender, RoutedEventArgs e)
         {
-            if (IsBusy)
+            if (IsBusy || IsCreating)
                 return;
             //音声リスト2へ移動
             Voice_Back_B.Visibility = Visibility.Visible;
@@ -301,7 +305,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         }
         private void Voice_List_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (IsBusy)
+            if (IsBusy || IsCreating)
                 return;
             if (Voice_List.SelectedIndex != -1)
             {
@@ -311,7 +315,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         }
         private void Voice_Sub_List_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (IsBusy)
+            if (IsBusy || IsCreating)
                 return;
             if (Voice_Sub_List.SelectedIndex != -1)
             {
@@ -321,7 +325,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         }
         private void Voice_Three_List_SeletionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (IsBusy)
+            if (IsBusy || IsCreating)
                 return;
             if (Voice_Three_List.SelectedIndex != -1)
             {
@@ -542,7 +546,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         }
         private void Voice_Play_B_Click(object sender, RoutedEventArgs e)
         {
-            if (IsBusy)
+            if (IsBusy || IsCreating)
                 return;
             if (Voice_File_List.SelectedIndex == -1)
             {
@@ -736,95 +740,93 @@ namespace WoTB_Voice_Mod_Creater.Class
         }
         private async void Voice_Create_B_Click(object sender, RoutedEventArgs e)
         {
-            try
+            if (IsBusy || IsCreating)
+                return;
+            //FMOD時代は必要だったけど今は必要ない
+            /*if (Voice_Set.WoTB_Path == "")
             {
-                if (IsBusy || IsCreating)
-                    return;
-                //FMOD時代は必要だったけど今は必要ない
-                /*if (Voice_Set.WoTB_Path == "")
+                Message_Feed_Out("WoTBのインストール場所を取得できませんでした。");
+                return;
+            }*/
+            bool IsOK = false;
+            foreach (string Name_Now in Main_Voice_List)
+                if (Name_Now.Contains("選択済み"))
+                    IsOK = true;
+            if (!IsOK)
+            {
+                foreach (string Name_Now in Sub_Voice_List)
                 {
-                    Message_Feed_Out("WoTBのインストール場所を取得できませんでした。");
-                    return;
-                }*/
-                bool IsOK = false;
-                foreach (string Name_Now in Main_Voice_List)
                     if (Name_Now.Contains("選択済み"))
                         IsOK = true;
+                }
                 if (!IsOK)
                 {
-                    foreach (string Name_Now in Sub_Voice_List)
-                    {
-                        if (Name_Now.Contains("選択済み"))
-                            IsOK = true;
-                    }
-                    if (!IsOK)
-                    {
-                        Message_Feed_Out("音声が1つも選択されていません。");
-                        return;
-                    }
-                }
-                if (Project_Name_T.Text == "")
-                {
-                    Message_Feed_Out("プロジェクト名が設定されていません。");
+                    Message_Feed_Out("音声が1つも選択されていません。");
                     return;
                 }
-                if (Project_Name_T.Text.Contains("  "))
-                {
-                    Message_Feed_Out("プロジェクト名に空白を連続で使用することはできません。");
-                    return;
-                }
-                try
-                {
-                    Directory.CreateDirectory(Voice_Set.Special_Path + "/Temp/" + Project_Name_T.Text);
-                    Directory.Delete(Voice_Set.Special_Path + "/Temp", true);
-                    if (Project_Name_T.Text.Contains("/") || Project_Name_T.Text.Contains("\\"))
-                        throw new Exception("プロジェクト名に'/'または'\\'を付けることはできません。");
-                }
-                catch (Exception e1)
-                {
-                    Message_Feed_Out("プロジェクト名に不適切な文字が含まれています。");
-                    Sub_Code.Error_Log_Write(e1.Message);
-                    return;
-                }
-                if (Sub_Code.IsTextIncludeJapanese(Project_Name_T.Text) && !IsNewMode)
-                {
-                    Message_Feed_Out("プロジェクト名に日本語を含めることはできません。");
-                    return;
-                }
-                /*if (Sub_Code.IsTextIncludeJapanese(Directory.GetCurrentDirectory()))
-                {
-                    Message_Feed_Out("パスに日本語が含まれています。");
-                    return;
-                }*/
-                //作成画面へ
+            }
+            if (Project_Name_T.Text == "")
+            {
+                Message_Feed_Out("プロジェクト名が設定されていません。");
+                return;
+            }
+            if (Project_Name_T.Text.Contains("  "))
+            {
+                Message_Feed_Out("プロジェクト名に空白を連続で使用することはできません。");
+                return;
+            }
+            try
+            {
+                Directory.CreateDirectory(Voice_Set.Special_Path + "/Temp/" + Project_Name_T.Text);
+                Directory.Delete(Voice_Set.Special_Path + "/Temp", true);
+                if (Project_Name_T.Text.Contains("/") || Project_Name_T.Text.Contains("\\"))
+                    throw new Exception("プロジェクト名に'/'または'\\'を付けることはできません。");
+            }
+            catch (Exception e1)
+            {
+                Message_Feed_Out("プロジェクト名に不適切な文字が含まれています。");
+                Sub_Code.Error_Log_Write(e1.Message);
+                return;
+            }
+            if (Sub_Code.IsTextIncludeJapanese(Project_Name_T.Text) && !IsNewMode)
+            {
+                Message_Feed_Out("プロジェクト名に日本語を含めることはできません。");
+                return;
+            }
+            /*if (Sub_Code.IsTextIncludeJapanese(Directory.GetCurrentDirectory()))
+            {
+                Message_Feed_Out("パスに日本語が含まれています。");
+                return;
+            }*/
+            //作成画面へ
+            List<List<string>> Temp = new List<List<string>>();
+            for (int Number_01 = 0; Number_01 < Voice_List_Full_File_Name.Count; Number_01++)
+                Temp.Add(Voice_List_Full_File_Name[Number_01]);
+            for (int Number_02 = 0; Number_02 < Voice_Sub_List_Full_File_Name.Count; Number_02++)
+                Temp.Add(Voice_Sub_List_Full_File_Name[Number_02]);
+            for (int Number_03 = 0; Number_03 < Voice_Three_List_Full_File_Name.Count; Number_03++)
+                Temp.Add(Voice_Three_List_Full_File_Name[Number_03]);
+            Voice_Create_Window.Window_Show_V2(Project_Name_T.Text, Temp, IsNewMode);
+            Voice_Create_Window.Opacity = 0;
+            Voice_Create_Window.Visibility = Visibility.Visible;
+            while (Voice_Create_Window.Opacity < 1)
+            {
+                Voice_Create_Window.Opacity += Sub_Code.Window_Feed_Time;
+                await Task.Delay(1000 / 60);
+            }
+            while (Voice_Create_Window.Visibility == Visibility.Visible)
+                await Task.Delay(100);
+            //作成画面で作成ボタンが押されたら開始
+            if (Sub_Code.CreatingProject)
+            {
+                Sub_Code.CreatingProject = false;
                 IsCreating = true;
                 Message_T.Opacity = 1;
                 IsMessageShowing = false;
-                string Dir_Path = Directory.GetCurrentDirectory();
-                string Dir_Name = Dir_Path + "/Projects/" + Project_Name_T.Text;
-                List<List<string>> Temp = new List<List<string>>();
-                for (int Number_01 = 0; Number_01 < Voice_List_Full_File_Name.Count; Number_01++)
-                    Temp.Add(Voice_List_Full_File_Name[Number_01]);
-                for (int Number_02 = 0; Number_02 < Voice_Sub_List_Full_File_Name.Count; Number_02++)
-                    Temp.Add(Voice_Sub_List_Full_File_Name[Number_02]);
-                for (int Number_03 = 0; Number_03 < Voice_Three_List_Full_File_Name.Count; Number_03++)
-                    Temp.Add(Voice_Three_List_Full_File_Name[Number_03]);
-                Voice_Create_Window.Window_Show_V2(Project_Name_T.Text, Temp, IsNewMode);
-                Voice_Create_Window.Opacity = 0;
-                Voice_Create_Window.Visibility = Visibility.Visible;
-                while (Voice_Create_Window.Opacity < 1)
+                try
                 {
-                    Voice_Create_Window.Opacity += Sub_Code.Window_Feed_Time;
-                    await Task.Delay(1000 / 60);
-                }
-                while (Voice_Create_Window.Visibility == Visibility.Visible)
-                {
-                    await Task.Delay(100);
-                }
-                //作成画面で作成ボタンが押されたら開始
-                if (Sub_Code.CreatingProject)
-                {
-                    Sub_Code.CreatingProject = false;
+                    string Dir_Path = Directory.GetCurrentDirectory();
+                    string Dir_Name = Dir_Path + "/Projects/" + Project_Name_T.Text;
                     Border_All.Visibility = Visibility.Visible;
                     if (Directory.Exists(Dir_Name))
                     {
@@ -1065,15 +1067,24 @@ namespace WoTB_Voice_Mod_Creater.Class
                     Sub_Code.DVPL_Encode = false;
                     Sub_Code.SetLanguage = "";
                     Message_Feed_Out("完了しました。\nファイル容量が極端に少ない場合、失敗している可能性があります。");
+                    Border_All.Visibility = Visibility.Hidden;
+                    IsCreating = false;
+                }
+                catch (Exception e1)
+                {
+                    Message_Feed_Out("致命的なエラーが発生し正常に作成されませんでした。");
+                    Sub_Code.Error_Log_Write(e1.Message);
+                    Border_All.Visibility = Visibility.Hidden;
+                    IsCreating = false;
+                }
+                if (IsExecuteWoTB)
+                {
+                    Message_Feed_Out("WoTBを起動しています...");
+                    System.Diagnostics.Process.Start(Voice_Set.WoTB_Path + "\\wotblitz.exe");
                 }
             }
-            catch (Exception e1)
-            {
-                Message_Feed_Out("致命的なエラーが発生し正常に作成されませんでした。");
-                Sub_Code.Error_Log_Write(e1.Message);
-            }
-            Border_All.Visibility = Visibility.Hidden;
-            IsCreating = false;
+            else
+                IsCreating = false;
         }
         void Volume_MouseUp(object sender, System.Windows.Input.MouseEventArgs e)
         {
@@ -1095,6 +1106,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Sub_Code.Error_Log_Write(e.Message);
             }
         }
+        //書いただけで結局使用しなくなったコード
         void Wwise_Bnk_Pck_Replace(string From_File, string From_Dir, string Language_OR_Mode, bool IsVoiceMod)
         {
             if (!File.Exists(From_File) || !Directory.Exists(From_Dir))
@@ -1325,10 +1337,8 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 //項目に音声が入っていないかつ、設定画面のチェックを入れている場合、標準の音声を再生させるように
                 for (int Number = 0; Number < Voice_List_Full_File_Name.Count; Number++)
-                {
                     if (Voice_List_Full_File_Name[Number].Count == 0)
                         Sub_Code.File_Copy_V2(Voice_Set.Special_Path + "\\SE\\Voices", Dir_Name + "/Voices", Sub_Code.Default_Name[Number]);
-                }
             }
             Message_T.Text = "音声ファイルをwavに変換しています...";
             await Task.Delay(50);
@@ -1381,7 +1391,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         }
         private void Voice_Clear_Click(object sender, RoutedEventArgs e)
         {
-            if (IsBusy)
+            if (IsBusy || IsCreating)
                 return;
             MessageBoxResult result = System.Windows.MessageBox.Show("追加された音声をクリアしますか？", "確認", MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.No);
             if (result == MessageBoxResult.Yes)
@@ -1463,6 +1473,39 @@ namespace WoTB_Voice_Mod_Creater.Class
         private void BGM_Reload_C_Click(object sender, RoutedEventArgs e)
         {
             Configs_Save();
+        }
+        private void Execute_WoTB_C_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (IsExecuteWoTB)
+                Execute_WoTB_C.Source = Sub_Code.Check_02;
+            else
+            {
+                if (Voice_Set.WoTB_Path == "")
+                {
+                    Message_Feed_Out("Steam版WoTBのインストール先を取得できませんでした。\nホーム画面からフォルダを指定してください。");
+                    return;
+                }
+                Execute_WoTB_C.Source = Sub_Code.Check_04;
+            }
+            IsExecuteWoTB = !IsExecuteWoTB;
+        }
+        private void Execute_WoTB_C_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            if (IsExecuteWoTB)
+                Execute_WoTB_C.Source = Sub_Code.Check_04;
+            else
+                Execute_WoTB_C.Source = Sub_Code.Check_02;
+        }
+        private void Execute_WoTB_C_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            if (IsExecuteWoTB)
+                Execute_WoTB_C.Source = Sub_Code.Check_03;
+            else
+                Execute_WoTB_C.Source = Sub_Code.Check_01;
+        }
+        private void UserControl_Loaded(object sender, RoutedEventArgs e)
+        {
+            Execute_WoTB_C.Source = Sub_Code.Check_01;
         }
     }
 }

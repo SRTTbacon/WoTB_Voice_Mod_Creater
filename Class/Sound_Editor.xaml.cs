@@ -44,6 +44,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         double Time_Line_Move_Width_Scrool = 0;
         double Pitch_Value = 0;
         double Time_Line_Left = 0;
+        double All_Volume_Set = 1;
         float Play_Pitch_Percent = 0.5f;
         bool IsClosing = false;
         bool IsImageClicked = false;
@@ -64,6 +65,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         bool IsTimeMoveMode = false;
         bool IsTimeMoveMode_IsPlaying = false;
         bool IsBusy = false;
+        bool IsLoading = false;
         bool IsFeedIn = false;
         bool IsFeedOut = false;
         bool IsVolume_Speed_Changed_By_Key = false;
@@ -260,7 +262,14 @@ namespace WoTB_Voice_Mod_Creater.Class
                     Time_Text[7].Visibility = Visibility.Hidden;
                 else
                     Time_Text[7].Visibility = Visibility.Visible;
-                if (!IsBusy)
+                //設定画面の全体の音量を変更した場合、瞬時に反映されるように
+                if (Setting_Window.Visibility == Visibility.Visible && Setting_Window.All_Volume_S.Value / 100 != All_Volume_Set)
+                {
+                    All_Volume_Set = Setting_Window.All_Volume_S.Value / 100;
+                    for (int Number = 0; Number < Sound_Streams.Count; Number++)
+                        Bass.BASS_ChannelSetAttribute(Sound_Streams[Number], BASSAttribute.BASS_ATTRIB_VOL, (float)(Sound_Volumes[Number].Value / 100 * All_Volume_Set));
+                }
+                if (!IsBusy && !IsLoading)
                 {
                     //Ctrlキーが押されているか
                     bool IsControlDown = (System.Windows.Forms.Control.ModifierKeys & System.Windows.Forms.Keys.Control) == System.Windows.Forms.Keys.Control;
@@ -277,7 +286,6 @@ namespace WoTB_Voice_Mod_Creater.Class
                         Music_Plus_B.Content = "+5秒";
                     }
                     //ウィンドウにフォーカスがあれば実行
-                    //このソフトが最前面にある場合はフォーカスが与えられ実行できるようになります。(MainCode.cs 2036行目に記載)
                     if (IsFocusMode)
                     {
                         //数秒戻る
@@ -447,7 +455,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 }
                 //現在時間を表示(秒)
                 Time_T.Text = Math.Round(Play_Time, 1, MidpointRounding.AwayFromZero) + "秒";
-                Time_Text[7].Margin = new Thickness(Time_Line.Margin.Left - 16, -40, 0, 0);
+                Time_Text[7].Margin = new Thickness(Time_Line.Margin.Left - 17, -40, 0, 0);
                 if (period != 1000f / FPS)
                     period = 1000f / FPS;
                 //次のフレーム時間を計算
@@ -687,9 +695,9 @@ namespace WoTB_Voice_Mod_Creater.Class
             if (IsPlaying)
             {
                 if (Set_Volume != -1)
-                    Bass.BASS_ChannelSetAttribute(Sound_Streams[Sound_Streams.Count - 1], BASSAttribute.BASS_ATTRIB_VOL, (float)(Set_Volume / 100));
+                    Bass.BASS_ChannelSetAttribute(Sound_Streams[Sound_Streams.Count - 1], BASSAttribute.BASS_ATTRIB_VOL, (float)(Set_Volume / 100 * All_Volume_Set));
                 else
-                    Bass.BASS_ChannelSetAttribute(Sound_Streams[Sound_Streams.Count - 1], BASSAttribute.BASS_ATTRIB_VOL, 0.75f);
+                    Bass.BASS_ChannelSetAttribute(Sound_Streams[Sound_Streams.Count - 1], BASSAttribute.BASS_ATTRIB_VOL, (float)(0.75 * All_Volume_Set));
             }
             else
                 Bass.BASS_ChannelSetAttribute(Sound_Streams[Sound_Streams.Count - 1], BASSAttribute.BASS_ATTRIB_VOL, 0f);
@@ -828,7 +836,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 }
                 if (Index_Temp == -1)
                     return;
-                Bass.BASS_ChannelSetAttribute(Sound_Streams[Index_Temp], BASSAttribute.BASS_ATTRIB_VOL, (float)Sound_Volumes[Index_Temp].Value / 100);
+                Bass.BASS_ChannelSetAttribute(Sound_Streams[Index_Temp], BASSAttribute.BASS_ATTRIB_VOL, (float)(Sound_Volumes[Index_Temp].Value / 100 * All_Volume_Set));
             };
             //曲名
             Sound_Names[This_Image_Index].Name = "Sound_Title_" + Now_Sound_Index;
@@ -1202,7 +1210,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                             Volume_Now[Number] = 0f;
                             End_Index.Add(Number);
                         }
-                        Bass.BASS_ChannelSetAttribute(Sound_Streams[Number], BASSAttribute.BASS_ATTRIB_VOL, Volume_Now[Number]);
+                        Bass.BASS_ChannelSetAttribute(Sound_Streams[Number], BASSAttribute.BASS_ATTRIB_VOL, (float)(Volume_Now[Number] * All_Volume_Set));
                     }
                     if (End_Index.Count >= Sound_Streams.Count)
                     {
@@ -1223,7 +1231,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         {
             if (Feed_Time == 0)
                 for (int Number = 0; Number < Sound_Streams.Count; Number++)
-                    Bass.BASS_ChannelSetAttribute(Sound_Streams[Number], BASSAttribute.BASS_ATTRIB_VOL, (float)(Sound_Volumes[Number].Value / 100));
+                    Bass.BASS_ChannelSetAttribute(Sound_Streams[Number], BASSAttribute.BASS_ATTRIB_VOL, (float)(Sound_Volumes[Number].Value / 100 * All_Volume_Set));
             else
             {
                 List<float> Volume_Now = new List<float>();
@@ -1253,7 +1261,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                             Volume_Now[Number] = (float)(Sound_Volumes[Number].Value / 100);
                             End_Index.Add(Number);
                         }
-                        Bass.BASS_ChannelSetAttribute(Sound_Streams[Number], BASSAttribute.BASS_ATTRIB_VOL, Volume_Now[Number]);
+                        Bass.BASS_ChannelSetAttribute(Sound_Streams[Number], BASSAttribute.BASS_ATTRIB_VOL, (float)(Volume_Now[Number] * All_Volume_Set));
                     }
                     if (End_Index.Count >= Sound_Streams.Count)
                     {
@@ -2039,6 +2047,11 @@ namespace WoTB_Voice_Mod_Creater.Class
         {
             if (IsClosing || IsBusy)
                 return;
+            if (Sound_Images.Count == 0)
+            {
+                Message_Feed_Out("保存する内容がありません。");
+                return;
+            }
             IsPlaying = false;
             All_Sound_Pause();
             await Task.Delay(100);
@@ -2101,7 +2114,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         //保存したトラック情報をロード
         public async void Contents_Load(string File_Path)
         {
-            IsBusy = true;
+            IsLoading = true;
             if (IsPlaying)
             {
                 IsPlaying = false;
@@ -2126,42 +2139,77 @@ namespace WoTB_Voice_Mod_Creater.Class
                 //.wseファイルから読み込む
                 Sub_Code.File_Decrypt(File_Path, File_Path + ".tmp", "Sound_Editor_Save_File", false);
                 string[] Read_Lines = File.ReadAllLines(File_Path + ".tmp");
-                File.Delete(File_Path + ".tmp");
+                //File.Delete(File_Path + ".tmp");
                 //1行目は速度の設定
                 Pitch_S.Value = double.Parse(Read_Lines[0]);
                 //トラックの数だけループ
                 List<ImageSource> Temp_Images = new List<ImageSource>();
                 List<string> Temp_Files = new List<string>();
+                List<string> Add_Files = new List<string>();
+                List<string> Add_All = new List<string>();
                 for (int Number = 1; Number < Read_Lines.Length; Number++)
                 {
                     if (Read_Lines[Number].Contains("WoTB_Sound_Editor_Save_File_End"))
                         break;
                     string[] Split = Read_Lines[Number].Split('|');
+                    string Dir_Name = Path.GetDirectoryName(Split[0]) + "\\" + Path.GetFileNameWithoutExtension(Split[0]);
+                    if (Add_Files.Contains(Split[0]))
+                    {
+                        int Index_Temp = Add_Files.LastIndexOf(Split[0]);
+                        Add_All.Insert(Index_Temp + 1, Read_Lines[Number]);
+                    }
+                    else if (Add_Files.Contains(Split[0]))
+                    {
+                        int Index_Temp = Add_Files.LastIndexOf(Split[0]);
+                        Add_All.Insert(Index_Temp + 1, Read_Lines[Number]);
+                    }
+                    else
+                        Add_All.Add(Read_Lines[Number]);
+                    Add_Files.Add(Split[0]);
+                }
+                Add_Files.Clear();
+                foreach (string Temp_01 in Add_All)
+                {
+                    string[] Split = Temp_01.Split('|');
+                    string Dir_Name = Path.GetDirectoryName(Split[0]) + "\\" + Path.GetFileNameWithoutExtension(Split[0]);
                     Message_T.Text = "波形を生成しています...";
                     await Task.Delay(50);
                     ImageSource Image_Wave = null;
-                    if (Temp_Files.Contains(Split[0]))
+                    string File_Path_No_Ex;
+                    if (Temp_Files.Contains(Dir_Name + ".wav"))
                     {
-                        int Index_Image = Temp_Files.IndexOf(Split[0]);
+                        int Index_Image = Temp_Files.IndexOf(Dir_Name + ".wav");
                         Image_Wave = Temp_Images[Index_Image];
+                        File_Path_No_Ex = Dir_Name + ".wav";
+                    }
+                    else if (Temp_Files.Contains(Dir_Name + ".mp3"))
+                    {
+                        int Index_Image = Temp_Files.IndexOf(Dir_Name + ".mp3");
+                        Image_Wave = Temp_Images[Index_Image];
+                        File_Path_No_Ex = Dir_Name + ".mp3";
                     }
                     else
                     {
-                        Temp_Files.Add(Split[0]);
-                        string Ex = Path.GetExtension(Split[0]);
-                        int StreamHandle = Bass.BASS_StreamCreateFile(Split[0], 0, 0, BASSFlag.BASS_STREAM_DECODE);
+                        if (File.Exists(Dir_Name + ".wav"))
+                            Temp_Files.Add(Dir_Name + ".wav");
+                        else if (File.Exists(Dir_Name + ".mp3"))
+                            Temp_Files.Add(Dir_Name + ".mp3");
+                        else
+                            Temp_Files.Add(Split[0]);
+                        int StreamHandle = Bass.BASS_StreamCreateFile(Temp_Files[Temp_Files.Count - 1], 0, 0, BASSFlag.BASS_STREAM_DECODE);
                         if (Bass.BASS_ChannelBytes2Seconds(StreamHandle, Bass.BASS_ChannelGetLength(StreamHandle, BASSMode.BASS_POS_BYTES)) > 600)
                             Image_Wave = Temp_WaveForm;
                         else
-                            Image_Wave = Sub_Code.BassRenderWaveForm(Split[0]);
+                            Image_Wave = Sub_Code.BassRenderWaveForm(Temp_Files[Temp_Files.Count - 1]);
                         Bass.BASS_StreamFree(StreamHandle);
                         Temp_Images.Add(Image_Wave);
+                        File_Path_No_Ex = Temp_Files[Temp_Files.Count - 1];
                     }
                     if (Image_Wave == null)
                         continue;
                     Message_T.Text = "サウンドを読み込んでいます...";
                     await Task.Delay(50);
-                    await Add_Sound(Split[0], Image_Wave, -1, double.Parse(Split[1]), int.Parse(Split[2]));
+                    await Add_Sound(File_Path_No_Ex, Image_Wave, -1, double.Parse(Split[1]), int.Parse(Split[2]));
                     int Index = Sound_Images.Count - 1;
                     Sound_Positions[Index] = double.Parse(Split[3]);
                     Sound_Plus_Play_Time[Index] = double.Parse(Split[4]);
@@ -2178,6 +2226,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 }
                 Temp_Images.Clear();
                 Temp_Files.Clear();
+                Add_All.Clear();
                 Message_Feed_Out("ロードしました。");
             }
             catch (Exception e)
@@ -2191,6 +2240,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 IsDeleted = false;
             }
             IsBusy = false;
+            IsLoading = false;
         }
     }
 }
