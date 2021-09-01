@@ -125,11 +125,21 @@
             <Button x:Name="File_Encode_B" Content="ファイルをwemに変換" Height="75" VerticalAlignment="Top" Width="345" Margin="-850,150,0,0" FontSize="37" BorderBrush="Aqua" Foreground="Aqua" Background="Transparent" Click="File_Encode_B_Click"/>
             <Button x:Name="Extract_Select_B" Content="選択した項目のみ抽出" Height="75" VerticalAlignment="Top" Width="375" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" Margin="-2200,650,0,0" FontSize="38" Click="Extract_Select_B_Click"/>
             <Button x:Name="Extract_All_B" Content="すべて抽出" Height="75" VerticalAlignment="Top" Width="375" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" Margin="-2200,750,0,0" FontSize="38" Click="Extract_All_B_Click"/>
-            <Button x:Name="Clear_B" Content="クリア" Height="65" VerticalAlignment="Top" Width="250" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" Margin="-1400,755,0,0" FontSize="37" Click="Clear_B_Click"/>
+            <Button x:Name="Clear_B" Content="クリア" Height="65" VerticalAlignment="Top" Width="250" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" Margin="-250,1015,0,0" FontSize="37" Click="Clear_B_Click"/>
             <TextBox x:Name="Search_T" Height="55" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="300" FontSize="35" Margin="-3400,725,0,0"/>
             <Button x:Name="Search_B" Content="検索" Height="65" VerticalAlignment="Top" Width="150" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Margin="-2925,720,0,0" Click="Search_B_Click"/>
             <Button x:Name="File_Encode_V2_B" Content="wemをMP3に変換" Height="75" VerticalAlignment="Top" Width="345" Margin="-850,250,0,0" FontSize="37" BorderBrush="Aqua" Foreground="Aqua" Background="Transparent" Click="File_Encode_V2_B_Click"/>
             <TextBlock Height="50" TextWrapping="Wrap" Text="※同じフォルダに生成されます" VerticalAlignment="Top" Foreground="Aqua" FontSize="37" Margin="-850,75,0,0" Width="430"/>
+            <TextBlock FontSize="38" Height="50" Width="244" TextWrapping="Wrap" Text="～音量調整～" VerticalAlignment="Top" Margin="-950,450,0,0" Foreground="Aqua" TextAlignment="Center"/>
+            <Button x:Name="Change_Volume_Help_B" Content="?" Height="50" VerticalAlignment="Top" Width="50" Margin="-650,450,0,0" FontSize="35" BorderBrush="Aqua" Foreground="Aqua" Background="Transparent" Click="Change_Volume_Help_B_Click"/>
+            <Image x:Name="All_Volume_Sync_C" Height="30" VerticalAlignment="Top" Width="30" Margin="-1325,540,0,0" MouseDown="All_Volume_Sync_C_MouseDown" MouseEnter="All_Volume_Sync_C_MouseEnter" MouseLeave="All_Volume_Sync_C_MouseLeave"/>
+            <TextBlock FontSize="33" Height="45" Width="350" TextWrapping="Wrap" Text="すべての音量を均一にする" VerticalAlignment="Top" Margin="-925,532,0,0" Foreground="Aqua" TextAlignment="Center"/>
+            <Button x:Name="All_Volume_Sync_Help_B" Content="?" Height="50" VerticalAlignment="Top" Width="50" Margin="-500,530,0,0" FontSize="35" BorderBrush="Aqua" Foreground="Aqua" Background="Transparent" Click="All_Volume_Sync_Help_B_Click"/>
+            <TextBlock x:Name="Change_Volume_T" FontSize="33" Height="45" Width="250" TextWrapping="Wrap" Text="音量:95" VerticalAlignment="Top" Margin="-950,600,0,0" Foreground="Aqua" TextAlignment="Center"/>
+            <Slider x:Name="Change_Volume_S" Height="27" VerticalAlignment="Top" Width="386" Margin="-950,660,0,0" Style="{StaticResource CustomSliderStyle}" Value="0" SmallChange="1" LargeChange="1" Maximum="100" ValueChanged="Change_Volume_S_ValueChanged"/>
+            <Image Visibility="Hidden" x:Name="OverWrite_Mode_C" Height="30" VerticalAlignment="Top" Width="30" Margin="-1150,720,0,0" MouseDown="OverWrite_Mode_C_MouseDown" MouseEnter="OverWrite_Mode_C_MouseEnter" MouseLeave="OverWrite_Mode_C_MouseLeave"/>
+            <TextBlock Visibility="Hidden" FontSize="33" Height="45" Width="160" TextWrapping="Wrap" Text="上書き保存" VerticalAlignment="Top" Margin="-945,712,0,0" Foreground="Aqua" TextAlignment="Center"/>
+            <Button x:Name="Change_Volume_B" Content="適応" Height="65" VerticalAlignment="Top" Width="250" Margin="-950,725,0,0" FontSize="35" BorderBrush="Aqua" Foreground="Aqua" Background="Transparent" Click="Change_Volume_B_Click"/>
         </DockPanel>
     </Viewbox>
 </UserControl>

@@ -228,41 +228,31 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         private async void Sound_List_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (IsClosing)
-            {
                 return;
-            }
             if (Sound_List.SelectedIndex != -1)
             {
                 Change_List.SelectedIndex = -1;
                 SelectIndex = -2;
                 if (Not_Extract_C.IsChecked.Value)
-                {
                     return;
-                }
                 Message_T.Opacity = 1;
+                Bass.BASS_ChannelStop(Stream);
+                Bass.BASS_StreamFree(Stream);
                 Message_T.Text = "サウンドファイルに変換しています...";
                 await Task.Delay(50);
                 if (IsPCKFile)
                 {
                     if (Wwise_Pck.Wwise_Extract_To_Ogg_File(Sound_List.SelectedIndex, Voice_Set.Special_Path + "/Wwise/Temp_01.ogg", true))
-                    {
                         Message_Feed_Out("変換しました。");
-                    }
                     else
-                    {
                         Message_Feed_Out("変換できませんでした。");
-                    }
                 }
                 else
                 {
                     if (Wwise_Bnk.Wwise_Extract_To_Ogg_File(Sound_List.SelectedIndex, Voice_Set.Special_Path + "/Wwise/Temp_01.ogg", true))
-                    {
                         Message_Feed_Out("変換しました。");
-                    }
                     else
-                    {
                         Message_Feed_Out("変換できませんでした。");
-                    }
                 }
             }
         }
@@ -699,6 +689,9 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 Sound_List.Items.Clear();
                 Change_List.Items.Clear();
                 Change_Sound_Full_Name.Clear();
+                Location_S.Value = 0;
+                Location_S.Maximum = 0;
+                Location_T.Text = "00:00";
             }
         }
     }

@@ -34,9 +34,7 @@ namespace BNKManager
                 {
                     found = ((WwiseBank)bank).GetSection(sectionName);
                     if (found != null)
-                    {
                         return found;
-                    }
                 }
             }
             return found;
@@ -50,26 +48,14 @@ namespace BNKManager
         {
             DATASection data = (DATASection)this.GetSection("DATA");
             if (data != null)
-            {
                 for (int i = 0; i < data.wemFiles.Count; i++)
-                {
                     if (data.wemFiles[i].info.ID == fileID)
-                    {
                         return data.wemFiles[i].data;
-                    }
-                }
-            }
             WPKSoundBank wpkBank = this.GetWPKBank();
             if (wpkBank != null)
-            {
                 foreach (WPKSoundBank.WPKSoundBankWEMFile wemFile in wpkBank.wemFiles)
-                {
                     if (wemFile.ID == fileID)
-                    {
                         return wemFile.data;
-                    }
-                }
-            }
             return null;
         }
         //.bnk内のサウンド一覧を取得
@@ -94,12 +80,8 @@ namespace BNKManager
             }
             WPKSoundBank wpkBank = this.GetWPKBank();
             if (wpkBank != null)
-            {
                 foreach (WPKSoundBank.WPKSoundBankWEMFile wem in wpkBank.wemFiles)
-                {
                     newList.Add(new WEMFile(wem.ID, 0, GetAudioFileSeconds(ref wem.data)));
-                }
-            }
             //本家WoT内の音声ファイルを選択するとクラッシュしてしまうため廃止
             /*if (hirc != null)
             {
@@ -149,18 +131,12 @@ namespace BNKManager
                 {
                     dataIndex.embeddedWEMFiles[i].offset = lastOffset;
                     if (dataIndex.embeddedWEMFiles[i].ID == fileID)
-                    {
                         dataIndex.embeddedWEMFiles[i].length = (uint)newData.Length;
-                    }
                     lastOffset += dataIndex.embeddedWEMFiles[i].length + 10;
                 }
                 for (int i = 0; i < data.wemFiles.Count; i++)
-                {
                     if (data.wemFiles[i].info.ID == fileID)
-                    {
                         data.wemFiles[i].data = newData;
-                    }
-                }
                 HIRCSection hirc = (HIRCSection)this.GetSection("HIRC");
                 if (hirc != null)
                 {
@@ -181,30 +157,20 @@ namespace BNKManager
             }
             WPKSoundBank wpkBank = this.GetWPKBank();
             if (wpkBank != null)
-            {
                 foreach (WPKSoundBank.WPKSoundBankWEMFile wemFile in wpkBank.wemFiles)
-                {
                     if (wemFile.ID == fileID)
-                    {
                         wemFile.data = newData;
-                    }
-                }
-            }
         }
         //差し替えたwemファイルを反映
         public void Save()
         {
             foreach (LoLSoundBank bank in this.banksList)
-            {
                 bank.Save();
-            }
         }
         public void Save(string To_File)
         {
             foreach (LoLSoundBank bank in this.banksList)
-            {
                 bank.Save(To_File);
-            }
         }
         public class WEMFile
         {

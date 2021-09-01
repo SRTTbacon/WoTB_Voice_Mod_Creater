@@ -61,18 +61,62 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         {
             List<string> IDs = new List<string>();
             if (!IsPCKSelected)
-            {
                 return IDs;
-            }
             foreach (Wwise_Pack.soundFile Sound_Now in Sounds)
-            {
                 IDs.Add(Sound_Now.id.ToString());
-            }
             return IDs;
         }
         public int Wwise_Get_File_Count()
         {
             return Sounds.Count;
+        }
+        public bool Wwise_Extract_To_WAV_Directory(string To_Dir, bool IsCountUpMode = false)
+        {
+            if (!IsPCKSelected)
+                return false;
+            try
+            {
+                if (!Directory.Exists(To_Dir))
+                    Directory.CreateDirectory(To_Dir);
+                for (int Number = 0; Number < Sounds.Count; Number++)
+                {
+                    int Number_01 = Sub_Code.r.Next(0, 1000);
+                    if (IsCountUpMode)
+                        Number_01 = Number + 1;
+                    if (Wwise_Extract_To_WEM_File(Number, To_Dir + "\\" + Number_01 + ".wem", true))
+                        Sub_Code.WEM_To_File(To_Dir + "\\" + Number_01 + ".wem", To_Dir + "\\" + Number_01 + ".wav", "wav", true);
+                }
+                return true;
+            }
+            catch (Exception e)
+            {
+                Sub_Code.Error_Log_Write(e.Message);
+                return false;
+            }
+        }
+        public bool Wwise_Extract_To_OGG_OR_WAV_Directory(string To_Dir, bool IsCountUpMode = false)
+        {
+            if (!IsPCKSelected)
+                return false;
+            try
+            {
+                if (!Directory.Exists(To_Dir))
+                    Directory.CreateDirectory(To_Dir);
+                for (int Number = 0; Number < Sounds.Count; Number++)
+                {
+                    int Number_01 = Sub_Code.r.Next(0, 1000);
+                    if (IsCountUpMode)
+                        Number_01 = Number + 1;
+                    if (Wwise_Extract_To_WEM_File(Number, To_Dir + "\\" + Number_01 + ".wem", true))
+                        Sub_Code.WEM_To_OGG_WAV(To_Dir + "\\" + Number_01 + ".wem", To_Dir + "\\" + Number_01, true);
+                }
+                return true;
+            }
+            catch (Exception e)
+            {
+                Sub_Code.Error_Log_Write(e.Message);
+                return false;
+            }
         }
         //.bnkファイルから.wemファイルを抽出(1つのみ)
         public bool Wwise_Extract_To_WEM_File(int Index, string To_File, bool IsOverWrite)
@@ -96,7 +140,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             }
         }
         //.pckファイルから.wemファイルを抽出し、oggに変換(1つのみ)
-        public bool Wwise_Extract_To_Ogg_File(int Index, string To_File, bool IsOverWrite)
+        public bool Wwise_Extract_To_Ogg_File(int Index, string To_File, bool IsOverWrite, string Format = "ogg")
         {
             if (Sounds.Count <= Index || !IsPCKSelected)
             {
@@ -110,7 +154,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             {
                 if (Wwise_Extract_To_WEM_File(Index, To_File + ".wem", true))
                 {
-                    if (Sub_Code.WEM_To_File(To_File + ".wem", To_File, "ogg", true))
+                    if (Sub_Code.WEM_To_File(To_File + ".wem", To_File, Format, true))
                     {
                         return true;
                     }

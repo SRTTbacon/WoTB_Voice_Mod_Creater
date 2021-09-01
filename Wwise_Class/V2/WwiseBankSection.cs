@@ -94,9 +94,9 @@ namespace BNKManager
                         this.objects.Add(new EventActionWwiseObject(br, objLength));
                         break;
                     //本家WoTのpckファイルを読み込むとクラッシュするため廃止
-                    /*case WwiseObjectType.Event:
+                    case WwiseObjectType.Event:
                         this.objects.Add(new EventWwiseObject(br));
-                        break;*/
+                        break;
                     default:
                         //this.objects.Add(new WwiseObject(objType, br.ReadBytes((int)objLength)));
                         break;

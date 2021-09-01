@@ -52,13 +52,17 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 await Multithread.Convert_To_Wav(Add_All_Files, Add_Wav_Files, Add_All_Files_Time, false);
         }
         //取得したデータから指定したイベントにサウンドを追加(Save()が呼ばれるまで保存しない)
-        public bool Add_Sound(string Container_ShortID, string Audio_File, string Language, bool IsSetShortIDMode = false, Music_Play_Time Time = null, string Effect = "", int Set_Volume = 0, bool IsDeleteCAkSound = false)
+        public bool Add_Sound(string Container_ShortID, string Audio_File, string Language, bool IsSetShortIDMode = false, Music_Play_Time Time = null, string Effect = "", int Set_Volume = 0, bool IsDeleteCAkSound = false, bool IsUseHash = true)
         {
             if (Project_Dir == "")
                 return false;
             try
             {
-                uint FileName_Short_ID = WwiseHash.HashString(Audio_File + Container_ShortID);
+                string FileName_Short_ID;
+                if (IsUseHash)
+                    FileName_Short_ID = WwiseHash.HashString(Audio_File + Container_ShortID).ToString();
+                else
+                    FileName_Short_ID = Path.GetFileNameWithoutExtension(Audio_File);
                 if (Language == "SFX")
                 {
                     if (File.Exists(Audio_File))
@@ -138,13 +142,13 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                     More_Class.List_Add(Actor_Mixer_Hierarchy, "<ChildrenList>");
                     More_Class.List_Add(Actor_Mixer_Hierarchy, "</ChildrenList>");
                     if (IsSetShortIDMode)
-                        return List_Add_File(ReferenceListEnd_Line + 2, FileName_Short_ID + ".wav", Language, FileName_Short_ID, Effect, Set_Volume);
+                        return List_Add_File(ReferenceListEnd_Line + 2, FileName_Short_ID + ".wav", Language, uint.Parse(FileName_Short_ID), Effect, Set_Volume);
                     return List_Add_File(ReferenceListEnd_Line + 2, FileName_Short_ID + ".wav", Language, 0, Effect, Set_Volume);
                 }
                 else
                 {
                     if (IsSetShortIDMode)
-                        return List_Add_File(ChildrenList_Line + 1, FileName_Short_ID + ".wav", Language, FileName_Short_ID, Effect, Set_Volume);
+                        return List_Add_File(ChildrenList_Line + 1, FileName_Short_ID + ".wav", Language, uint.Parse(FileName_Short_ID), Effect, Set_Volume);
                     return List_Add_File(ChildrenList_Line + 1, FileName_Short_ID + ".wav", Language, 0, Effect, Set_Volume);
                 }
             }

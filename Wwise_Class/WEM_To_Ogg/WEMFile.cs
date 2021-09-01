@@ -3,6 +3,25 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
+namespace WoTB_Voice_Mod_Creater.Wwise_Class
+{
+    public class WEM_To_OGG
+    {
+        public static bool Create_OGG(string WEM_File, string To_OGG_File)
+        {
+            bool Return = false;
+            WEMSharp.WEMFile wem = new WEMSharp.WEMFile(WEM_File, WEMSharp.WEMForcePacketFormat.NoForcePacketFormat);
+            try
+            {
+                wem.GenerateOGG(To_OGG_File, Voice_Set.Special_Path + "\\Wwise\\packed_codebooks_aoTuV_603.bin", false, false);
+                Return = true;
+            }
+            catch { }
+            wem.Close();
+            return Return;
+        }
+    }
+}
 namespace WEMSharp
 {
     public class WEMFile
@@ -207,7 +226,7 @@ namespace WEMSharp
                     else
                         this._loopEnd++;
                     if (this._loopStart >= this._sampleCount || this._loopEnd > this._sampleCount || this._loopStart > this._loopEnd)
-                    throw new Exception("範囲外のループが実行されました。");
+                        throw new Exception("範囲外のループが実行されました。");
                 }
             }
         }
@@ -499,7 +518,7 @@ namespace WEMSharp
                             byte subclassBook = (byte)bitStream.Read(8);
                             ogg.BitWrite(subclassBook);
                             if ((subclassBook - 1) >= 0 && (subclassBook - 1) >= codebookCount)
-                                throw new Exception("There was an error generating a vorbis packet.");
+                                throw new Exception("Vorbisパケットの生成中にエラーが発生しました。");
                         }
                     }
                     byte floor1Multiplier = (byte)bitStream.Read(2);
@@ -534,7 +553,7 @@ namespace WEMSharp
                     ogg.BitWrite(residueClassbook, 8);
                     residueClassifications++;
                     if (residueClassbook >= codebookCount)
-                        throw new Exception("There was an error generating a vorbis packet.");
+                        throw new Exception("Vorbisパケットの生成中にエラーが発生しました。");
                     uint[] residueCascade = new uint[residueClassifications];
                     for (int j = 0; j < residueClassifications; j++)
                     {
@@ -622,7 +641,7 @@ namespace WEMSharp
                         byte residueNumber = (byte)bitStream.Read(8);
                         ogg.BitWrite(residueNumber);
                         if (residueNumber >= residueCount)
-                            throw new Exception("There was an error generating a vorbis packet.");
+                            throw new Exception("Vorbisパケットの生成中にエラーが発生しました。");
                     }
                 }
                 byte modeCount = (byte)bitStream.Read(6);

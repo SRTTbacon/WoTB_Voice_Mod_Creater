@@ -10,23 +10,17 @@ namespace BNKManager
         public WwiseBank(string fileLocation) : base(fileLocation)
         {
             using (BinaryReader br = new BinaryReader(File.Open(fileLocation, FileMode.Open)))
-            {
                 this.Read(br);
-            }
         }
         public override void Save()
         {
             using (BinaryWriter bw = new BinaryWriter(File.Open(this.fileLocation, FileMode.Create)))
-            {
                 this.Write(bw);
-            }
         }
         public override void Save(string fileLocation)
         {
             using (BinaryWriter bw = new BinaryWriter(File.Open(fileLocation, FileMode.Create)))
-            {
                 this.Write(bw);
-            }
         }
         private void Read(BinaryReader br)
         {
@@ -35,9 +29,7 @@ namespace BNKManager
                 string sectionName = Encoding.ASCII.GetString(br.ReadBytes(4));
                 uint sectionLength = br.ReadUInt32();
                 if (sectionName == "HIRC")
-                {
                     break;
-                }
                 switch (sectionName)
                 {
                     case "BKHD":
@@ -69,13 +61,9 @@ namespace BNKManager
         {
             BKHDSection headerSection = (BKHDSection)this.GetSection("BKHD");
             if (headerSection == null)
-            {
                 return 0;
-            }
             else
-            {
                 return headerSection.soundbankId;
-            }
         }
         private void Write(BinaryWriter bw)
         {

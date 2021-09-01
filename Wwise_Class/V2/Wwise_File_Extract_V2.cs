@@ -34,23 +34,17 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         public List<string> Wwise_Get_Names()
         {
             if (IsClear)
-            {
                 return new List<string>();
-            }
             List<string> Temp = new List<string>();
             foreach (LoLSoundBankManager.WEMFile Now in WEML)
-            {
                 Temp.Add(Now.ID.ToString());
-            }
             return Temp;
         }
         //.bnk内に指定したファイル名が存在するか
         public bool Wwise_File_Exsist(string Name)
         {
             if (IsClear)
-            {
                 return false;
-            }
             List<string> Files = Wwise_Get_Names();
             return Files.Contains(Name);
         }
@@ -58,9 +52,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         public string Wwise_Get_Name(int Index)
         {
             if (WEML.Count <= Index || IsClear)
-            {
                 return "";
-            }
             return WEML[Index].ID.ToString();
         }
         //.bnk内のファイル数を取得
@@ -72,36 +64,51 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         public int Wwise_Get_Index_By_Name(uint ID)
         {
             if (IsClear)
-            {
                 return -1;
-            }
             for (int Number = 0; Number < WEML.Count; Number++)
-            {
                 if (ID == WEML[Number].ID)
-                {
                     return Number;
-                }
-            }
             return -1;
         }
-        public bool Wwise_Extract_To_WAV_Directory(string To_Dir)
+        public bool Wwise_Extract_To_WAV_Directory(string To_Dir, bool IsCountUpMode = false)
         {
             if (IsClear)
-            {
                 return false;
-            }
-            if (!Directory.Exists(To_Dir))
-            {
-                return false;
-            }
             try
             {
-                Random r = new Random();
+                if (!Directory.Exists(To_Dir))
+                    Directory.CreateDirectory(To_Dir);
                 for (int Number = 0; Number < WEML.Count; Number++)
                 {
-                    int Number_01 = r.Next(0, 1000);
+                    int Number_01 = Sub_Code.r.Next(0, 1000);
+                    if (IsCountUpMode)
+                        Number_01 = Number + 1;
                     if (Wwise_Extract_To_WEM_File(Number, To_Dir + "\\" + Number_01 + ".wem", true))
-                        Sub_Code.WEM_To_File(To_Dir + "\\" + Number_01 + ".wem", To_Dir + "\\" + WEML[Number].ID + ".wav", "wav", true);
+                        Sub_Code.WEM_To_File(To_Dir + "\\" + Number_01 + ".wem", To_Dir + "\\" + Number_01 + ".wav", "wav", true);
+                }
+                return true;
+            }
+            catch (Exception e)
+            {
+                Sub_Code.Error_Log_Write(e.Message);
+                return false;
+            }
+        }
+        public bool Wwise_Extract_To_OGG_OR_WAV_Directory(string To_Dir, bool IsCountUpMode = false)
+        {
+            if (IsClear)
+                return false;
+            try
+            {
+                if (!Directory.Exists(To_Dir))
+                    Directory.CreateDirectory(To_Dir);
+                for (int Number = 0; Number < WEML.Count; Number++)
+                {
+                    int Number_01 = Sub_Code.r.Next(0, 1000);
+                    if (IsCountUpMode)
+                        Number_01 = Number + 1;
+                    if (Wwise_Extract_To_WEM_File(Number, To_Dir + "\\" + Number_01 + ".wem", true))
+                        Sub_Code.WEM_To_OGG_WAV(To_Dir + "\\" + Number_01 + ".wem", To_Dir + "\\" + Number_01, true);
                 }
                 return true;
             }
@@ -116,22 +123,16 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         public bool Wwise_Extract_To_WEM_Directory(string To_Dir, int Name_Mode)
         {
             if (IsClear)
-            {
                 return false;
-            }
             List<string> Temp = new List<string>();
             return Wwise_Extract_To_WEM_Directory(To_Dir, Name_Mode, ref Temp);
         }
         public bool Wwise_Extract_To_WEM_Directory(string To_Dir, int Name_Mode, ref List<string> File_Names)
         {
             if (Name_Mode < 1 || Name_Mode > 2 || IsClear)
-            {
                 return false;
-            }
             if (!Directory.Exists(To_Dir))
-            {
                 Directory.CreateDirectory(To_Dir);
-            }
             try
             {
                 File_Names.Clear();
@@ -145,16 +146,10 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                         Number++;
                     }
                     else
-                    {
                         Name = Files.ID.ToString();
-                    }
                     using (FileStream ms = new FileStream(To_Dir + "/" + Name + ".wem", FileMode.Create))
-                    {
                         using (BinaryWriter bw = new BinaryWriter(ms))
-                        {
                             bw.Write(LOL.GetFileData(Files.ID));
-                        }
-                    }
                     File_Names.Add(To_Dir + "\\" + Name + ".wem");
                 }
                 return true;
@@ -169,15 +164,11 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         public bool Wwise_Extract_To_WEM_Directory_V2(string To_Dir)
         {
             if (IsClear)
-            {
                 return false;
-            }
             try
             {
                 if (!Directory.Exists(To_Dir))
-                {
                     Directory.CreateDirectory(To_Dir);
-                }
                 StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Wwise_Parse/BNK_Extract.bat");
                 stw.WriteLine("chcp 65001");
                 stw.Write(Voice_Set.Special_Path + "/Wwise_Parse/BNK_Extract.exe -a \"" + Selected_BNK_File + "\" -o \"" + To_Dir + "\" --oggs-only");
@@ -223,15 +214,11 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         public bool Wwise_Extract_To_Ogg_Directory(string To_Dir, int Name_Mode, ref List<string> File_Names)
         {
             if (IsClear)
-            {
                 return false;
-            }
             try
             {
                 if (!Directory.Exists(To_Dir))
-                {
                     Directory.CreateDirectory(To_Dir);
-                }
                 File_Names.Clear();
                 List<string> Temp = new List<string>();
                 if (Wwise_Extract_To_WEM_Directory(To_Dir, Name_Mode, ref Temp))
@@ -251,7 +238,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             }
         }
         //↑が1つのみになったバージョン
-        public bool Wwise_Extract_To_Ogg_File(int Index, string To_File, bool IsOverWrite)
+        public bool Wwise_Extract_To_Ogg_File(int Index, string To_File, bool IsOverWrite, string Format = "ogg")
         {
             if (IsClear)
                 return false;
@@ -260,7 +247,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             try
             {
                 if (Wwise_Extract_To_WEM_File(Index, To_File + ".wem", true))
-                    if (Sub_Code.WEM_To_File(To_File + ".wem", To_File, "ogg", true))
+                    if (Sub_Code.WEM_To_File(To_File + ".wem", To_File, Format, true))
                         return true;
                 return false;
             }
@@ -273,30 +260,20 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         public bool Wwise_Extract_To_Ogg_File(uint ShortID, string To_File, bool IsOverWrite)
         {
             if (IsClear)
-            {
                 return false;
-            }
             if (File.Exists(To_File) && !IsOverWrite)
-            {
                 return false;
-            }
             try
             {
                 int Index = -1;
                 for (int Number = 0; Number < WEML.Count; Number++)
-                {
                     if (WEML[Number].ID == ShortID)
                         Index = Number;
-                }
                 if (Index == -1)
                     return false;
                 if (Wwise_Extract_To_WEM_File(Index, To_File + ".wem", true))
-                {
                     if (Sub_Code.WEM_To_File(To_File + ".wem", To_File, "ogg", true))
-                    {
                         return true;
-                    }
-                }
                 return false;
             }
             catch (Exception e)
@@ -308,30 +285,20 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         public bool Wwise_Extract_To_Wav_File(uint ShortID, string To_File, bool IsOverWrite)
         {
             if (IsClear)
-            {
                 return false;
-            }
             if (File.Exists(To_File) && !IsOverWrite)
-            {
                 return false;
-            }
             try
             {
                 int Index = -1;
                 for (int Number = 0; Number < WEML.Count; Number++)
-                {
                     if (WEML[Number].ID == ShortID)
                         Index = Number;
-                }
                 if (Index == -1)
                     return false;
                 if (Wwise_Extract_To_WEM_File(Index, To_File + ".wem", true))
-                {
                     if (Sub_Code.WEM_To_File(To_File + ".wem", To_File, "wav", true))
-                    {
                         return true;
-                    }
-                }
                 return false;
             }
             catch (Exception e)
@@ -362,20 +329,16 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             }
         }
         //.wemファイルを.bnkファイルに書き込む
-        //LOL.Save()をしない場合ファイルには書き込まれず、メモリに情報を保存するだけになります。
+        //Save = trueをしない場合ファイルには書き込まれず、メモリに情報を保存するだけになります。
         public bool Bank_Edit_Sound(int Index, string From_File, bool Save)
         {
             if (IsClear)
-            {
                 return false;
-            }
             try
             {
                 LOL.EditAudioFile(WEML[Index].ID, File.ReadAllBytes(From_File));
                 if (Save)
-                {
                     LOL.Save();
-                }
                 return true;
             }
             catch (Exception e)
@@ -388,9 +351,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         public bool Bank_Save()
         {
             if (IsClear)
-            {
                 return false;
-            }
             try
             {
                 LOL.Save();
@@ -405,9 +366,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         public bool Bank_Save(string To_File)
         {
             if (IsClear)
-            {
                 return false;
-            }
             try
             {
                 LOL.Save(To_File);
@@ -423,9 +382,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         public void Bank_Clear()
         {
             if (IsClear)
-            {
                 return;
-            }
             if (LOL != null && LOL.banksList != null)
                 LOL.banksList.Clear();
             if (WEML != null)

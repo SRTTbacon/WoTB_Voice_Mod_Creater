@@ -193,17 +193,11 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             uint Battle_Short_ID;
             bool IsExist = false;
             if (!IsSelected)
-            {
                 return IsExist;
-            }
             if (IsBlitzMode)
-            {
                 Battle_Short_ID = 1419869192;
-            }
             else
-            {
                 Battle_Short_ID = WoT_Event_ID[23][0];
-            }
             foreach (List<string> ID_Now in ID_Line)
             {
                 //戦闘開始のイベントがあるかないかで判定
@@ -223,12 +217,19 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             //イベントIDのみを抽出
             List<uint> GetEventsID = new List<uint>();
             foreach (List<string> List_Now in ID_Line)
-            {
                 if (List_Now[2] == "CAkEvent")
-                {
                     GetEventsID.Add(uint.Parse(List_Now[0]));
-                }
-            }
+            return GetEventsID;
+        }
+        public List<string> Get_BNK_Event_ID_To_String()
+        {
+            if (!IsSelected)
+                return new List<string>();
+            //イベントIDのみを抽出
+            List<string> GetEventsID = new List<string>();
+            foreach (List<string> List_Now in ID_Line)
+                if (List_Now[2] == "CAkEvent")
+                    GetEventsID.Add(List_Now[0]);
             return GetEventsID;
         }
         //指定したイベントIDのサウンドをリストとして取得
@@ -244,9 +245,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         public List<List<string>> Get_Voices(bool IsBlitzToWoT)
         {
             if (!IsSelected)
-            {
                 return new List<List<string>>();
-            }
             //空のリストを作成
             List<List<string>> Voices_Temp = new List<List<string>>();
             for (int Number = 0; Number <= 49; Number++)
@@ -257,20 +256,14 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             //イベントIDのみを抽出
             List<uint> GetEventsID = new List<uint>();
             foreach (List<string> List_Now in ID_Line)
-            {
                 if (List_Now[2] == "CAkEvent")
-                {
                     GetEventsID.Add(uint.Parse(List_Now[0]));
-                }
-            }
             //イベントに入っている音声をすべて取得(Switchがある場合どちらも取得してしまうため注意)
             for (int Number_01 = 0; Number_01 < GetEventsID.Count; Number_01++)
             {
                 int Event_Number = Get_Voice_Type_Number(GetEventsID[Number_01], IsBlitzToWoT);
                 if (Event_Number == -1)
-                {
                     continue;
-                }
                 Voices_Temp[Event_Number] = Get_Event_Voices(GetEventsID[Number_01]);
             }
             return Voices_Temp;
@@ -289,16 +282,10 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             int Number_01 = -1;
             //指定されたイベントIDがID_Lineのどこに入っているか調べる
             for (int Number = 0; Number < ID_Line.Count; Number++)
-            {
                 if (Event_ID == uint.Parse(ID_Line[Number][0]))
-                {
                     Number_01 = Number;
-                }
-            }
             if (Number_01 == -1)
-            {
                 return new List<string>();
-            }
             //行を取得
             int Number_02 = int.Parse(ID_Line[Number_01][1]);
             //子コンテナが何個あるか確認
@@ -317,9 +304,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 uint Child_ID = uint.Parse(ActionID_String);
                 //子コンテナの内容をChild_SourceIDsに追加
                 foreach (string ID_Now in Action_Children(Child_ID))
-                {
                     Child_SourceIDs.Add(ID_Now);
-                }
             }
             return Child_SourceIDs;
         }
@@ -328,20 +313,14 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         {
             int Number_01 = -1;
             for (int Number = 0; Number < ID_Line.Count; Number++)
-            {
                 if (Action_ID == uint.Parse(ID_Line[Number][0]))
-                {
                     Number_01 = Number;
-                }
-            }
             if (Number_01 == -1)
                 return new List<string>();
             int Number_02 = int.Parse(ID_Line[Number_01][1]);
             //Playイベントではない場合飛ばす(0x0403がPlayイベント)
             if (!Read_All[Number_02 + 1].Contains("0x0403"))
-            {
                 return new List<string>();
-            }
             //子コンテナの数を取得
             string Index = Read_All[Number_02 + 3].Remove(0, Read_All[Number_02 + 3].IndexOf("value=\"") + 7);
             Index = Index.Remove(Index.IndexOf("\""));
@@ -357,16 +336,10 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         {
             int Number_01 = -1;
             for (int Number = 0; Number < ID_Line.Count; Number++)
-            {
                 if (Child_ID == uint.Parse(ID_Line[Number][0]))
-                {
                     Number_01 = Number;
-                }
-            }
             if (Number_01 == -1)
-            {
                 return new List<string>();
-            }
             int Start_Line = int.Parse(ID_Line[Number_01][1]);
             //CAkSoundの場合それ以上階層がないためSourceIDを取得して終わる
             if (ID_Line[Number_01][2] == "CAkSound")
@@ -383,9 +356,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                     }
                 }
                 if (End_Line == -1)
-                {
                     return new List<string>();
-                }
                 //音声ファイルのIDを取得
                 string Index = Read_All[End_Line].Remove(0, Read_All[End_Line].IndexOf("value=\"") + 7);
                 Index = Index.Remove(Index.IndexOf("\""));
@@ -404,17 +375,11 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                     Start_Line++;
                     //Childrenの項目がない場合最後の行まで検索してしまうため</object>が3つ続いたらループを終了
                     if (Read_All[Start_Line].Contains("</object>"))
-                    {
                         Object_Count++;
-                    }
                     else
-                    {
                         Object_Count = 0;
-                    }
                     if (Object_Count >= 3)
-                    {
                         break;
-                    }
                     if (Read_All[Start_Line].Contains("Children"))
                     {
                         End_Line = Start_Line + 1;
@@ -422,9 +387,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                     }
                 }
                 if (End_Line == -1)
-                {
                     return new List<string>();
-                }
                 List<string> Child_Source_IDs = new List<string>();
                 //階層の数だけこの関数を実行
                 int Line_Count = 0;
@@ -432,17 +395,13 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 {
                     Line_Count++;
                     if (Read_All[End_Line + Line_Count].Contains("</object>"))
-                    {
                         break;
-                    }
                     //子コンテナのIDを取得してChildren_Sortを実行
                     string Index2 = Read_All[End_Line + Line_Count].Remove(0, Read_All[End_Line + Line_Count].IndexOf("value=\"") + 7);
                     Index2 = Index2.Remove(Index2.IndexOf("\""));
                     uint Child_ID_2 = uint.Parse(Index2);
                     foreach (string IDs in Children_Sort(Child_ID_2))
-                    {
                         Child_Source_IDs.Add(IDs);
-                    }
                 }
                 return Child_Source_IDs;
             }
@@ -455,16 +414,10 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         {
             int Number_01 = -1;
             for (int Number = 0; Number < ID_Line.Count; Number++)
-            {
                 if (Child_ID == uint.Parse(ID_Line[Number][0]))
-                {
                     Number_01 = Number;
-                }
-            }
             if (Number_01 == -1)
-            {
                 return new List<string>();
-            }
             int Start_Line = int.Parse(ID_Line[Number_01][1]);
             //CAkSoundの場合それ以上階層がないためSourceIDを取得して終わる
             if (ID_Line[Number_01][2] == "CAkSound")
@@ -481,9 +434,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                     }
                 }
                 if (End_Line == -1)
-                {
                     return new List<string>();
-                }
                 //音声ファイルのIDを取得
                 string Index = Read_All[End_Line].Remove(0, Read_All[End_Line].IndexOf("value=\"") + 7);
                 Index = Index.Remove(Index.IndexOf("\""));
@@ -497,12 +448,8 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 for (int Index = 0; Index < ID_Line_Special.Count; Index++)
                 {
                     if (uint.Parse(ID_Line_Special[Index][0]) == Child_ID)
-                    {
                         foreach (string IDs in Children_Sort_Special(uint.Parse(ID_Line[Index][0])))
-                        {
                             Temp.Add(IDs);
-                        }
-                    }
                 }
                 return Temp;
             }
@@ -542,9 +489,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 Wot_Event_IDs_Clear();
                 List<bool> IsAdd_Event_Number = new List<bool>();
                 for (int Number_Temp = 0; Number_Temp < 40; Number_Temp++)
-                {
                     IsAdd_Event_Number.Add(false);
-                }
                 //xmlファイルを1行ずつ参照
                 for (int Line_Number = 0; Line_Number < All_Lines.Count; Line_Number++)
                 {
@@ -585,13 +530,9 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 //イベントIDが含まれていたらtrueを返す
                 int Voice_Event_Count = 0;
                 for (int Number_IDs = 0; Number_IDs < WoT_Event_ID.Count; Number_IDs++)
-                {
                     Voice_Event_Count += WoT_Event_ID[Number_IDs].Count;
-                }
                 if (Voice_Event_Count > 0)
-                {
                     return true;
-                }
             }
             catch (Exception e)
             {
@@ -611,312 +552,160 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             if (!IsBlitzToWoT)
             {
                 if (WoT_Event_ID[0].Contains(ID))
-                {
                     return 0;
-                }
                 else if (WoT_Event_ID[1].Contains(ID))
-                {
                     return 1;
-                }
                 else if (WoT_Event_ID[2].Contains(ID))
-                {
                     return 2;
-                }
                 else if (WoT_Event_ID[3].Contains(ID))
-                {
                     return 3;
-                }
                 else if (WoT_Event_ID[4].Contains(ID))
-                {
                     return 4;
-                }
                 else if (WoT_Event_ID[5].Contains(ID))
-                {
                     return 5;
-                }
                 else if (WoT_Event_ID[6].Contains(ID))
-                {
                     return 6;
-                }
                 else if (WoT_Event_ID[7].Contains(ID))
-                {
                     return 7;
-                }
                 else if (WoT_Event_ID[8].Contains(ID))
-                {
                     return 8;
-                }
                 else if (WoT_Event_ID[9].Contains(ID))
-                {
                     return 9;
-                }
                 else if (WoT_Event_ID[10].Contains(ID))
-                {
                     return 10;
-                }
                 else if (WoT_Event_ID[11].Contains(ID))
-                {
                     return 11;
-                }
                 else if (WoT_Event_ID[12].Contains(ID))
-                {
                     return 12;
-                }
                 else if (WoT_Event_ID[13].Contains(ID))
-                {
                     return 13;
-                }
                 else if (WoT_Event_ID[14].Contains(ID))
-                {
                     return 14;
-                }
                 else if (WoT_Event_ID[15].Contains(ID))
-                {
                     return 15;
-                }
                 else if (WoT_Event_ID[16].Contains(ID))
-                {
                     return 16;
-                }
                 else if (WoT_Event_ID[17].Contains(ID))
-                {
                     return 17;
-                }
                 else if (WoT_Event_ID[18].Contains(ID))
-                {
                     return 18;
-                }
                 else if (WoT_Event_ID[19].Contains(ID))
-                {
                     return 19;
-                }
                 else if (WoT_Event_ID[20].Contains(ID))
-                {
                     return 20;
-                }
                 else if (WoT_Event_ID[21].Contains(ID))
-                {
                     return 21;
-                }
                 else if (WoT_Event_ID[22].Contains(ID))
-                {
                     return 22;
-                }
                 else if (WoT_Event_ID[23].Contains(ID))
-                {
                     return 23;
-                }
                 else if (WoT_Event_ID[24].Contains(ID))
-                {
                     return 24;
-                }
                 else if (WoT_Event_ID[25].Contains(ID))
-                {
                     return 25;
-                }
                 else if (WoT_Event_ID[26].Contains(ID))
-                {
                     return 26;
-                }
                 else if (WoT_Event_ID[27].Contains(ID))
-                {
                     return 27;
-                }
                 else if (WoT_Event_ID[28].Contains(ID))
-                {
                     return 28;
-                }
                 else if (WoT_Event_ID[29].Contains(ID))
-                {
                     return 29;
-                }
                 else if (WoT_Event_ID[30].Contains(ID))
-                {
                     return 30;
-                }
                 else if (WoT_Event_ID[31].Contains(ID))
-                {
                     return 31;
-                }
                 else if (WoT_Event_ID[32].Contains(ID))
-                {
                     return 32;
-                }
                 else if (WoT_Event_ID[33].Contains(ID))
-                {
                     return 33;
-                }
                 else if (WoT_Event_ID[34].Contains(ID))
-                {
                     return 34;
-                }
                 else if (WoT_Event_ID[35].Contains(ID))
-                {
                     return 35;
-                }
                 else if (WoT_Event_ID[36].Contains(ID))
-                {
                     return 44;
-                }
                 else if (WoT_Event_ID[37].Contains(ID))
-                {
                     return 45;
-                }
                 else if (WoT_Event_ID[38].Contains(ID))
-                {
                     return 46;
-                }
                 else if (WoT_Event_ID[39].Contains(ID))
-                {
                     return 47;
-                }
                 else
-                {
                     return -1;
-                }
             }
             else
             {
                 if (ID == 247635361)
-                {
                     return 0;
-                }
                 else if (ID == 2228523046)
-                {
                     return 1;
-                }
                 else if (ID == 1007238985)
-                {
                     return 2;
-                }
                 else if (ID == 1954895547)
-                {
                     return 3;
-                }
                 else if (ID == 2051125750)
-                {
                     return 4;
-                }
                 else if (ID == 736917766)
-                {
                     return 5;
-                }
                 else if (ID == 3774135051)
-                {
                     return 6;
-                }
                 else if (ID == 1562476861)
-                {
                     return 7;
-                }
                 else if (ID == 2892979156)
-                {
                     return 8;
-                }
                 else if (ID == 2744672597)
-                {
                     return 9;
-                }
                 else if (ID == 1043866079)
-                {
                     return 10;
-                }
                 else if (ID == 3604333611)
-                {
                     return 11;
-                }
                 else if (ID == 566427957)
-                {
                     return 12;
-                }
                 else if (ID == 1238687255)
-                {
                     return 13;
-                }
                 else if (ID == 360516555)
-                {
                     return 14;
-                }
                 else if (ID == 3699645660)
-                {
                     return 15;
-                }
                 else if (ID == 3903941485)
-                {
                     return 16;
-                }
                 else if (ID == 703476817)
-                {
                     return 17;
-                }
                 else if (ID == 457312015)
-                {
                     return 18;
-                }
                 else if (ID == 1446710144)
-                {
                     return 19;
-                }
                 else if (ID == 3515803728)
-                {
                     return 20;
-                }
                 else if (ID == 219082534)
-                {
                     return 21;
-                }
                 else if (ID == 1156399922)
-                {
                     return 22;
-                }
                 else if (ID == 1419869192)
-                {
                     return 23;
-                }
                 else if (ID == 526392401)
-                {
                     return 24;
-                }
                 else if (ID == 830603277)
-                {
                     return 25;
-                }
                 else if (ID == 3054323003)
-                {
                     return 26;
-                }
                 else if (ID == 24048714)
-                {
                     return 27;
-                }
                 else if (ID == 3970929146)
-                {
                     return 28;
-                }
                 else if (ID == 2936553558)
-                {
                     return 29;
-                }
                 else if (ID == 2529672877)
-                {
                     return 30;
-                }
                 else if (ID == 1609897361)
-                {
                     return 31;
-                }
                 else if (ID == 3114568527)
-                {
                     return 32;
-                }
                 else if (ID == 479656207)
-                {
                     return 33;
-                }
                 else
-                {
                     return -1;
-                }
             }
         }
     }
