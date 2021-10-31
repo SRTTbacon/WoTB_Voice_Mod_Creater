@@ -149,9 +149,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         private async void Mod_Create_B_Click(object sender, RoutedEventArgs e)
         {
             if (IsBusy)
-            {
                 return;
-            }
             if (Mod_File_List.Items.Count == 0)
             {
                 Message_Feed_Out("最低1つはファイルが必要です。");
@@ -210,9 +208,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 MessageBoxResult result = System.Windows.MessageBox.Show("Modの説明が入力されていません。実行しますか？", "確認", MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.No);
                 if (result == MessageBoxResult.No)
-                {
                     return;
-                }
             }
             Message_T.Text = "";
             IsBusy = true;
@@ -221,6 +217,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Message_T.Text = "Modを公開しています...";
                 await Task.Delay(50);
                 //サーバーにフォルダを作成
+                Voice_Set.FTPClient.Directory_Create("/WoTB_Voice_Mod/Mods/" + Mod_Create_Name_T.Text);
                 Voice_Set.FTPClient.Directory_Create("/WoTB_Voice_Mod/Mods/" + Mod_Create_Name_T.Text + "/Files");
                 //Modの情報をXMLファイルに書き込む
                 XDocument xml = new XDocument();
@@ -239,10 +236,9 @@ namespace WoTB_Voice_Mod_Creater.Class
                 await Task.Delay(50);
                 //Mod本体をアップロード
                 foreach (string Upload_File in Mod_Name_Full)
-                {
                     Voice_Set.FTPClient.UploadFile(Upload_File, "/WoTB_Voice_Mod/Mods/" + Mod_Create_Name_T.Text + "/Files/" + Path.GetFileName(Upload_File));
-                }
                 Voice_Set.AppendString("/WoTB_Voice_Mod/Mods/Mod_Names_Wwise.dat", Mod_Create_Name_T.Text + "\n");
+                Voice_Set.TCP_Server.Send("Message|" + Voice_Set.UserName + "->Mod名:" + Mod_Create_Name_T.Text + "を公開しました。");
                 IsBusy = false;
                 Message_Feed_Out("Modを公開しました。");
                 Window_Close();

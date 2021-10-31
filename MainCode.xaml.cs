@@ -54,9 +54,8 @@ public static class ButtonExtensions
 }
 public class SRTTbacon_Server
 {
-    //あえてconstとして難読化していても普通に読めるようにして、あたかもこれが本物だと思わせるように(ほぼ無意味)
     public const string IP_LocalHost = "localhost";
-    public const string IP_GlocalHost = "36.52.208.141";
+    public const string IP_GlocalHost = "srttbacon-lostwords.net";
     public const string SFTP_UserName = "SRTTbacon_Server";
     public const string SFTP_Password = "Local_Period_Lost_Words";
     //本物
@@ -64,9 +63,9 @@ public class SRTTbacon_Server
     public static string IP_Global = "非公開";
     public static string Name = "非公開";
     public static string Password = "非公開";
-    public static string Version = "非公開";
-    public static int TCP_Port = -1;
-    public static int SFTP_Port = -1;
+    public static string Version = "1.4.6";
+    public static int TCP_Port = 50000;
+    public static int SFTP_Port = 25839;
     public static bool IsSRTTbaconOwnerMode = false;
     public static string IP = "";
 }
@@ -333,7 +332,8 @@ namespace WoTB_Voice_Mod_Creater
                 {
                     if (File.Exists(Path + "/Update.bat"))
                         File.Delete(Path + "/Update.bat");
-                    Directory.Delete(Path + "/Backup/Update", true);
+                    if (Directory.Exists(Path + "/Backup/Update"))
+                        Directory.Delete(Path + "/Backup/Update", true);
                 }
                 catch (Exception e)
                 {
@@ -388,6 +388,13 @@ namespace WoTB_Voice_Mod_Creater
                 bool IsOK_08 = true;
                 bool IsOK_09 = true;
                 bool IsOK_10 = true;
+                StreamReader str = Voice_Set.FTPClient.GetFileRead("/WoTB_Voice_Mod/Update/Wwise/Version_01.txt");
+                Sub_Code.IsWwise_Blitz_Update = str.ReadLine();
+                Sub_Code.IsWwise_Blitz_Actor_Update = str.ReadLine();
+                Sub_Code.IsWwise_Hits_Update = str.ReadLine();
+                Sub_Code.IsWwise_Gun_Update = str.ReadLine();
+                Sub_Code.IsWwise_Player_Update = str.ReadLine();
+                str.Dispose();
                 Download_Data_File.Download_Total_Size = 0;
                 Task task = Task.Run(async () =>
                 {
@@ -546,7 +553,7 @@ namespace WoTB_Voice_Mod_Creater
                             IsOK_09 = true;
                         });
                     }
-                    if (!File.Exists(Voice_Set.Special_Path + "/Other/Wwise_Player.dll"))
+                    if (!File.Exists(Voice_Set.Special_Path + "/Other/Init.bnk"))
                     {
                         IsOK_10 = false;
                         Download_Data_File.Download_File_Path.Add(Voice_Set.Special_Path + "/Other.dat");
@@ -601,12 +608,6 @@ namespace WoTB_Voice_Mod_Creater
                     await Task.Delay(100);
                 Download_Data_File.Download_File_Path.Clear();
                 Download_Data_File.Download_Total_Size = 0;
-                StreamReader str = Voice_Set.FTPClient.GetFileRead("/WoTB_Voice_Mod/Update/Wwise/Version_01.txt");
-                Sub_Code.IsWwise_Blitz_Update = str.ReadLine();
-                Sub_Code.IsWwise_Blitz_Actor_Update = str.ReadLine();
-                Sub_Code.IsWwise_Hits_Update = str.ReadLine();
-                Sub_Code.IsWwise_Gun_Update = str.ReadLine();
-                str.Dispose();
                 StreamReader str3 = Voice_Set.FTPClient.GetFileRead("/WoTB_Voice_Mod/Update/Wwise/Version_02.txt");
                 Sub_Code.IsWwise_WoT_Update = str3.ReadLine();
                 str3.Dispose();
@@ -1091,7 +1092,7 @@ namespace WoTB_Voice_Mod_Creater
         }
         private void Other_B_Click(object sender, RoutedEventArgs e)
         {
-            if (IsProcessing || NotConnectedLoginMessage())
+            if (IsProcessing)
                 return;
             Other_Window.Window_Show();
         }
@@ -1176,16 +1177,25 @@ namespace WoTB_Voice_Mod_Creater
             IsMessageShowing = true;
             Message_T.Opacity = 1;
             int Number = 0;
-            while (Message_T.Opacity > 0 && IsMessageShowing)
+            bool IsForce = false;
+            while (Message_T.Opacity > 0)
             {
+                if (!IsMessageShowing)
+                {
+                    IsForce = true;
+                    break;
+                }
                 Number++;
                 if (Number >= 120)
                     Message_T.Opacity -= 0.025;
                 await Task.Delay(1000 / 60);
             }
-            IsMessageShowing = false;
-            Message_T.Text = "";
-            Message_T.Opacity = 1;
+            if (!IsForce)
+            {
+                IsMessageShowing = false;
+                Message_T.Text = "";
+                Message_T.Opacity = 1;
+            }
         }
         void Main_Config_Save()
         {
@@ -1518,7 +1528,7 @@ namespace WoTB_Voice_Mod_Creater
                 StreamReader str = new StreamReader(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Version.dat");
                 double Version_Wwise = double.Parse(str.ReadLine());
                 str.Close();
-                if (Version_Wwise < 1.3)
+                if (Version_Wwise < 1.7)
                 {
                     Message_Feed_Out("プロジェクトデータをアップデートしてください。");
                     return;
@@ -1976,11 +1986,44 @@ namespace WoTB_Voice_Mod_Creater
                 Left = Left_Before;
             }
         }
-        private void Wwise_Player_B_Click(object sender, RoutedEventArgs e)
+        private async void Wwise_Player_B_Click(object sender, RoutedEventArgs e)
         {
             if (IsProcessing || NotConnectedLoginMessage())
                 return;
             string Dir = Directory.GetCurrentDirectory();
+            string Before_Wwise_Player_Version = "1.0";
+            if (File.Exists(Voice_Set.Special_Path + "\\Other\\Wwise_Player_Version.dat"))
+            {
+                Sub_Code.File_Decrypt(Voice_Set.Special_Path + "\\Other\\Wwise_Player_Version.dat", Voice_Set.Special_Path + "\\Other\\Wwise_Player_Version_Temp.dat", "Wwise_Player_Version_Check", false);
+                StreamReader str = new StreamReader(Voice_Set.Special_Path + "\\Other\\Wwise_Player_Version_Temp.dat");
+                Before_Wwise_Player_Version = str.ReadLine();
+                str.Close();
+                str.Dispose();
+            }
+            if (Before_Wwise_Player_Version != Sub_Code.IsWwise_Player_Update)
+            {
+                IsMessageShowing = false;
+                Message_T.Opacity = 1;
+                Message_T.Text = "Wwise_Player.dllをアップデートしています...";
+                await Task.Delay(75);
+                try
+                {
+                    Voice_Set.TCP_Server.Send("Message|" + Voice_Set.UserName + "->Wwise_Player.dllをアップデートしています...");
+                    File.Delete(Dir + "\\dll\\Wwise_Player.dll");
+                    Voice_Set.FTPClient.DownloadFile("/WoTB_Voice_Mod/Update/Wwise/Wwise_Player.dll", Voice_Set.Special_Path + "\\Other\\Wwise_Player.dll");
+                    StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "\\Other\\Wwise_Player_Version_Temp.dat");
+                    stw.Write(Sub_Code.IsWwise_Player_Update);
+                    stw.Close();
+                    stw.Dispose();
+                    Sub_Code.File_Encrypt(Voice_Set.Special_Path + "\\Other\\Wwise_Player_Version_Temp.dat", Voice_Set.Special_Path + "\\Other\\Wwise_Player_Version.dat", "Wwise_Player_Version_Check", true);
+                    Message_Feed_Out("Wwise_Player.dllのアップデートが完了しました。");
+                }
+                catch (Exception e1)
+                {
+                    Sub_Code.Error_Log_Write(e1.Message);
+                    Message_Feed_Out("エラーが発生しました。Wwise_Player.dllを正常にロードできません。");
+                }
+            }
             if (!File.Exists(Dir + "\\dll\\Wwise_Player.dll"))
             {
                 if (File.Exists(Voice_Set.Special_Path + "\\Other\\Wwise_Player.dll"))

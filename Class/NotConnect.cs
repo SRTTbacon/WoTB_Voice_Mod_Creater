@@ -103,9 +103,7 @@ namespace WoTB_Voice_Mod_Creater
         private async void Exit_B_Click(object sender, RoutedEventArgs e)
         {
             if (IsProcessing || IsClosing)
-            {
                 return;
-            }
             MessageBoxResult result = MessageBox.Show("終了しますか？", "確認", MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.No);
             if (result == MessageBoxResult.Yes)
             {
@@ -133,13 +131,9 @@ namespace WoTB_Voice_Mod_Creater
                 try
                 {
                     if (Directory.Exists(Voice_Set.Special_Path + "/Wwise/BNK_WAV"))
-                    {
                         Directory.Delete(Voice_Set.Special_Path + "/Wwise/BNK_WAV", true);
-                    }
                     if (Directory.Exists(Voice_Set.Special_Path + "/Wwise/BNK_WAV_WoT"))
-                    {
                         Directory.Delete(Voice_Set.Special_Path + "/Wwise/BNK_WAV_WoT", true);
-                    }
                 }
                 catch (Exception e1)
                 {

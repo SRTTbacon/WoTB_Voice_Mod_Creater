@@ -6,7 +6,7 @@
 	<Var name="KeepPublicApi" value="false" />
 	<Var name="HidePrivateApi" value="true" />
 
-	<Module file="$(InPath)\bin\x64\Debug\WoTB_Voice_Mod_Creater.exe" />
+	<Module file="$(InPath)\bin\x86\Debug\WoTB_Voice_Mod_Creater.exe" />
 	<!--<Module file="$(InPath)\bin\Release\ObfuscarTest.exe" />-->
 	<!--<Module file="$(InPath)\HogeLibrary.dll" />-->
 </Obfuscator>

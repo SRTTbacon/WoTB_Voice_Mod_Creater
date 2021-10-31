@@ -20,7 +20,7 @@ namespace WoTB_Voice_Mod_Creater
                     Message_T.Text = "サーバーとの接続が切断されました。";
                     break;
                 }
-                await Task.Delay(1000);
+                await Task.Delay(5000);
             }
         }
         //アカウントが存在するか

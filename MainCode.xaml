@@ -168,7 +168,7 @@
             <Border x:Name="Download_Border" BorderBrush="Transparent" Background="Transparent" BorderThickness="1" Height="1080" VerticalAlignment="Top" Width="1920" Margin="-1920,0,0,0" Visibility="Hidden"/>
             <Button x:Name="Server_B" Content="音声作成(オンライン)" Margin="-600,495,0,0" VerticalAlignment="Top" Width="400" Height="82" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="35" Focusable="False" Click="Server_B_Click"/>
             <Button x:Name="Voice_Create_V2_B" Content="音声Modを作成" HorizontalAlignment="Left" Margin="-1220,100,0,0" VerticalAlignment="Top" Width="525" Height="90" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Focusable="False" Click="Voice_Create_V2_B_Click"/>
-            <Image x:Name="WindowBarMode_Image" Height="30" VerticalAlignment="Top" Width="30" Margin="-885,400,0,0" MouseDown="WindowBarMode_Image_MouseDown" MouseEnter="WindowBarMode_Image_MouseEnter" MouseLeave="WindowBarMode_Image_MouseLeave"/>
+            <Image x:Name="WindowBarMode_Image" Height="30" VerticalAlignment="Top" Width="30" Margin="-885,400,0,0" Focusable="False" MouseDown="WindowBarMode_Image_MouseDown" MouseEnter="WindowBarMode_Image_MouseEnter" MouseLeave="WindowBarMode_Image_MouseLeave"/>
             <TextBlock Height="45" Width="256" TextWrapping="Wrap" Text="タイトルバーを表示" Foreground="Aqua" FontSize="35" Margin="-570,390,0,0" VerticalAlignment="Top"/>
             <Class1:Save_Configs x:Name="Save_Window" Width="1920" Height="1080" Margin="-1920,0,0,0" Visibility="Hidden"/>
             <Class1:Voice_Mod_Distribution x:Name="Voice_Mods_Window" Width="1920" Height="1080" Margin="-1920,0,0,0" Visibility="Hidden"/>

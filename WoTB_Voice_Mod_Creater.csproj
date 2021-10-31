@@ -166,6 +166,7 @@
       <DependentUpon>Create_Save_File.xaml</DependentUpon>
     </Compile>
     <Compile Include="Class\ffmpeg.cs" />
+    <Compile Include="Class\GoogleDrive.cs" />
     <Compile Include="Class\NAudio\AveragePeakProvider.cs" />
     <Compile Include="Class\NAudio\DecibelPeakProvider.cs" />
     <Compile Include="Class\NAudio\IPeakProvider.cs" />
@@ -179,6 +180,9 @@
     <Compile Include="Class\NAudio\StandardWaveFormRendererSettings.cs" />
     <Compile Include="Class\NAudio\WaveFormRenderer.cs" />
     <Compile Include="Class\NAudio\WaveFormRendererSettings.cs" />
+    <Compile Include="Class\SE_Change.xaml.cs">
+      <DependentUpon>SE_Change.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Class\SFTP_Client.cs" />
     <Compile Include="Class\Sound_Editor.xaml.cs">
       <DependentUpon>Sound_Editor.xaml</DependentUpon>
@@ -189,6 +193,9 @@
     <Compile Include="Class\TCP_Client.cs" />
     <Compile Include="Class\Vocal_Inst_Cut.xaml.cs">
       <DependentUpon>Vocal_Inst_Cut.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Class\Vocal_Inst_Cut_User.xaml.cs">
+      <DependentUpon>Vocal_Inst_Cut_User.xaml</DependentUpon>
     </Compile>
     <Compile Include="Multiplayer\Administrator_Control.xaml.cs">
       <DependentUpon>Administrator_Control.xaml</DependentUpon>
@@ -302,6 +309,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Class\SE_Change.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Class\Sound_Editor.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -311,6 +322,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Class\Vocal_Inst_Cut.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Class\Vocal_Inst_Cut_User.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -488,6 +503,7 @@
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
+    <None Include="Resources\mod-creater-api-3bc73f4a47e3.json" />
     <None Include="WoTB_Voice_Mod_Creater.pfx" />
   </ItemGroup>
   <ItemGroup>

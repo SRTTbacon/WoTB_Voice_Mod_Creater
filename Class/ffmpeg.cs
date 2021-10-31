@@ -108,7 +108,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         //引数:合体させるファイル, サウンドの開始位置, 音量, 再生速度, 保存先, MP3として保存するか(falseの場合は.wav形式), 元のファイルを削除するか
         public static void Sound_Combine(List<string> Files, List<double> Pos, List<double>Volume, List<double> Speed, string To_File, bool IsEncodeMP3, bool IsFromFileDelete = false)
         {
-            int mixer = BassMix.BASS_Mixer_StreamCreate(44100, 2, BASSFlag.BASS_STREAM_DECODE);
+            int mixer = BassMix.BASS_Mixer_StreamCreate(48000, 2, BASSFlag.BASS_STREAM_DECODE);
             long Mixer_Max_Length = 0;
             List<int> Streams = new List<int>();
             List<int> Stream_Handles = new List<int>();
@@ -117,7 +117,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 Streams.Add(Bass.BASS_StreamCreateFile(Files[Number], 0, 0, BASSFlag.BASS_SAMPLE_FLOAT | BASSFlag.BASS_STREAM_DECODE));
                 Stream_Handles.Add(BassFx.BASS_FX_TempoCreate(Streams[Streams.Count - 1], BASSFlag.BASS_STREAM_DECODE | BASSFlag.BASS_FX_FREESOURCE));
-                float Freq = 44100;
+                float Freq = 48000;
                 Bass.BASS_ChannelGetAttribute(Stream_Handles[Stream_Handles.Count - 1], BASSAttribute.BASS_ATTRIB_TEMPO_FREQ, ref Freq);
                 Bass.BASS_ChannelSetAttribute(Stream_Handles[Stream_Handles.Count - 1], BASSAttribute.BASS_ATTRIB_TEMPO_FREQ, Freq * (float)Speed[Number]);
                 Bass.BASS_ChannelSetAttribute(Stream_Handles[Stream_Handles.Count - 1], BASSAttribute.BASS_ATTRIB_VOL, (float)(Volume[Number] / 100));
@@ -166,10 +166,8 @@ namespace WoTB_Voice_Mod_Creater.Class
             else
                 Sub_Code.File_Move(To_File + ".tmp", To_File, true);
             if (File.Exists(To_File) && IsFromFileDelete)
-            {
                 foreach (string File_Now in Files)
                     Sub_Code.File_Delete_V2(File_Now);
-            }
         }
     }
 }

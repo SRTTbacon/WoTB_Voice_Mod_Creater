@@ -17,7 +17,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         const string Vorbis_Quality_High_WorkID = "F6B2880C-85E5-47FA-A126-645B5DFD9ACC";
         const string Master_Audio_Bus_ID = "1514A4D8-1DA6-412A-A17E-75CA0C2149F3";
         const string Master_Audio_Bus_WorkID = "005C6247-5812-4D7E-86EA-2F3C50B5E166";
-        string Project_Dir;
+        public string Project_Dir { get; private set; }
         List<string> Actor_Mixer_Hierarchy = new List<string>();
         List<string> Add_Wav_Files = new List<string>();
         List<string> Add_Other_Files = new List<string>();
@@ -366,7 +366,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             }
         }
         //指定したShortIDのコンテナ内のサウンド(CAkSound)を削除
-        void Delete_CAkSounds(string Container_ShortID)
+        public void Delete_CAkSounds(string Container_ShortID)
         {
             int ShortID_Line = 0;
             for (int Number = 0; Number < Actor_Mixer_Hierarchy.Count; Number++)

@@ -246,23 +246,17 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         {
             if (IsClosing)
                 return;
-            if (!IsInitSelected)
+            if (!File.Exists(Voice_Set.Special_Path + "\\Wwise\\SoundbanksInfo.json"))
             {
-                if (!Wwise_Player.IsExecution || !Wwise_Player.IsInited())
+                Message_T.Text = "必要なデータをダウンロードしています...(約4.7MB)";
+                await Task.Delay(75);
+                if (!Voice_Set.FTPClient.DownloadFile("/WoTB_Voice_Mod/Update/Wwise/SoundbanksInfo.json", Voice_Set.Special_Path + "\\Wwise\\SoundbanksInfo.json", true))
                 {
-                    try
-                    {
-                        Wwise_Player.Init(Voice_Set.Special_Path + "\\Wwise\\Init.bnk", 1, Volume_S.Value / 100);
-                        Init_Bank_B.Visibility = Visibility.Hidden;
-                        Init_Bank_Help_B.Visibility = Visibility.Hidden;
-                    }
-                    catch (System.Exception e1)
-                    {
-                        Message_Feed_Out("エラーが発生しました。Wwiseを初期化できません。");
-                        Sub_Code.Error_Log_Write(e1.Message);
-                        return;
-                    }
+                    Message_Feed_Out("エラー:データのダウンロードに失敗しました。処理を実行できません。");
+                    return;
                 }
+                Message_T.Text = "";
+                await Task.Delay(75);
             }
             System.Windows.Forms.OpenFileDialog ofd = new System.Windows.Forms.OpenFileDialog()
             {
@@ -272,49 +266,75 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             };
             if (ofd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
-                foreach (string File_Now in ofd.FileNames)
+                try
                 {
-                    string Name_Only = Path.GetFileName(File_Now);
-                    IsMessageShowing = false;
-                    Message_T.Text = Name_Only + "を追加しています...";
-                    await Task.Delay(50);
-                    if (Bank_Names.Contains(File_Now))
+                    if (!IsInitSelected)
                     {
-                        Message_Feed_Out("既に同名のファイルが追加されています。\n" + Name_Only + "はスキップされます。");
-                        continue;
+                        if (!Wwise_Player.IsExecution || !Wwise_Player.IsInited())
+                        {
+                            if (Wwise_Player.Init(Voice_Set.Special_Path + "\\Other\\Init.bnk", 1, Volume_S.Value / 100))
+                            {
+                                Init_Bank_B.Visibility = Visibility.Hidden;
+                                Init_Bank_Help_B.Visibility = Visibility.Hidden;
+                            }
+                            else
+                            {
+                                Message_Feed_Out("Wwiseを初期化できません。");
+                                return;
+                            }
+                        }
                     }
-                    BNK_Parse Wwise_BNK = new BNK_Parse(File_Now);
-                    Message_T.Text = Name_Only + "のIDを文字列に変換しています...";
-                    List<string> Temp = Wwise_BNK.Get_BNK_Event_ID_To_String();
-                    Wwise_BNK.Clear();
-                    Event_ID_To_Name(Temp);
-                    Event_Names.Add(Temp);
-                    Event_Info.Add(new List<Name_ID_Contaier>());
-                    for (int Number_01 = 0; Number_01 < Temp.Count; Number_01++)
+                    foreach (string File_Now in ofd.FileNames)
                     {
-                        Name_ID_Contaier Temp_01 = new Name_ID_Contaier();
-                        if (Temp[Number_01].All(char.IsDigit))
+                        if (!Wwise_Player.Load_Bank(File_Now))
+                            throw new Exception("ファイル:" + File_Now + "をロードできませんでした。\nエラーコード:" + Wwise_Player.Get_Result_Index());
+                        string Name_Only = Path.GetFileName(File_Now);
+                        IsMessageShowing = false;
+                        Message_T.Text = Name_Only + "を追加しています...";
+                        await Task.Delay(50);
+                        if (Bank_Names.Contains(File_Now))
                         {
-                            Temp_01.Event_Name = "";
-                            Temp_01.Event_ID = uint.Parse(Event_Name_List.Items[Event_Name_List.SelectedIndex].ToString());
+                            Message_Feed_Out("既に同名のファイルが追加されています。\n" + Name_Only + "はスキップされます。");
+                            continue;
                         }
-                        else
+                        BNK_Parse Wwise_BNK = new BNK_Parse(File_Now);
+                        Message_T.Text = Name_Only + "のIDを文字列に変換しています...";
+                        List<string> Temp = Wwise_BNK.Get_BNK_Event_ID_To_String();
+                        Wwise_BNK.Clear();
+                        Event_ID_To_Name(Temp);
+                        Event_Names.Add(Temp);
+                        Event_Info.Add(new List<Name_ID_Contaier>());
+                        for (int Number_01 = 0; Number_01 < Temp.Count; Number_01++)
                         {
-                            Temp_01.Event_Name = Temp[Number_01];
-                            Temp_01.Event_ID = 0;
+                            Name_ID_Contaier Temp_01 = new Name_ID_Contaier();
+                            if (Temp[Number_01].All(char.IsDigit))
+                            {
+                                Temp_01.Event_Name = "";
+                                Temp_01.Event_ID = uint.Parse(Event_Name_List.Items[Event_Name_List.SelectedIndex].ToString());
+                            }
+                            else
+                            {
+                                Temp_01.Event_Name = Temp[Number_01];
+                                Temp_01.Event_ID = 0;
+                            }
+                            Temp_01.Max_Length = 0;
+                            Temp_01.Container_ID = r.Next(1, 1000000);
+                            Temp_01.Volume = Volume_S.Value;
+                            Event_Info[Event_Info.Count - 1].Add(Temp_01);
                         }
-                        Temp_01.Max_Length = 0;
-                        Temp_01.Container_ID = r.Next(1, 1000000);
-                        Temp_01.Volume = Volume_S.Value;
-                        Event_Info[Event_Info.Count - 1].Add(Temp_01);
+                        Bank_Names.Add(File_Now);
+                        if (Page + 1 < Bank_Names.Count)
+                            Page_Next_B.Visibility = Visibility.Visible;
                     }
-                    Wwise_Player.Load_Bank(File_Now);
-                    Bank_Names.Add(File_Now);
-                    if (Page + 1 < Bank_Names.Count)
-                        Page_Next_B.Visibility = Visibility.Visible;
+                    Event_List_Change();
+                    Message_Feed_Out(".bnkファイルを読み込みました。");
                 }
-                Event_List_Change();
-                Message_Feed_Out(".bnkファイルを読み込みました。");
+                catch (Exception e1)
+                {
+                    Message_Feed_Out("エラーが発生しました。");
+                    Sub_Code.Error_Log_Write(e1.Message);
+                    return;
+                }
             }
             ofd.Dispose();
         }
@@ -422,10 +442,12 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 IsInitSelected = false;
                 Location_S.Value = 0;
                 Location_S.Maximum = 0;
+                Location_T.Text = "00:00";
                 if (Wwise_Player.IsExecution && Wwise_Player.IsInited())
                     Wwise_Player.Dispose();
                 Init_Bank_B.Visibility = Visibility.Visible;
                 Init_Bank_Help_B.Visibility = Visibility.Visible;
+                Bank_Name_T.Text = "";
                 Message_Feed_Out("内容をクリアしました。");
             }
         }

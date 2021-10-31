@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Runtime.InteropServices;
 
 namespace WoTB_Voice_Mod_Creater
@@ -35,6 +36,8 @@ namespace WoTB_Voice_Mod_Creater
         protected static extern bool Wwise_Init(string Init_BNK, int Listener_Index, double Init_Volume = 1.0);
         [DllImport("Wwise_Player.dll")]
         protected static extern bool Wwise_Load_Bank(string Stream_BNK);
+        [DllImport("Wwise_Player.dll")]
+        protected static extern void Wwise_Set_Path(string Base_Dir_Path);
         [DllImport("Wwise_Player.dll")]
         protected static extern bool Wwise_Play_Name(string Name, int Container_ID, double Volume = -1);
         [DllImport("Wwise_Player.dll")]
@@ -121,7 +124,8 @@ namespace WoTB_Voice_Mod_Creater
         ///</summary>
         public static bool Load_Bank(string Stream_BNK)
         {
-            return Wwise_Load_Bank(Stream_BNK);
+            Wwise_Set_Path(Path.GetDirectoryName(Stream_BNK));
+            return Wwise_Load_Bank(Path.GetFileName(Stream_BNK));
         }
         ///<summaty>
         ///終了したイベントID(Container_ID)をすべて取得します。
