@@ -328,13 +328,9 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Voice_Set.FTPClient.UploadFile(Voice_Set.Special_Path + "/Temp_Create_Mod.dat", "/WoTB_Voice_Mod/Mods/" + Mod_Name + "/Configs.dat");
                 File.Delete(Voice_Set.Special_Path + "/Temp_Create_Mod.dat");
                 foreach (string Delete_File in Delete_Files)
-                {
                     Voice_Set.FTPClient.DeleteFile("/WoTB_Voice_Mod/Mods/" + Mod_Name + "/Files/" + Delete_File);
-                }
                 foreach (string Add_File in Add_Files)
-                {
                     Voice_Set.FTPClient.UploadFile(Add_File, "/WoTB_Voice_Mod/Mods/" + Mod_Name + "/Files/" + Path.GetFileName(Add_File));
-                }
                 if (Mod_Name != Mod_Name_T.Text)
                 {
                     Voice_Set.FTPClient.Directory_Move("/WoTB_Voice_Mod/Mods/" + Mod_Name, "/WoTB_Voice_Mod/Mods/" + Mod_Name_T.Text, true);
@@ -354,7 +350,10 @@ namespace WoTB_Voice_Mod_Creater.Class
                     stw.Close();
                     Voice_Set.FTPClient.UploadFile(Voice_Set.Special_Path + "/Temp_Mod_Names.dat", "/WoTB_Voice_Mod/Mods/Mod_Names.dat");
                     File.Delete(Voice_Set.Special_Path + "/Temp_Mod_Names.dat");
+                    Voice_Set.TCP_Server.Send("Message|" + Voice_Set.UserName + "->配布Mod:" + Mod_Name + "を変更しました。変更後:" + Mod_Name_T.Text);
                 }
+                else
+                    Voice_Set.TCP_Server.Send("Message|" + Voice_Set.UserName + "->配布Mod:" + Mod_Name + "を変更しました。");
                 Message_Feed_Out("変更を保存しました。");
             }
             catch (Exception e1)
@@ -370,9 +369,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         private void Delete_B_Click(object sender, RoutedEventArgs e)
         {
             if (IsBusy)
-            {
                 return;
-            }
             MessageBoxResult result = MessageBox.Show("このプロジェクトを削除しますか？この操作は取り消せません。", "確認", MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.No);
             if (result == MessageBoxResult.Yes)
             {
@@ -383,18 +380,15 @@ namespace WoTB_Voice_Mod_Creater.Class
                     StreamReader str = Voice_Set.FTPClient.GetFileRead("/WoTB_Voice_Mod/Mods/Mod_Names.dat");
                     string line;
                     while ((line = str.ReadLine()) != null)
-                    {
                         if (line != Mod_Name)
-                        {
                             stw.WriteLine(line);
-                        }
-                    }
                     str.Close();
                     stw.Close();
                     Voice_Set.FTPClient.UploadFile(Voice_Set.Special_Path + "/Temp_Mod_Names.dat", "/WoTB_Voice_Mod/Mods/Mod_Names.dat");
                     File.Delete(Voice_Set.Special_Path + "/Temp_Mod_Names.dat");
                     Voice_Set.FTPClient.Directory_Delete("/WoTB_Voice_Mod/Mods/" + Mod_Name);
                     Sub_Code.ModChange = true;
+                    Voice_Set.TCP_Server.Send("Message|" + Voice_Set.UserName + "->配布Mod:" + Mod_Name + "を削除しました。");
                     Message_Feed_Out("正常に削除しました。");
                 }
                 catch (Exception e1)

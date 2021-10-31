@@ -30,6 +30,7 @@ namespace WoTB_Voice_Mod_Creater
         public static string IsWwise_Hits_Update = "1.0";
         public static string IsWwise_Gun_Update = "1.0";
         public static string IsWwise_WoT_Update = "1.0";
+        public static string IsWwise_Player_Update = "1.0";
         public static bool IsWindowBarShow = true;
         public static readonly string[] Default_Name = { "ally_killed_by_player", "ammo_bay_damaged", "armor_not_pierced_by_player", "armor_pierced_by_player", "armor_pierced_crit_by_player", "armor_ricochet_by_player",
         "commander_killed","driver_killed","enemy_fire_started_by_player","enemy_killed_by_player","engine_damaged","engine_destroyed","engine_functional","fire_started","fire_stopped",

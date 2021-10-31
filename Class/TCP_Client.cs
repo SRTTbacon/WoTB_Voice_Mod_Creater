@@ -42,7 +42,16 @@ namespace WoTB_Voice_Mod_Creater
         public void Send(string message)
         {
             if (this.IsConnected == false)
-                return;
+            {
+                try
+                {
+                    Connect(SRTTbacon_Server.IP, SRTTbacon_Server.TCP_Port);
+                }
+                catch
+                {
+                    return;
+                }
+            }
             var ns = client.GetStream();
             byte[] message_byte = encoding.GetBytes(message + "\r\n");
             do

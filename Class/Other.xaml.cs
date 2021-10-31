@@ -22,7 +22,9 @@ namespace WoTB_Voice_Mod_Creater.Class
     {
         readonly List<List<string>> File_Full_Path = new List<List<string>>();
         readonly List<List<string>> File_Name_Path = new List<List<string>>();
+        readonly List<string> Already_Played_Path = new List<string>();
         string Video_Mode_Select_Name = "";
+        string Playing_Music_Name_Now = "";
         bool IsBusy = false;
         bool IsLocationChanging = false;
         bool IsPaused = false;
@@ -141,6 +143,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                     str.Close();
                     File.Delete(Voice_Set.Special_Path + "/Configs/Temp_Other_Music_List.dat");
                     Music_List_Sort();
+                    Already_Played_Path.Clear();
                     if (IsListSave)
                         Music_List_Save();
                 }
@@ -188,6 +191,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                         Mode_C.IsChecked = bool.Parse(str.ReadLine());
                         Music_Play_Mode_Change(Mode_C.IsChecked.Value);
                         Music_List_Change(int.Parse(str.ReadLine()));
+                        Vocal_Inst_Cut_Mode_C.IsChecked = bool.Parse(str.ReadLine());
                     }
                     catch
                     {
@@ -287,8 +291,9 @@ namespace WoTB_Voice_Mod_Creater.Class
                 {
                     if (Loop_C.IsChecked.Value)
                     {
-                        Bass.BASS_ChannelSetPosition(Stream, 0);
+                        Bass.BASS_ChannelStop(Stream);
                         Video_V.Position = TimeSpan.FromSeconds(0);
+                        Bass.BASS_ChannelPlay(Stream, true);
                     }
                     else if (Random_C.IsChecked.Value)
                     {
@@ -300,12 +305,26 @@ namespace WoTB_Voice_Mod_Creater.Class
                         else
                         {
                             Random r = new Random();
+                            if (Already_Played_Path.Count >= Music_List.Items.Count)
+                            {
+                                Already_Played_Path.Clear();
+                                Music_List_Sort();
+                            }
+                            else
+                            {
+                                ListBoxItem LBI = new ListBoxItem();
+                                LBI.Content = Music_List.Items[Music_List.SelectedIndex].ToString();
+                                LBI.Foreground = (System.Windows.Media.Brush)new System.Windows.Media.BrushConverter().ConvertFromString("#BF6C6C6C");
+                                Music_List.Items[Music_List.SelectedIndex] = LBI;
+                            }
                             while (true)
                             {
                                 int r2 = r.Next(0, Music_List.Items.Count);
-                                if (Music_List.SelectedIndex != r2)
+                                int Select_Index = File_Name_Path[Music_Select_List].IndexOf(Music_List.Items[r2].ToString().Replace("System.Windows.Controls.ListBoxItem: ", ""));
+                                if (!Already_Played_Path.Contains(File_Full_Path[Music_Select_List][Select_Index]))
                                 {
                                     Music_List.SelectedIndex = r2;
+                                    Already_Played_Path.Add(File_Full_Path[Music_Select_List][Select_Index]);
                                     break;
                                 }
                             }
@@ -320,6 +339,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                         Video_V.Source = null;
                         Video_Mode_Change(false);
                         Music_List.SelectedIndex = -1;
+                        Playing_Music_Name_Now = "";
                         Device_T.Margin = new Thickness(-2100, 640, 0, 0);
                         Device_L.Margin = new Thickness(-2100, 700, 0, 0);
                         WAVEForm_Gray_Image.Source = null;
@@ -396,6 +416,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             if (Error_File != "")
                 System.Windows.MessageBox.Show("同名の曲が存在するため以下のファイルを追加できませんでした。\n" + Error_File);
             Music_List_Sort();
+            Already_Played_Path.Clear();
             Music_List_Save();
             if (Number == 1)
             {
@@ -428,13 +449,9 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Temp_02.Add(new List<string>());
                 Temp_02.Add(new List<string>());
                 foreach (string Name_Now in File_Name_Path[Music_Select_List])
-                {
                     for (int Number = 0; Number <= Temp_01.Length - 1; Number++)
-                    {
                         if (Temp_01[Number] == Path.GetExtension(Name_Now))
                             Temp_02[Number].Add(Name_Now);
-                    }
-                }
                 for (int Number = 0; Number <= Temp_02.Count - 1; Number++)
                 {
                     Array Sort_List_01 = Temp_02[Number].ToArray();
@@ -444,13 +461,9 @@ namespace WoTB_Voice_Mod_Creater.Class
                 }
                 Music_List.Items.Clear();
                 for (int Number = 0; Number <= Temp_02.Count - 1; Number++)
-                {
                     if (Temp_02[Number].Count != 0)
-                    {
                         foreach (string Name in Temp_02[Number])
                             Music_List.Items.Add(Name);
-                    }
-                }
             }
             else
             {
@@ -461,7 +474,19 @@ namespace WoTB_Voice_Mod_Creater.Class
                     Music_List.Items.Add(Name);
             }
             if (List_Now != "")
-                Music_List.SelectedItem = List_Now;
+            {
+                int Index = -1;
+                for (int Number = 0; Number < Music_List.Items.Count; Number++)
+                {
+                    if (Music_List.Items[Number].ToString() == List_Now)
+                    {
+                        Index = Number;
+                        break;
+                    }
+                }
+                if (Index == -1)
+                    Music_List.SelectedIndex = Index;
+            }
             IsNotMusicChange = false;
         }
         void List_Remove_Index()
@@ -478,6 +503,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             Bass.BASS_StreamFree(Stream);
             Loop_Time_T.Text = "再生時間:0～0";
             Music_List_Sort();
+            Already_Played_Path.Clear();
             Music_List_Save();
         }
         //曲のリストをファイルに記録
@@ -510,13 +536,15 @@ namespace WoTB_Voice_Mod_Creater.Class
                 return;
             if (Music_List.SelectedIndex != -1)
             {
-                int Select_Index = File_Name_Path[Music_Select_List].IndexOf(Music_List.Items[Music_List.SelectedIndex].ToString());
+                int Select_Index = File_Name_Path[Music_Select_List].IndexOf(Music_List.SelectedItem.ToString().Replace("System.Windows.Controls.ListBoxItem: ", ""));
                 if (!File.Exists(File_Full_Path[Music_Select_List][Select_Index]))
                 {
                     System.Windows.MessageBox.Show("ファイルが存在しません。リストから削除されます。");
                     List_Remove_Index();
                     return;
                 }
+                if (Playing_Music_Name_Now == File_Full_Path[Music_Select_List][Select_Index] && Location_S.Maximum > 0)
+                    return;
                 Video_Change_B.Visibility = Visibility.Visible;
                 IsWaveGrayLoaded = false;
                 IsWaveColorLoaded = false;
@@ -526,6 +554,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Bass.BASS_ChannelStop(Stream);
                 Bass.BASS_StreamFree(Stream);
                 Location_S.Value = 0;
+                Playing_Music_Name_Now = File_Full_Path[Music_Select_List][Select_Index];
                 int StreamHandle = Bass.BASS_StreamCreateFile(File_Full_Path[Music_Select_List][Select_Index], 0, 0, BASSFlag.BASS_SAMPLE_FLOAT | BASSFlag.BASS_STREAM_DECODE | BASSFlag.BASS_SAMPLE_LOOP);
                 Stream = BassFx.BASS_FX_TempoCreate(StreamHandle, BASSFlag.BASS_FX_FREESOURCE);
                 IsMusicEnd = new SYNCPROC(EndSync);
@@ -934,6 +963,8 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Device_L.Visibility = Visibility.Hidden;
                 Youtube_Link_B.Visibility = Visibility.Hidden;
                 Music_Vocal_Inst_Cut_B.Visibility = Visibility.Hidden;
+                Vocal_Inst_Cut_Mode_C.Visibility = Visibility.Hidden;
+                Vocal_Inst_Cut_Mode_T.Visibility = Visibility.Hidden;
                 Loop_Time_T.Visibility = Visibility.Hidden;
                 Ex_Sort_C.Visibility = Visibility.Hidden;
                 Ex_Sort_T.Visibility = Visibility.Hidden;
@@ -980,6 +1011,8 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Device_L.Visibility = Visibility.Visible;
                 Youtube_Link_B.Visibility = Visibility.Visible;
                 Music_Vocal_Inst_Cut_B.Visibility = Visibility.Visible;
+                Vocal_Inst_Cut_Mode_C.Visibility = Visibility.Visible;
+                Vocal_Inst_Cut_Mode_T.Visibility = Visibility.Visible;
                 Loop_Time_T.Visibility = Visibility.Visible;
                 Ex_Sort_C.Visibility = Visibility.Visible;
                 Ex_Sort_T.Visibility = Visibility.Visible;
@@ -1119,6 +1152,17 @@ namespace WoTB_Voice_Mod_Creater.Class
         private void Ex_Sort_C_Click(object sender, RoutedEventArgs e)
         {
             Music_List_Sort();
+            for (int Number = 0; Number < Music_List.Items.Count; Number++)
+            {
+                int Select_Index = File_Name_Path[Music_Select_List].IndexOf(Music_List.Items[Number].ToString().Replace("System.Windows.Controls.ListBoxItem: ", ""));
+                if (Already_Played_Path.Contains(File_Full_Path[Music_Select_List][Select_Index]))
+                {
+                    ListBoxItem LBI = new ListBoxItem();
+                    LBI.Content = File_Name_Path[Music_Select_List][Select_Index];
+                    LBI.Foreground = (System.Windows.Media.Brush)new System.Windows.Media.BrushConverter().ConvertFromString("#BF6C6C6C");
+                    Music_List.Items[Number] = LBI;
+                }
+            }
             Configs_Save();
         }
         private void Zoom_S_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
@@ -1232,6 +1276,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                     File_Name_Path[Music_Select_List].Add(Path.GetFileName(File_Now));
                 }
                 Music_List_Sort();
+                Already_Played_Path.Clear();
                 Music_List_Save();
                 if (Sub_Code.AutoListAdd.Count == 1)
                 {
@@ -1276,7 +1321,8 @@ namespace WoTB_Voice_Mod_Creater.Class
                 stw.WriteLine(Volume_S.Value);
                 stw.WriteLine(WAVEForm_C.IsChecked.Value);
                 stw.WriteLine(Mode_C.IsChecked.Value);
-                stw.Write(Number_01);
+                stw.WriteLine(Number_01);
+                stw.Write(Vocal_Inst_Cut_Mode_C.IsChecked.Value);
                 stw.Close();
                 Sub_Code.File_Encrypt(Voice_Set.Special_Path + "/Configs/Music_Player.tmp", Voice_Set.Special_Path + "/Configs/Music_Player.conf", "Music_Player_Configs_Save", true);
             }
@@ -1534,6 +1580,8 @@ namespace WoTB_Voice_Mod_Creater.Class
         {
             if (Music_Select_List == Index)
                 return;
+            Already_Played_Path.Clear();
+            Music_List_Sort();
             Music_Select_List = Index;
             List_Number_T.Text = "リスト番号:" + (Music_Select_List + 1);
             Pause_Volume_Animation(true, 10f);
@@ -1601,9 +1649,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 Start_Time = Location_S.Value;
                 if (Start_Time > End_Time)
-                {
                     End_Time = Location_S.Maximum;
-                }
                 Loop_Time_T.Text = "再生時間:" + (int)Start_Time + "～" + (int)End_Time;
             }
             //再生終了時間を保存
@@ -1659,7 +1705,27 @@ namespace WoTB_Voice_Mod_Creater.Class
         {
             if (IsBusy)
                 return;
-            Vocal_Inst_Cut_Window.Window_Show();
+            if (Vocal_Inst_Cut_Mode_C.IsChecked.Value)
+                Vocal_Inst_Cut_User_Window.Window_Show();
+            else
+                Vocal_Inst_Cut_Window.Window_Show();
+        }
+        private void Vocal_Inst_Cut_Mode_C_Click(object sender, RoutedEventArgs e)
+        {
+            Configs_Save();
+        }
+        private void ListBoxItem_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            Already_Played_Path.Clear();
+            ((ListBoxItem)sender).IsSelected = true;
+            int Index = Music_List.SelectedIndex;
+            Music_List_Sort();
+            Music_List.SelectedIndex = Index;
+            if (Index != -1)
+            {
+                int Select_Index = File_Name_Path[Music_Select_List].IndexOf(Music_List.Items[Index].ToString().Replace("System.Windows.Controls.ListBoxItem: ", ""));
+                Already_Played_Path.Add(File_Full_Path[Music_Select_List][Select_Index]);
+            }
         }
     }
 }

@@ -9,7 +9,7 @@
         <DockPanel Width="1920" Height="1080">
             <Border BorderBrush="Black" BorderThickness="1" Background="Black" Height="1080" VerticalAlignment="Top" Width="1920" Opacity="0.6"/>
             <Border BorderBrush="Aqua" Background="#D9A890DC" BorderThickness="2" Height="968" VerticalAlignment="Top" Width="1700" Opacity="1" Margin="-1920,0,0,0"/>
-            <ListBox x:Name="Music_List" Height="650" Width="800" VerticalAlignment="Top" FontSize="38" Foreground="Aqua" BorderBrush="Aqua" Background="Transparent" Margin="-2800,110,0,0" Focusable="False" SelectionChanged="Music_List_SelectionChanged" MouseDown="Music_List_MouseDown"/>
+            <ListBox x:Name="Music_List" Height="650" Width="800" VerticalAlignment="Top" FontSize="38" Foreground="Aqua" BorderBrush="Aqua" Background="Transparent" Margin="-2800,110,0,0" Focusable="False" SelectionChanged="Music_List_SelectionChanged" MouseDown="Music_List_MouseDown" PreviewKeyDown="Music_List_PreviewKeyDown"/>
             <TextBlock TextWrapping="Wrap" Text="変換リスト" VerticalAlignment="Top" FontSize="37" Foreground="Aqua" Margin="-2800,45,0,0" Width="155"/>
             <Button x:Name="Music_Add_B" Content="変換する曲を追加" Height="70" VerticalAlignment="Top" Width="300" Foreground="Aqua" FontSize="36" Margin="-1100,70,0,0" BorderBrush="Aqua" Background="Transparent" Focusable="False" Click="Music_Add_B_Click"/>
             <Button x:Name="Music_Upload_B" Content="アップロード+切り分け" Height="70" VerticalAlignment="Top" Width="450" Foreground="Aqua" FontSize="36" Margin="-1100,285,0,0" BorderBrush="Aqua" Background="Transparent" Focusable="False" Click="Music_Upload_B_Click"/>

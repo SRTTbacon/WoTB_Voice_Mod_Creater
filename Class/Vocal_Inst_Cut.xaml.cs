@@ -314,6 +314,8 @@ namespace WoTB_Voice_Mod_Creater.Class
                         Voice_Set.FTPClient.Directory_Create("/WoTB_Voice_Mod/Users/" + Voice_Set.UserName + "/" + FileNameOnly);
                         if (Voice_Set.FTPClient.UploadFile(File_Full_Name[Number], "/WoTB_Voice_Mod/Users/" + Voice_Set.UserName + "/" + FileNameOnly + "/" + File_Name[Number], true))
                         {
+                            if (!Voice_Set.TCP_Server.IsConnected)
+                                Voice_Set.TCP_Server.Connect(SRTTbacon_Server.IP, SRTTbacon_Server.TCP_Port);
                             if (MP3_OR_WAV_C.SelectedIndex == 0)
                                 Voice_Set.TCP_Server.Send(Voice_Set.UserName + "_Private|Music_Change|" + File_Name[Number] + "|true");
                             else
@@ -504,6 +506,10 @@ namespace WoTB_Voice_Mod_Creater.Class
             string Message_05 = "・変換した曲はYoutubeなどにアップロードしないようお願い致します。\n";
             string Message_06 = "・中央下の部分に書いてある文字と数字は、現在サーバーが処理中の曲数を表しています。これを見てだいたい何分後か予想できます。";
             MessageBox.Show(Message_01 + Message_02 + Message_03 + Message_04 + Message_05 + Message_06);
+        }
+        private void Music_List_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            e.Handled = true;
         }
     }
 }

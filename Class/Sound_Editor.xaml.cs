@@ -1944,9 +1944,9 @@ namespace WoTB_Voice_Mod_Creater.Class
                     ffmpeg.Sound_Combine(Output_Files, Pos, Volumes, Speeds, To_File, true, true);
                 else
                     ffmpeg.Sound_Combine(Output_Files, Pos, Volumes, Speeds, To_File, false, true);
-                foreach (string FIle_Now in Output_Files)
+                /*foreach (string FIle_Now in Output_Files)
                     if (File.Exists(FIle_Now))
-                        File.Delete(FIle_Now);
+                        File.Delete(FIle_Now);*/
                 //クリア
                 Output_Files.Clear();
                 Pos.Clear();

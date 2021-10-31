@@ -206,11 +206,10 @@ namespace WoTB_Voice_Mod_Creater.Class
                 if (!Directory.Exists(Voice_Set.Special_Path + "/Server/Download_Mods/" + Bank_Name) || Directory.GetFiles(Voice_Set.Special_Path + "/Server/Download_Mods/" + Bank_Name, "*", SearchOption.AllDirectories).Length == 0)
                 {
                     if (Directory.Exists(Voice_Set.Special_Path + "/Server/Download_Mods/" + Bank_Name))
-                    {
                         Directory.Delete(Voice_Set.Special_Path + "/Server/Download_Mods/" + Bank_Name, true);
-                    }
                     Directory.CreateDirectory(Voice_Set.Special_Path + "/Server/Download_Mods/" + Bank_Name);
                     Message_T.Text = "サンプルをダウンロードしています...";
+                    Voice_Set.TCP_Server.Send("Message|" + Voice_Set.UserName + "->配布Mod:" + Bank_Name + "をダウンロードしています...");
                     await Task.Delay(50);
                     Download_P.Value = 0;
                     Download_T.Text = "進捗:0%";
@@ -651,18 +650,15 @@ namespace WoTB_Voice_Mod_Creater.Class
                 return;
             }
             if (IsBusy || Opacity < 1)
-            {
                 return;
-            }
             //選択したModをWoTBに導入
             IsBusy = true;
             Message_T.Text = "ファイルをコピーしています...";
+            Voice_Set.TCP_Server.Send("Message|" + Voice_Set.UserName + "->配布Mod:" + Mod_Select_Name + "をインストールしています...");
             await Task.Delay(50);
             //bool IsDVPL = false;
             if (!Directory.Exists(Voice_Set.WoTB_Path + "/Data/Mods"))
-            {
                 Directory.CreateDirectory(Voice_Set.WoTB_Path + "/Data/Mods");
-            }
             string[] Dir = Directory.GetFiles(Voice_Set.Special_Path + "/Server/Download_Mods/" + Mod_Select_Name, "*", SearchOption.TopDirectoryOnly);
             List<string> FEV_List = new List<string>();
             foreach (string Name in Dir)
@@ -967,9 +963,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         private void Mod_Select_B_Click(object sender, RoutedEventArgs e)
         {
             if (IsBusy)
-            {
                 return;
-            }
             //Modを選択した状態かつパスワードがかかっていない場合実行
             Sample_Download();
             Mod_Select_B.Visibility = Visibility.Hidden;

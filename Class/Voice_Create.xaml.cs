@@ -186,15 +186,15 @@ namespace WoTB_Voice_Mod_Creater.Class
             }
             if (Sub_Code.IsWindowBarShow)
             {
-                Voice_Clear.Margin = new Thickness(0, 25, 0, 0);
-                ColorMode_C.Margin = new Thickness(0, 45, 0, 0);
-                ColorMode_T.Margin = new Thickness(0, 30, 0, 0);
+                Voice_Clear_B.Margin = new Thickness(Voice_Clear_B.Margin.Left, 25, 0, 0);
+                ColorMode_C.Margin = new Thickness(ColorMode_C.Margin.Left, 45, 0, 0);
+                ColorMode_T.Margin = new Thickness(ColorMode_T.Margin.Left, 30, 0, 0);
             }
             else
             {
-                Voice_Clear.Margin = new Thickness(0, 0, 0, 0);
-                ColorMode_C.Margin = new Thickness(0, 40, 0, 0);
-                ColorMode_T.Margin = new Thickness(0, 25, 0, 0);
+                Voice_Clear_B.Margin = new Thickness(Voice_Clear_B.Margin.Left, 0, 0, 0);
+                ColorMode_C.Margin = new Thickness(ColorMode_C.Margin.Left, 40, 0, 0);
+                ColorMode_T.Margin = new Thickness(ColorMode_T.Margin.Left, 25, 0, 0);
             }
             Opacity = 0;
             Visibility = Visibility.Visible;
@@ -1010,11 +1010,11 @@ namespace WoTB_Voice_Mod_Creater.Class
                         Sub_Code.Error_Log_Write(e1.Message);
                     }
                     Flash.Flash_Start();
-                    if (Voice_Set.WoTB_Path == "")
+                    if (Voice_Set.WoTB_Path != "")
                     {
                         Message_T.Text = "ダイアログを表示しています...";
                         await Task.Delay(50);
-                        MessageBoxResult result = System.Windows.MessageBox.Show("完了しました。WoTBに適応しますか？", "確認", MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.Yes);
+                        MessageBoxResult result = System.Windows.MessageBox.Show("完了しました。WoTBに適応しますか?", "確認", MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.Yes);
                         if (result == MessageBoxResult.Yes)
                         {
                             try
@@ -1351,8 +1351,8 @@ namespace WoTB_Voice_Mod_Creater.Class
                 File.Copy(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Default Work Unit.wwu", Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Backup.tmp", true);
             Message_T.Text = "SEの有無をチェックし、適応しています...";
             await Task.Delay(50);
-            Voice_Set.Set_SE_Change_Name();
             Wwise_Class.Wwise_Project_Create Wwise = new Wwise_Class.Wwise_Project_Create(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod");
+            await Set_SE(Wwise);
             Wwise.Sound_Add_Wwise(Dir_Name + "/Voices", false, true);
             Wwise.Save();
             if (File.Exists(Dir_Name + "/Voices/battle_bgm_01.wav"))
@@ -1389,7 +1389,50 @@ namespace WoTB_Voice_Mod_Creater.Class
             if (File.Exists(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Backup.tmp"))
                 File.Copy(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Backup.tmp", Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Default Work Unit.wwu", true);
         }
-        private void Voice_Clear_Click(object sender, RoutedEventArgs e)
+        async Task<bool> Set_SE(Wwise_Class.Wwise_Project_Create Wwise)
+        {
+            List<string> ShortIDs = new List<string>();
+            ShortIDs.Add("924876614");            //占領で戦闘終了_遭遇戦
+            ShortIDs.Add("366387412");            //クイックコマンド
+            ShortIDs.Add("528636008");            //弾薬庫
+            ShortIDs.Add("667880140");            //大破
+            ShortIDs.Add("965426293");            //貫通
+            ShortIDs.Add("330527106");            //モジュールダメージ
+            ShortIDs.Add("973877864");            //無線機
+            ShortIDs.Add("602706971");            //燃料タンク
+            ShortIDs.Add("1017674104");           //非貫通
+            ShortIDs.Add("138290727");            //装填完了
+            ShortIDs.Add("917399664");            //第六感
+            ShortIDs.Add("479275647");            //敵発見
+            ShortIDs.Add("816581364");            //戦闘開始タイマー
+            ShortIDs.Add("208623057");            //ロックオン
+            ShortIDs.Add("1025889019");           //アンロック
+            Voice_Set.Set_SE_Change_Name(Wwise.Project_Dir + "\\Originals\\Voices\\ja");
+            Message_T.Text = "SEをプリセットからロードしています...";
+            await Task.Delay(75);
+            for (int Number_01 = 0; Number_01 < ShortIDs.Count; Number_01++)
+            {
+                Wwise.Delete_CAkSounds(ShortIDs[Number_01]);
+                string Temp = Voice_Create_Window.SE_Change_Window.Preset_List[Voice_Create_Window.SE_Change_Window.Preset_Index][Number_01 + 1];
+                foreach (string File_Now in Temp.Split('|'))
+                {
+                    if (File.Exists(File_Now))
+                    {
+                        if (Path.GetExtension(File_Now) == ".wav")
+                            Wwise.Add_Sound(ShortIDs[Number_01], File_Now, "ja");
+                        else
+                        {
+                            string To_File = Voice_Set.Special_Path + "\\SE\\" + Path.GetFileNameWithoutExtension(File_Now) + "_TEMP" + Sub_Code.r.Next(0, 100000) + ".wav";
+                            Sub_Code.Audio_Encode_To_Other(File_Now, To_File, ".wav", false);
+                            Wwise.Add_Sound(ShortIDs[Number_01], To_File, "ja");
+                            File.Delete(To_File);
+                        }
+                    }
+                }
+            }
+            return true;
+        }
+        private void Voice_Clear_B_Click(object sender, RoutedEventArgs e)
         {
             if (IsBusy || IsCreating)
                 return;
