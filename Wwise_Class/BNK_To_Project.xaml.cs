@@ -23,6 +23,8 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         {
             InitializeComponent();
             Info_List_Clear();
+            Name_Generate_C.Visibility = Visibility.Hidden;
+            Name_Generate_T.Visibility = Visibility.Hidden;
         }
         public async void Window_Show()
         {
@@ -100,14 +102,18 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                     foreach (string FileNames in ofd.FileNames)
                     {
                         string Select_Name = Path.GetFileName(FileNames);
+                        bool IsExist = false;
                         foreach (string File_Now in BNK_File)
                         {
                             if (Path.GetFileName(File_Now) == Select_Name)
                             {
                                 MessageBox.Show(Select_Name + "は既に追加されています。別のファイル名を指定する必要があります。");
-                                continue;
+                                IsExist = true;
+                                break;
                             }
                         }
+                        if (IsExist)
+                            continue;
                         Wwise_Class.BNK_Parse p = new Wwise_Class.BNK_Parse(FileNames);
                         int Count = p.Get_File_Count();
                         if (Count == 0)
@@ -274,9 +280,6 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 Message_Feed_Out("SoundbanksInfo.jsonファイルが選択されていません。");
                 return;
             }
-            MessageBoxResult result = MessageBox.Show("現在のバージョンでは、Advanced SettingとStateの設定が反映されません。実行しますか?", "警告", MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.Yes);
-            if (result == MessageBoxResult.No)
-                return;
             IsOpenDialog = true;
             BetterFolderBrowser bfb = new BetterFolderBrowser()
             {
@@ -286,15 +289,13 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             };
             if (bfb.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
+                IsBusy = true;
                 Sub_Code.Set_Directory_Path(bfb.SelectedFolder);
-                /*if (Directory.GetFiles(bfb.SelectedFolder).Length != 0)
-                {
-                    Message_Feed_Out("フォルダ内は空である必要があります。");
-                    return;
-                }*/
                 Message_T.Text = "BNKファイルを解析しています...";
                 await Task.Delay(50);
                 BNK_To_Wwise_Projects BNK_To_Project = new BNK_To_Wwise_Projects(Init_File, BNK_File, PCK_File, SoundbankInfo_File, No_SoundInfo_C.IsChecked.Value);
+                if (No_SoundInfo_C.IsChecked.Value && Name_Generate_C.IsChecked.Value)
+                    await BNK_To_Project.ShortID_To_Name(Message_T);
                 if (Include_Sound_C.IsChecked.Value)
                     await BNK_To_Project.Create_Project_All(bfb.SelectedFolder, false, Message_T);
                 else
@@ -302,6 +303,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 BNK_To_Project.Clear();
                 Flash.Flash_Start();
                 Message_Feed_Out("完了しました。");
+                IsBusy = false;
             }
             IsOpenDialog = false;
         }
@@ -318,6 +320,8 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         }
         private void Delete_B_Click(object sender, RoutedEventArgs e)
         {
+            if (IsBusy || IsClosing)
+                return;
             if (Info_List.SelectedIndex == -1 || !Info_List.SelectedItem.ToString().Contains("追加:"))
             {
                 Message_Feed_Out("リスト内の'追加:～'の項目を選択する必要があります。");
@@ -355,7 +359,108 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 MessageBoxResult result = MessageBox.Show("この設定を有効にすると、Wwise側でビルドできなくなります。続行しますか?", "警告", MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.Yes);
                 if (result == MessageBoxResult.No)
                     No_SoundInfo_C.IsChecked = false;
+                else
+                {
+                    Name_Generate_C.Visibility = Visibility.Visible;
+                    Name_Generate_T.Visibility = Visibility.Visible;
+                }
             }
+            else
+            {
+                Name_Generate_C.Visibility = Visibility.Hidden;
+                Name_Generate_T.Visibility = Visibility.Hidden;
+            }
+        }
+        private void Name_Generate_C_Click(object sender, RoutedEventArgs e)
+        {
+            if (Name_Generate_C.IsChecked.Value)
+            {
+                MessageBoxResult result = MessageBox.Show("Wwise側のビルド後、WoTに適応しても正常に再生されるようにします。\n" +
+                    "イベントIDを一致させる必要があるため時間がかかります。続行しますか?", "警告", MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.Yes);
+                if (result == MessageBoxResult.No)
+                    Name_Generate_C.IsChecked = false;
+            }
+        }
+        private async void Change_Name_B_Click(object sender, RoutedEventArgs e)
+        {
+            if (IsClosing || IsBusy)
+                return;
+            System.Windows.Forms.OpenFileDialog ofd1 = new System.Windows.Forms.OpenFileDialog()
+            {
+                Title = "移植元のActor-Mixer Hierarchyを選択してください。",
+                Multiselect = false,
+                Filter = "Actor-Mixer Hierarchy(*.wwu)|*.wwu"
+            };
+            if (ofd1.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                System.Windows.Forms.OpenFileDialog ofd2 = new System.Windows.Forms.OpenFileDialog()
+                {
+                    Title = "移植先のActor-Mixer Hierarchyを選択してください。",
+                    Multiselect = false,
+                    Filter = "Actor-Mixer Hierarchy(*.wwu)|*.wwu"
+                };
+                if (ofd2.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                {
+                    if (ofd1.FileName == ofd2.FileName)
+                        MessageBox.Show("移植元と移植先のファイルが同じです。");
+                    else
+                    {
+                        Message_T.Text = "名前空間を移植しています...";
+                        await Task.Delay(50);
+                        Wwise_Project_Change_Name(ofd1.FileName, ofd2.FileName);
+                        Message_Feed_Out("名前空間の移植が完了しました。");
+                    }
+                }
+                ofd2.Dispose();
+            }
+            ofd1.Dispose();
+        }
+        private void Change_Name_Help_B_Click(object sender, RoutedEventArgs e)
+        {
+            if (IsClosing)
+                return;
+            string Message_01 = "プロジェクトを作成すると名前空間がすべて数字になり、「これもう分かんねぇな」という感じになるので、それを解消させるための機能です。\n";
+            string Message_02 = "・ボタンをクリックすると初めに移植元のActor-Mixer Hierarchyのファイルを選択し、2回目に移植先のActor-Mixer Hierarchyのファイルを選択します。\n";
+            string Message_03 = "・ShortIDが同じコンテナのみ移植されるのでプロジェクトが別のものであれば機能しません。\n";
+            string Message_04 = "・説明が難しいので、よくわからなければ使用しないことをお勧めします。";
+            MessageBox.Show(Message_01 + Message_02 + Message_03 + Message_04);
+        }
+        void Wwise_Project_Change_Name(string From_File, string To_File)
+        {
+            List<string> ShortIDs = new List<string>();
+            List<string> Names = new List<string>();
+            string[] From_Actor = File.ReadAllLines(From_File);
+            foreach (string Line in From_Actor)
+            {
+                if (Line.Contains("Name=\"") && Line.Contains("ShortID=\""))
+                {
+                    ShortIDs.Add(Get_Config.Get_ShortID_Project(Line));
+                    Names.Add(Get_Config.Get_Name(Line));
+                }
+            }
+            List<string> To_Actor = new List<string>(File.ReadAllLines(To_File));
+            for (int Number = 0; Number < To_Actor.Count; Number++)
+            {
+                if (To_Actor[Number].Contains("Name=\""))
+                {
+                    string Name = Get_Config.Get_Name(To_Actor[Number]);
+                    int Index = ShortIDs.IndexOf(Name);
+                    if (Index == -1)
+                        continue;
+                    if (To_Actor[Number].Contains("ShortID=\""))
+                    {
+                        string ShortID_After = To_Actor[Number].Substring(To_Actor[Number].LastIndexOf("ShortID=\""));
+                        string ShortID_Before = To_Actor[Number].Substring(0, To_Actor[Number].LastIndexOf("ShortID=\""));
+                        ShortID_Before = ShortID_Before.Replace(Name, Names[Index]);
+                        To_Actor[Number] = ShortID_Before + ShortID_After;
+                    }
+                    else
+                        To_Actor[Number] = To_Actor[Number].Replace(Name, Names[Index]);
+                }
+            }
+            File.WriteAllLines(To_File, To_Actor);
+            From_Actor = null;
+            To_Actor.Clear();
         }
     }
 }

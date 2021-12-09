@@ -77,12 +77,10 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             {
                 try
                 {
-                    Sub_Code.File_Decrypt(Voice_Set.Special_Path + "/Configs/Blitz_To_WoT.conf", Voice_Set.Special_Path + "/Configs/Blitz_To_WoT.tmp", "Blitz_To_WoT_Configs_Save", false);
-                    StreamReader str = new StreamReader(Voice_Set.Special_Path + "/Configs/Blitz_To_WoT.tmp");
+                    StreamReader str = Sub_Code.File_Decrypt_To_Stream(Voice_Set.Special_Path + "/Configs/Blitz_To_WoT.conf", "Blitz_To_WoT_Configs_Save");
                     Volume_S.Value = double.Parse(str.ReadLine());
                     Volume_Set_C.IsChecked = bool.Parse(str.ReadLine());
                     str.Close();
-                    File.Delete(Voice_Set.Special_Path + "/Configs/Blitz_To_WoT.tmp");
                 }
                 catch (Exception e)
                 {
@@ -615,15 +613,12 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                     await Task.Delay(50);
                     if (Volume_Set_C.IsChecked.Value)
                     {
-                        Message_T.Text = ".mp3に変換しています...";
-                        await Task.Delay(50);
-                        await Multithread.Convert_To_MP3(Directory.GetFiles(To_Dir, "*", SearchOption.TopDirectoryOnly), To_Dir, true);
-                        Message_T.Text = "音量をWoT用に調整しています...";
-                        await Task.Delay(50);
-                        Sub_Code.MP3_Volume_Set(To_Dir);
                         Message_T.Text = ".wavに変換しています...";
                         await Task.Delay(50);
-                        await Multithread.Convert_To_Wav(Directory.GetFiles(To_Dir, "*", SearchOption.TopDirectoryOnly), To_Dir, true, true);
+                        await Multithread.Convert_To_Wav(Directory.GetFiles(To_Dir, "*", SearchOption.TopDirectoryOnly), To_Dir, true);
+                        Message_T.Text = "音量をWoT用に調整しています...";
+                        await Task.Delay(50);
+                        Sub_Code.Volume_Set(To_Dir, Encode_Mode.WAV);
                     }
                     Message_T.Text = "ファイルをコピーしています...";
                     if (Directory.Exists(To_Dir + "/Voices"))

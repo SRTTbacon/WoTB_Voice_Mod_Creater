@@ -38,8 +38,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 try
                 {
-                    Sub_Code.File_Decrypt(Voice_Set.Special_Path + "/Configs/Vocal_Inst_Cut.conf", Voice_Set.Special_Path + "/Configs/Vocal_Inst_Cut.dat", "Vocal_Inst_Cut_Save_Data_SRTTbacon", false);
-                    StreamReader str = new StreamReader(Voice_Set.Special_Path + "/Configs/Vocal_Inst_Cut.dat");
+                    StreamReader str = Sub_Code.File_Decrypt_To_Stream(Voice_Set.Special_Path + "/Configs/Vocal_Inst_Cut.conf", "Vocal_Inst_Cut_Save_Data_SRTTbacon");
                     MP3_OR_WAV_C.SelectedIndex = int.Parse(str.ReadLine());
                     Output_Dir = str.ReadLine();
                     Out_Dir_T.Text = Output_Dir + "\\";
@@ -57,7 +56,6 @@ namespace WoTB_Voice_Mod_Creater.Class
                         File_Ex.Add(Split[3]);
                     }
                     str.Dispose();
-                    File.Delete(Voice_Set.Special_Path + "/Configs/Vocal_Inst_Cut.dat");
                     Music_Status_Change();
                 }
                 catch (Exception e)
@@ -125,6 +123,8 @@ namespace WoTB_Voice_Mod_Creater.Class
         }
         void Configs_Save()
         {
+            if (!IsLoaded)
+                return;
             try
             {
                 StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Configs/Vocal_Inst_Cut.dat");

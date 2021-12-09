@@ -104,6 +104,7 @@ namespace WoTB_Voice_Mod_Creater
         protected static extern uint Wwise_Get_Result_Index();
 
         public static bool IsExecution { get; private set; } = false;
+
         /// <summary>
         /// Wwiseが読み込めるInit.bnkは1つのみなので、このクラスは2つ以上作成できません。2回以上宣言する場合は前のWwise_PlayerのDispose()を実行してメモリを解放してください。
         /// </summary>
@@ -377,8 +378,11 @@ namespace WoTB_Voice_Mod_Creater
         ///</summary>
         public static void Dispose()
         {
-            Wwise_Dispose();
-            IsExecution = false;
+            if (IsExecution)
+            {
+                Wwise_Dispose();
+                IsExecution = false;
+            }
         }
         ///<summary>
         ///Wwiseの初期化がされているかを取得

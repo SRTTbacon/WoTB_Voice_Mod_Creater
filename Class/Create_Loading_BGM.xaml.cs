@@ -26,7 +26,9 @@ namespace WoTB_Voice_Mod_Creater.Class
     public partial class Create_Loading_BGM : UserControl
     {
         List<List<string>> Music_Type_Music = new List<List<string>>();
-        List<List<string>> Music_Type_Gun = new List<List<string>>();
+        List<List<string>> Music_Type_Garage_SE = new List<List<string>>();
+        List<List<string>> Music_Type_WoTB_Gun = new List<List<string>>();
+        List<List<string>> Music_Type_WoT_Gun = new List<List<string>>();
         List<List<Music_Play_Time>> Music_Play_Times = new List<List<Music_Play_Time>>();
         List<List<bool>> Music_Feed_In = new List<List<bool>>();
         int Stream;
@@ -48,11 +50,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             Position_S.AddHandler(MouseDownEvent, new MouseButtonEventHandler(Position_S_MouseDown), true);
             Position_S.AddHandler(MouseUpEvent, new MouseButtonEventHandler(Position_S_MouseUp), true);
             Volume_S.AddHandler(MouseUpEvent, new MouseButtonEventHandler(Volume_S_MouseUp), true);
-            //Mod_Pageの数だけ初期化
-            Mod_Page = 1;
-            BGM_Type_Change();
-            Mod_Page = 0;
-            BGM_Type_Change();
+            Default_SE_B.Visibility = Visibility.Hidden;
         }
         void BGM_Type_Change()
         {
@@ -93,7 +91,37 @@ namespace WoTB_Voice_Mod_Creater.Class
             }
             else if (Mod_Page == 1)
             {
-                Mod_Name_T.Text = "砲撃音Mod";
+                Mod_Name_T.Text = "ガレージSE";
+                BGM_Type_L.Items.Add("コンテナ開封-ノーマル-SE | 0個");
+                BGM_Type_L.Items.Add("コンテナ開封-ノーマル-音声 | 0個");
+                BGM_Type_L.Items.Add("コンテナ開封-レア-SE | 0個");
+                BGM_Type_L.Items.Add("コンテナ開封-レア-音声 | 0個");
+                BGM_Type_L.Items.Add("購入-SE | 0個");
+                BGM_Type_L.Items.Add("購入-音声 | 0個");
+                BGM_Type_L.Items.Add("売却-SE | 0個");
+                BGM_Type_L.Items.Add("売却-音声 | 0個");
+                BGM_Type_L.Items.Add("チェックボックス-SE | 0個");
+                BGM_Type_L.Items.Add("チェックボックス-音声 | 0個");
+                BGM_Type_L.Items.Add("小隊受信-SE | 0個");
+                BGM_Type_L.Items.Add("小隊受信-音声 | 0個");
+                BGM_Type_L.Items.Add("モジュールの切り替え-SE | 0個");
+                BGM_Type_L.Items.Add("モジュールの切り替え-音声 | 0個");
+                BGM_Type_L.Items.Add("戦闘開始-SE | 0個");
+                BGM_Type_L.Items.Add("戦闘開始-音声 | 0個");
+                BGM_Type_L.Items.Add("ニュース-SE | 0個");
+                BGM_Type_L.Items.Add("ニュース-音声 | 0個");
+                BGM_Type_L.Items.Add("車両購入-SE | 0個");
+                BGM_Type_L.Items.Add("車両購入-音声 | 0個");
+                if (Music_Type_Garage_SE.Count == 0)
+                {
+                    for (int Number = 0; Number < BGM_Type_L.Items.Count; Number++)
+                        Music_Type_Garage_SE.Add(new List<string>());
+                    Set_Garage_Default_SE();
+                }
+            }
+            else if (Mod_Page == 2)
+            {
+                Mod_Name_T.Text = "砲撃音Mod(WoTB用)";
                 BGM_Type_L.Items.Add("12～23mm:自車両-通常 | 0個");
                 BGM_Type_L.Items.Add("12～23mm:自車両-ズーム時 | 0個");
                 BGM_Type_L.Items.Add("12～23mm:他車両 | 0個");
@@ -117,11 +145,51 @@ namespace WoTB_Voice_Mod_Creater.Class
                 BGM_Type_L.Items.Add("ロケット:他車両 | 0個");
                 BGM_Type_L.Items.Add("音声(12～23mm以外):自車両 | 0個");
                 BGM_Type_L.Items.Add("音声(12～23mm以外):他車両 | 0個");
-                if (Music_Type_Gun.Count == 0)
-                {
+                if (Music_Type_WoTB_Gun.Count == 0)
                     for (int Number = 0; Number < BGM_Type_L.Items.Count; Number++)
-                        Music_Type_Gun.Add(new List<string>());
-                }
+                        Music_Type_WoTB_Gun.Add(new List<string>());
+            }
+            else if (Mod_Page == 3)
+            {
+                Mod_Name_T.Text = "砲撃音Mod(WoT用)";
+                BGM_Type_L.Items.Add("12～23mm:自車両-通常 | 0個");
+                BGM_Type_L.Items.Add("12～23mm:自車両-ズーム時 | 0個");
+                BGM_Type_L.Items.Add("12～23mm:他車両 | 0個");
+                BGM_Type_L.Items.Add("20～45mm:自車両-通常 | 0個");
+                BGM_Type_L.Items.Add("20～45mm:自車両-ズーム時 | 0個");
+                BGM_Type_L.Items.Add("20～45mm:他車両 | 0個");
+                BGM_Type_L.Items.Add("50～75mm:自車両-通常 | 0個");
+                BGM_Type_L.Items.Add("50～75mm:自車両-ズーム時 | 0個");
+                BGM_Type_L.Items.Add("50～75mm:他車両 | 0個");
+                BGM_Type_L.Items.Add("85～105mm:自車両-通常 | 0個");
+                BGM_Type_L.Items.Add("85～105mm:自車両-ズーム時 | 0個");
+                BGM_Type_L.Items.Add("85～105mm:他車両 | 0個");
+                BGM_Type_L.Items.Add("85～105mm 2連装砲:自車両-通常 | 0個");
+                BGM_Type_L.Items.Add("85～105mm 2連装砲:自車両-ズーム時 | 0個");
+                BGM_Type_L.Items.Add("85～105mm 2連装砲:他車両 | 0個");
+                BGM_Type_L.Items.Add("105mm:自車両-通常 | 0個");
+                BGM_Type_L.Items.Add("105mm:自車両-ズーム時 | 0個");
+                BGM_Type_L.Items.Add("105mm:他車両 | 0個");
+                BGM_Type_L.Items.Add("105mm 2連装砲:自車両-通常 | 0個");
+                BGM_Type_L.Items.Add("105mm 2連装砲:自車両-ズーム時 | 0個");
+                BGM_Type_L.Items.Add("105mm 2連装砲:他車両 | 0個");
+                BGM_Type_L.Items.Add("115～120mm:自車両-通常 | 0個");
+                BGM_Type_L.Items.Add("115～120mm:自車両-ズーム時 | 0個");
+                BGM_Type_L.Items.Add("115～120mm:他車両 | 0個");
+                BGM_Type_L.Items.Add("115～120mm 2連装砲:自車両-通常 | 0個");
+                BGM_Type_L.Items.Add("115～120mm 2連装砲:自車両-ズーム時 | 0個");
+                BGM_Type_L.Items.Add("115～120mm 2連装砲:他車両 | 0個");
+                BGM_Type_L.Items.Add("128mm:自車両-通常 | 0個");
+                BGM_Type_L.Items.Add("128mm:自車両-ズーム時 | 0個");
+                BGM_Type_L.Items.Add("128mm:他車両 | 0個");
+                BGM_Type_L.Items.Add("152mm以上:自車両-通常 | 0個");
+                BGM_Type_L.Items.Add("152mm以上:自車両-ズーム時 | 0個");
+                BGM_Type_L.Items.Add("152mm以上:他車両 | 0個");
+                BGM_Type_L.Items.Add("音声(12～23mm以外):自車両 | 0個");
+                BGM_Type_L.Items.Add("音声(12～23mm以外):他車両 | 0個");
+                if (Music_Type_WoT_Gun.Count == 0)
+                    for (int Number = 0; Number < BGM_Type_L.Items.Count; Number++)
+                        Music_Type_WoT_Gun.Add(new List<string>());
             }
         }
         //画面を表示
@@ -135,17 +203,10 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 try
                 {
-                    Sub_Code.File_Decrypt(Voice_Set.Special_Path + "/Configs/Create_Loading_BGM.conf", Voice_Set.Special_Path + "/Configs/Create_Loading_BGM.tmp", "Create_Loading_BGM_Configs_Save", false);
-                    StreamReader str = new StreamReader(Voice_Set.Special_Path + "/Configs/Create_Loading_BGM.tmp");
+                    StreamReader str = Sub_Code.File_Decrypt_To_Stream(Voice_Set.Special_Path + "/Configs/Create_Loading_BGM.conf", "Create_Loading_BGM_Configs_Save");
                     Volume_S.Value = double.Parse(str.ReadLine());
-                    try
-                    {
-                        //V1.4.4から追加
-                        Mod_Page = int.Parse(str.ReadLine());
-                    }
-                    catch { }
                     str.Close();
-                    File.Delete(Voice_Set.Special_Path + "/Configs/Create_Loading_BGM.tmp");
+                    str.Dispose();
                 }
                 catch (Exception e)
                 {
@@ -155,6 +216,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 }
             }
             Mod_Page_Change();
+            Update_Music_Type_List();
             while (Opacity < 1 && !IsClosing)
             {
                 Opacity += Sub_Code.Window_Feed_Time;
@@ -176,7 +238,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                         {
                             if (Mod_Page == 0)
                                 Position_S.Value = Music_Play_Times[BGM_Type_L.SelectedIndex][BGM_Music_L.SelectedIndex].Start_Time;
-                            else if (Mod_Page == 1)
+                            else
                                 Position_S.Value = 0;
                             Music_Pos_Change(Position_S.Value, true);
                             Bass.BASS_ChannelPause(Stream);
@@ -188,7 +250,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                     {
                         long position = Bass.BASS_ChannelGetPosition(Stream);
                         Position_S.Value = Bass.BASS_ChannelBytes2Seconds(Stream, position);
-                        if (BGM_Type_L.SelectedIndex != -1 && BGM_Music_L.SelectedIndex != -1 && Mod_Page != 1)
+                        if (BGM_Type_L.SelectedIndex != -1 && BGM_Music_L.SelectedIndex != -1 && Mod_Page == 0)
                         {
                             double End_Time = Music_Play_Times[BGM_Type_L.SelectedIndex][BGM_Music_L.SelectedIndex].End_Time;
                             if (End_Time != 0 && Position_S.Value >= End_Time)
@@ -309,7 +371,13 @@ namespace WoTB_Voice_Mod_Creater.Class
                 foreach (string Name in Music_Type_Music[BGM_Type_L.SelectedIndex])
                     BGM_Music_L.Items.Add(Path.GetFileName(Name));
             else if (Mod_Page == 1)
-                foreach (string Name in Music_Type_Gun[BGM_Type_L.SelectedIndex])
+                foreach (string Name in Music_Type_Garage_SE[BGM_Type_L.SelectedIndex])
+                    BGM_Music_L.Items.Add(Path.GetFileName(Name));
+            else if (Mod_Page == 2)
+                foreach (string Name in Music_Type_WoTB_Gun[BGM_Type_L.SelectedIndex])
+                    BGM_Music_L.Items.Add(Path.GetFileName(Name));
+            else if (Mod_Page == 3)
+                foreach (string Name in Music_Type_WoT_Gun[BGM_Type_L.SelectedIndex])
                     BGM_Music_L.Items.Add(Path.GetFileName(Name));
         }
         //左の欄のBGM数を更新
@@ -323,7 +391,11 @@ namespace WoTB_Voice_Mod_Creater.Class
                 if (Mod_Page == 0)
                     BGM_Type_L.Items[Number] = Name + Music_Type_Music[Number].Count + "個";
                 else if (Mod_Page == 1)
-                    BGM_Type_L.Items[Number] = Name + Music_Type_Gun[Number].Count + "個";
+                    BGM_Type_L.Items[Number] = Name + Music_Type_Garage_SE[Number].Count + "個";
+                else if (Mod_Page == 2)
+                    BGM_Type_L.Items[Number] = Name + Music_Type_WoTB_Gun[Number].Count + "個";
+                else if (Mod_Page == 3)
+                    BGM_Type_L.Items[Number] = Name + Music_Type_WoT_Gun[Number].Count + "個";
             }
             BGM_Type_L.SelectedIndex = SelectedIndex;
         }
@@ -335,8 +407,12 @@ namespace WoTB_Voice_Mod_Creater.Class
             int Music_Count = 0;
             for (int Number = 0; Number < Music_Type_Music.Count; Number++)
                 Music_Count += Music_Type_Music[Number].Count;
-            for (int Number = 0; Number < Music_Type_Gun.Count; Number++)
-                Music_Count += Music_Type_Gun[Number].Count;
+            for (int Number = 0; Number < Music_Type_Garage_SE.Count; Number++)
+                Music_Count += Music_Type_Garage_SE[Number].Count;
+            for (int Number = 0; Number < Music_Type_WoTB_Gun.Count; Number++)
+                Music_Count += Music_Type_WoTB_Gun[Number].Count;
+            for (int Number = 0; Number < Music_Type_WoT_Gun.Count; Number++)
+                Music_Count += Music_Type_WoT_Gun[Number].Count;
             if (Music_Count == 0)
             {
                 Message_Feed_Out("セーブする際、少なくとも1つはサウンドファイルを追加する必要があります。");
@@ -365,10 +441,18 @@ namespace WoTB_Voice_Mod_Creater.Class
                         for (int Number_01 = 0; Number_01 < Music_Type_Music[Number].Count; Number_01++)
                             stw.WriteLine(Number + "|" + Music_Type_Music[Number][Number_01] + "|" +
                                 Music_Play_Times[Number][Number_01].Start_Time + "～" + Music_Play_Times[Number][Number_01].End_Time + "|" + Music_Feed_In[Number][Number_01]);
-                    stw.WriteLine("!---ここから砲撃音の項目です。---!");
-                    for (int Number = 0; Number < Music_Type_Gun.Count; Number++)
-                        for (int Number_01 = 0; Number_01 < Music_Type_Gun[Number].Count; Number_01++)
-                            stw.WriteLine(Number + "|" + Music_Type_Gun[Number][Number_01]);
+                    stw.WriteLine("!---ここからガレージ内のSEの項目です。---!");
+                    for (int Number = 0; Number < Music_Type_Garage_SE.Count; Number++)
+                        for (int Number_01 = 0; Number_01 < Music_Type_Garage_SE[Number].Count; Number_01++)
+                            stw.WriteLine(Number + "|" + Music_Type_Garage_SE[Number][Number_01]);
+                    stw.WriteLine("!---ここから砲撃音(WoTB用)の項目です。---!");
+                    for (int Number = 0; Number < Music_Type_WoTB_Gun.Count; Number++)
+                        for (int Number_01 = 0; Number_01 < Music_Type_WoTB_Gun[Number].Count; Number_01++)
+                            stw.WriteLine(Number + "|" + Music_Type_WoTB_Gun[Number][Number_01]);
+                    stw.WriteLine("!---ここから砲撃音(WoT用)の項目です。V1.1---!");
+                    for (int Number = 0; Number < Music_Type_WoT_Gun.Count; Number++)
+                        for (int Number_01 = 0; Number_01 < Music_Type_WoT_Gun[Number].Count; Number_01++)
+                            stw.WriteLine(Number + "|" + Music_Type_WoT_Gun[Number][Number_01]);
                     stw.Close();
                     stw.Dispose();
                     Sub_Code.File_Encrypt(sfd.FileName + ".tmp", sfd.FileName, "SRTTbacon_WoTB_Loading_Music_Mode", true);
@@ -421,20 +505,24 @@ namespace WoTB_Voice_Mod_Creater.Class
                     Position_S.Maximum = 0;
                     Position_T.Text = "00:00";
                 }
-                Sub_Code.File_Decrypt(WMS_File, WMS_File + ".tmp", "SRTTbacon_WoTB_Loading_Music_Mode", false);
                 for (int Number = 0; Number < Music_Type_Music.Count; Number++)
                     Music_Type_Music[Number].Clear();
                 for (int Number = 0; Number < Music_Play_Times.Count; Number++)
                     Music_Play_Times[Number].Clear();
-                for (int Number = 0; Number < Music_Type_Gun.Count; Number++)
-                    Music_Type_Gun[Number].Clear();
+                for (int Number = 0; Number < Music_Type_Garage_SE.Count; Number++)
+                    Music_Type_Garage_SE[Number].Clear();
+                for (int Number = 0; Number < Music_Type_WoTB_Gun.Count; Number++)
+                    Music_Type_WoTB_Gun[Number].Clear();
+                for (int Number = 0; Number < Music_Type_WoT_Gun.Count; Number++)
+                    Music_Type_WoT_Gun[Number].Clear();
                 Play_Time_T.Text = "再生時間:0～0";
                 BGM_Music_L.Items.Clear();
-                StreamReader str = new StreamReader(WMS_File + ".tmp");
+                StreamReader str = Sub_Code.File_Decrypt_To_Stream(WMS_File, "SRTTbacon_WoTB_Loading_Music_Mode");
                 string line;
                 bool IsOneLine = false;
                 bool IsVersion_Upgrade_Mode = false;
-                bool IsGunMode = false;
+                int Sound_Mode = 0;
+                bool IsOldVersion = false;
                 while ((line = str.ReadLine()) != null)
                 {
                     if (!IsOneLine)
@@ -455,15 +543,31 @@ namespace WoTB_Voice_Mod_Creater.Class
                         IsOneLine = true;
                         continue;
                     }
-                    if (line.Contains("!---ここから砲撃音の項目です。---!"))
+                    if (line.Contains("!---ここからガレージ内のSEの項目です。---!"))
                     {
-                        IsGunMode = true;
+                        Sound_Mode = 1;
+                        continue;
+                    }
+                    else if (line.Contains("!---ここから砲撃音(WoTB用)の項目です。---!"))
+                    {
+                        Sound_Mode = 2;
+                        continue;
+                    }
+                    else if (line.Contains("!---ここから砲撃音(WoT用)の項目です。V1.1---!"))
+                    {
+                        Sound_Mode = 3;
+                        continue;
+                    }
+                    else if (line.Contains("!---ここから砲撃音(WoT用)の項目です。---!"))
+                    {
+                        Sound_Mode = -1;
+                        IsOldVersion = true;
                         continue;
                     }
                     string[] Line_Split = line.Split('|');
                     int Index = int.Parse(Line_Split[0]);
                     string FilePath = Line_Split[1];
-                    if (!IsGunMode)
+                    if (Sound_Mode == 0)
                     {
                         string Play_Time_Only = Line_Split[2];
                         double Start_Time = double.Parse(Play_Time_Only.Substring(0, Play_Time_Only.IndexOf('～')));
@@ -500,15 +604,20 @@ namespace WoTB_Voice_Mod_Creater.Class
                             Music_Feed_In[Index].Add(IsFeed_In_Mode);
                         }
                     }
-                    else
-                        Music_Type_Gun[Index].Add(FilePath);
+                    else if (Sound_Mode == 1)
+                        Music_Type_Garage_SE[Index].Add(FilePath);
+                    else if (Sound_Mode == 2)
+                        Music_Type_WoTB_Gun[Index].Add(FilePath);
+                    else if (Sound_Mode == 3)
+                        Music_Type_WoT_Gun[Index].Add(FilePath);
                 }
                 str.Close();
                 str.Dispose();
-                File.Delete(WMS_File + ".tmp");
                 Feed_In_C.IsChecked = false;
                 Update_Music_Type_List();
                 Message_Feed_Out("ロードしました。");
+                if (IsOldVersion)
+                    Message_Feed_Out("砲撃音Mod(WoT用)をロードできませんでした。ロード元のバージョンが古い可能性があります。");
             }
             catch (Exception e1)
             {
@@ -537,12 +646,32 @@ namespace WoTB_Voice_Mod_Creater.Class
             }
             else if (Mod_Page == 1)
             {
-                if (!File.Exists(Music_Type_Gun[BGM_Type_L.SelectedIndex][BGM_Music_L.SelectedIndex]))
+                if (!File.Exists(Music_Type_Garage_SE[BGM_Type_L.SelectedIndex][BGM_Music_L.SelectedIndex]))
                 {
                     Message_Feed_Out("ファイルが存在しませんでした。");
                     return;
                 }
-                int StreamHandle = Bass.BASS_StreamCreateFile(Music_Type_Gun[BGM_Type_L.SelectedIndex][BGM_Music_L.SelectedIndex], 0, 0, BASSFlag.BASS_SAMPLE_FLOAT | BASSFlag.BASS_STREAM_DECODE | BASSFlag.BASS_SAMPLE_LOOP);
+                int StreamHandle = Bass.BASS_StreamCreateFile(Music_Type_Garage_SE[BGM_Type_L.SelectedIndex][BGM_Music_L.SelectedIndex], 0, 0, BASSFlag.BASS_SAMPLE_FLOAT | BASSFlag.BASS_STREAM_DECODE | BASSFlag.BASS_SAMPLE_LOOP);
+                Stream = BassFx.BASS_FX_TempoCreate(StreamHandle, BASSFlag.BASS_FX_FREESOURCE);
+            }
+            else if (Mod_Page == 2)
+            {
+                if (!File.Exists(Music_Type_WoTB_Gun[BGM_Type_L.SelectedIndex][BGM_Music_L.SelectedIndex]))
+                {
+                    Message_Feed_Out("ファイルが存在しませんでした。");
+                    return;
+                }
+                int StreamHandle = Bass.BASS_StreamCreateFile(Music_Type_WoTB_Gun[BGM_Type_L.SelectedIndex][BGM_Music_L.SelectedIndex], 0, 0, BASSFlag.BASS_SAMPLE_FLOAT | BASSFlag.BASS_STREAM_DECODE | BASSFlag.BASS_SAMPLE_LOOP);
+                Stream = BassFx.BASS_FX_TempoCreate(StreamHandle, BASSFlag.BASS_FX_FREESOURCE);
+            }
+            else if (Mod_Page == 3)
+            {
+                if (!File.Exists(Music_Type_WoT_Gun[BGM_Type_L.SelectedIndex][BGM_Music_L.SelectedIndex]))
+                {
+                    Message_Feed_Out("ファイルが存在しませんでした。");
+                    return;
+                }
+                int StreamHandle = Bass.BASS_StreamCreateFile(Music_Type_WoT_Gun[BGM_Type_L.SelectedIndex][BGM_Music_L.SelectedIndex], 0, 0, BASSFlag.BASS_SAMPLE_FLOAT | BASSFlag.BASS_STREAM_DECODE | BASSFlag.BASS_SAMPLE_LOOP);
                 Stream = BassFx.BASS_FX_TempoCreate(StreamHandle, BASSFlag.BASS_FX_FREESOURCE);
             }
             IsMusicEnd = new SYNCPROC(EndSync);
@@ -770,12 +899,30 @@ namespace WoTB_Voice_Mod_Creater.Class
                     }
                     else if (Mod_Page == 1)
                     {
-                        if (Music_Type_Gun[BGM_Type_L.SelectedIndex].Contains(FilePath))
+                        if (Music_Type_Garage_SE[BGM_Type_L.SelectedIndex].Contains(FilePath))
                         {
                             Error_FileName += "\n" + Path.GetFileName(FilePath);
                             continue;
                         }
-                        Music_Type_Gun[BGM_Type_L.SelectedIndex].Add(FilePath);
+                        Music_Type_Garage_SE[BGM_Type_L.SelectedIndex].Add(FilePath);
+                    }
+                    else if (Mod_Page == 2)
+                    {
+                        if (Music_Type_WoT_Gun[BGM_Type_L.SelectedIndex].Contains(FilePath))
+                        {
+                            Error_FileName += "\n" + Path.GetFileName(FilePath);
+                            continue;
+                        }
+                        Music_Type_WoT_Gun[BGM_Type_L.SelectedIndex].Add(FilePath);
+                    }
+                    else if (Mod_Page == 3)
+                    {
+                        if (Music_Type_WoT_Gun[BGM_Type_L.SelectedIndex].Contains(FilePath))
+                        {
+                            Error_FileName += "\n" + Path.GetFileName(FilePath);
+                            continue;
+                        }
+                        Music_Type_WoT_Gun[BGM_Type_L.SelectedIndex].Add(FilePath);
                     }
                     BGM_Music_L.Items.Add(Path.GetFileName(FilePath));
                 }
@@ -804,7 +951,11 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Feed_In_C.IsChecked = false;
             }
             else if (Mod_Page == 1)
-                Music_Type_Gun[BGM_Type_L.SelectedIndex].RemoveAt(BGM_Music_L.SelectedIndex);
+                Music_Type_Garage_SE[BGM_Type_L.SelectedIndex].RemoveAt(BGM_Music_L.SelectedIndex);
+            else if (Mod_Page == 2)
+                Music_Type_WoTB_Gun[BGM_Type_L.SelectedIndex].RemoveAt(BGM_Music_L.SelectedIndex);
+            else if (Mod_Page == 3)
+                Music_Type_WoT_Gun[BGM_Type_L.SelectedIndex].RemoveAt(BGM_Music_L.SelectedIndex);
             Update_Music_Type_List();
         }
         //再生速度を初期化
@@ -823,9 +974,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 int Music_Count = 0;
                 for (int Number = 0; Number < Music_Type_Music.Count; Number++)
-                {
                     Music_Count += Music_Type_Music[Number].Count;
-                }
                 if (Music_Count == 0)
                 {
                     Message_Feed_Out("最低1つはBGM(音声)ファイルを選択する必要があります。");
@@ -841,9 +990,43 @@ namespace WoTB_Voice_Mod_Creater.Class
             else if (Mod_Page == 1)
             {
                 bool IsExist = false;
-                for (int Number = 0; Number < Music_Type_Gun.Count; Number++)
+                for (int Number = 0; Number < Music_Type_Garage_SE.Count; Number++)
                 {
-                    if (Music_Type_Gun[Number].Count > 0)
+                    if (Music_Type_Garage_SE[Number].Count > 0)
+                    {
+                        IsExist = true;
+                        break;
+                    }
+                }
+                if (!IsExist)
+                {
+                    Message_Feed_Out("最低1つはサウンドファイルを入れる必要があります。");
+                    return;
+                }
+            }
+            else if (Mod_Page == 2)
+            {
+                bool IsExist = false;
+                for (int Number = 0; Number < Music_Type_WoTB_Gun.Count; Number++)
+                {
+                    if (Music_Type_WoTB_Gun[Number].Count > 0)
+                    {
+                        IsExist = true;
+                        break;
+                    }
+                }
+                if (!IsExist)
+                {
+                    Message_Feed_Out("最低1つはサウンドファイルを入れる必要があります。");
+                    return;
+                }
+            }
+            else if (Mod_Page == 3)
+            {
+                bool IsExist = false;
+                for (int Number = 0; Number < Music_Type_WoT_Gun.Count; Number++)
+                {
+                    if (Music_Type_WoT_Gun[Number].Count > 0)
                     {
                         IsExist = true;
                         break;
@@ -901,9 +1084,43 @@ namespace WoTB_Voice_Mod_Creater.Class
             else if (Mod_Page == 1)
             {
                 bool IsExist = false;
-                for (int Number = 0; Number < Music_Type_Gun.Count; Number ++)
+                for (int Number = 0; Number < Music_Type_Garage_SE.Count; Number++)
                 {
-                    if (Music_Type_Gun[Number].Count > 0)
+                    if (Music_Type_Garage_SE[Number].Count > 0)
+                    {
+                        IsExist = true;
+                        break;
+                    }
+                }
+                if (!IsExist)
+                {
+                    Message_Feed_Out("最低1つはサウンドファイルを入れる必要があります。");
+                    return;
+                }
+            }
+            else if (Mod_Page == 2)
+            {
+                bool IsExist = false;
+                for (int Number = 0; Number < Music_Type_WoTB_Gun.Count; Number ++)
+                {
+                    if (Music_Type_WoTB_Gun[Number].Count > 0)
+                    {
+                        IsExist = true;
+                        break;
+                    }
+                }
+                if (!IsExist)
+                {
+                    Message_Feed_Out("最低1つはサウンドファイルを入れる必要があります。");
+                    return;
+                }
+            }
+            else if (Mod_Page == 3)
+            {
+                bool IsExist = false;
+                for (int Number = 0; Number < Music_Type_WoT_Gun.Count; Number++)
+                {
+                    if (Music_Type_WoT_Gun[Number].Count > 0)
                     {
                         IsExist = true;
                         break;
@@ -1125,12 +1342,31 @@ namespace WoTB_Voice_Mod_Creater.Class
                     }
                     else if (Mod_Page == 1)
                     {
+                        if (!File.Exists(Voice_Set.Special_Path + "/Wwise/WoTB_UI_Button_Sound/Actor-Mixer Hierarchy/Backup.tmp"))
+                            File.Copy(Voice_Set.Special_Path + "/Wwise/WoTB_UI_Button_Sound/Actor-Mixer Hierarchy/Default Work Unit.wwu", Voice_Set.Special_Path + "/Wwise/WoTB_UI_Button_Sound/Actor-Mixer Hierarchy/Backup.tmp", true);
+                        Wwise_Project_Create Wwise = new Wwise_Project_Create(Voice_Set.Special_Path + "/Wwise/WoTB_UI_Button_Sound");
+                        for (int Number = 0; Number < Music_Type_Garage_SE.Count; Number++)
+                            for (int Number_01 = 0; Number_01 < Music_Type_Garage_SE[Number].Count; Number_01++)
+                                Wwise.Loading_Music_Add_Wwise(Music_Type_Garage_SE[Number][Number_01], Number, null, false, 0, 1);
+                        Message_T.Text = "ファイルを.wavにエンコードしています...";
+                        await Task.Delay(50);
+                        await Wwise.Sound_To_WAV();
+                        Wwise.Save();
+                        Message_T.Text = "ui_buttons_tasks.bnkをビルドしています...";
+                        await Task.Delay(75);
+                        Wwise.Project_Build("ui_buttons_tasks", bfb.SelectedFolder + "/ui_buttons_tasks.bnk");
+                        Wwise.Clear();
+                        if (File.Exists(Voice_Set.Special_Path + "/Wwise/WoTB_UI_Button_Sound/Actor-Mixer Hierarchy/Backup.tmp"))
+                            File.Copy(Voice_Set.Special_Path + "/Wwise/WoTB_UI_Button_Sound/Actor-Mixer Hierarchy/Backup.tmp", Voice_Set.Special_Path + "/Wwise/WoTB_UI_Button_Sound/Actor-Mixer Hierarchy/Default Work Unit.wwu", true);
+                    }
+                    else if (Mod_Page == 2)
+                    {
                         if (!File.Exists(Voice_Set.Special_Path + "/Wwise/WoTB_Gun_Sound/Actor-Mixer Hierarchy/Backup.tmp"))
                             File.Copy(Voice_Set.Special_Path + "/Wwise/WoTB_Gun_Sound/Actor-Mixer Hierarchy/Default Work Unit.wwu", Voice_Set.Special_Path + "/Wwise/WoTB_Gun_Sound/Actor-Mixer Hierarchy/Backup.tmp", true);
                         Wwise_Project_Create Wwise = new Wwise_Project_Create(Voice_Set.Special_Path + "/Wwise/WoTB_Gun_Sound");
-                        for (int Number = 0; Number < Music_Type_Gun.Count; Number++)
-                            for (int Number_01 = 0; Number_01 < Music_Type_Gun[Number].Count; Number_01++)
-                                Wwise.Loading_Music_Add_Wwise(Music_Type_Gun[Number][Number_01], Number, null, false, 0, 1);
+                        for (int Number = 0; Number < Music_Type_WoTB_Gun.Count; Number++)
+                            for (int Number_01 = 0; Number_01 < Music_Type_WoTB_Gun[Number].Count; Number_01++)
+                                Wwise.Loading_Music_Add_Wwise(Music_Type_WoTB_Gun[Number][Number_01], Number, null, false, 0, 2);
                         Message_T.Text = "ファイルを.wavにエンコードしています...";
                         await Task.Delay(50);
                         await Wwise.Sound_To_WAV();
@@ -1144,6 +1380,25 @@ namespace WoTB_Voice_Mod_Creater.Class
                         Wwise.Clear();
                         if (File.Exists(Voice_Set.Special_Path + "/Wwise/WoTB_Gun_Sound/Actor-Mixer Hierarchy/Backup.tmp"))
                             File.Copy(Voice_Set.Special_Path + "/Wwise/WoTB_Gun_Sound/Actor-Mixer Hierarchy/Backup.tmp", Voice_Set.Special_Path + "/Wwise/WoTB_Gun_Sound/Actor-Mixer Hierarchy/Default Work Unit.wwu", true);
+                    }
+                    else if (Mod_Page == 3)
+                    {
+                        if (!File.Exists(Voice_Set.Special_Path + "/Wwise/WoT_Gun_Sound/Actor-Mixer Hierarchy/Backup.tmp"))
+                            File.Copy(Voice_Set.Special_Path + "/Wwise/WoT_Gun_Sound/Actor-Mixer Hierarchy/Default Work Unit.wwu", Voice_Set.Special_Path + "/Wwise/WoT_Gun_Sound/Actor-Mixer Hierarchy/Backup.tmp", true);
+                        Wwise_Project_Create Wwise = new Wwise_Project_Create(Voice_Set.Special_Path + "/Wwise/WoT_Gun_Sound");
+                        for (int Number = 0; Number < Music_Type_WoT_Gun.Count; Number++)
+                            for (int Number_01 = 0; Number_01 < Music_Type_WoT_Gun[Number].Count; Number_01++)
+                                Wwise.Loading_Music_Add_Wwise(Music_Type_WoT_Gun[Number][Number_01], Number, null, false, 0, 3);
+                        Message_T.Text = "ファイルを.wavにエンコードしています...";
+                        await Task.Delay(50);
+                        await Wwise.Sound_To_WAV();
+                        Wwise.Save();
+                        Message_T.Text = "wpn.bnkをビルドしています...";
+                        await Task.Delay(75);
+                        Wwise.Project_Build("wpn", bfb.SelectedFolder + "/wpn.bnk");
+                        Wwise.Clear();
+                        if (File.Exists(Voice_Set.Special_Path + "/Wwise/WoT_Gun_Sound/Actor-Mixer Hierarchy/Backup.tmp"))
+                            File.Copy(Voice_Set.Special_Path + "/Wwise/WoT_Gun_Sound/Actor-Mixer Hierarchy/Backup.tmp", Voice_Set.Special_Path + "/Wwise/WoT_Gun_Sound/Actor-Mixer Hierarchy/Default Work Unit.wwu", true);
                     }
                 }
                 catch (Exception e)
@@ -1168,8 +1423,12 @@ namespace WoTB_Voice_Mod_Creater.Class
             int Music_Count = 0;
             for (int Number = 0; Number < Music_Type_Music.Count; Number++)
                 Music_Count += Music_Type_Music[Number].Count;
-            for (int Number = 0; Number < Music_Type_Gun.Count; Number++)
-                Music_Count += Music_Type_Gun[Number].Count;
+            for (int Number = 0; Number < Music_Type_Garage_SE.Count; Number++)
+                Music_Count += Music_Type_Garage_SE[Number].Count;
+            for (int Number = 0; Number < Music_Type_WoTB_Gun.Count; Number++)
+                Music_Count += Music_Type_WoTB_Gun[Number].Count;
+            for (int Number = 0; Number < Music_Type_WoT_Gun.Count; Number++)
+                Music_Count += Music_Type_WoT_Gun[Number].Count;
             if (Music_Count == 0)
             {
                 if (r.Next(0, 10) == 5)
@@ -1207,8 +1466,12 @@ namespace WoTB_Voice_Mod_Creater.Class
                     Music_Play_Times[Number].Clear();
                 for (int Number = 0; Number < Music_Feed_In.Count; Number++)
                     Music_Feed_In[Number].Clear();
-                for (int Number = 0; Number < Music_Type_Gun.Count; Number++)
-                    Music_Type_Gun[Number].Clear();
+                for (int Number = 0; Number < Music_Type_Garage_SE.Count; Number++)
+                    Music_Type_Garage_SE[Number].Clear();
+                for (int Number = 0; Number < Music_Type_WoTB_Gun.Count; Number++)
+                    Music_Type_WoTB_Gun[Number].Clear();
+                for (int Number = 0; Number < Music_Type_WoT_Gun.Count; Number++)
+                    Music_Type_WoT_Gun[Number].Clear();
                 Play_Time_T.Text = "再生時間:0～0";
                 Volume_WoTB_S.Value = 75;
                 BGM_Music_L.Items.Clear();
@@ -1274,6 +1537,8 @@ namespace WoTB_Voice_Mod_Creater.Class
         void Mod_Page_Change()
         {
             BGM_Type_Change();
+            BGM_Music_L.Items.Clear();
+            Default_SE_B.Visibility = Visibility.Hidden;
             if (Mod_Page == 0)
             {
                 Next_Mod_B.Visibility = Visibility.Visible;
@@ -1286,7 +1551,21 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Create_One_B.Visibility = Visibility.Visible;
                 Create_B.Margin = new Thickness(-1665, Create_B.Margin.Top, 0, 0);
             }
-            else if (Mod_Page == 1)
+            else if (Mod_Page == 1 || Mod_Page == 2)
+            {
+                if (Mod_Page == 1)
+                    Default_SE_B.Visibility = Visibility.Visible;
+                Next_Mod_B.Visibility = Visibility.Visible;
+                Back_Mod_B.Visibility = Visibility.Visible;
+                Start_B.Visibility = Visibility.Hidden;
+                End_B.Visibility = Visibility.Hidden;
+                Time_Clear_B.Visibility = Visibility.Hidden;
+                Feed_In_C.Visibility = Visibility.Hidden;
+                Feed_In_T.Visibility = Visibility.Hidden;
+                Create_One_B.Visibility = Visibility.Hidden;
+                Create_B.Margin = new Thickness(-1975, Create_B.Margin.Top, 0, 0);
+            }
+            else if (Mod_Page == 3)
             {
                 Next_Mod_B.Visibility = Visibility.Hidden;
                 Back_Mod_B.Visibility = Visibility.Visible;
@@ -1298,6 +1577,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Create_One_B.Visibility = Visibility.Hidden;
                 Create_B.Margin = new Thickness(-1975, Create_B.Margin.Top, 0, 0);
             }
+            Configs_Save();
         }
         private void Volume_WoTB_Help_B_Click(object sender, RoutedEventArgs e)
         {
@@ -1305,7 +1585,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             string Message_02 = "・実際に聞こえる音量は、この設定の数値とWoTB内のBGMの数値を足したものになります。\n";
             string Message_03 = "例えば、この設定を50にし、WoTBのBGM設定も50にすると、だいたい25くらいの音量になります。\n";
             string Message_04 = "試してみた感じ、この設定を30、WoTBのBGM設定を20にするとほとんど聞こえないような感じでした。ご参考までに。\n";
-            string Message_05 = "・追記:砲撃音には適応されません。";
+            string Message_05 = "・追記:砲撃音(WoT,WoTB共に)及びガレージSEには適応されません。";
             MessageBox.Show(Message_01 + Message_02 + Message_03 + Message_04 + Message_05);
         }
         private void Back_Mod_B_Click(object sender, RoutedEventArgs e)
@@ -1320,9 +1600,57 @@ namespace WoTB_Voice_Mod_Creater.Class
             if (IsClosing || IsBusy || IsOpenDialog)
                 return;
             //後からリストを追加しても大丈夫なように
-            if (Mod_Page < 1)
+            if (Mod_Page < 3)
                 Mod_Page++;
-            if (Mod_Page == 1 && File.Exists(Voice_Set.Special_Path + "/Wwise/WoTB_Gun_Sound/Version.dat"))
+            if (Mod_Page == 1 && File.Exists(Voice_Set.Special_Path + "/Wwise/WoTB_UI_Button_Sound/Version.dat"))
+            {
+                StreamReader str = new StreamReader(Voice_Set.Special_Path + "/Wwise/WoTB_UI_Button_Sound/Version.dat");
+                string Ver = str.ReadLine();
+                str.Close();
+                if (Sub_Code.IsWwise_WoT_Gun_Update != Ver)
+                {
+                    IsMessageShowing = false;
+                    Message_T.Text = "ガレージSEのプロジェクトをアップデートしています...";
+                    await Task.Delay(50);
+                    IsDownloading = true;
+                    long Full_Size = Voice_Set.FTPClient.GetFileSize("/WoTB_Voice_Mod/Update/Wwise/WoTB_UI_Button_Sound.zip");
+                    double SizeMB = (double)(Full_Size / 1024.0 / 1024.0);
+                    SizeMB = (Math.Floor(SizeMB * 10)) / 10;
+                    if (Directory.Exists(Voice_Set.Special_Path + "/Wwise/WoTB_UI_Button_Sound"))
+                        Directory.Delete(Voice_Set.Special_Path + "/Wwise/WoTB_UI_Button_Sound", true);
+                    Task task = Task.Run(() =>
+                    {
+                        Voice_Set.FTPClient.DownloadFile("WoTB_Voice_Mod/Update/Wwise/WoTB_UI_Button_Sound.zip", Voice_Set.Special_Path + "\\WoTB_UI_Button.dat");
+                    });
+                    while (IsDownloading)
+                    {
+                        FileInfo fi = new FileInfo(Voice_Set.Special_Path + "\\WoTB_UI_Button.dat");
+                        long File_Size_Now = fi.Length;
+                        double Size_MB_Now = File_Size_Now / 1024.0 / 1024.0;
+                        Size_MB_Now = (Math.Floor(Size_MB_Now * 10)) / 10;
+                        if (File_Size_Now >= Full_Size)
+                            break;
+                        Message_T.Text = "プロジェクトファイルをダウンロードしています...\n" + Size_MB_Now + " / " + SizeMB + "MB";
+                        await Task.Delay(100);
+                    }
+                    if (!IsDownloading)
+                    {
+                        Voice_Set.FTPClient.Stop_DownloadFile();
+                        Mod_Page--;
+                        IsBusy = false;
+                        Message_Feed_Out("データのダウンロードを中止しました。");
+                        return;
+                    }
+                    IsDownloading = false;
+                    Message_T.Text = "ファイルを展開しています...";
+                    await Task.Delay(50);
+                    System.IO.Compression.ZipFile.ExtractToDirectory(Voice_Set.Special_Path + "\\WoTB_UI_Button.dat", Voice_Set.Special_Path + "\\Wwise\\WoTB_UI_Button_Sound");
+                    File.Delete(Voice_Set.Special_Path + "\\WoTB_UI_Button.dat");
+                    File.WriteAllText(Voice_Set.Special_Path + "/Wwise/WoTB_UI_Button_Sound/Version.dat", Sub_Code.IsWwise_WoT_Gun_Update);
+                    Message_Feed_Out("正常にアップデートされました。");
+                }
+            }
+            else if (Mod_Page == 2 && File.Exists(Voice_Set.Special_Path + "/Wwise/WoTB_Gun_Sound/Version.dat"))
             {
                 StreamReader str = new StreamReader(Voice_Set.Special_Path + "/Wwise/WoTB_Gun_Sound/Version.dat");
                 string Ver = str.ReadLine();
@@ -1330,20 +1658,81 @@ namespace WoTB_Voice_Mod_Creater.Class
                 if (Sub_Code.IsWwise_Gun_Update != Ver)
                 {
                     IsMessageShowing = false;
-                    Message_T.Text = "砲撃音のプロジェクトをアップデートしています...";
+                    Message_T.Text = "砲撃音(WoTB用)のプロジェクトをアップデートしています...";
                     await Task.Delay(50);
                     Voice_Set.FTPClient.DownloadFile("/WoTB_Voice_Mod/Update/Wwise/Gun_Project/Actor.wwu", Voice_Set.Special_Path + "\\Wwise\\WoTB_Gun_Sound\\Actor-Mixer Hierarchy\\Default Work Unit.wwu");
                     Voice_Set.FTPClient.DownloadFile("/WoTB_Voice_Mod/Update/Wwise/Gun_Project/Event.wwu", Voice_Set.Special_Path + "\\Wwise\\WoTB_Gun_Sound\\Events\\SRTTbacon.wwu");
-                    File.WriteAllText(Voice_Set.Special_Path + "/Wwise/WoTB_Gun_Sound/Version.dat", Sub_Code.IsWwise_Hits_Update);
+                    File.WriteAllText(Voice_Set.Special_Path + "/Wwise/WoTB_Gun_Sound/Version.dat", Sub_Code.IsWwise_Gun_Update);
                     Message_Feed_Out("正常にアップデートされました。");
                 }
             }
-            else if (Mod_Page == 1)
+            else if (Mod_Page == 3 && File.Exists(Voice_Set.Special_Path + "/Wwise/WoT_Gun_Sound/Version.dat"))
             {
-                long Full_Size = Voice_Set.FTPClient.GetFileSize("/WoTB_Voice_Mod/Update/Wwise/WoTB_Gun_Sound.zip");
+                StreamReader str = new StreamReader(Voice_Set.Special_Path + "/Wwise/WoT_Gun_Sound/Version.dat");
+                string Ver = str.ReadLine();
+                str.Close();
+                if (Sub_Code.IsWwise_WoT_Gun_Update != Ver)
+                {
+                    IsMessageShowing = false;
+                    Message_T.Text = "砲撃音(WoT用)のプロジェクトをアップデートしています...";
+                    await Task.Delay(50);
+                    IsDownloading = true;
+                    long Full_Size = Voice_Set.FTPClient.GetFileSize("/WoTB_Voice_Mod/Update/Wwise/WoT_Gun_Sound.zip");
+                    double SizeMB = (double)(Full_Size / 1024.0 / 1024.0);
+                    SizeMB = (Math.Floor(SizeMB * 10)) / 10;
+                    if (Directory.Exists(Voice_Set.Special_Path + "/Wwise/WoT_Gun_Sound"))
+                        Directory.Delete(Voice_Set.Special_Path + "/Wwise/WoT_Gun_Sound", true);
+                    Task task = Task.Run(() =>
+                    {
+                        Voice_Set.FTPClient.DownloadFile("WoTB_Voice_Mod/Update/Wwise/WoT_Gun_Sound.zip", Voice_Set.Special_Path + "\\WoT_Gun.dat");
+                    });
+                    while (IsDownloading)
+                    {
+                        FileInfo fi = new FileInfo(Voice_Set.Special_Path + "\\WoT_Gun.dat");
+                        long File_Size_Now = fi.Length;
+                        double Size_MB_Now = File_Size_Now / 1024.0 / 1024.0;
+                        Size_MB_Now = (Math.Floor(Size_MB_Now * 10)) / 10;
+                        if (File_Size_Now >= Full_Size)
+                            break;
+                        Message_T.Text = "プロジェクトファイルをダウンロードしています...\n" + Size_MB_Now + " / " + SizeMB + "MB";
+                        await Task.Delay(100);
+                    }
+                    if (!IsDownloading)
+                    {
+                        Voice_Set.FTPClient.Stop_DownloadFile();
+                        Mod_Page--;
+                        IsBusy = false;
+                        Message_Feed_Out("データのダウンロードを中止しました。");
+                        return;
+                    }
+                    IsDownloading = false;
+                    Message_T.Text = "ファイルを展開しています...";
+                    await Task.Delay(50);
+                    System.IO.Compression.ZipFile.ExtractToDirectory(Voice_Set.Special_Path + "\\WoT_Gun.dat", Voice_Set.Special_Path + "\\Wwise\\WoT_Gun_Sound");
+                    File.Delete(Voice_Set.Special_Path + "\\WoT_Gun.dat");
+                    File.WriteAllText(Voice_Set.Special_Path + "/Wwise/WoT_Gun_Sound/Version.dat", Sub_Code.IsWwise_WoT_Gun_Update);
+                    Message_Feed_Out("正常にアップデートされました。");
+                }
+            }
+            else if (Mod_Page == 1 || Mod_Page == 2 || Mod_Page == 3)
+            {
+                long Full_Size = 0;
+                if (Mod_Page == 1)
+                    Full_Size = Voice_Set.FTPClient.GetFileSize("/WoTB_Voice_Mod/Update/Wwise/WoTB_UI_Button_Sound.zip");
+                else if (Mod_Page == 2)
+                    Full_Size = Voice_Set.FTPClient.GetFileSize("/WoTB_Voice_Mod/Update/Wwise/WoTB_Gun_Sound.zip");
+                else if (Mod_Page == 3)
+                    Full_Size = Voice_Set.FTPClient.GetFileSize("/WoTB_Voice_Mod/Update/Wwise/WoT_Gun_Sound.zip");
                 double SizeMB = (double)(Full_Size / 1024.0 / 1024.0);
                 SizeMB = (Math.Floor(SizeMB * 10)) / 10;
-                MessageBoxResult result = MessageBox.Show("砲撃音のプロジェクトファイルをダウンロードする必要があります。\nサイズ:約" + SizeMB + "MB  -  続行しますか?", "確認",
+                string Message = "";
+                if (Mod_Page == 1)
+                    Message = "ガレージSEのプロジェクトファイルをダウンロードする必要があります。\nサイズ:約" + SizeMB + "MB  -  続行しますか?";
+                else if (Mod_Page == 2)
+                    Message = "砲撃音のプロジェクトファイル(WoTB用)をダウンロードする必要があります。\nサイズ:約" + SizeMB + "MB  -  続行しますか?";
+                else if (Mod_Page == 3)
+                    Message = "砲撃音のプロジェクトファイル(WoT用)をダウンロードする必要があります。\nサイズ:約" + SizeMB + "MB  -  続行しますか?";
+                MessageBoxResult result = MessageBox.Show(Message, "確認",
                     MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.Yes);
                 if (result == MessageBoxResult.Yes)
                 {
@@ -1354,18 +1743,37 @@ namespace WoTB_Voice_Mod_Creater.Class
                         Message_T.Text = "プロジェクトファイルをダウンロードしています...";
                         await Task.Delay(50);
                         IsDownloading = true;
-                        if (Directory.Exists(Voice_Set.Special_Path + "/Wwise/WoTB_Gun_Sound"))
+                        if (Mod_Page == 1 && Directory.Exists(Voice_Set.Special_Path + "/Wwise/WoTB_UI_Button_Sound"))
+                            Directory.Delete(Voice_Set.Special_Path + "/Wwise/WoTB_UI_Button_Sound", true);
+                        else if (Mod_Page == 2 && Directory.Exists(Voice_Set.Special_Path + "/Wwise/WoTB_Gun_Sound"))
                             Directory.Delete(Voice_Set.Special_Path + "/Wwise/WoTB_Gun_Sound", true);
+                        else if (Mod_Page == 3 && Directory.Exists(Voice_Set.Special_Path + "/Wwise/WoT_Gun_Sound"))
+                            Directory.Delete(Voice_Set.Special_Path + "/Wwise/WoT_Gun_Sound", true);
                         Task task = Task.Run(() =>
                         {
-                            Voice_Set.FTPClient.DownloadFile("WoTB_Voice_Mod/Update/Wwise/WoTB_Gun_Sound.zip", Voice_Set.Special_Path + "\\Gun.dat");
+                            if (Mod_Page == 1)
+                                Voice_Set.FTPClient.DownloadFile("WoTB_Voice_Mod/Update/Wwise/WoTB_UI_Button_Sound.zip", Voice_Set.Special_Path + "\\WoTB_UI_Button.dat");
+                            else if (Mod_Page == 2)
+                                Voice_Set.FTPClient.DownloadFile("WoTB_Voice_Mod/Update/Wwise/WoTB_Gun_Sound.zip", Voice_Set.Special_Path + "\\WoTB_Gun.dat");
+                            else if (Mod_Page == 3)
+                                Voice_Set.FTPClient.DownloadFile("WoTB_Voice_Mod/Update/Wwise/WoT_Gun_Sound.zip", Voice_Set.Special_Path + "\\WoT_Gun.dat");
                         });
                         while (IsDownloading)
                         {
                             long File_Size_Now = 0;
-                            if (File.Exists(Voice_Set.Special_Path + "/Gun.dat"))
+                            if (Mod_Page == 1 && File.Exists(Voice_Set.Special_Path + "\\WoTB_UI_Button.dat"))
                             {
-                                FileInfo fi = new FileInfo(Voice_Set.Special_Path + "/Gun.dat");
+                                FileInfo fi = new FileInfo(Voice_Set.Special_Path + "\\WoTB_UI_Button.dat");
+                                File_Size_Now = fi.Length;
+                            }
+                            else if (Mod_Page == 2 && File.Exists(Voice_Set.Special_Path + "\\WoTB_Gun.dat"))
+                            {
+                                FileInfo fi = new FileInfo(Voice_Set.Special_Path + "\\WoTB_Gun.dat");
+                                File_Size_Now = fi.Length;
+                            }
+                            else if (Mod_Page == 3 && File.Exists(Voice_Set.Special_Path + "\\WoT_Gun.dat"))
+                            {
+                                FileInfo fi = new FileInfo(Voice_Set.Special_Path + "\\WoT_Gun.dat");
                                 File_Size_Now = fi.Length;
                             }
                             double Size_MB_Now = File_Size_Now / 1024.0 / 1024.0;
@@ -1386,9 +1794,24 @@ namespace WoTB_Voice_Mod_Creater.Class
                         IsDownloading = false;
                         Message_T.Text = "ファイルを展開しています...";
                         await Task.Delay(50);
-                        System.IO.Compression.ZipFile.ExtractToDirectory(Voice_Set.Special_Path + "\\Gun.dat", Voice_Set.Special_Path + "\\Wwise\\WoTB_Gun_Sound");
-                        File.Delete(Voice_Set.Special_Path + "\\Gun.dat");
-                        File.WriteAllText(Voice_Set.Special_Path + "/Wwise/WoTB_Gun_Sound/Version.dat", Sub_Code.IsWwise_Hits_Update);
+                        if (Mod_Page == 1)
+                        {
+                            System.IO.Compression.ZipFile.ExtractToDirectory(Voice_Set.Special_Path + "\\WoTB_UI_Button.dat", Voice_Set.Special_Path + "\\Wwise\\WoTB_UI_Button_Sound");
+                            File.Delete(Voice_Set.Special_Path + "\\WoTB_UI_Button.dat");
+                            File.WriteAllText(Voice_Set.Special_Path + "/Wwise/WoTB_UI_Button_Sound/Version.dat", Sub_Code.IsWwise_UI_Button_Sound);
+                        }
+                        else if (Mod_Page == 2)
+                        {
+                            System.IO.Compression.ZipFile.ExtractToDirectory(Voice_Set.Special_Path + "\\WoTB_Gun.dat", Voice_Set.Special_Path + "\\Wwise\\WoTB_Gun_Sound");
+                            File.Delete(Voice_Set.Special_Path + "\\WoTB_Gun.dat");
+                            File.WriteAllText(Voice_Set.Special_Path + "/Wwise/WoTB_Gun_Sound/Version.dat", Sub_Code.IsWwise_Gun_Update);
+                        }
+                        else if (Mod_Page == 3)
+                        {
+                            System.IO.Compression.ZipFile.ExtractToDirectory(Voice_Set.Special_Path + "\\WoT_Gun.dat", Voice_Set.Special_Path + "\\Wwise\\WoT_Gun_Sound");
+                            File.Delete(Voice_Set.Special_Path + "\\WoT_Gun.dat");
+                            File.WriteAllText(Voice_Set.Special_Path + "/Wwise/WoT_Gun_Sound/Version.dat", Sub_Code.IsWwise_WoT_Gun_Update);
+                        }
                         Message_Feed_Out("展開が完了しました。");
                     }
                     catch (Exception e1)
@@ -1413,9 +1836,63 @@ namespace WoTB_Voice_Mod_Creater.Class
         }
         private void Create_Help_B_Click(object sender, RoutedEventArgs e)
         {
-            string Message_01 = "・2ページ目の砲撃音関連の項目を表示している場合、作成(選択のみ)のボタンは表示されません。\n";
-            string Message_02 = "・作成(すべて)は、現在表示しているページの中のすべてなので、2ページ目で作成(すべて)を押しても砲撃音しか作成されません。";
+            string Message_01 = "・2ページ目のガレージSE及び、3,4ページ目の砲撃音関連の項目を表示している場合、作成(選択のみ)のボタンは表示されません。\n";
+            string Message_02 = "・作成(すべて)は、現在表示しているページの中のすべてなので、2,3,4ページ目で作成(すべて)を押しても砲撃音しか作成されません。";
             MessageBox.Show(Message_01 + Message_02);
+        }
+        void Set_Garage_Default_SE()
+        {
+            for (int Number = 0; Number < Music_Type_Garage_SE.Count; Number++)
+            {
+                if (Number == 0)
+                    Set_Garage_Default_SE_By_Name(Number, "176974408.mp3");
+                else if (Number == 2)
+                    Set_Garage_Default_SE_By_Name(Number, "262333918.mp3");
+                else if (Number == 4)
+                    Set_Garage_Default_SE_By_Name(Number, "440745850.wav");
+                else if (Number == 6)
+                    Set_Garage_Default_SE_By_Name(Number, "394850995.wav");
+                else if (Number == 8)
+                {
+                    Set_Garage_Default_SE_By_Name(Number, "376157875.wav");
+                    Set_Garage_Default_SE_By_Name(Number, "118267228.wav");
+                }
+                else if (Number == 10)
+                    Set_Garage_Default_SE_By_Name(Number, "166277761.wav");
+                else if (Number == 12)
+                    Set_Garage_Default_SE_By_Name(Number, "387372795.wav");
+                else if (Number == 14)
+                    Set_Garage_Default_SE_By_Name(Number, "843967064.mp3");
+                else if (Number == 16)
+                    Set_Garage_Default_SE_By_Name(Number, "493097325.wav");
+                else if (Number == 18)
+                    Set_Garage_Default_SE_By_Name(Number, "437893724.mp3");
+            }
+            if (Mod_Page == 1 && BGM_Type_L.SelectedIndex != -1)
+                foreach (string Name in Music_Type_Garage_SE[BGM_Type_L.SelectedIndex])
+                    BGM_Music_L.Items.Add(Path.GetFileName(Name));
+        }
+        void Set_Garage_Default_SE_By_Name(int Index, string SE_Name)
+        {
+            string SE_File = Voice_Set.Special_Path + "\\Wwise\\WoTB_UI_Button_Sound\\SE\\" + SE_Name;
+            if (Music_Type_Garage_SE[Index].Contains(SE_File))
+                return;
+            Music_Type_Garage_SE[Index].Add(SE_File);
+        }
+        private void Default_SE_B_Click(object sender, RoutedEventArgs e)
+        {
+            Set_Garage_Default_SE();
+            Update_Music_Type_List();
+            Message_Feed_Out("標準のSEをリストに追加しました。");
+        }
+        private void UserControl_Loaded(object sender, RoutedEventArgs e)
+        {
+            //Mod_Pageの数だけ初期化
+            for (int Number = 2; Number >= 0; Number--)
+            {
+                Mod_Page = Number;
+                BGM_Type_Change();
+            }
         }
     }
 }

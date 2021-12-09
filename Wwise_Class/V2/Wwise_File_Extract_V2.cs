@@ -40,6 +40,15 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 Temp.Add(Now.ID.ToString());
             return Temp;
         }
+        public List<uint> Wwise_Get_IDs()
+        {
+            if (IsClear)
+                return new List<uint>();
+            List<uint> Temp = new List<uint>();
+            foreach (LoLSoundBankManager.WEMFile Now in WEML)
+                Temp.Add(Now.ID);
+            return Temp;
+        }
         //.bnk内に指定したファイル名が存在するか
         public bool Wwise_File_Exsist(string Name)
         {
@@ -198,6 +207,32 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 return false;
             try
             {
+                LoLSoundBankManager.WEMFile File_Index = WEML[Index];
+                using (FileStream ms = new FileStream(To_File, FileMode.Create))
+                    using (BinaryWriter bw = new BinaryWriter(ms))
+                        bw.Write(LOL.GetFileData(File_Index.ID));
+                return true;
+            }
+            catch (Exception e)
+            {
+                Sub_Code.Error_Log_Write(e.Message);
+                return false;
+            }
+        }
+        public bool Wwise_Extract_To_WEM_File(uint ShortID, string To_File, bool IsOverWrite)
+        {
+            if (File.Exists(To_File) && !IsOverWrite)
+                return false;
+            if (IsClear)
+                return false;
+            try
+            {
+                int Index = -1;
+                for (int Number = 0; Number < WEML.Count; Number++)
+                    if (WEML[Number].ID == ShortID)
+                        Index = Number;
+                if (Index == -1)
+                    return false;
                 LoLSoundBankManager.WEMFile File_Index = WEML[Index];
                 using (FileStream ms = new FileStream(To_File, FileMode.Create))
                     using (BinaryWriter bw = new BinaryWriter(ms))

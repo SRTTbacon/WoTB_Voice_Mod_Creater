@@ -37,12 +37,13 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         {
             Opacity = 0;
             Visibility = Visibility.Visible;
-            Sub_Code.File_Decrypt(Voice_Set.Special_Path + "/Configs/BNK_Event.conf", Voice_Set.Special_Path + "/Configs/BNK_Event.tmp", "BNK_Event_Configs_Save", false);
-            StreamReader str = new StreamReader(Voice_Set.Special_Path + "/Configs/BNK_Event.tmp");
-            Volume_S.Value = double.Parse(str.ReadLine());
-            PCK_Mode_C.IsChecked = bool.Parse(str.ReadLine());
-            str.Close();
-            File.Delete(Voice_Set.Special_Path + "/Configs/BNK_Event.tmp");
+            if (File.Exists(Voice_Set.Special_Path + "/Configs/BNK_Event.conf"))
+            {
+                StreamReader str = Sub_Code.File_Decrypt_To_Stream(Voice_Set.Special_Path + "/Configs/BNK_Event.conf", "BNK_Event_Configs_Save");
+                Volume_S.Value = double.Parse(str.ReadLine());
+                PCK_Mode_C.IsChecked = bool.Parse(str.ReadLine());
+                str.Close();
+            }
             while (Opacity < 1 && !IsClosing)
             {
                 Opacity += Sub_Code.Window_Feed_Time;

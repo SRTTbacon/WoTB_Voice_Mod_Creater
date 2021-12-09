@@ -626,17 +626,14 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             {
                 try
                 {
-                    Sub_Code.File_Decrypt(ofd.FileName, Voice_Set.Special_Path + "/Temp_Bank_Editor_Load.dat", "Bank_Editor_Change_Sound_Save", false);
-                    StreamReader str = new StreamReader(Voice_Set.Special_Path + "/Temp_Bank_Editor_Load.dat");
+                    StreamReader str = Sub_Code.File_Decrypt_To_Stream(ofd.FileName, "Bank_Editor_Change_Sound_Save");
                     string Open_File = str.ReadLine();
                     if (Path.GetExtension(Open_File) == ".bnk")
                     {
                         Sound_List.Items.Clear();
                         Wwise_Bnk = new Wwise_File_Extract_V2(Open_File);
                         foreach (string Name_ID in Wwise_Bnk.Wwise_Get_Names())
-                        {
                             Sound_List.Items.Add((Sound_List.Items.Count + 1) + ":" + Name_ID);
-                        }
                         IsPCKFile = false;
                     }
                     else if (Path.GetExtension(Open_File) == ".pck")
@@ -644,15 +641,11 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                         Sound_List.Items.Clear();
                         Wwise_Pck = new Wwise_File_Extract_V1(Open_File);
                         foreach (string Name_ID in Wwise_Pck.Wwise_Get_Banks_ID())
-                        {
                             Sound_List.Items.Add((Sound_List.Items.Count + 1) + ":" + Name_ID);
-                        }
                         IsPCKFile = true;
                     }
                     else
-                    {
                         throw new Exception("ファイル形式が違います。対応しているファイル形式は.bnk、または.pckのみです。");
-                    }
                     Change_List.Items.Clear();
                     Change_Sound_Full_Name.Clear();
                     string line;
@@ -664,7 +657,6 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                         Change_Sound_Full_Name.Add(File_Name);
                     }
                     str.Close();
-                    File.Delete(Voice_Set.Special_Path + "/Temp_Bank_Editor_Load.dat");
                 }
                 catch (Exception e1)
                 {

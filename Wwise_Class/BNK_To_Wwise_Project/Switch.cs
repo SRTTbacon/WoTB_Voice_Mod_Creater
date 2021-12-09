@@ -85,6 +85,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class.BNK_To_Wwise_Project
                 }
             }
             Temp.Clear();
+            Switch_Numbers.Clear();
             IsInit = true;
         }
         public static void Create(string To_File)

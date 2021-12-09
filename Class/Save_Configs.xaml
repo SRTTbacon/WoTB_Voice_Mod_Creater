@@ -28,11 +28,9 @@
             <TextBlock x:Name="Default_Voice_Mode_T" Height="89" Width="390" FontSize="32" Foreground="Aqua" TextWrapping="Wrap" Text="音声がない項目は標準の音声を再生させる" Margin="-825,740,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
             <CheckBox x:Name="Volume_Set_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Focusable="False" Margin="-2050,775,0,0"/>
             <TextBlock x:Name="Volume_Set_T" Height="58" Width="285" FontSize="40" Foreground="Aqua" TextWrapping="Wrap" Text="音量を均一にする" Margin="-1700,755,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
-            <CheckBox x:Name="DVPL_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-2050,845,0,0" Focusable="False" Click="DVPL_C_Click"/>
+            <CheckBox x:Name="DVPL_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-2050,845,0,0" Focusable="False"/>
             <TextBlock x:Name="DVPL_T" Height="58" Width="135" FontSize="40" Foreground="Aqua" TextWrapping="Wrap" Text="DVPL化" Margin="-1840,825,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
-            <CheckBox x:Name="Android_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-2050,915,0,0" Focusable="False" Click="Android_C_Click"/>
             <TextBlock x:Name="Android_T" Height="58" Width="190" FontSize="40" Foreground="Aqua" TextWrapping="Wrap" Text="Android用" Margin="-1790,895,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
-            <Button x:Name="Android_Help_B" Content="?" Height="60" VerticalAlignment="Top" Width="60" Margin="-1400,892,0,0" FontSize="40" BorderBrush="Aqua" Foreground="Aqua" Background="Transparent" Focusable="False" Click="Android_Help_B_Click"/>
             <Button x:Name="Language_Left_B" Content="←" Height="60" VerticalAlignment="Top" Width="60" Margin="-2050,892,0,0" FontSize="40" BorderBrush="Aqua" Foreground="Aqua" Background="Transparent" Focusable="False" Click="Language_Left_B_Click"/>
             <Button x:Name="Language_Right_B" Content="→" Height="60" VerticalAlignment="Top" Width="60" Margin="-1525,892,0,0" FontSize="40" BorderBrush="Aqua" Foreground="Aqua" Background="Transparent" Focusable="False" Click="Language_Right_B_Click"/>
             <TextBlock x:Name="Message_T" Height="92" Width="600" Foreground="Aqua" FontSize="35" Margin="-2920,788,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" TextAlignment="Center"/>

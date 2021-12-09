@@ -106,9 +106,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             File.Delete(Voice_Set.Special_Path + "/Wwise_Parse/" + Temp_Name + ".xml");
             //通常のイベントIDを挿入
             for (int Number = 0; Number < 40; Number++)
-            {
                 WoT_Event_ID.Add(new List<uint>());
-            }
             Wot_Event_IDs_Clear();
             IsSelected = true;
         }

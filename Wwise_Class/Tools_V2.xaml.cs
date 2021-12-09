@@ -437,7 +437,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                         {
                             Message_T.Text = Path.GetFileName(File_Now) + "を変換しています...";
                             await Task.Delay(50);
-                            Sub_Code.WEM_To_File(File_Now, Path.GetDirectoryName(File_Now) + "/" + Path.GetFileNameWithoutExtension(File_Now) + ".mp3", "mp3", false);
+                            Sub_Code.WEM_To_File(File_Now, Path.GetDirectoryName(File_Now) + "/" + Path.GetFileNameWithoutExtension(File_Now) + ".wav", "wav", false);
                         }
                     }
                     Message_Feed_Out("変換しました。");

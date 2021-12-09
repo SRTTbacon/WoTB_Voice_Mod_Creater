@@ -50,6 +50,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         int WAVEForm_Image_Height = 0;
         //曲のリストのインデックス:0～8
         int Music_Select_List = 0;
+        int Music_Select_Index_Before = -1;
         float Music_Frequency = 44100f;
         double X_Move = 0;
         double Y_Move = 0;
@@ -114,8 +115,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 try
                 {
-                    Sub_Code.File_Decrypt(Voice_Set.Special_Path + "/Configs/Other_Music_List.dat", Voice_Set.Special_Path + "/Configs/Temp_Other_Music_List.dat", "SRTTbacon_Music_List_Save", false);
-                    StreamReader str = new StreamReader(Voice_Set.Special_Path + "/Configs/Temp_Other_Music_List.dat");
+                    StreamReader str = Sub_Code.File_Decrypt_To_Stream(Voice_Set.Special_Path + "/Configs/Other_Music_List.dat", "SRTTbacon_Music_List_Save");
                     for (int Number = 0; Number < 9; Number++)
                     {
                         File_Full_Path[Number].Clear();
@@ -141,7 +141,6 @@ namespace WoTB_Voice_Mod_Creater.Class
                         }
                     }
                     str.Close();
-                    File.Delete(Voice_Set.Special_Path + "/Configs/Temp_Other_Music_List.dat");
                     Music_List_Sort();
                     Already_Played_Path.Clear();
                     if (IsListSave)
@@ -164,8 +163,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 try
                 {
-                    Sub_Code.File_Decrypt(Voice_Set.Special_Path + "/Configs/Music_Player.conf", Voice_Set.Special_Path + "/Configs/Temp_Music_Player.tmp", "Music_Player_Configs_Save", false);
-                    StreamReader str = new StreamReader(Voice_Set.Special_Path + "/Configs/Temp_Music_Player.tmp");
+                    StreamReader str = Sub_Code.File_Decrypt_To_Stream(Voice_Set.Special_Path + "/Configs/Music_Player.conf", "Music_Player_Configs_Save");
                     Video_Mode_C.IsChecked = bool.Parse(str.ReadLine());
                     Loop_C.IsChecked = bool.Parse(str.ReadLine());
                     Random_C.IsChecked = bool.Parse(str.ReadLine());
@@ -197,7 +195,6 @@ namespace WoTB_Voice_Mod_Creater.Class
                     {
                     }
                     str.Close();
-                    File.Delete(Voice_Set.Special_Path + "/Configs/Temp_Music_Player.tmp");
                 }
                 catch (Exception e)
                 {
@@ -228,6 +225,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             else
                 Window_Bar_Canvas.Margin = new Thickness(0, 0, 0, 0);
             IsSaveOK = true;
+            Music_List.SelectedIndex = Music_Select_Index_Before;
             while (Opacity < 1 && !IsBusy)
             {
                 Opacity += Sub_Code.Window_Feed_Time;
@@ -344,6 +342,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                         Device_L.Margin = new Thickness(-2100, 700, 0, 0);
                         WAVEForm_Gray_Image.Source = null;
                         WAVEForm_Color_Image.Source = null;
+                        Window_Bar_Canvas.Margin = new Thickness(0, 0, 0, 0);
                     }
                     IsEnded = false;
                 }
@@ -528,6 +527,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 WAVEForm_Gray_Image.Source = null;
                 WAVEForm_Color_Image.Source = null;
                 List_Remove_Index();
+                Video_Mode_Change(false);
             }
         }
         private void Music_List_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -608,6 +608,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                     WAVEForm_Gray_Image.Visibility = Visibility.Hidden;
                     WAVEForm_Color_Image.Visibility = Visibility.Hidden;
                     WAVEForm_C.IsChecked = false;
+                    Window_Bar_Canvas.Margin = new Thickness(0, 0, 0, 0);
                 }
                 else
                 {
@@ -639,6 +640,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                     WF_Color.ColorLeftEnvelope = Color.Transparent;
                     WF_Color.ColorRightEnvelope = Color.Transparent;
                     WF_Color.RenderStart(true, BASSFlag.BASS_DEFAULT);
+                    Window_Bar_Canvas.Margin = new Thickness(0, 0, 0, 0);
                 }
             }
             else
@@ -728,10 +730,10 @@ namespace WoTB_Voice_Mod_Creater.Class
             IsLocationChanging = false;
             if (WAVEForm_Color_Image.Visibility == Visibility.Visible)
                 WAVEForm_Color_Image.Width = (Location_S.Value / Location_S.Maximum) * WAVEForm_Image_Width;
+            Bass.BASS_ChannelSetPosition(Stream, Location_S.Value);
             if (IsPlayingMouseDown)
             {
                 IsPaused = false;
-                Bass.BASS_ChannelSetPosition(Stream, Location_S.Value);
                 Play_Volume_Animation(10);
                 IsPlayingMouseDown = false;
             }
@@ -973,6 +975,8 @@ namespace WoTB_Voice_Mod_Creater.Class
                 WAVEForm_C.Visibility = Visibility.Hidden;
                 WAVEForm_T.Visibility = Visibility.Hidden;
                 List_Number_T.Visibility = Visibility.Hidden;
+                Page_Next_B.Visibility = Visibility.Hidden;
+                Page_Back_B.Visibility = Visibility.Hidden;
                 Zoom_T.Visibility = Visibility.Visible;
                 Zoom_S.Visibility = Visibility.Visible;
                 Music_Fix_B.Visibility = Visibility.Visible;
@@ -1017,6 +1021,8 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Ex_Sort_C.Visibility = Visibility.Visible;
                 Ex_Sort_T.Visibility = Visibility.Visible;
                 List_Number_T.Visibility = Visibility.Visible;
+                Page_Next_B.Visibility = Visibility.Visible;
+                Page_Back_B.Visibility = Visibility.Visible;
                 if (IsShowWAVEForm)
                 {
                     WAVEForm_Gray_Image.Visibility = Visibility.Visible;
@@ -1089,6 +1095,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             if (!IsBusy)
             {
                 IsBusy = true;
+                Music_Select_Index_Before = Music_List.SelectedIndex;
                 bool IsPaused_Now = IsPaused;
                 if (!Background_C.IsChecked.Value)
                     Pause_Volume_Animation(false, 25);
@@ -1182,9 +1189,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         private void Video_V_MouseDown(object sender, MouseButtonEventArgs e)
         {
             if (IsBusy)
-            {
                 return;
-            }
             Mouse_Point.X = System.Windows.Forms.Cursor.Position.X;
             Mouse_Point.Y = System.Windows.Forms.Cursor.Position.Y;
             Video_Point.X = Video_V.Margin.Left;
@@ -1251,9 +1256,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         private void Message_B_Click(object sender, RoutedEventArgs e)
         {
             if (IsBusy)
-            {
                 return;
-            }
             string Message_01 = "・音楽ファイル、リストはサーバーに送信されません。\n";
             string Message_02 = "・一時フォルダの\"Other_Music_List.dat\"を削除するとリストが初期化されます。(ソフトの再起動が必要)\n";
             string Message_03 = "・音楽ファイルが見つからない場合はリストから削除されます。\n";
@@ -1305,10 +1308,8 @@ namespace WoTB_Voice_Mod_Creater.Class
                 if (File_Full_Path[Music_Select_List].Count == 0)
                 {
                     for (int Number_02 = 0; Number_02 < File_Full_Path.Count; Number_02++)
-                    {
                         if (File_Full_Path[Number_02].Count > 0)
                             Number_01 = Number_02;
-                    }
                 }
                 else
                     Number_01 = Music_Select_List;
@@ -1477,19 +1478,6 @@ namespace WoTB_Voice_Mod_Creater.Class
                 {
                     Video_V.SpeedRatio = Pitch_Speed_S.Value / 50;
                     await Task.Delay(100);
-                    if (Music_List_T.Visibility != Visibility.Visible)
-                    {
-                        Video_V.Pause();
-                        Bass.BASS_ChannelPause(Stream);
-                        Video_V.Position = TimeSpan.FromSeconds(Location_S.Value);
-                        Bass.BASS_ChannelSetPosition(Stream, Video_V.Position.TotalSeconds - 0.1);
-                        await Task.Delay(50);
-                        if (!IsPaused)
-                        {
-                            Bass.BASS_ChannelPlay(Stream, false);
-                            Video_V.Play();
-                        }
-                    }
                 }
             }
             else
@@ -1515,18 +1503,21 @@ namespace WoTB_Voice_Mod_Creater.Class
                 {
                     Video_V.SpeedRatio = 1 + Speed_S.Value / 100;
                     await Task.Delay(100);
-                    if (Music_List_T.Visibility != Visibility.Visible)
+                }
+            }
+            if (Music_List_T.Visibility != Visibility.Visible)
+            {
+                if (Music_List_T.Visibility != Visibility.Visible)
+                {
+                    Video_V.Pause();
+                    Bass.BASS_ChannelPause(Stream);
+                    Video_V.Position = TimeSpan.FromSeconds(Location_S.Value);
+                    Bass.BASS_ChannelSetPosition(Stream, Video_V.Position.TotalSeconds - 0.1);
+                    await Task.Delay(50);
+                    if (!IsPaused)
                     {
-                        Video_V.Pause();
-                        Bass.BASS_ChannelPause(Stream);
-                        Video_V.Position = TimeSpan.FromSeconds(Location_S.Value);
-                        Bass.BASS_ChannelSetPosition(Stream, Video_V.Position.TotalSeconds - 0.1);
-                        await Task.Delay(50);
-                        if (!IsPaused)
-                        {
-                            Bass.BASS_ChannelPlay(Stream, false);
-                            Video_V.Play();
-                        }
+                        Bass.BASS_ChannelPlay(Stream, false);
+                        Video_V.Play();
                     }
                 }
             }
@@ -1585,6 +1576,9 @@ namespace WoTB_Voice_Mod_Creater.Class
             Music_Select_List = Index;
             List_Number_T.Text = "リスト番号:" + (Music_Select_List + 1);
             Pause_Volume_Animation(true, 10f);
+            Video_Change_B.Visibility = Visibility.Hidden;
+            Device_T.Margin = new Thickness(-2100, 640, 0, 0);
+            Device_L.Margin = new Thickness(-2100, 690, 0, 0);
             Video_Mode_Change(false);
             Music_List.Items.Clear();
             Music_List_Sort();
@@ -1726,6 +1720,20 @@ namespace WoTB_Voice_Mod_Creater.Class
                 int Select_Index = File_Name_Path[Music_Select_List].IndexOf(Music_List.Items[Index].ToString().Replace("System.Windows.Controls.ListBoxItem: ", ""));
                 Already_Played_Path.Add(File_Full_Path[Music_Select_List][Select_Index]);
             }
+        }
+        private void Page_Next_B_Click(object sender, RoutedEventArgs e)
+        {
+            if (IsBusy)
+                return;
+            if (Music_Select_List < 8)
+                Music_List_Change(Music_Select_List + 1);
+        }
+        private void Page_Back_B_Click(object sender, RoutedEventArgs e)
+        {
+            if (IsBusy)
+                return;
+            if (Music_Select_List > 0)
+                Music_List_Change(Music_Select_List - 1);
         }
     }
 }

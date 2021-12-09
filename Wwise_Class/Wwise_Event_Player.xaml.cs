@@ -215,7 +215,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         {
             if (IsClosing)
                 return;
-            if (!Wwise_Player.IsExecution || !Wwise_Player.IsInited())
+            if (Wwise_Player.IsExecution)
             {
                 Message_Feed_Out("内容がクリアされていません。先に右下のクリアボタンを押す必要があります。");
                 return;
@@ -230,6 +230,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             {
                 try
                 {
+                    Wwise_Player.Dispose();
                     Wwise_Player.Init(ofd.FileName, 1, Volume_S.Value / 100);
                     Init_Bank_B.Visibility = Visibility.Hidden;
                     Init_Bank_Help_B.Visibility = Visibility.Hidden;
@@ -310,7 +311,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                             if (Temp[Number_01].All(char.IsDigit))
                             {
                                 Temp_01.Event_Name = "";
-                                Temp_01.Event_ID = uint.Parse(Event_Name_List.Items[Event_Name_List.SelectedIndex].ToString());
+                                Temp_01.Event_ID = uint.Parse(Temp[Number_01]);
                             }
                             else
                             {
@@ -443,8 +444,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 Location_S.Value = 0;
                 Location_S.Maximum = 0;
                 Location_T.Text = "00:00";
-                if (Wwise_Player.IsExecution && Wwise_Player.IsInited())
-                    Wwise_Player.Dispose();
+                Wwise_Player.Dispose();
                 Init_Bank_B.Visibility = Visibility.Visible;
                 Init_Bank_Help_B.Visibility = Visibility.Visible;
                 Bank_Name_T.Text = "";

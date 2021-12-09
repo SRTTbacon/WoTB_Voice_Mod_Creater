@@ -13,7 +13,9 @@
             <Button x:Name="Open_PCK_B" Content="PCKを追加" Height="75" VerticalAlignment="Top" Width="350" Background="Transparent" Margin="-920,100,0,0" Foreground="Aqua" BorderBrush="Aqua" FontSize="38" Click="Open_PCK_B_Click"/>
             <Button x:Name="Open_Init_B" Content="Init.bnkを開く" Height="75" VerticalAlignment="Top" Width="350" Background="Transparent" Margin="-1820,225,0,0" Foreground="Aqua" BorderBrush="Aqua" FontSize="38" Click="Open_Init_B_Click"/>
             <Button x:Name="Open_JSON_B" Content="SoundbanksInfoを開く" Height="75" VerticalAlignment="Top" Width="350" Background="Transparent" Margin="-920,225,0,0" Foreground="Aqua" BorderBrush="Aqua" FontSize="33.5" Click="Open_JSON_B_Click"/>
-            <Button x:Name="Create_B" Content="プロジェクトを生成" Height="75" VerticalAlignment="Top" Width="350" Background="Transparent" Margin="-1375,525,0,0" Foreground="Aqua" BorderBrush="Aqua" FontSize="36" Click="Create_B_Click"/>
+            <Button x:Name="Create_B" Content="プロジェクトを生成" Height="75" VerticalAlignment="Top" Width="350" Background="Transparent" Margin="-1375,605,0,0" Foreground="Aqua" BorderBrush="Aqua" FontSize="36" Click="Create_B_Click"/>
+            <Button x:Name="Change_Name_B" Content="名前部分を別プロジェクトから移植" Height="75" VerticalAlignment="Top" Width="475" Background="Transparent" Margin="-1375,800,0,0" Foreground="Aqua" BorderBrush="Aqua" FontSize="32" Click="Change_Name_B_Click"/>
+            <Button x:Name="Change_Name_Help_B" Content="?" Height="75" VerticalAlignment="Top" Width="75" Background="Transparent" Margin="-815,800,0,0" Foreground="Aqua" BorderBrush="Aqua" FontSize="32" Click="Change_Name_Help_B_Click"/>
             <Button x:Name="Clear_B" Content="クリア" Height="70" VerticalAlignment="Top" Width="304" Background="Transparent" Margin="-1920,1010,0,0" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Click="Clear_B_Click"/>
             <ListBox x:Name="Info_List" Height="650" VerticalAlignment="Top" Width="500" Background="Transparent" FontSize="37" Margin="-3200,200,0,0" Foreground="Aqua" BorderBrush="Aqua"/>
             <TextBlock Height="50" TextWrapping="Wrap" Text="情報" VerticalAlignment="Top" Width="248" Foreground="Aqua" FontSize="40" Margin="-3200,125,0,0" TextAlignment="Center"/>
@@ -22,8 +24,10 @@
             <Button x:Name="Delete_B" Content="取消" Height="75" VerticalAlignment="Top" Width="250" Background="Transparent" Margin="-3450,850,0,0" Foreground="Aqua" BorderBrush="Aqua" FontSize="38" Click="Delete_B_Click"/>
             <CheckBox x:Name="Include_Sound_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-1750,375,0,0"/>
             <CheckBox x:Name="No_SoundInfo_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-1750,455,0,0" Click="No_SoundInfo_C_Click"/>
-            <TextBlock Height="50" TextWrapping="Wrap" Text="SoundbanksInfoを無視" VerticalAlignment="Top" Width="375" Foreground="Aqua" FontSize="37" Margin="-1325,435,0,0" TextAlignment="Center"/>
+            <CheckBox x:Name="Name_Generate_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-1750,535,0,0" Click="Name_Generate_C_Click"/>
             <TextBlock Height="50" TextWrapping="Wrap" Text="サウンドを抽出しない" VerticalAlignment="Top" Width="305" Foreground="Aqua" FontSize="37" Margin="-1395,360,0,0" TextAlignment="Center"/>
+            <TextBlock Height="50" TextWrapping="Wrap" Text="SoundbanksInfoを無視" VerticalAlignment="Top" Width="375" Foreground="Aqua" FontSize="37" Margin="-1325,435,0,0" TextAlignment="Center"/>
+            <TextBlock x:Name="Name_Generate_T" Height="50" TextWrapping="Wrap" Text="WoTに適応できるように" VerticalAlignment="Top" Width="353" Foreground="Red" FontSize="37" Margin="-1345,517,0,0" TextAlignment="Center"/>
         </DockPanel>
     </Viewbox>
 </UserControl>

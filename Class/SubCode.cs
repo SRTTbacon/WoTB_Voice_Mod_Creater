@@ -18,6 +18,11 @@ using System.Windows.Media.Imaging;
 
 namespace WoTB_Voice_Mod_Creater
 {
+    public enum Encode_Mode
+    {
+        MP3,
+        WAV
+    }
     public class Sub_Code
     {
         public const string Random_String = "0123456789abcdefghijklmnopqrstuvwxyz";
@@ -29,8 +34,11 @@ namespace WoTB_Voice_Mod_Creater
         public static string IsWwise_Blitz_Update = "1.0";
         public static string IsWwise_Hits_Update = "1.0";
         public static string IsWwise_Gun_Update = "1.0";
+        public static string IsWwise_WoT_Gun_Update = "1.0";
         public static string IsWwise_WoT_Update = "1.0";
         public static string IsWwise_Player_Update = "1.0";
+        public static string IsWwise_UI_Button_Sound = "1.0";
+        public static string SE_Version = "1.0";
         public static bool IsWindowBarShow = true;
         public static readonly string[] Default_Name = { "ally_killed_by_player", "ammo_bay_damaged", "armor_not_pierced_by_player", "armor_pierced_by_player", "armor_pierced_crit_by_player", "armor_ricochet_by_player",
         "commander_killed","driver_killed","enemy_fire_started_by_player","enemy_killed_by_player","engine_damaged","engine_destroyed","engine_functional","fire_started","fire_stopped",
@@ -45,7 +53,6 @@ namespace WoTB_Voice_Mod_Creater
         static bool IsVolumeSet = false;
         static bool IsDVPLEncode = false;
         static bool IsModChange = false;
-        static bool IsAndroidMode = false;
         static bool IsDefaultVoiceMode = false;
         public static bool ServerCreate
         {
@@ -71,11 +78,6 @@ namespace WoTB_Voice_Mod_Creater
         {
             get { return IsModChange; }
             set { IsModChange = value; }
-        }
-        public static bool AndroidMode
-        {
-            get { return IsAndroidMode; }
-            set { IsAndroidMode = value; }
         }
         public static List<string> AutoListAdd
         {
@@ -111,8 +113,6 @@ namespace WoTB_Voice_Mod_Creater
                 DLL_List.Add("bassenc.dll");
             if (!File.Exists(DLL_Path + "/bassmix.dll"))
                 DLL_List.Add("bassmix.dll");
-            if (!File.Exists(DLL_Path + "/libmp3lame.32.dll"))
-                DLL_List.Add("libmp3lame.32.dll");
             return DLL_List;
         }
         //.dvplを抜いたファイルパスからファイルが存在するか
@@ -233,6 +233,8 @@ namespace WoTB_Voice_Mod_Creater
         //ディレクトリをコピー(サブフォルダを含む)
         public static void Directory_Copy(string From_Dir, string To_Dir)
         {
+            if (!Directory.Exists(From_Dir))
+                return;
             try
             {
                 if (!Directory.Exists(To_Dir))
@@ -241,16 +243,16 @@ namespace WoTB_Voice_Mod_Creater
                 if (!dir.Exists)
                     return;
                 DirectoryInfo[] dirs = dir.GetDirectories();
-                Directory.CreateDirectory(To_Dir);
+                Directory.CreateDirectory(To_Dir + "\\" + Path.GetFileName(From_Dir));
                 FileInfo[] files = dir.GetFiles();
                 foreach (FileInfo file in files)
                 {
-                    string tempPath = Path.Combine(To_Dir, file.Name);
+                    string tempPath = Path.Combine(To_Dir + "\\" + Path.GetFileName(From_Dir), file.Name);
                     file.CopyTo(tempPath, true);
                 }
                 foreach (DirectoryInfo subdir in dirs)
                 {
-                    string tempPath = Path.Combine(To_Dir, subdir.Name);
+                    string tempPath = Path.Combine(To_Dir + "\\" + Path.GetFileName(From_Dir), subdir.Name);
                     Directory_Copy(subdir.FullName, tempPath);
                 }
             }
@@ -699,11 +701,11 @@ namespace WoTB_Voice_Mod_Creater
                 Sub_Code.Error_Log_Write(e.Message);
             }
         }
-        //MP3形式のファイルの音量を調整
-        public static void MP3_Volume_Set(string To_Dir, int Gain = 10)
+        //MP3またはWAV形式のファイルの音量を調整
+        public static void Volume_Set(string To_Dir, Encode_Mode Mode, int Gain = 10)
         {
             string File_Import = "";
-            string[] Files_03 = Directory.GetFiles(To_Dir, "*.mp3", SearchOption.TopDirectoryOnly);
+            string[] Files_03 = Directory.GetFiles(To_Dir, "*." + Mode.ToString().ToLower(), SearchOption.TopDirectoryOnly);
             foreach (string File_Now in Files_03)
             {
                 if (File_Import == "")
@@ -713,28 +715,33 @@ namespace WoTB_Voice_Mod_Creater
                 //Windowsのコマンドプロンプトは8191文字までしか入力できないため、この時点で8000文字を超えていたら実行
                 if (File_Import.Length > 8000)
                 {
-                    Volume_Set_Start(File_Import, Gain);
+                    Volume_Set_Start(File_Import, Mode, Gain);
                     File_Import = "";
                 }
             }
             if (File_Import != "")
-                Volume_Set_Start(File_Import, Gain);
+                Volume_Set_Start(File_Import, Mode, Gain);
         }
-        public static void Volume_Set_Start(string File_Import, int Gain = 10)
+        public static void Volume_Set_Start(string File_Import, Encode_Mode Mode, int Gain = 10)
         {
-            StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Encode_Mp3/Volume_Set.bat");
-            stw.WriteLine("chcp 65001");
-            stw.Write("\"" + Voice_Set.Special_Path + "/Encode_Mp3/mp3gain.exe\" -r -c -p -d " + Gain + " " + File_Import);
-            stw.Close();
-            ProcessStartInfo processStartInfo1 = new ProcessStartInfo
+            if (Mode == Encode_Mode.MP3)
             {
-                FileName = Voice_Set.Special_Path + "/Encode_Mp3/Volume_Set.bat",
-                CreateNoWindow = true,
-                UseShellExecute = false
-            };
-            Process p = Process.Start(processStartInfo1);
-            p.WaitForExit();
-            File.Delete(Voice_Set.Special_Path + "/Encode_Mp3/Volume_Set.bat");
+                StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Encode_Mp3/Volume_Set.bat");
+                stw.WriteLine("chcp 65001");
+                stw.Write("\"" + Voice_Set.Special_Path + "/Encode_Mp3/mp3gain.exe\" -r -c -p -d " + Gain + " " + File_Import);
+                stw.Close();
+                ProcessStartInfo processStartInfo1 = new ProcessStartInfo
+                {
+                    FileName = Voice_Set.Special_Path + "/Encode_Mp3/Volume_Set.bat",
+                    CreateNoWindow = true,
+                    UseShellExecute = false
+                };
+                Process p = Process.Start(processStartInfo1);
+                p.WaitForExit();
+                File.Delete(Voice_Set.Special_Path + "/Encode_Mp3/Volume_Set.bat");
+            }
+            else if (Mode == Encode_Mode.WAV)
+                Set_WAV_Gain(File_Import, Gain);
         }
         //ファイルがMP3形式か判定してファイル拡張子を.rawに変更する
         public static void Check_MP3_Rename(string Dir)
@@ -796,41 +803,27 @@ namespace WoTB_Voice_Mod_Creater
             }
             return Voice_List;
         }
-        //.fdpファイルから.fev + .fsbを作成する
-        //例:Test.fdp -> Test.fevとTest.fsbを作成
-        public static async Task Project_Build(string Project_File, System.Windows.Controls.TextBlock Message_T)
+        public static List<string> Check_WAV_Get_List(string Dir, bool IsRename)
         {
-            StreamWriter stw2 = File.CreateText(Voice_Set.Special_Path + "/Fmod_Designer/BGM_Create.bat");
-            stw2.Write("\"" + Voice_Set.Special_Path + "/Fmod_Designer/fmod_designercl.exe\" -pc -adpcm \"" + Project_File + "\"");
-            stw2.Close();
-            Process p2 = new Process();
-            p2.StartInfo.FileName = Voice_Set.Special_Path + "/Fmod_Designer/BGM_Create.bat";
-            p2.StartInfo.CreateNoWindow = true;
-            p2.StartInfo.UseShellExecute = false;
-            p2.Start();
-            int Number_01 = 2;
-            while (true)
+            List<string> Voice_List = new List<string>();
+            string[] Files_01 = Directory.GetFiles(Dir, "*.*", SearchOption.TopDirectoryOnly);
+            foreach (string File_Now in Files_01)
             {
-                if (Number_01 == 0)
-                    Message_T.Text = "FSBファイルを作成しています.";
-                else if (Number_01 == 1)
-                    Message_T.Text = "FSBファイルを作成しています..";
-                else if (Number_01 == 2)
+                if (!Audio_IsWAV(File_Now))
                 {
-                    Message_T.Text = "FSBファイルを作成しています...";
-                    Number_01 = -1;
+                    if (Path.GetExtension(File_Now) == ".wav" && IsRename)
+                    {
+                        string To_File = Path.GetDirectoryName(File_Now) + "\\" + Path.GetFileNameWithoutExtension(File_Now) + ".raw";
+                        Sub_Code.File_Move(File_Now, To_File, false);
+                        Voice_List.Add(To_File);
+                    }
+                    else
+                        Voice_List.Add(File_Now);
                 }
-                if (p2.HasExited)
-                {
-                    p2.Close();
-                    break;
-                }
-                Number_01++;
-                await Task.Delay(1000);
+                else if (Path.GetExtension(File_Now) != ".wav" && IsRename)
+                    Sub_Code.File_Move(File_Now, Path.GetDirectoryName(File_Now) + "\\" + Path.GetFileNameWithoutExtension(File_Now) + ".wav", false);
             }
-            File.Delete(Voice_Set.Special_Path + "/Fmod_Designer/BGM_Create.bat");
-            File.Delete(Directory.GetCurrentDirectory() + "/fmod_designer.log");
-            File.Delete(Directory.GetCurrentDirectory() + "/undo-log.txt");
+            return Voice_List;
         }
         //現在の時間を文字列で取得
         //引数:DateTime.Now,間に入れる文字,どの部分から開始するか,どの部分で終了するか(その数字の部分は含まれる)
@@ -869,80 +862,6 @@ namespace WoTB_Voice_Mod_Creater
                     return dt.Second.ToString();
             }
             return "";
-        }
-        //sounds.yamlの中身が古かった場合サーバーに置いてある最新のものと比較して置き換える
-        //本当にWoTBの仕様が変わると思っていなかったのでこの方法でしていて良かったです...
-        public static void Sounds_Yaml_Update(string File_Path, string To_Path, bool IsDVPLEncode)
-        {
-            try
-            {
-                Voice_Set.FTPClient.DownloadFile("/WoTB_Voice_Mod/Mods/Backup/sounds.yaml.dvpl", Voice_Set.Special_Path + "/Temp_Download_Sounds.yaml.dvpl");
-                DVPL.DVPL_UnPack(Voice_Set.Special_Path + "/Temp_Download_Sounds.yaml.dvpl", Voice_Set.Special_Path + "/Temp_Download_Sounds.yaml", true);
-                string Server_File = Voice_Set.Special_Path + "/Temp_Download_Sounds.yaml";
-                StreamReader str = new StreamReader(File_Path);
-                bool IsSoundsIn = false;
-                while (str.EndOfStream == false)
-                {
-                    string Line = str.ReadLine();
-                    //この方法で大丈夫そうですが、念のためgui_sounds:を追加
-                    if (Line.Contains("sounds:") || Line.Contains("gui_sounds:"))
-                        IsSoundsIn = true;
-                    if (IsSoundsIn)
-                        Sounds_Yaml_IsUpdate(Server_File, Line);
-                }
-                str.Close();
-                StreamReader str2 = new StreamReader(Server_File);
-                string Read_All = str2.ReadToEnd();
-                str2.Close();
-                File.Delete(Server_File);
-                StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Temp_DVPL.yaml");
-                stw.Write(Read_All);
-                stw.Close();
-                if (IsDVPLEncode)
-                    DVPL.DVPL_Pack(Voice_Set.Special_Path + "/Temp_DVPL.yaml", To_Path, true);
-                else
-                    File.Copy(Voice_Set.Special_Path + "/Temp_DVPL.yaml", To_Path, true);
-            }
-            catch
-            {
-                //サーバーにsounds.yaml.dvplが存在しない場合
-            }
-        }
-        static bool Sounds_Yaml_IsUpdate(string Server_File, string Line)
-        {
-            if (Line == "" || !Line.Contains(":"))
-                return false;
-            string Line_Head = Line.Substring(0, Line.IndexOf(':'));
-            string line_01;
-            StreamReader str = new StreamReader(Server_File);
-            string Read_All = str.ReadToEnd();
-            str.Close();
-            bool IsChanging = false;
-            StreamReader file_01 = new StreamReader(Server_File);
-            while ((line_01 = file_01.ReadLine()) != null)
-            {
-                if (line_01.Contains(":"))
-                {
-                    if (line_01.Substring(0, line_01.IndexOf(':')) == Line_Head)
-                    {
-                        if (Line != line_01)
-                        {
-                            IsChanging = true;
-                            file_01.Close();
-                            break;
-                        }
-                    }
-                }
-            }
-            if (!IsChanging)
-            {
-                file_01.Close();
-                return false;
-            }
-            StreamWriter stw = File.CreateText(Server_File);
-            stw.Write(Read_All.Replace(line_01, Line));
-            stw.Close();
-            return true;
         }
         //文字列に日本語が含まれていたらtrueを返す
         public static bool IsTextIncludeJapanese(string text)
@@ -1037,13 +956,9 @@ namespace WoTB_Voice_Mod_Creater
             try
             {
                 using (FileStream fs = new FileStream(File_Path, FileMode.Open))
-                {
                     using (BinaryReader br = new BinaryReader(fs))
-                    {
                         if (Encoding.ASCII.GetString(br.ReadBytes(4)) == "RIFF")
                             Temp = true;
-                    }
-                }
             }
             catch
             {
@@ -1123,7 +1038,7 @@ namespace WoTB_Voice_Mod_Creater
         }
         //ファイルを復号化
         //引数:元ファイルのパス,復号先のパス,元ファイルを削除するか
-        public static bool File_Decrypt(string From_File, string To_File, string Password, bool IsFromFileDelete)
+        public static bool File_Decrypt_To_File(string From_File, string To_File, string Password, bool IsFromFileDelete)
         {
             try
             {
@@ -1132,7 +1047,7 @@ namespace WoTB_Voice_Mod_Creater
                 using (var eifs = new FileStream(From_File, FileMode.Open, FileAccess.Read))
                 {
                     using (var eofs = new FileStream(To_File, FileMode.Create, FileAccess.Write))
-                        FileEncode.FileEncryptor.Decrypt(eifs, eofs, Password);
+                        FileEncode.FileEncryptor.Decrypt_To_File(eifs, eofs, Password);
                 }
                 if (IsFromFileDelete)
                     File.Delete(From_File);
@@ -1144,6 +1059,21 @@ namespace WoTB_Voice_Mod_Creater
                 return false;
             }
         }
+        public static StreamReader File_Decrypt_To_Stream(string From_File, string Password)
+        {
+            try
+            {
+                StreamReader str = null;
+                using (var eifs = new FileStream(From_File, FileMode.Open, FileAccess.Read))
+                    str = FileEncode.FileEncryptor.Decrypt_To_Stream(eifs, Password);
+                return str;
+            }
+            catch (Exception e)
+            {
+                Sub_Code.Error_Log_Write(e.Message);
+                return null;
+            }
+        }
         //フォルダ選択画面の初期フォルダを取得
         public static string Get_OpenDirectory_Path()
         {
@@ -1152,13 +1082,11 @@ namespace WoTB_Voice_Mod_Creater
             {
                 try
                 {
-                    Sub_Code.File_Decrypt(Voice_Set.Special_Path + "/Configs/OpenDirectoryPath.dat", Voice_Set.Special_Path + "/Configs/OpenDirectoryPath.tmp", "Directory_Save_SRTTbacon", false);
-                    StreamReader str = new StreamReader(Voice_Set.Special_Path + "/Configs/OpenDirectoryPath.tmp");
+                    StreamReader str = File_Decrypt_To_Stream(Voice_Set.Special_Path + "/Configs/OpenDirectoryPath.dat", "Directory_Save_SRTTbacon");
                     string Read = str.ReadLine();
                     str.Close();
                     if (Directory.Exists(Read))
                         InDir = Read;
-                    File.Delete(Voice_Set.Special_Path + "/Configs/OpenDirectoryPath.tmp");
                 }
                 catch
                 {
@@ -1187,6 +1115,8 @@ namespace WoTB_Voice_Mod_Creater
         //フォルダ内のファイルを削除
         public static void Directory_Delete(string Dir)
         {
+            if (!Directory.Exists(Dir))
+                return;
             string[] Files = Directory.GetFiles(Dir, "*", SearchOption.AllDirectories);
             foreach (string File_Now in Files)
             {
@@ -1254,7 +1184,7 @@ namespace WoTB_Voice_Mod_Creater
             {
                 if (!File.Exists(From_WEM_File))
                     return false;
-                /*Process wwToOgg = new Process();
+                Process wwToOgg = new Process();
                 wwToOgg.StartInfo.FileName = Voice_Set.Special_Path + "/Wwise/ww2ogg.exe";
                 wwToOgg.StartInfo.WorkingDirectory = Voice_Set.Special_Path + "/Wwise";
                 wwToOgg.StartInfo.Arguments = "--pcb packed_codebooks_aoTuV_603.bin -o \"" + Voice_Set.Special_Path + "\\Wwise\\Temp.ogg\" \"" + From_WEM_File + "\"";
@@ -1264,29 +1194,11 @@ namespace WoTB_Voice_Mod_Creater
                 wwToOgg.StartInfo.RedirectStandardOutput = true;
                 wwToOgg.Start();
                 wwToOgg.WaitForExit();
-                Process revorb = new Process();
-                revorb.StartInfo.FileName = Voice_Set.Special_Path + "/Wwise/revorb.exe";
-                revorb.StartInfo.Arguments = "\"" + Voice_Set.Special_Path + "\\Wwise\\Temp.ogg\"" + "\"";
-                revorb.StartInfo.CreateNoWindow = true;
-                revorb.StartInfo.UseShellExecute = false;
-                revorb.StartInfo.RedirectStandardError = true;
-                revorb.Start();
-                revorb.WaitForExit();*/
-                Wwise_Class.WEM_To_OGG.Create_OGG(From_WEM_File, Voice_Set.Special_Path + "\\Wwise\\Temp.ogg");
+                //Wwise_Class.WEM_To_OGG.Create_OGG(From_WEM_File, Voice_Set.Special_Path + "\\Wwise\\Temp.ogg");
                 if (File.Exists(Voice_Set.Special_Path + "\\Wwise\\Temp.ogg"))
                 {
                     if (Encode_Mode == "ogg")
-                    {
-                        Process revorb = new Process();
-                        revorb.StartInfo.FileName = Voice_Set.Special_Path + "/Encode_Mp3/ffmpeg.exe";
-                        revorb.StartInfo.Arguments = "-y -i \"" + Voice_Set.Special_Path + "\\Wwise\\Temp.ogg\" -acodec copy \"" + To_Audio_File + "\"";
-                        revorb.StartInfo.CreateNoWindow = true;
-                        revorb.StartInfo.UseShellExecute = false;
-                        revorb.StartInfo.RedirectStandardError = true;
-                        revorb.Start();
-                        revorb.WaitForExit();
-                        File.Delete(Voice_Set.Special_Path + "\\Wwise\\Temp.ogg");
-                    }
+                        Sub_Code.File_Move(Voice_Set.Special_Path + "\\Wwise\\Temp.ogg", To_Audio_File, true);
                     else if (Encode_Mode == "wav")
                     {
                         Un4seen.Bass.Misc.EncoderWAV w = new Un4seen.Bass.Misc.EncoderWAV(0);
@@ -1689,9 +1601,7 @@ namespace WoTB_Voice_Mod_Creater
                             string Actor_Version_Now = str3.ReadLine();
                             str3.Close();
                             if (IsWwise_Blitz_Actor_Update != Actor_Version_Now)
-                            {
                                 Actor_Mixer_Update(IsWwise_Blitz_Actor_Update);
-                            }
                         }
                         else
                             Actor_Mixer_Update(IsWwise_Blitz_Actor_Update);
@@ -2290,6 +2200,8 @@ namespace WoTB_Voice_Mod_Creater
         }
         public static void Set_WAV_Gain(string WAV_File, double Gain)
         {
+            if (WAV_File == "")
+                return;
             if (Gain <= -20)
                 Gain = -19.9;
             else if (Gain >= 12)
@@ -2297,7 +2209,10 @@ namespace WoTB_Voice_Mod_Creater
             int Number = r.Next(0, 10000);
             StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Other/WAV_Set_Gain_" + Number + ".bat");
             stw.WriteLine("chcp 65001");
-            stw.Write("\"" + Voice_Set.Special_Path + "/Other/WaveGain.exe\" -r -y -n -g " + Gain + " \"" + WAV_File + "\"");
+            if (WAV_File[0] == '"')
+                stw.Write("\"" + Voice_Set.Special_Path + "/Other/WaveGain.exe\" -r -y -n -g " + Gain + " " + WAV_File);
+            else
+                stw.Write("\"" + Voice_Set.Special_Path + "/Other/WaveGain.exe\" -r -y -n -g " + Gain + " \"" + WAV_File + "\"");
             stw.Close();
             ProcessStartInfo processStartInfo1 = new ProcessStartInfo
             {
@@ -2309,6 +2224,27 @@ namespace WoTB_Voice_Mod_Creater
             Process p = Process.Start(processStartInfo1);
             p.WaitForExit();
             File.Delete(Voice_Set.Special_Path + "/Other/WAV_Set_Gain_" + Number + ".bat");
+        }
+        public static void Create_WAV(string To_File, double Time)
+        {
+            int Stream = Un4seen.Bass.Bass.BASS_StreamCreate(44100, 2, Un4seen.Bass.BASSFlag.BASS_STREAM_DECODE, Un4seen.Bass.BASSStreamProc.STREAMPROC_DUMMY);
+            Un4seen.Bass.Misc.EncoderWAV l = new Un4seen.Bass.Misc.EncoderWAV(Stream);
+            l.InputFile = null;
+            l.OutputFile = To_File;
+            l.WAV_BitsPerSample = 24;
+            l.Start(null, IntPtr.Zero, false);
+            byte[] encBuffer = new byte[65536];
+            while (Un4seen.Bass.Bass.BASS_ChannelIsActive(Stream) == Un4seen.Bass.BASSActive.BASS_ACTIVE_PLAYING)
+            {
+                int len = Un4seen.Bass.Bass.BASS_ChannelGetData(Stream, encBuffer, encBuffer.Length);
+                long Pos_Byte = Un4seen.Bass.Bass.BASS_ChannelGetPosition(Stream, Un4seen.Bass.BASSMode.BASS_POS_BYTES);
+                if (len <= 0)
+                    break;
+                else if (Time <= Un4seen.Bass.Bass.BASS_ChannelBytes2Seconds(Stream, Pos_Byte))
+                    break;
+            }
+            l.Stop();
+            Un4seen.Bass.Bass.BASS_StreamFree(Stream);
         }
     }
     //ウィンドウにフォーカスがないとき、アイコンを光らせる

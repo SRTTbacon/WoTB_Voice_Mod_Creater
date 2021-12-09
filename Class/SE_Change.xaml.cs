@@ -36,6 +36,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             SE_List.Items.Add("戦闘開始前タイマー");
             SE_List.Items.Add("ロックオン");
             SE_List.Items.Add("アンロック");
+            SE_List.Items.Add("ノイズ音");
         }
         public async void Window_Show()
         {
@@ -45,11 +46,9 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 try
                 {
-                    Sub_Code.File_Decrypt(Voice_Set.Special_Path + "/Configs/Voice_Create.conf", Voice_Set.Special_Path + "/Configs/Temp_Voice_Create.tmp", "Voice_Create_Configs_Save", false);
-                    StreamReader str = new StreamReader(Voice_Set.Special_Path + "/Configs/Temp_Voice_Create.tmp");
+                    StreamReader str = Sub_Code.File_Decrypt_To_Stream(Voice_Set.Special_Path + "/Configs/Voice_Create.conf", "Voice_Create_Configs_Save");
                     Volume_S.Value = double.Parse(str.ReadLine());
                     str.Close();
-                    File.Delete(Voice_Set.Special_Path + "/Configs/Temp_Voice_Create.tmp");
                 }
                 catch (Exception e)
                 {
@@ -60,9 +59,11 @@ namespace WoTB_Voice_Mod_Creater.Class
                 }
             }
             else
-            {
                 Volume_S.Value = 75;
-            }
+            if (Sub_Code.IsWindowBarShow)
+                Delete_B.Margin = new Thickness(-3368, 25, 0, 0);
+            else
+                Delete_B.Margin = new Thickness(-3368, 0, 0, 0);
             while (Opacity < 1 && !IsClosing)
             {
                 Opacity += Sub_Code.Window_Feed_Time;
@@ -147,12 +148,13 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Default_Preset.Add(SE + "Timer_01.wav|" + SE + "Timer_02.wav");
                 Default_Preset.Add(SE + "Lock_01.wav");
                 Default_Preset.Add(SE + "Unlock_01.wav");
+                Default_Preset.Add(SE + "Noise_01.mp3|" + SE + "Noise_02.mp3|" + SE + "Noise_03.mp3|" + SE + "Noise_04.mp3|" + SE + "Noise_05.mp3|" + SE + "Noise_06.mp3|" + SE + "Noise_07.mp3|" + SE + "Noise_08.mp3|" + SE + "Noise_09.mp3|" + SE + "Noise_10.mp3");
                 Preset_List.Add(Default_Preset);
                 Load_Combo.Items.Add("標準");
                 int Index = 0;
                 if (File.Exists(Voice_Set.Special_Path + "\\Configs\\SE_Change_Presets.dat"))
                 {
-                    Sub_Code.File_Decrypt(Voice_Set.Special_Path + "\\Configs\\SE_Change_Presets.dat", Voice_Set.Special_Path + "\\Configs\\SE_Change_Presets_Temp.dat", "Period_Lost-Words", false);
+                    Sub_Code.File_Decrypt_To_File(Voice_Set.Special_Path + "\\Configs\\SE_Change_Presets.dat", Voice_Set.Special_Path + "\\Configs\\SE_Change_Presets_Temp.dat", "Period_Lost-Words", false);
                     string[] All_Lines = File.ReadAllLines(Voice_Set.Special_Path + "\\Configs\\SE_Change_Presets_Temp.dat");
                     File.Delete(Voice_Set.Special_Path + "\\Configs\\SE_Change_Presets_Temp.dat");
                     for (int Number = 0; Number < All_Lines.Length; Number++)
@@ -178,9 +180,19 @@ namespace WoTB_Voice_Mod_Creater.Class
                             New_Preset.Add(All_Lines[Number + 14]);
                             New_Preset.Add(All_Lines[Number + 15]);
                             New_Preset.Add(All_Lines[Number + 16]);
+                            Number += 16;
+                            if (All_Lines.Length > Number + 17)
+                            {
+                                if (All_Lines[Number + 17].Contains("!*---Preset_Start---*!"))
+                                    New_Preset.Add("");
+                                else
+                                    New_Preset.Add(All_Lines[Number + 17]);
+                                Number++;
+                            }
+                            else
+                                New_Preset.Add("");
                             Preset_List.Add(New_Preset);
                             Load_Combo.Items.Add(New_Preset[0]);
-                            Number += 16;
                         }
                     }
                 }
@@ -339,6 +351,8 @@ namespace WoTB_Voice_Mod_Creater.Class
                     SE_Files.Add(Files);
                 }
             }
+            if (SE_Files.Count < 17)
+                SE_Files.Add(new List<string>());
             Preset_Index = Index;
             if (IsShowMessage)
                 Message_Feed_Out("プリセット:" + Preset_List[Index][0] + "をロードしました。");
@@ -467,7 +481,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             SE_Files[SE_List.SelectedIndex].RemoveAt(SE_Sound_List.SelectedIndex);
             SE_Sound_List.Items.RemoveAt(SE_Sound_List.SelectedIndex);
         }
-        private void SE_Play_B_Loaded(object sender, RoutedEventArgs e)
+        private void SE_Change_Loaded(object sender, RoutedEventArgs e)
         {
             Preset_Load_File();
         }

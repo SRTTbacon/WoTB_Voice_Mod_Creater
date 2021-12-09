@@ -42,18 +42,10 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             {
                 try
                 {
-                    using (var eifs = new FileStream(Voice_Set.Special_Path + "/Configs/Change_To_Wwise.conf", FileMode.Open, FileAccess.Read))
-                    {
-                        using (var eofs = new FileStream(Voice_Set.Special_Path + "/Configs/Change_To_Wwise.tmp", FileMode.Create, FileAccess.Write))
-                        {
-                            FileEncode.FileEncryptor.Decrypt(eifs, eofs, "Wwise_Setting_Configs_Save");
-                        }
-                    }
-                    StreamReader str = new StreamReader(Voice_Set.Special_Path + "/Configs/Change_To_Wwise.tmp");
+                    StreamReader str = Sub_Code.File_Decrypt_To_Stream(Voice_Set.Special_Path + "/Configs/Change_To_Wwise.conf", "Wwise_Setting_Configs_Save");
                     DVPL_C.IsChecked = bool.Parse(str.ReadLine());
                     Install_C.IsChecked = bool.Parse(str.ReadLine());
                     str.Close();
-                    File.Delete(Voice_Set.Special_Path + "/Configs/Change_To_Wwise.tmp");
                 }
                 catch (Exception e)
                 {
@@ -129,7 +121,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 foreach (string File_Now in Voices)
                 {
                     string File_Now_01 = File_Now.Replace(" ", "");
-                    if (File_Now_01.Contains("battle_01") || File_Now_01.Contains("battle_02") || File_Now_01.Contains("battle_03") || File_Now_01.Contains("start_battle_01"))
+                    if (File_Now_01.Contains("battle_01") || File_Now_01.Contains("battle_02") || File_Now_01.Contains("battle_03") || File_Now_01.Contains("start_battle_01") || File_Now_01.Contains("start_battle("))
                     {
                         IsVoiceExist = true;
                         break;
@@ -292,6 +284,11 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         {
             if (IsClosing || Opacity < 1 || IsOpenDialog)
                 return;
+            if (Voice_FSB_File == "")
+            {
+                Message_Feed_Out("FSBファイルが選択されていません。");
+                return;
+            }
             try
             {
                 IsClosing = true;

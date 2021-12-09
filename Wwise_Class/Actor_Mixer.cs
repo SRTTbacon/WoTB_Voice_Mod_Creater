@@ -508,10 +508,11 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class.BNK_To_Wwise_Project
                                         Start_From_List.Add(Relation.Children[Number].Start_From);
                                     double Min = Start_From_List.Min();
                                     Start_From_List.Clear();
-                                    foreach (int Number in Numbers)
+                                    for (int Number = 0; Number < Relation.Children.Count; Number++)
                                     {
                                         if (Relation.Children[Number].Start_From == Min)
                                         {
+                                            Numbers.Remove(Number);
                                             string Target_GUID = "";
                                             foreach (BNK_Relation Temp in BNK_Info.Relation)
                                             {
@@ -523,7 +524,6 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class.BNK_To_Wwise_Project
                                             }
                                             if (Target_GUID == "")
                                                 continue;
-                                            Numbers.Remove(Number);
                                             More_Class.List_Add(BNK_Info.Actor_Mixer_Hierarchy_Project, "<BlendTrackAssoc>");
                                             More_Class.List_Add(BNK_Info.Actor_Mixer_Hierarchy_Project, "<ItemRef Name=\"" + Relation.Children[Number].Target_ShortID + "\" ID=\"{" + Target_GUID + "}\"/>");
                                             More_Class.List_Add(BNK_Info.Actor_Mixer_Hierarchy_Project, "<CrossfadingInfo>");

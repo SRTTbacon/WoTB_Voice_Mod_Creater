@@ -54,10 +54,7 @@ namespace WoTB_Voice_Mod_Creater
             }
             var ns = client.GetStream();
             byte[] message_byte = encoding.GetBytes(message + "\r\n");
-            do
-            {
-                ns.Write(message_byte, 0, message_byte.Length);
-            } while (ns.DataAvailable);
+            ns.Write(message_byte, 0, message_byte.Length);
         }
         public bool IsConnected
         {
@@ -100,14 +97,14 @@ namespace WoTB_Voice_Mod_Creater
                 client.Close();
                 return;
             }
-            connecting_flg = false;
+            connecting_flg = true;
             _ = Recievewait_Async();
         }
         //非同期でクライアントから文字列受信を待ち受ける
         private async Task Recievewait_Async()
         {
             var ns = client.GetStream();
-            while (true)
+            while (connecting_flg)
             {
                 var ms = new MemoryStream();
                 byte[] result_bytes = new byte[16];

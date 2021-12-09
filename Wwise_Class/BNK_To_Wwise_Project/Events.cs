@@ -40,6 +40,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class.BNK_To_Wwise_Project
         public static List<Event_Parent> Event_Info = new List<Event_Parent>();
         public static List<uint> Event_ShortID = new List<uint>();
         public static readonly string Event_Unit = Guid.NewGuid().ToString().ToUpper();
+        public const string Event_Parent_UUID = "A69BF0FC-D84A-487C-ABDD-56F71CB2A126";
         public const string RootDocumentID = "B34051A6-F1D3-4558-A9ED-EB78F1DC3BDE";
         //必ず実行させる
         //イベント情報をリストに保存
@@ -128,7 +129,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class.BNK_To_Wwise_Project
             Write_All.Add("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
             Write_All.Add("<WwiseDocument Type=\"WorkUnit\" ID=\"{" + Event_Unit + "}\" SchemaVersion=\"97\">");
             Write_All.Add("<Events>");
-            Write_All.Add("<WorkUnit Name=\"SRTTbacon\" ID=\"{" + Event_Unit + "}\" PersistMode=\"Nested\">");
+            Write_All.Add("<WorkUnit Name=\"SRTTbacon\" ID=\"{" + Event_Unit + "}\" PersistMode=\"Standalone\">");
             Write_All.Add("<ChildrenList>");
             foreach (Event_Parent Temp_01 in Event_Info)
             {

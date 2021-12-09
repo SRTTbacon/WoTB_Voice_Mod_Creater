@@ -102,6 +102,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class.BNK_To_Wwise_Project
                 int Write_Max_Value_Line = Write_All.Count;
                 Write_All.Add("</PropertyList>");
                 Write_All.Add("<CurveUsageInfoList>");
+                int Insert_Start_Line = Write_All.Count;
                 List<int> CurveToUseOnly = new List<int>();
                 for (int Number = 0; Number < 7; Number++)
                 {
@@ -109,6 +110,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class.BNK_To_Wwise_Project
                         CurveToUseOnly.Add(Number);
                 }
                 int Curve_Number = 0;
+                bool IsExistVolumeDry = false;
                 bool IsExistLPF = false;
                 bool IsExistHPF = false;
                 bool IsExistSpread = false;
@@ -140,7 +142,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class.BNK_To_Wwise_Project
                             Header_Name = "VolumeDryUsage";
                             Curve_Name_Line = "<Curve Name=\"VolumeDry\" ID=\"{A9E42A0E-83F8-4B7D-A14F-480B0C2B51DF}\">";
                             Flag = 3;
-                            IsExistLPF = true;
+                            IsExistVolumeDry = true;
                         }
                         else if (CurveToUseOnly[Curve_Number] == 3)
                         {
@@ -226,17 +228,20 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class.BNK_To_Wwise_Project
                         Curve_Number++;
                     }
                 }
+                CurveToUseOnly.Clear();
                 Write_All.Insert(Write_Max_Value_Line, "<Property Name=\"RadiusMax\" Type=\"Real64\" Value=\"" + RTPC_Max_Value + "\"/>");
                 //以下の設定がない場合、設定がないことを記述
                 //よくよく考えたら必要ないことに気が付いた
+                if (!IsExistVolumeDry)
+                    Add_Not_Use_Property("VolumeDryUsage", Insert_Start_Line);
                 if (!IsExistLPF)
-                    Add_Not_Use_Property("LowPassFilterUsage");
+                    Add_Not_Use_Property("LowPassFilterUsage", Insert_Start_Line);
                 if (!IsExistHPF)
-                    Add_Not_Use_Property("HighPassFilterUsage");
+                    Add_Not_Use_Property("HighPassFilterUsage", Insert_Start_Line);
                 if (!IsExistSpread)
-                    Add_Not_Use_Property("SpreadUsage");
+                    Add_Not_Use_Property("SpreadUsage", Insert_Start_Line);
                 if (!IsExistFocus)
-                    Add_Not_Use_Property("FocusUsage");
+                    Add_Not_Use_Property("FocusUsage", Insert_Start_Line);
                 Write_All.Add("</CurveUsageInfoList>");
                 Write_All.Add("</Attenuation>");
             }
@@ -248,11 +253,63 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class.BNK_To_Wwise_Project
             File.WriteAllLines(To_File, Write_All);
             Write_All.Clear();
         }
-        static void Add_Not_Use_Property(string Name)
+        static void Add_Not_Use_Property(string Name, int Start_Line)
         {
-            /*Write_All.Add("<" + Name + ">");
-            Write_All.Add("<CurveUsageInfo Platform=\"Linked\" CurveToUse=\"None\"/>");
-            Write_All.Add("</" + Name + ">");*/
+            if (Name == "VolumeDryUsage")
+            {
+                Write_All.Insert(Start_Line, "<" + Name + ">");
+                Write_All.Insert(Start_Line + 1, "<CurveUsageInfo Platform=\"Linked\" CurveToUse=\"None\"/>");
+                Write_All.Insert(Start_Line + 2, "</" + Name + ">");
+                return;
+            }
+            int Index = -1;
+            for (int Number = Start_Line; Number < Write_All.Count; Number++)
+            {
+                if (Name == "LowPassFilterUsage")
+                {
+                    if (Write_All[Number].Contains("</VolumeWetUserUsage>"))
+                    {
+                        Index = Number + 1;
+                        break;
+                    }
+                }
+                else if (Name == "HighPassFilterUsage")
+                {
+                    if (Write_All[Number].Contains("</LowPassFilterUsage>"))
+                    {
+                        Index = Number + 1;
+                        break;
+                    }
+                }
+                else if (Name == "SpreadUsage")
+                {
+                    if (Write_All[Number].Contains("</HighPassFilterUsage>"))
+                    {
+                        Index = Number + 1;
+                        break;
+                    }
+                }
+                else if (Name == "FocusUsage")
+                {
+                    if (Write_All[Number].Contains("</SpreadUsage>"))
+                    {
+                        Index = Number + 1;
+                        break;
+                    }
+                }
+            }
+            if (Index != -1)
+            {
+                Write_All.Insert(Index, "<" + Name + ">");
+                Write_All.Insert(Index + 1, "<CurveUsageInfo Platform=\"Linked\" CurveToUse=\"None\"/>");
+                Write_All.Insert(Index + 2, "</" + Name + ">");
+            }
+            else
+            {
+                Write_All.Add("<" + Name + ">");
+                Write_All.Add("<CurveUsageInfo Platform=\"Linked\" CurveToUse=\"None\"/>");
+                Write_All.Add("</" + Name + ">");
+            }
         }
     }
 }

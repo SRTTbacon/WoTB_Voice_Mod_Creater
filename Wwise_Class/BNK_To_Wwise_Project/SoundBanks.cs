@@ -51,6 +51,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class.BNK_To_Wwise_Project
             Write_All.Add("</WwiseDocument>");
             File.WriteAllLines(To_File, Write_All);
             Write_All.Clear();
+            SoundBankNames.Clear();
         }
     }
 }

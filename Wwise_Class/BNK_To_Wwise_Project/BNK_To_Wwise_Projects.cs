@@ -1,21 +1,29 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
+using System.Windows.Controls;
 
 namespace WoTB_Voice_Mod_Creater.Wwise_Class.BNK_To_Wwise_Project
 {
+    public enum CAkType
+    {
+        CAkLayerCntr,
+        CAkActorMixer,
+        CAkRanSeqCntr,
+        CAkSwitchCntr,
+        CAkSound
+    }
     //CAk*の共通の情報を保存するクラス
     public class BNK_Relation
     {
         public string Name { get; set; }
-        public string Type { get; private set; }
+        public CAkType Type { get; private set; }
         public string GUID { get; private set; }
         public uint My { get; private set; }
         public uint Parent { get; private set; }
         public int Line { get; private set; }
-        public BNK_Relation(string My_Type, string GUID, uint My_Short_ID, uint Parent_Short_ID, int Type_Name_Line)
+        public BNK_Relation(CAkType My_Type, string GUID, uint My_Short_ID, uint Parent_Short_ID, int Type_Name_Line)
         {
             Name = My_Short_ID.ToString();
             Type = My_Type;
@@ -60,12 +68,13 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class.BNK_To_Wwise_Project
             this.ShortID = ShortID;
         }
     }
-    //プロパティの保存形式(上から小数、大きい整数、小さい整数)
+    //プロパティの保存形式(上から小数、大きい整数、小さい整数, bool(boolという名前は言語の仕様上使えないのでbooleanを使用))
     public enum Property_Type
     {
         Real64,
         int32,
-        int16
+        int16,
+        boolean
     }
     public class BNK_Info
     {
@@ -95,10 +104,13 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class.BNK_To_Wwise_Project
         public static List<Wwise_File_Extract_V1> PCK_File = new List<Wwise_File_Extract_V1>();
         //RTPCの親のGUIDを設定(値を変更するものではないためreadonlyにしています)
         public static readonly string Parent_RTPC_WorkUnit = Guid.NewGuid().ToString().ToUpper();
+        //プロジェクトにはサウンドが設定されているが、.bnkや.pck内には存在しないファイルたち
+        public static List<string> Add_Empty_Wav_Files = new List<string>();
     }
     public class BNK_To_Wwise_Projects
     {
         Actor_Mixer Actor_Mixer_Project = new Actor_Mixer();
+        int Now_Extract_File_Count = 0;
         bool IsSelected = false;
         Random r = new Random();
         //解析するファイルが1つのみの場合
@@ -177,7 +189,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class.BNK_To_Wwise_Project
                 {
                     BNK_Info.Read_All.Add(line);
                     //この文字が含まれていたらイベントやコンテナ確定
-                    if (line.Contains("type=\"sid\" name=\"ulID\" value=\""))
+                    if (line.Contains("type=\"sid\" name=\"ulID\" value=\"") || line.Contains("type=\"sid\" name=\"ulStateID\" value=\""))
                     {
                         List<string> ID_Line_Tmp = new List<string>();
                         //イベントIDを取得
@@ -204,7 +216,9 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class.BNK_To_Wwise_Project
                                     string strValue3 = line.Remove(0, line.IndexOf("value=\"") + 7);
                                     strValue3 = strValue3.Remove(strValue3.LastIndexOf("\""));
                                     string My_GUID = Guid.NewGuid().ToString().ToUpper();
-                                    BNK_Info.Relation.Add(new BNK_Relation(strValue2, My_GUID, strValue_1, uint.Parse(strValue3), (BNK_Info.Read_All.Count - 2)));
+                                    CAkType Type;
+                                    if (Enum.TryParse<CAkType>(strValue2, out Type))
+                                        BNK_Info.Relation.Add(new BNK_Relation(Type, My_GUID, strValue_1, uint.Parse(strValue3), (BNK_Info.Read_All.Count - 2)));
                                     break;
                                 }
                             }
@@ -218,6 +232,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class.BNK_To_Wwise_Project
             }
             Attenuations.Init();
             Switch.Init();
+            State.Init();
             Master_Mixer.Init();
             Events.Init();
             BlendTracks.Init();
@@ -231,6 +246,10 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class.BNK_To_Wwise_Project
                 foreach (string PCK_Now in PCK_File)
                     BNK_Info.PCK_File.Add(new Wwise_File_Extract_V1(PCK_Now));
             IsSelected = true;
+        }
+        public async Task ShortID_To_Name(TextBlock Message_T)
+        {
+            await SoundbanksInfo.Generate_Name(Message_T);
         }
         //value=のあとの数字を取得
         string Get_Property_Value(string Read_Line)
@@ -258,23 +277,26 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class.BNK_To_Wwise_Project
         public void Clear()
         {
             for (int Number = 0; Number < BNK_Info.Master_Audio_Bus_List.Count; Number++)
-            {
                 BNK_Info.Master_Audio_Bus_List[Number].Clear();
-            }
             for (int Number = 0; Number < BNK_Info.ID_Line.Count; Number++)
-            {
                 BNK_Info.ID_Line[Number].Clear();
-            }
             BNK_Info.Read_All.Clear();
+            BNK_Info.Master_Audio_Bus_List.Clear();
             BNK_Info.Actor_Mixer_Hierarchy_Project.Clear();
+            BNK_Info.ID_Line.Clear();
             BNK_Info.Actor_Mixer_Child_Line.Clear();
-            BNK_Info.Read_All.Clear();
             BNK_Info.Relation.Clear();
             BNK_Info.Init_Read_All.Clear();
+            BNK_Info.Attenuation_Info.Clear();
             BNK_Info.RTPC_Info.Clear();
+            BNK_Info.Add_Empty_Wav_Files.Clear();
+            BNK_Info.CAkSound_Info.Clear();
             Events.Event_Info.Clear();
             Events.Event_ShortID.Clear();
             Switch.Switch_Info.Clear();
+            State.State_All_Info.Clear();
+            State.State_Child_Info.Clear();
+            State.State_Value_Info.Clear();
             BlendTracks.Layer_Info.Clear();
             Master_Mixer.Master_Audio_Info.Clear();
             for (int Number = 0; Number < BNK_Info.BNK_File.Count; Number++)
@@ -283,52 +305,8 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class.BNK_To_Wwise_Project
                 for (int Number = 0; Number < BNK_Info.PCK_File.Count; Number++)
                     BNK_Info.PCK_File[Number].Pck_Clear();
             BNK_Info.BNK_File.Clear();
-            BNK_Info.PCK_File.Clear(); ;
-        }
-        public async Task<bool> Create_Actor_Mixer_Only(string To_Actor_File, System.Windows.Controls.TextBlock Message_T)
-        {
-            if (!IsSelected)
-                return false;
-            try
-            {
-                await Actor_Mixer_Project.Get_Actor_Mixer_Hierarchy(To_Actor_File, Message_T);
-                return true;
-            }
-            catch (Exception e)
-            {
-                Sub_Code.Error_Log_Write(e.Message);
-                return false;
-            }
-        }
-        public bool Create_Game_Parameter_Only(string To_Game_Parameter_File)
-        {
-            if (!IsSelected)
-                return false;
-            try
-            {
-                Game_Parameter.Create(To_Game_Parameter_File);
-                return true;
-            }
-            catch (Exception e)
-            {
-                Sub_Code.Error_Log_Write(e.Message);
-                return false;
-            }
-        }
-        public bool Create_Attenuations_Only(string To_Attenuations_File)
-        {
-            if (!IsSelected)
-                return false;
-            try
-            {
-                Attenuations.Create(To_Attenuations_File);
-                return true;
-            }
-            catch (Exception e)
-            {
-                Sub_Code.Error_Log_Write(e.Message);
-                return false;
-            }
+            BNK_Info.PCK_File.Clear();
+            Actor_Mixer_Project.Clear();
         }
         public async Task<bool> Create_Project_All(string To_Dir, bool IsExtractSound, System.Windows.Controls.TextBlock Message_T)
         {
@@ -338,7 +316,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class.BNK_To_Wwise_Project
             {
                 if (!Directory.Exists(To_Dir))
                     Directory.CreateDirectory(To_Dir);
-                await Actor_Mixer_Project.Get_Actor_Mixer_Hierarchy(To_Dir + "\\Actor-Mixer Hierarchy\\Default Work Unit.wwu", Message_T);
+                await Actor_Mixer_Project.Get_Actor_Mixer_Hierarchy(To_Dir + "\\Actor-Mixer Hierarchy\\Default Work Unit.wwu", IsExtractSound, Message_T);
                 Message_T.Text = "'Game Parameter'を作成しています...";
                 await Task.Delay(50);
                 Game_Parameter.Create(To_Dir + "\\Game Parameters\\SRTTbacon.wwu");
@@ -351,6 +329,9 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class.BNK_To_Wwise_Project
                 Message_T.Text = "Switchを作成しています...";
                 await Task.Delay(50);
                 Switch.Create(To_Dir + "\\Switches\\Default Work Unit.wwu");
+                Message_T.Text = "Stateを作成しています...";
+                await Task.Delay(50);
+                State.Create(To_Dir + "\\States\\Default Work Unit.wwu");
                 await Events.Set_Name(Message_T);
                 Events.Create(To_Dir + "\\Events\\SRTTbacon.wwu");
                 Message_T.Text = "SoundBanksを作成しています...";
@@ -363,7 +344,25 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class.BNK_To_Wwise_Project
                 {
                     Message_T.Text = "サウンドファイルを抽出しています...";
                     await Task.Delay(50);
-                    Extract_WAV_To_Dir(To_Dir);
+                    Now_Extract_File_Count = 0;
+                    int Max_Extract_File_Count = BNK_Info.CAkSound_Info.Count;
+                    if (BNK_Info.PCK_File != null && BNK_Info.PCK_File.Count > 0)
+                        Max_Extract_File_Count += BNK_Info.CAkSound_Info.Count;
+                    List<string> OGG_List = null;
+                    bool IsEnd = false;
+                    Task Run = Task.Run(() =>
+                    {
+                        OGG_List = Extract_WEM_To_Dir(To_Dir);
+                        IsEnd = true;
+                    });
+                    while (!IsEnd)
+                    {
+                        Message_T.Text = "サウンドファイルを抽出しています...\n進捗:" + Now_Extract_File_Count + " / " + Max_Extract_File_Count;
+                        await Task.Delay(1000);
+                    }
+                    Message_T.Text = ".wav形式に変換しています...";
+                    await Class.Multithread.Convert_Ogg_To_Wav(OGG_List, true);
+                    OGG_List.Clear();
                 }
                 return true;
             }
@@ -382,61 +381,135 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class.BNK_To_Wwise_Project
                 File.Copy(Voice_Set.Special_Path + "\\Wwise\\WoTB_Sound_Mod\\Actor-Mixer Hierarchy\\Factory Motion.wwu", To_Dir + "\\Actor-Mixer Hierarchy\\Factory Motion.wwu", true);
                 File.Copy(Voice_Set.Special_Path + "\\Wwise\\WoTB_Sound_Mod\\Actor-Mixer Hierarchy\\Factory SoundSeed Air Objects.wwu", To_Dir + "\\Actor-Mixer Hierarchy\\Factory SoundSeed Air Objects.wwu", true);
                 File.Copy(Voice_Set.Special_Path + "\\Wwise\\WoTB_Sound_Mod\\Actor-Mixer Hierarchy\\Factory Synth One.wwu", To_Dir + "\\Actor-Mixer Hierarchy\\Factory Synth One.wwu", true);
-                Sub_Code.Directory_Copy(Voice_Set.Special_Path + "\\Wwise\\WoTB_Sound_Mod\\Audio Devices", To_Dir + "\\Audio Devices");
-                Sub_Code.Directory_Copy(Voice_Set.Special_Path + "\\Wwise\\WoTB_Sound_Mod\\Control Surface Sessions", To_Dir + "\\Control Surface Sessions");
-                Sub_Code.Directory_Copy(Voice_Set.Special_Path + "\\Wwise\\WoTB_Sound_Mod\\Conversion Settings", To_Dir + "\\Conversion Settings");
-                Sub_Code.Directory_Copy(Voice_Set.Special_Path + "\\Wwise\\WoTB_Sound_Mod\\Dynamic Dialogue", To_Dir + "\\Dynamic Dialogue");
-                Sub_Code.Directory_Copy(Voice_Set.Special_Path + "\\Wwise\\WoTB_Sound_Mod\\Effects", To_Dir + "\\Effects");
+                Sub_Code.Directory_Copy(Voice_Set.Special_Path + "\\Wwise\\WoTB_Sound_Mod\\Audio Devices", To_Dir);
+                Sub_Code.Directory_Copy(Voice_Set.Special_Path + "\\Wwise\\WoTB_Sound_Mod\\Control Surface Sessions", To_Dir);
+                Sub_Code.Directory_Copy(Voice_Set.Special_Path + "\\Wwise\\WoTB_Sound_Mod\\Conversion Settings", To_Dir);
+                Sub_Code.Directory_Copy(Voice_Set.Special_Path + "\\Wwise\\WoTB_Sound_Mod\\Dynamic Dialogue", To_Dir);
+                Sub_Code.Directory_Copy(Voice_Set.Special_Path + "\\Wwise\\WoTB_Sound_Mod\\Effects", To_Dir);
                 File.Copy(Voice_Set.Special_Path + "\\Wwise\\WoTB_Sound_Mod\\Events\\Default Work Unit.wwu", To_Dir + "\\Events\\Default Work Unit.wwu", true);
                 File.Copy(Voice_Set.Special_Path + "\\Wwise\\WoTB_Sound_Mod\\Game Parameters\\Default Work Unit.wwu", To_Dir + "\\Game Parameters\\Default Work Unit.wwu", true);
                 Directory.CreateDirectory(To_Dir + "\\GeneratedSoundBanks\\Windows");
-                Sub_Code.Directory_Copy(Voice_Set.Special_Path + "\\Wwise\\WoTB_Sound_Mod\\Interactive Music Hierarchy", To_Dir + "\\Interactive Music Hierarchy");
-                Sub_Code.Directory_Copy(Voice_Set.Special_Path + "\\Wwise\\WoTB_Sound_Mod\\Mixing Sessions", To_Dir + "\\Mixing Sessions");
-                Sub_Code.Directory_Copy(Voice_Set.Special_Path + "\\Wwise\\WoTB_Sound_Mod\\Modulators", To_Dir + "\\Modulators");
+                Sub_Code.Directory_Copy(Voice_Set.Special_Path + "\\Wwise\\WoTB_Sound_Mod\\Interactive Music Hierarchy", To_Dir);
+                Sub_Code.Directory_Copy(Voice_Set.Special_Path + "\\Wwise\\WoTB_Sound_Mod\\Mixing Sessions", To_Dir);
+                Sub_Code.Directory_Copy(Voice_Set.Special_Path + "\\Wwise\\WoTB_Sound_Mod\\Modulators", To_Dir);
                 Directory.CreateDirectory(To_Dir + "\\Originals\\SFX");
                 Directory.CreateDirectory(To_Dir + "\\Originals\\Voices\\English(US)");
                 Directory.CreateDirectory(To_Dir + "\\Originals\\Voices\\ja");
-                Sub_Code.Directory_Copy(Voice_Set.Special_Path + "\\Wwise\\WoTB_Sound_Mod\\Presets", To_Dir + "\\Presets");
-                Sub_Code.Directory_Copy(Voice_Set.Special_Path + "\\Wwise\\WoTB_Sound_Mod\\Queries", To_Dir + "\\Queries");
-                Sub_Code.Directory_Copy(Voice_Set.Special_Path + "\\Wwise\\WoTB_Sound_Mod\\Soundcaster Sessions", To_Dir + "\\Soundcaster Sessions");
-                Sub_Code.Directory_Copy(Voice_Set.Special_Path + "\\Wwise\\WoTB_Sound_Mod\\States", To_Dir + "\\States");
-                Sub_Code.Directory_Copy(Voice_Set.Special_Path + "\\Wwise\\WoTB_Sound_Mod\\Virtual Acoustics", To_Dir + "\\Virtual Acoustics");
+                Sub_Code.Directory_Copy(Voice_Set.Special_Path + "\\Wwise\\WoTB_Sound_Mod\\Presets", To_Dir);
+                Sub_Code.Directory_Copy(Voice_Set.Special_Path + "\\Wwise\\WoTB_Sound_Mod\\Queries", To_Dir);
+                Sub_Code.Directory_Copy(Voice_Set.Special_Path + "\\Wwise\\WoTB_Sound_Mod\\Soundcaster Sessions", To_Dir);
+                Sub_Code.Directory_Copy(Voice_Set.Special_Path + "\\Wwise\\WoTB_Sound_Mod\\Triggers", To_Dir);
+                Sub_Code.Directory_Copy(Voice_Set.Special_Path + "\\Wwise\\WoTB_Sound_Mod\\Virtual Acoustics", To_Dir);
+                Sub_Code.Create_WAV(Voice_Set.Special_Path + "\\Wwise\\Add_Empty_WAV_File_Temp.wav", 1.0);
+                foreach (string To_File in BNK_Info.Add_Empty_Wav_Files)
+                    if (!File.Exists(To_Dir + To_File))
+                        File.Copy(Voice_Set.Special_Path + "\\Wwise\\Add_Empty_WAV_File_Temp.wav", To_Dir + To_File);
+                File.Delete(Voice_Set.Special_Path + "\\Wwise\\Add_Empty_WAV_File_Temp.wav");
                 List<string> Project_Main = new List<string>();
+                List<string> Game_Parameter = new List<string>();
                 Project_Main.AddRange(File.ReadAllLines(Voice_Set.Special_Path + "\\Wwise\\WoTB_Sound_Mod\\WoTB_Sound_Mod.wproj"));
-                Project_Main[3] = "<Project Name=\"WoTB_Generate_Projects\" ID=\"{" + Guid.NewGuid().ToString().ToUpper() + "}\">";
+                Game_Parameter.AddRange(File.ReadAllLines(Voice_Set.Special_Path + "\\Wwise\\WoTB_Sound_Mod\\Game Parameters\\Default Work Unit.wwu"));
+                Project_Main[3] = "        <Project Name=\"WoTB_Generate_Projects\" ID=\"{" + Guid.NewGuid().ToString().ToUpper() + "}\">";
+                for (int Number = 0; Number < Project_Main.Count; Number++)
+                {
+                    string a = Project_Main[Number];
+                    if (a.Contains("<PhysicalFolder Path=\"Events\\Hanger_BGM\">") || a.Contains("<PhysicalFolder Path=\"Events\\LoadBGM\">") || a.Contains("<WorkUnit Name=\"LoadBGM\""))
+                    {
+                        for (int Number_01 = 0; Number_01 < 3; Number_01++)
+                        {
+                            Project_Main.RemoveAt(Number);
+                            Number--;
+                        }
+                    }
+                    if (a.Contains("</PhysicalFolderList>"))
+                    {
+                        for (int Number_01 = 0; Number_01 < 4; Number_01++)
+                            Project_Main.RemoveAt(Number);
+                        break;
+                    }
+                }
+                Project_Main.Add("				<PhysicalFolder Path=\"Events\">");
+                Project_Main.Add("					<WorkUnit Name=\"SRTTbacon\" ID=\"{" + Events.Event_Parent_UUID + "}\" PersistMode=\"Standalone\"/>");
+                Project_Main.Add("				</PhysicalFolder>");
+                Project_Main.Add("				<PhysicalFolder Path=\"Game Parameters\">");
+                Project_Main.Add("					<WorkUnit Name=\"SRTTbacon\" ID=\"{" + BNK_Info.Parent_RTPC_WorkUnit + "}\" PersistMode=\"Standalone\"/>");
+                Project_Main.Add("				</PhysicalFolder>");
+                Project_Main.Add("			</PhysicalFolderList>");
+                Project_Main.Add("		</Project>");
+                Project_Main.Add("	</ProjectInfo>");
+                Project_Main.Add("</WwiseDocument>");
+                for (int Number = 0; Number < Game_Parameter.Count; Number++)
+                {
+                    string a = Game_Parameter[Number];
+                    if (a.Contains("<WorkUnit Name=\"UI\"") || a.Contains("<WorkUnit Name=\"Hanger\""))
+                    {
+                        Game_Parameter.RemoveAt(Number);
+                        Number--;
+                    }
+                }
                 File.WriteAllLines(To_Dir + "\\WoTB_Generate_Projects.wproj", Project_Main);
+                File.WriteAllLines(To_Dir + "\\Game Parameters\\Default Work Unit.wwu", Game_Parameter);
                 Project_Main.Clear();
+                Game_Parameter.Clear();
             }
             catch (Exception e)
             {
                 Sub_Code.Error_Log_Write(e.Message);
             }
         }
-        public void Extract_WAV_To_Dir(string To_Project_Dir)
+        public List<string> Extract_WEM_To_Dir(string To_Project_Dir)
         {
             if (!IsSelected)
-                return;
+                return new List<string>();
+            List<string> Temp_List = new List<string>();
             foreach (CAkSound Temp in BNK_Info.CAkSound_Info)
             {
                 if (Temp.Language == "SFX")
+                {
                     for (int Number = 0; Number < BNK_Info.BNK_File.Count; Number++)
-                        BNK_Info.BNK_File[Number].Wwise_Extract_To_Wav_File(Temp.ShortID, To_Project_Dir + "\\Originals\\SFX\\" + Temp.ShortID + ".wav", true);
+                    {
+                        BNK_Info.BNK_File[Number].Wwise_Extract_To_Ogg_File(Temp.ShortID, To_Project_Dir + "\\Originals\\SFX\\" + Temp.ShortID + ".ogg", true);
+                        if (!Temp_List.Contains(To_Project_Dir + "\\Originals\\SFX\\" + Temp.ShortID + ".ogg"))
+                            Temp_List.Add(To_Project_Dir + "\\Originals\\SFX\\" + Temp.ShortID + ".ogg");
+                    }
+                }
                 else
+                {
                     for (int Number = 0; Number < BNK_Info.BNK_File.Count; Number++)
-                        BNK_Info.BNK_File[Number].Wwise_Extract_To_Wav_File(Temp.ShortID, To_Project_Dir + "\\Originals\\Voices\\" + Temp.Language + "\\" + Temp.ShortID + ".wav", true);
+                    {
+                        BNK_Info.BNK_File[Number].Wwise_Extract_To_Ogg_File(Temp.ShortID, To_Project_Dir + "\\Originals\\Voices\\" + Temp.Language + "\\" + Temp.ShortID + ".ogg", true);
+                        if (!Temp_List.Contains(To_Project_Dir + "\\Originals\\Voices\\" + Temp.Language + "\\" + Temp.ShortID + ".ogg"))
+                            Temp_List.Add(To_Project_Dir + "\\Originals\\Voices\\" + Temp.Language + "\\" + Temp.ShortID + ".ogg");
+                    }
+                }
+                Now_Extract_File_Count++;
             }
             if (BNK_Info.PCK_File != null)
             {
                 foreach (CAkSound Temp in BNK_Info.CAkSound_Info)
                 {
                     if (Temp.Language == "SFX")
+                    {
                         for (int Number = 0; Number < BNK_Info.PCK_File.Count; Number++)
-                            BNK_Info.PCK_File[Number].Wwise_Extract_To_Wav_File(Temp.ShortID, To_Project_Dir + "\\Originals\\SFX\\" + Temp.ShortID + ".wav", true);
+                        {
+                            BNK_Info.PCK_File[Number].Wwise_Extract_To_Ogg_File(Temp.ShortID, To_Project_Dir + "\\Originals\\SFX\\" + Temp.ShortID + ".ogg", true);
+                            if (!Temp_List.Contains(To_Project_Dir + "\\Originals\\SFX\\" + Temp.ShortID + ".ogg"))
+                                Temp_List.Add(To_Project_Dir + "\\Originals\\SFX\\" + Temp.ShortID + ".ogg");
+                        }
+                    }
                     else
-                        for (int Number = 0; Number < BNK_Info.BNK_File.Count; Number++)
-                            BNK_Info.PCK_File[Number].Wwise_Extract_To_Wav_File(Temp.ShortID, To_Project_Dir + "\\Originals\\Voices\\" + Temp.Language + "\\" + Temp.ShortID + ".wav", true);
+                    {
+                        for (int Number = 0; Number < BNK_Info.PCK_File.Count; Number++)
+                        {
+                            BNK_Info.PCK_File[Number].Wwise_Extract_To_Ogg_File(Temp.ShortID, To_Project_Dir + "\\Originals\\Voices\\" + Temp.Language + "\\" + Temp.ShortID + ".ogg", true);
+                            if (!Temp_List.Contains(To_Project_Dir + "\\Originals\\Voices\\" + Temp.Language + "\\" + Temp.ShortID + ".ogg"))
+                                Temp_List.Add(To_Project_Dir + "\\Originals\\Voices\\" + Temp.Language + "\\" + Temp.ShortID + ".ogg");
+                        }
+                    }
+                    Now_Extract_File_Count++;
                 }
             }
+            return Temp_List;
         }
     }
 }

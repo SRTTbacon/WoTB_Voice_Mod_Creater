@@ -45,13 +45,10 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class.BNK_To_Wwise_Project
             if (BNK_Info.Read_All.Count == 0)
                 return;
             List<int> Switch_Numbers = new List<int>();
-            List<uint> Temp = new List<uint>();
             //Blend Containerのみを抽出
             for (int Number = 0; Number < BNK_Info.ID_Line.Count; Number++)
-            {
                 if (BNK_Info.ID_Line[Number][2] == "CAkLayerCntr")
                     Switch_Numbers.Add(Number);
-            }
             foreach (int Number in Switch_Numbers)
             {
                 uint Parent_ShortID = uint.Parse(BNK_Info.ID_Line[Number][0]);
@@ -96,6 +93,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class.BNK_To_Wwise_Project
                                     uint Target_ShortID = uint.Parse(Get_Config.Get_Property_Value(BNK_Info.Read_All[Number_02 + 1]));
                                     int RTPC_Count = int.Parse(Get_Config.Get_Count(BNK_Info.Read_All[Number_02 + 3]));
                                     int Next_Index = 0;
+                                    int Next_Index_Plus = 2;
                                     double Start_From = 0;
                                     double Start_To = 0;
                                     double End_From = 0;
@@ -103,7 +101,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class.BNK_To_Wwise_Project
                                     bool IsEnd = false;
                                     for (int Number_03 = Number_02; Number_03 < BNK_Info.Read_All.Count; Number_03++)
                                     {
-                                        if (BNK_Info.Read_All[Number_03].Contains("</list>") || BNK_Info.Read_All[Number_01].Contains("type=\"u8\" name=\"eHircType\""))
+                                        if (BNK_Info.Read_All[Number_03].Contains("</list>") || BNK_Info.Read_All[Number_03].Contains("type=\"u8\" name=\"eHircType\""))
                                             break;
                                         if (BNK_Info.Read_All[Number_03].Contains("<object name=\"AkRTPCGraphPoint\""))
                                         {
@@ -112,8 +110,12 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class.BNK_To_Wwise_Project
                                             {
                                                 Start_From = double.Parse(Get_Config.Get_Property_Value(BNK_Info.Read_All[Number_03 + 1]));
                                                 Start_To = double.Parse(Get_Config.Get_Property_Value(BNK_Info.Read_All[Number_03 + 2]));
+                                                if (Start_To == 1)
+                                                    Next_Index_Plus = 2;
+                                                else
+                                                    Next_Index_Plus = 3; 
                                             }
-                                            else if (Index_Now == Next_Index + 2 || Index_Now == RTPC_Count - 1)
+                                            else if (Index_Now == Next_Index + Next_Index_Plus || Index_Now == RTPC_Count - 1)
                                             {
                                                 End_From = double.Parse(Get_Config.Get_Property_Value(BNK_Info.Read_All[Number_03 + 1]));
                                                 End_To = double.Parse(Get_Config.Get_Property_Value(BNK_Info.Read_All[Number_03 + 2]));
@@ -142,6 +144,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class.BNK_To_Wwise_Project
                         break;
                 }
             }
+            Switch_Numbers.Clear();
             //情報を視覚的にするためファイルに保存
             /*List<string> Test = new List<string>();
             foreach (Layer_Relation Temp_01 in Layer_Info)

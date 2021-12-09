@@ -31,7 +31,6 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class.BNK_To_Wwise_Project
                 string Read_Line = BNK_Info.Init_Read_All[Number];
                 if (Read_Line.Contains("type=\"sid\" name=\"ulID\" value=\""))
                 {
-                    List<string> ID_Line_Tmp = new List<string>();
                     //イベントIDを取得
                     string Name = Get_Config.Get_Property_Name(BNK_Info.Init_Read_All[Number - 3]);
                     if (Name == "CAkBus")

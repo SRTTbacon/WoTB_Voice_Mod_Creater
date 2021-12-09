@@ -82,10 +82,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             {
                 try
                 {
-                    using (var eifs = new FileStream(Voice_Set.Special_Path + "/Configs/WoT_To_Blitz.conf", FileMode.Open, FileAccess.Read))
-                        using (var eofs = new FileStream(Voice_Set.Special_Path + "/Configs/WoT_To_Blitz.tmp", FileMode.Create, FileAccess.Write))
-                            FileEncode.FileEncryptor.Decrypt(eifs, eofs, "WoT_To_Blitz_Configs_Save");
-                    StreamReader str = new StreamReader(Voice_Set.Special_Path + "/Configs/WoT_To_Blitz.tmp");
+                    StreamReader str = Sub_Code.File_Decrypt_To_Stream(Voice_Set.Special_Path + "/Configs/WoT_To_Blitz.conf", "WoT_To_Blitz_Configs_Save");
                     Volume_S.Value = double.Parse(str.ReadLine());
                     DVPL_C.IsChecked = bool.Parse(str.ReadLine());
                     Install_C.IsChecked = bool.Parse(str.ReadLine());
@@ -100,7 +97,6 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                         //特になし
                     }
                     str.Close();
-                    File.Delete(Voice_Set.Special_Path + "/Configs/WoT_To_Blitz.tmp");
                 }
                 catch (Exception e)
                 {
@@ -670,12 +666,12 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                     }
                     if (Volume_Set_C.IsChecked.Value)
                     {
-                        Message_T.Text = ".mp3に変換しています...";
+                        Message_T.Text = ".wavに変換しています...";
                         await Task.Delay(50);
-                        await Multithread.Convert_To_MP3(Directory.GetFiles(Voice_Set.Special_Path + "/Wwise/BNK_WAV", "*", SearchOption.TopDirectoryOnly), Voice_Set.Special_Path + "/Wwise/BNK_WAV", true);
+                        await Multithread.Convert_To_Wav(Directory.GetFiles(Voice_Set.Special_Path + "/Wwise/BNK_WAV", "*", SearchOption.TopDirectoryOnly), Voice_Set.Special_Path + "/Wwise/BNK_WAV", true);
                         Message_T.Text = "音量をWoTB用に調整しています...";
                         await Task.Delay(50);
-                        Sub_Code.MP3_Volume_Set(Voice_Set.Special_Path + "/Wwise/BNK_WAV");
+                        Sub_Code.Volume_Set(Voice_Set.Special_Path + "/Wwise/BNK_WAV", Encode_Mode.WAV);
                     }
                     Message_T.Text = ".wavに変換しています...";
                     await Task.Delay(50);

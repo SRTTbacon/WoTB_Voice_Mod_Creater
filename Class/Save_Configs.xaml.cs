@@ -25,7 +25,6 @@ namespace WoTB_Voice_Mod_Creater.Class
         double Wwise_Version = 1.0;
         double SizeMB = 0;
         bool IsClosing = false;
-        bool IsNewMode = false;
         bool IsMessageShowing = false;
         public Save_Configs()
         {
@@ -45,7 +44,8 @@ namespace WoTB_Voice_Mod_Creater.Class
             SE_Lists.Items.Add("戦闘開始前タイマー | 有効");
             SE_Lists.Items.Add("ロックオン | 有効");
             SE_Lists.Items.Add("アンロック | 有効");
-            for (int Number = 0; Number <= 14; Number++)
+            SE_Lists.Items.Add("ノイズ音 | 有効");
+            for (int Number = 0; Number < SE_Lists.Items.Count; Number++)
                 Voice_Set.SE_Enable_Disable.Add(true);
         }
         async void Message_Feed_Out(string Message)
@@ -70,29 +70,16 @@ namespace WoTB_Voice_Mod_Creater.Class
             Message_T.Text = "";
             Message_T.Opacity = 1;
         }
-        public void Window_Show(bool IsNewMode)
+        public void Window_Show()
         {
             //画面を表示(マルチで行った場合)
             Volume_Set_C.Visibility = Visibility.Visible;
             Volume_Set_T.Visibility = Visibility.Visible;
             Exit_B.Visibility = Visibility.Visible;
             Save_B.Content = "作成";
-            if (IsNewMode)
-            {
-                Android_C.Visibility = Visibility.Hidden;
-                Android_T.Visibility = Visibility.Hidden;
-                Android_Help_B.Visibility = Visibility.Hidden;
-                Default_Voice_Mode_C.Visibility = Visibility.Visible;
-                Default_Voice_Mode_T.Visibility = Visibility.Visible;
-            }
-            else
-            {
-                Android_C.Visibility = Visibility.Visible;
-                Android_T.Visibility = Visibility.Visible;
-                Android_Help_B.Visibility = Visibility.Visible;
-                Default_Voice_Mode_C.Visibility = Visibility.Hidden;
-                Default_Voice_Mode_T.Visibility = Visibility.Hidden;
-            }
+            Android_T.Visibility = Visibility.Hidden;
+            Default_Voice_Mode_C.Visibility = Visibility.Visible;
+            Default_Voice_Mode_T.Visibility = Visibility.Visible;
             Configs_Load();
             SE_Dir = Voice_Set.Special_Path + "/Server/" + Voice_Set.SRTTbacon_Server_Name + "/Voices/SE";
             Project_T.Text = "プロジェクト名:" + Voice_Set.SRTTbacon_Server_Name;
@@ -100,7 +87,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             for (int Number = 0; Number <= Voice_Type.Count - 1; Number++)
                 Voice_Lists.Items.Add(Voice_Type[Number] + ":" + Voice_Type_Number[Number] + "個");
         }
-        public void Window_Show_V2(string Project_Name, List<List<string>> Lists, bool IsNewMode)
+        public void Window_Show_V2(string Project_Name, List<List<string>> Lists)
         {
             //画面を表示(オフラインモードで行った場合)
             Volume_Set_C.Visibility = Visibility.Visible;
@@ -109,24 +96,10 @@ namespace WoTB_Voice_Mod_Creater.Class
             Default_Voice_Mode_T.Visibility = Visibility.Visible;
             Exit_B.Visibility = Visibility.Visible;
             Save_B.Content = "作成";
-            if (IsNewMode)
-            {
-                Android_C.Visibility = Visibility.Hidden;
-                Language_Left_B.Visibility = Visibility.Visible;
-                Language_Right_B.Visibility = Visibility.Visible;
-                Android_T.Text = "言語:" + Languages[Select_Language];
-                Android_Help_B.Margin = new Thickness(-1400, 892, 0, 0);
-            }
-            else
-            {
-                Android_C.Visibility = Visibility.Visible;
-                Language_Left_B.Visibility = Visibility.Hidden;
-                Language_Right_B.Visibility = Visibility.Hidden;
-                Android_T.Text = "Android用";
-                Android_Help_B.Margin = new Thickness(-1525, 892, 0, 0);
-            }
+            Language_Left_B.Visibility = Visibility.Visible;
+            Language_Right_B.Visibility = Visibility.Visible;
+            Android_T.Text = "言語:" + Languages[Select_Language];
             Configs_Load();
-            this.IsNewMode = IsNewMode;
             SE_Dir = Voice_Set.Special_Path + "/SE";
             Project_T.Text = "プロジェクト名:" + Project_Name;
             for (int Number = 0; Number <= Lists.Count - 1; Number++)
@@ -142,11 +115,9 @@ namespace WoTB_Voice_Mod_Creater.Class
         {
             Opacity = 0;
             Visibility = Visibility.Visible;
-            Android_C.Visibility = Visibility.Hidden;
             Language_Left_B.Visibility = Visibility.Hidden;
             Language_Right_B.Visibility = Visibility.Hidden;
             Android_T.Visibility = Visibility.Hidden;
-            Android_Help_B.Visibility = Visibility.Hidden;
             Volume_Set_C.Visibility = Visibility.Hidden;
             Volume_Set_T.Visibility = Visibility.Hidden;
             DVPL_C.Visibility = Visibility.Hidden;
@@ -178,10 +149,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 try
                 {
-                    using (var eifs = new FileStream(Voice_Set.Special_Path + "/Configs/Save_Configs.conf", FileMode.Open, FileAccess.Read))
-                        using (var eofs = new FileStream(Voice_Set.Special_Path + "/Configs/Save_Configs.tmp", FileMode.Create, FileAccess.Write))
-                            FileEncode.FileEncryptor.Decrypt(eifs, eofs, "Save_Configs_Configs_Save");
-                    StreamReader str = new StreamReader(Voice_Set.Special_Path + "/Configs/Save_Configs.tmp");
+                    StreamReader str = Sub_Code.File_Decrypt_To_Stream(Voice_Set.Special_Path + "/Configs/Save_Configs.conf", "Save_Configs_Configs_Save");
                     bool IsNewVersionMode = false;
                     string One_Line = str.ReadLine();
                     if (One_Line.Contains("V1.4_Save_Mode"))
@@ -203,7 +171,6 @@ namespace WoTB_Voice_Mod_Creater.Class
                             SE_Lists.Items[Number] = SE_Lists.Items[Number].ToString().Replace("| 有効", "| 無効");
                     }
                     str.Close();
-                    File.Delete(Voice_Set.Special_Path + "/Configs/Save_Configs.tmp");
                 }
                 catch (Exception e)
                 {
@@ -385,7 +352,6 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Sub_Code.CreatingProject = true;
                 Sub_Code.VolumeSet = Volume_Set_C.IsChecked.Value;
                 Sub_Code.DVPL_Encode = DVPL_C.IsChecked.Value;
-                Sub_Code.AndroidMode = Android_C.IsChecked.Value;
                 Sub_Code.SetLanguage = Languages[Select_Language];
                 Sub_Code.Default_Voice = Default_Voice_Mode_C.IsChecked.Value;
                 Configs_Save();
@@ -411,39 +377,6 @@ namespace WoTB_Voice_Mod_Creater.Class
             SE_Enable_B.Background = Brushes.Transparent;
             SE_Enable_B.BorderBrush = Brushes.Aqua;
             SE_Lists.SelectedIndex = -1;
-        }
-        private void DVPL_C_Click(object sender, RoutedEventArgs e)
-        {
-            if (!DVPL_C.IsChecked.Value)
-                Android_C.IsChecked = false;
-        }
-        private void Android_C_Click(object sender, RoutedEventArgs e)
-        {
-            if (Android_C.IsChecked.Value && !Voice_Set.FTPClient.IsConnected)
-            {
-                MessageBox.Show("サーバーに接続されていないためAndroid用の音声を作成することはできません。");
-                Android_C.IsChecked = false;
-                return;
-            }
-            if (Android_C.IsChecked.Value)
-                DVPL_C.IsChecked = true;
-        }
-        private void Android_Help_B_Click(object sender, RoutedEventArgs e)
-        {
-            if (IsNewMode)
-            {
-                string Message_01 = "ゲーム内の言語を多国籍に設定している場合は指定してください。\n";
-                string Message_02 = "多国籍音声でない場合は'ja'にします。(日本でプレイしている場合のみ)\n";
-                string Message_03 = "'gup'はガルパンの音声です。ガルパン仕様のPzIVに乗る場合のみ再生されます。";
-                MessageBox.Show(Message_01 + Message_02 + Message_03);
-            }
-            else
-            {
-                string Message_01 = "ingame_voice_ja.fsb,GUI_battle_streamed.fsb,GUI_notifications_FX_howitzer_load.fsb,GUI_quick_commands.fsb,GUI_sirene.fsbを作成します。\n";
-                string Message_02 = "所々音量が小さく聞こえる場合がありますが、WoTBの標準のfevファイルの仕様上調整できませんのでご了承ください。\n";
-                string Message_03 = "まれに↑のfsbファイルが作成されない時がありますのでその場合はもう一度作成しなおすと改善されるかと思います。";
-                MessageBox.Show(Message_01 + Message_02 + Message_03);
-            }
         }
         private void Language_Left_B_Click(object sender, RoutedEventArgs e)
         {

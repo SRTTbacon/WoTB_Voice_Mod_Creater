@@ -477,12 +477,10 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 try
                 {
-                    Sub_Code.File_Decrypt(Voice_Set.Special_Path + "/Configs/Sound_Editor.conf", Voice_Set.Special_Path + "/Configs/Sound_Editor.tmp", "Sound_Editor_Configs_Save", false);
-                    StreamReader str = new StreamReader(Voice_Set.Special_Path + "/Configs/Sound_Editor.tmp");
+                    StreamReader str = Sub_Code.File_Decrypt_To_Stream(Voice_Set.Special_Path + "/Configs/Sound_Editor.conf", "Sound_Editor_Configs_Save");
                     Add_File_Dir = str.ReadLine();
                     Save_File_Dir = str.ReadLine();
                     str.Close();
-                    File.Delete(Voice_Set.Special_Path + "/Configs/Sound_Editor.tmp");
                 }
                 catch (Exception e)
                 {
@@ -1944,9 +1942,9 @@ namespace WoTB_Voice_Mod_Creater.Class
                     ffmpeg.Sound_Combine(Output_Files, Pos, Volumes, Speeds, To_File, true, true);
                 else
                     ffmpeg.Sound_Combine(Output_Files, Pos, Volumes, Speeds, To_File, false, true);
-                /*foreach (string FIle_Now in Output_Files)
+                foreach (string FIle_Now in Output_Files)
                     if (File.Exists(FIle_Now))
-                        File.Delete(FIle_Now);*/
+                        File.Delete(FIle_Now);
                 //クリア
                 Output_Files.Clear();
                 Pos.Clear();
@@ -2137,7 +2135,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             try
             {
                 //.wseファイルから読み込む
-                Sub_Code.File_Decrypt(File_Path, File_Path + ".tmp", "Sound_Editor_Save_File", false);
+                Sub_Code.File_Decrypt_To_File(File_Path, File_Path + ".tmp", "Sound_Editor_Save_File", false);
                 string[] Read_Lines = File.ReadAllLines(File_Path + ".tmp");
                 //File.Delete(File_Path + ".tmp");
                 //1行目は速度の設定

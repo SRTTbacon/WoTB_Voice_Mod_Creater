@@ -224,8 +224,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 try
                 {
-                    Sub_Code.File_Decrypt(Voice_Set.Special_Path + "/Configs/Sound_Editor_Setting.conf", Voice_Set.Special_Path + "/Configs/Sound_Editor_Setting.tmp", "Sound_Editor_Setting_Configs_Save", false);
-                    StreamReader str = new StreamReader(Voice_Set.Special_Path + "/Configs/Sound_Editor_Setting.tmp");
+                    StreamReader str = Sub_Code.File_Decrypt_To_Stream(Voice_Set.Special_Path + "/Configs/Sound_Editor_Setting.conf", "Sound_Editor_Setting_Configs_Save");
                     Save_Dir = str.ReadLine();
                     Save_File_Name_T.Text = str.ReadLine();
                     Save_File_Mode_C.SelectedIndex = int.Parse(str.ReadLine());
@@ -256,7 +255,6 @@ namespace WoTB_Voice_Mod_Creater.Class
                     str.Close();
                     Save_Text_Change();
                     Check_Image_Set_Source();
-                    File.Delete(Voice_Set.Special_Path + "/Configs/Sound_Editor_Setting.tmp");
                 }
                 catch (Exception e)
                 {

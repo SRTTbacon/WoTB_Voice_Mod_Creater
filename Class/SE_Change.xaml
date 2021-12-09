@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
-             d:DesignHeight="1080" d:DesignWidth="1920">
+             d:DesignHeight="1080" d:DesignWidth="1920" Loaded="SE_Change_Loaded">
     <UserControl.Resources>
         <SolidColorBrush x:Key="CyanBrush" Color="Gray"/>
         <SolidColorBrush x:Key="PinkBrush" Color="Gray"/>
@@ -67,24 +67,24 @@
         <DockPanel Width="1920" Height="1080">
             <Border BorderBrush="Black" Background="Transparent" BorderThickness="1" Height="1080" VerticalAlignment="Top" Width="1920" Opacity="1.0"/>
             <Border BorderBrush="Black" Background="MediumPurple" BorderThickness="1" Height="968" VerticalAlignment="Top" Width="1700" Margin="-1920,0,0,0" Opacity="1"/>
-            <ListBox x:Name="SE_List" Height="500" VerticalAlignment="Top" Width="600" BorderBrush="Aqua" Background="Transparent" Margin="-2950,150,0,0" Foreground="Aqua" FontSize="35" SelectionChanged="SE_List_SelectionChanged" MouseDown="SE_List_MouseDown"/>
-            <TextBlock Height="50" Width="166" FontSize="40" Foreground="Aqua" TextWrapping="Wrap" Text="SEの種類" Margin="-2950,75,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
-            <ListBox x:Name="SE_Sound_List" Height="500" VerticalAlignment="Top" Width="600" BorderBrush="Aqua" Background="Transparent" Margin="-900,150,0,0" Foreground="Aqua" FontSize="35" SelectionChanged="SE_Sound_List_SelectionChanged"/>
-            <TextBlock Height="50" Width="94" FontSize="40" Foreground="Aqua" TextWrapping="Wrap" Text="音源" Margin="-900,75,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
-            <Button x:Name="Save_B" Content="プリセットを保存" Height="55" VerticalAlignment="Top" Width="275" Margin="-1920,150,0,0" FontSize="35" Foreground="Aqua" Background="Transparent" BorderBrush="Aqua" Focusable="False" Click="Save_B_Click"/>
-            <TextBox x:Name="Save_Name_T" Height="50" TextWrapping="Wrap" Text="" FontSize="30" VerticalAlignment="Top" Width="375" Margin="-1920,90,0,0" TextAlignment="Center"/>
-            <Button x:Name="Load_B" Content="プリセットをロード" Height="55" VerticalAlignment="Top" Width="275" Margin="-1920,300,0,0" FontSize="35" Foreground="Aqua" Background="Transparent" BorderBrush="Aqua" Focusable="False" Click="Load_B_Click"/>
-            <ComboBox x:Name="Load_Combo" Height="50" VerticalAlignment="Top" Width="325" Margin="-1920,240,0,0" FontSize="32"/>
+            <ListBox x:Name="SE_List" Height="500" VerticalAlignment="Top" Width="600" BorderBrush="Aqua" Background="Transparent" Margin="-2950,175,0,0" Foreground="Aqua" FontSize="35" SelectionChanged="SE_List_SelectionChanged" MouseDown="SE_List_MouseDown"/>
+            <TextBlock Height="50" Width="166" FontSize="40" Foreground="Aqua" TextWrapping="Wrap" Text="SEの種類" Margin="-2950,100,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
+            <ListBox x:Name="SE_Sound_List" Height="500" VerticalAlignment="Top" Width="600" BorderBrush="Aqua" Background="Transparent" Margin="-900,175,0,0" Foreground="Aqua" FontSize="35" SelectionChanged="SE_Sound_List_SelectionChanged"/>
+            <TextBlock Height="50" Width="94" FontSize="40" Foreground="Aqua" TextWrapping="Wrap" Text="音源" Margin="-900,100,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
+            <Button x:Name="Save_B" Content="プリセットを保存" Height="55" VerticalAlignment="Top" Width="275" Margin="-1920,175,0,0" FontSize="35" Foreground="Aqua" Background="Transparent" BorderBrush="Aqua" Focusable="False" Click="Save_B_Click"/>
+            <TextBox x:Name="Save_Name_T" Height="50" TextWrapping="Wrap" Text="" FontSize="30" VerticalAlignment="Top" Width="375" Margin="-1920,115,0,0" TextAlignment="Center"/>
+            <Button x:Name="Load_B" Content="プリセットをロード" Height="55" VerticalAlignment="Top" Width="275" Margin="-1920,325,0,0" FontSize="35" Foreground="Aqua" Background="Transparent" BorderBrush="Aqua" Focusable="False" Click="Load_B_Click"/>
+            <ComboBox x:Name="Load_Combo" Height="50" VerticalAlignment="Top" Width="325" Margin="-1920,265,0,0" FontSize="32"/>
             <Button x:Name="Adaptation_B" Content="適応" Height="68" VerticalAlignment="Top" Width="275" Margin="-496,899,0,0" FontSize="40" BorderBrush="Aqua" Foreground="Aqua" Focusable="False" Background="Transparent" Click="Adaptation_B_Click"/>
             <TextBlock x:Name="Message_T" Height="110" Width="1100" TextWrapping="Wrap" Text="" Foreground="Aqua" FontSize="37" Margin="-1920,835,0,0" VerticalAlignment="Top" TextAlignment="Center" Focusable="False"/>
             <Button x:Name="Delete_B" Content="プリセットを削除" Height="60" VerticalAlignment="Top" Width="250" Margin="-3368,0,0,0" FontSize="35" BorderBrush="Red" Foreground="Red" Focusable="False" Background="Transparent" Click="Delete_B_Click"/>
-            <TextBlock x:Name="Volume_T" Height="50" Width="200" TextWrapping="Wrap" Text="音量:50" Foreground="Aqua" FontSize="35" Margin="-1920,475,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
-            <Slider x:Name="Volume_S" Height="27" VerticalAlignment="Top" Width="400" Margin="-1920,540,0,0" Style="{StaticResource CustomSliderStyle}" Value="50" SmallChange="1" Maximum="100" ValueChanged="Volume_S_ValueChanged"/>
-            <Button x:Name="SE_Play_B" Content="再生" Height="60" VerticalAlignment="Top" Width="200" Background="Transparent" Margin="-1715,590,0,0" Foreground="Aqua" BorderBrush="Aqua" FontSize="35" Focusable="False" Click="SE_Play_B_Click" Loaded="SE_Play_B_Loaded"/>
-            <Button x:Name="SE_Pause_B" Content="停止" Height="60" VerticalAlignment="Top" Width="200" Background="Transparent" Margin="-2125,590,0,0" Foreground="Aqua" BorderBrush="Aqua" FontSize="35" Focusable="False" Click="SE_Pause_B_Click"/>
+            <TextBlock x:Name="Volume_T" Height="50" Width="200" TextWrapping="Wrap" Text="音量:50" Foreground="Aqua" FontSize="35" Margin="-1920,500,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
+            <Slider x:Name="Volume_S" Height="27" VerticalAlignment="Top" Width="400" Margin="-1920,565,0,0" Style="{StaticResource CustomSliderStyle}" Value="50" SmallChange="1" Maximum="100" ValueChanged="Volume_S_ValueChanged"/>
+            <Button x:Name="SE_Play_B" Content="再生" Height="60" VerticalAlignment="Top" Width="200" Background="Transparent" Margin="-1715,615,0,0" Foreground="Aqua" BorderBrush="Aqua" FontSize="35" Focusable="False" Click="SE_Play_B_Click"/>
+            <Button x:Name="SE_Pause_B" Content="停止" Height="60" VerticalAlignment="Top" Width="200" Background="Transparent" Margin="-2125,615,0,0" Foreground="Aqua" BorderBrush="Aqua" FontSize="35" Focusable="False" Click="SE_Pause_B_Click"/>
             <Button x:Name="Help_B" Content="注意事項" Height="68" VerticalAlignment="Top" Width="275" Margin="-3343,899,0,0" FontSize="40" BorderBrush="Aqua" Foreground="Aqua" Focusable="False" Background="Transparent" Click="Help_B_Click"/>
-            <Button x:Name="SE_Add_B" Content="追加" Height="65" VerticalAlignment="Top" Width="295" Margin="-595,650,0,0" FontSize="40" BorderBrush="Aqua" Foreground="Aqua" Focusable="False" Background="Transparent" Click="SE_Add_B_Click"/>
-            <Button x:Name="SE_Delete_B" Content="削除" Height="65" VerticalAlignment="Top" Width="295" Margin="-1205,650,0,0" FontSize="40" BorderBrush="Aqua" Foreground="Aqua" Focusable="False" Background="Transparent" Click="SE_Delete_B_Click"/>
+            <Button x:Name="SE_Add_B" Content="追加" Height="65" VerticalAlignment="Top" Width="295" Margin="-595,675,0,0" FontSize="40" BorderBrush="Aqua" Foreground="Aqua" Focusable="False" Background="Transparent" Click="SE_Add_B_Click"/>
+            <Button x:Name="SE_Delete_B" Content="削除" Height="65" VerticalAlignment="Top" Width="295" Margin="-1205,675,0,0" FontSize="40" BorderBrush="Aqua" Foreground="Aqua" Focusable="False" Background="Transparent" Click="SE_Delete_B_Click"/>
         </DockPanel>
     </Viewbox>
 </UserControl>

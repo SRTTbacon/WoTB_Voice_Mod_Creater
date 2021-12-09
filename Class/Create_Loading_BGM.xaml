@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
-             d:DesignHeight="1080" d:DesignWidth="1920">
+             d:DesignHeight="1080" d:DesignWidth="1920" Loaded="UserControl_Loaded">
     <UserControl.Resources>
         <Style x:Key="SliderThumbStyle" TargetType="{x:Type Thumb}">
             <Setter Property="Template">
@@ -64,8 +64,9 @@
         <DockPanel Width="1920" Height="1080">
             <Border BorderBrush="Aqua" BorderThickness="1" Background="#111216" Height="1080" VerticalAlignment="Top" Width="1920"/>
             <Button x:Name="Back_B" Content="戻る" Height="75" VerticalAlignment="Top" Width="275" Background="Transparent" Margin="-3565,1005,0,0" Foreground="Aqua" BorderBrush="Aqua" FontSize="38" Focusable="False" Click="Back_B_Click"/>
+            <Button x:Name="Default_SE_B" Content="標準SEを追加" Height="65" VerticalAlignment="Top" Width="275" Background="Transparent" Margin="-3475,899,0,0" Foreground="Aqua" BorderBrush="Aqua" FontSize="35" Focusable="False" Click="Default_SE_B_Click"/>
             <ListBox x:Name="BGM_Type_L" Height="750" VerticalAlignment="Top" Width="550" Margin="-3200,150,0,0" Background="Transparent" BorderBrush="Aqua" Foreground="Aqua" FontSize="37" SelectionChanged="BGM_Type_L_SelectionChanged" SelectionMode="Extended"/>
-            <TextBlock x:Name="Mod_Name_T" Height="50" TextWrapping="Wrap" Text="Modの種類" VerticalAlignment="Top" Width="184" Foreground="Aqua" FontSize="35" Margin="-3200,75,0,0" TextAlignment="Center"/>
+            <TextBlock x:Name="Mod_Name_T" Height="50" TextWrapping="Wrap" Text="Modの種類" VerticalAlignment="Top" Width="300" Foreground="Aqua" FontSize="30" Margin="-3200,78,0,0" TextAlignment="Center"/>
             <ListBox x:Name="BGM_Music_L" Height="675" VerticalAlignment="Top" Width="550" Margin="-650,150,0,0" Background="Transparent" BorderBrush="Aqua" Foreground="Aqua" FontSize="37"  SelectionChanged="BGM_Music_L_SelectionChanged"/>
             <TextBlock Height="50" TextWrapping="Wrap" Text="再生されるサウンド" VerticalAlignment="Top" Width="300" Foreground="Aqua" FontSize="37" Margin="-650,75,0,0" TextAlignment="Center"/>
             <Button x:Name="Save_B" Content="セーブ" Height="70" VerticalAlignment="Top" Width="250" Background="Transparent" Margin="-2180,75,0,0" Foreground="Aqua" BorderBrush="Aqua" FontSize="38" Focusable="False" Click="Save_B_Click"/>
@@ -95,8 +96,8 @@
             <TextBlock x:Name="Play_Time_T" Height="50" TextWrapping="Wrap" Text="再生時間:0～0" VerticalAlignment="Top" Width="450" Foreground="Aqua" FontSize="33" Margin="-1920,695,0,0" TextAlignment="Center"/>
             <CheckBox x:Name="Feed_In_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-2185,770,0,0" Focusable="False" Click="Feed_In_C_Click"/>
             <TextBlock x:Name="Feed_In_T" Height="50" TextWrapping="Wrap" Text="フェードイン" VerticalAlignment="Top" Width="174" Foreground="Aqua" FontSize="38" Margin="-1975,750,0,0" TextAlignment="Center"/>
-            <Button x:Name="Next_Mod_B" Content="→" Height="60" VerticalAlignment="Top" Width="125" Background="Transparent" Margin="-2800,70,0,0" Foreground="Aqua" BorderBrush="Aqua" FontSize="35" Focusable="False" Click="Next_Mod_B_Click"/>
-            <Button x:Name="Back_Mod_B" Content="←" Height="60" VerticalAlignment="Top" Width="125" Background="Transparent" Margin="-3600,70,0,0" Foreground="Aqua" BorderBrush="Aqua" FontSize="35" Focusable="False" Click="Back_Mod_B_Click"/>
+            <Button x:Name="Next_Mod_B" Content="→" Height="60" VerticalAlignment="Top" Width="125" Background="Transparent" Margin="-2780,70,0,0" Foreground="Aqua" BorderBrush="Aqua" FontSize="35" Focusable="False" Click="Next_Mod_B_Click"/>
+            <Button x:Name="Back_Mod_B" Content="←" Height="60" VerticalAlignment="Top" Width="125" Background="Transparent" Margin="-3620,70,0,0" Foreground="Aqua" BorderBrush="Aqua" FontSize="35" Focusable="False" Click="Back_Mod_B_Click"/>
             <Button x:Name="Create_Help_B" Content="?" Height="45" VerticalAlignment="Top" Width="45" Background="Transparent" Margin="-2485,860,0,0" Foreground="Aqua" BorderBrush="Aqua" FontSize="25" Focusable="False" Click="Create_Help_B_Click"/>
         </DockPanel>
     </Viewbox>

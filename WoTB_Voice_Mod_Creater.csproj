@@ -95,6 +95,7 @@
     <ErrorReport>prompt</ErrorReport>
     <Prefer32Bit>true</Prefer32Bit>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Optimize>true</Optimize>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
     <OutputPath>bin\x64\Release\</OutputPath>
@@ -167,19 +168,6 @@
     </Compile>
     <Compile Include="Class\ffmpeg.cs" />
     <Compile Include="Class\GoogleDrive.cs" />
-    <Compile Include="Class\NAudio\AveragePeakProvider.cs" />
-    <Compile Include="Class\NAudio\DecibelPeakProvider.cs" />
-    <Compile Include="Class\NAudio\IPeakProvider.cs" />
-    <Compile Include="Class\NAudio\MaxPeakProvider.cs" />
-    <Compile Include="Class\NAudio\PeakInfo.cs" />
-    <Compile Include="Class\NAudio\PeakProvider.cs" />
-    <Compile Include="Class\NAudio\RmsPeakProvider.cs" />
-    <Compile Include="Class\NAudio\SamplingPeakProvider.cs" />
-    <Compile Include="Class\NAudio\SoundCloudBlockWaveFormSettings.cs" />
-    <Compile Include="Class\NAudio\SoundCloudOriginalSettings.cs" />
-    <Compile Include="Class\NAudio\StandardWaveFormRendererSettings.cs" />
-    <Compile Include="Class\NAudio\WaveFormRenderer.cs" />
-    <Compile Include="Class\NAudio\WaveFormRendererSettings.cs" />
     <Compile Include="Class\SE_Change.xaml.cs">
       <DependentUpon>SE_Change.xaml</DependentUpon>
     </Compile>
@@ -200,7 +188,6 @@
     <Compile Include="Multiplayer\Administrator_Control.xaml.cs">
       <DependentUpon>Administrator_Control.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Class\Android_Create.cs" />
     <Compile Include="Class\DDS.cs" />
     <Compile Include="Class\DDS_Tool.xaml.cs">
       <DependentUpon>DDS_Tool.xaml</DependentUpon>
@@ -241,6 +228,11 @@
       <DependentUpon>Server_Select.xaml</DependentUpon>
     </Compile>
     <Compile Include="Multiplayer\Server_Voices.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
     <Compile Include="Wwise_Class\Bank_Editor.xaml.cs">
       <DependentUpon>Bank_Editor.xaml</DependentUpon>
     </Compile>
@@ -263,6 +255,7 @@
     <Compile Include="Wwise_Class\BNK_To_Wwise_Project\Master_Mixer.cs" />
     <Compile Include="Wwise_Class\BNK_To_Wwise_Project\SoundBanks.cs" />
     <Compile Include="Wwise_Class\BNK_To_Wwise_Project\SoundbanksInfo.cs" />
+    <Compile Include="Wwise_Class\BNK_To_Wwise_Project\State.cs" />
     <Compile Include="Wwise_Class\BNK_To_Wwise_Project\Switch.cs" />
     <Compile Include="Wwise_Class\Change_To_Wwise.xaml.cs">
       <DependentUpon>Change_To_Wwise.xaml</DependentUpon>
@@ -393,10 +386,6 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="FMOD_Class\Fmod_Create.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="MainCode.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -430,9 +419,6 @@
     <Compile Include="FMOD_Class\fmod_errors.cs" />
     <Compile Include="FMOD_Class\Fmod_Extract.xaml.cs">
       <DependentUpon>Fmod_Extract.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="FMOD_Class\Fmod_Create.xaml.cs">
-      <DependentUpon>Fmod_Create.xaml</DependentUpon>
     </Compile>
     <Compile Include="MainCode.xaml.cs">
       <DependentUpon>MainCode.xaml</DependentUpon>
@@ -483,11 +469,6 @@
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Properties\Resources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
     <Compile Include="Properties\Settings.Designer.cs">
       <AutoGen>True</AutoGen>
       <DependentUpon>Settings.settings</DependentUpon>
@@ -503,7 +484,6 @@
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
-    <None Include="Resources\mod-creater-api-3bc73f4a47e3.json" />
     <None Include="WoTB_Voice_Mod_Creater.pfx" />
   </ItemGroup>
   <ItemGroup>
@@ -651,12 +631,7 @@
   <ItemGroup>
     <EmbeddedResource Include="Resources\bassenc.dll" />
   </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Resources\libmp3lame.32.dll" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Android\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <EmbeddedResource Include="Resources\bassmix.dll" />
   </ItemGroup>

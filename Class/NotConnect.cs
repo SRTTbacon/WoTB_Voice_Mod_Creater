@@ -71,28 +71,18 @@ namespace WoTB_Voice_Mod_Creater
         {
             if (File.Exists(Path + "/User.dat"))
             {
-                try
+                StreamReader str = Sub_Code.File_Decrypt_To_Stream(Path + "/User.dat", "SRTTbacon_Server_User_Pass_Save");
+                string Login_Read = str.ReadLine();
+                str.Close();
+                string User_Name = Login_Read.Substring(0, Login_Read.IndexOf(':'));
+                string Password = Login_Read.Substring(Login_Read.IndexOf(':') + 1);
+                if (Account_Exist(User_Name, Password))
                 {
-                    Sub_Code.File_Decrypt(Path + "/User.dat", Voice_Set.Special_Path + "/Temp_User.dat", "SRTTbacon_Server_User_Pass_Save", false);
-                    StreamReader str = new StreamReader(Voice_Set.Special_Path + "/Temp_User.dat");
-                    string Login_Read = str.ReadLine();
-                    str.Close();
-                    File.Delete(Voice_Set.Special_Path + "/Temp_User.dat");
-                    string User_Name = Login_Read.Substring(0, Login_Read.IndexOf(':'));
-                    string Password = Login_Read.Substring(Login_Read.IndexOf(':') + 1);
-                    if (Account_Exist(User_Name, Password))
-                    {
-                        Voice_Set.UserName = User_Name;
-                        return true;
-                    }
-                    else
-                        return false;
+                    Voice_Set.UserName = User_Name;
+                    return true;
                 }
-                catch (Exception e)
-                {
-                    Sub_Code.Error_Log_Write(e.Message);
+                else
                     return false;
-                }
             }
             else
             {
