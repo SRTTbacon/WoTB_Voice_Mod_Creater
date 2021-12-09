@@ -64,8 +64,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 try
                 {
-                    Sub_Code.File_Decrypt(Voice_Set.Special_Path + "/Configs/Vocal_Inst_User.conf", Voice_Set.Special_Path + "/Configs/Vocal_Inst_User.tmp", "Music_Player_Vocal_Inst_User_Save", false);
-                    StreamReader str = new StreamReader(Voice_Set.Special_Path + "/Configs/Vocal_Inst_User.tmp");
+                    StreamReader str = Sub_Code.File_Decrypt_To_Stream(Voice_Set.Special_Path + "/Configs/Vocal_Inst_User.conf", "Music_Player_Vocal_Inst_User_Save");
                     Spleeter_Progress = int.Parse(str.ReadLine());
                     To_Dir_Path = str.ReadLine();
                     if (bool.Parse(str.ReadLine()))
@@ -103,7 +102,6 @@ namespace WoTB_Voice_Mod_Creater.Class
                     else
                         To_Dir_T.Text = "保存先:" + To_Dir_Path;
                     str.Close();
-                    File.Delete(Voice_Set.Special_Path + "/Configs/Vocal_Inst_User.tmp");
                     if (Spleeter_Progress == 0)
                         Download_B.Content = "Spleeterをダウンロード";
                     else if (Spleeter_Progress == 1)
@@ -277,7 +275,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                                 break;
                             }
                         }
-                        if (From_Dir != "" && File.Exists(From_Dir + "\\accompaniment.wav"))
+                        if (From_Dir != "" && File.Exists(From_Dir + "\\vocals.wav"))
                         {
                             string Output_Dir = To_Dir_Path;
                             if (IsSyncOutputDir)
@@ -303,10 +301,6 @@ namespace WoTB_Voice_Mod_Creater.Class
                             else
                                 IsCompleteMessageShow = 2;
                         }
-                        Music_Convert_List.RemoveAt(0);
-                        Music_Convert_Mode.RemoveAt(0);
-                        Convert_Count_T.Text = "変換中の数:" + Music_Convert_List.Count;
-                        IsConverting = false;
                     });
                 }
                 if (IsCompleteMessageShow == 1)
@@ -327,8 +321,12 @@ namespace WoTB_Voice_Mod_Creater.Class
                         }
                     }
                     Message_Feed_Out(Path.GetFileName(Music_Convert_List[0]) + "の切り分けが完了しました。");
+                    Music_Convert_List.RemoveAt(0);
+                    Music_Convert_Mode.RemoveAt(0);
+                    Convert_Count_T.Text = "変換中の数:" + Music_Convert_List.Count;
                     Remove_Name = "";
                     IsCompleteMessageShow = 0;
+                    IsConverting = false;
                 }
                 else if (IsCompleteMessageShow == 2)
                 {
@@ -348,8 +346,12 @@ namespace WoTB_Voice_Mod_Creater.Class
                         }
                     }
                     Message_T.Text = Path.GetFileName(Music_Convert_List[0]) + "の切り分けが完了しました。";
+                    Music_Convert_List.RemoveAt(0);
+                    Music_Convert_Mode.RemoveAt(0);
+                    Convert_Count_T.Text = "変換中の数:" + Music_Convert_List.Count;
                     Remove_Name = "";
                     IsCompleteMessageShow = 0;
+                    IsConverting = false;
                 }
                 await Task.Delay(1000);
             }
@@ -379,12 +381,17 @@ namespace WoTB_Voice_Mod_Creater.Class
                 return;
             try
             {
+                if (Voice_Set.Special_Path.Contains(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData)))
+                {
+                    Message_Feed_Out("ホーム画面からShift+Dキーでリソースフォルダの場所を変更する必要があります。");
+                    return;
+                }
                 System.IO.DriveInfo drive = new System.IO.DriveInfo(Voice_Set.Special_Path[0].ToString());
                 //ドライブの準備ができているか調べる
                 if (drive.IsReady)
                 {
                     //空き容量が3GB以下は実行できないように
-                    if (drive.TotalFreeSpace / 1024 / 1024 >= 5120)
+                    if (drive.TotalFreeSpace / 1024 / 1024 <= 5120)
                     {
                         Message_Feed_Out("ディスクの空き容量が5GB以上である必要があります。");
                         return;
@@ -584,7 +591,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                     else
                     {
                         Directory.CreateDirectory(System.IO.Path.GetDirectoryName(fileDestinationPath));
-                        entry.ExtractToFile(fileDestinationPath, overwrite: overwrite);
+                        entry.ExtractToFile(fileDestinationPath, overwrite);
                     }
                     var zipProgress = new ZipProgress(zip.Entries.Count, count, entry.FullName);
                     progress.Report(zipProgress);
@@ -787,7 +794,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         }
         private void Delete_C_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
-            if (IsSyncOutputDir)
+            if (IsDeleteMode)
             {
                 IsDeleteMode = false;
                 Delete_C.Source = Sub_Code.Check_02;

@@ -51,19 +51,11 @@ namespace WoTB_Voice_Mod_Creater.FMOD
             {
                 try
                 {
-                    using (var eifs = new FileStream(Voice_Set.Special_Path + "/Configs/FSB_Extract.conf", FileMode.Open, FileAccess.Read))
-                    {
-                        using (var eofs = new FileStream(Voice_Set.Special_Path + "/Configs/Temp_FSB_Extract.tmp", FileMode.Create, FileAccess.Write))
-                        {
-                            FileEncode.FileEncryptor.Decrypt(eifs, eofs, "FSB_Extract_Configs_Save");
-                        }
-                    }
-                    StreamReader str = new StreamReader(Voice_Set.Special_Path + "/Configs/Temp_FSB_Extract.tmp");
+                    StreamReader str = Sub_Code.File_Decrypt_To_Stream(Voice_Set.Special_Path + "/Configs/FSB_Extract.conf", "FSB_Extract_Configs_Save");
                     Extract_L.SelectedIndex = int.Parse(str.ReadLine());
                     Select_L.SelectedIndex = int.Parse(str.ReadLine());
                     Volume_S.Value = double.Parse(str.ReadLine());
                     str.Close();
-                    File.Delete(Voice_Set.Special_Path + "/Configs/Temp_FSB_Extract.tmp");
                 }
                 catch (Exception e)
                 {

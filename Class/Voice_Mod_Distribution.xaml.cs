@@ -97,8 +97,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 try
                 {
-                    Sub_Code.File_Decrypt(Voice_Set.Special_Path + "/Configs/Voice_Mod.conf", Voice_Set.Special_Path + "/Configs/Temp_Voice_Mod.tmp", "Voice_Mod_Configs_Save", false);
-                    StreamReader str = new StreamReader(Voice_Set.Special_Path + "/Configs/Temp_Voice_Mod.tmp");
+                    StreamReader str = Sub_Code.File_Decrypt_To_Stream(Voice_Set.Special_Path + "/Configs/Voice_Mod.conf", "Voice_Mod_Configs_Save");
                     Voice_Volume_S.Value = double.Parse(str.ReadLine());
                     List_Change_C.IsChecked = bool.Parse(str.ReadLine());
                     Select_Language = int.Parse(str.ReadLine());
@@ -125,7 +124,6 @@ namespace WoTB_Voice_Mod_Creater.Class
                         }
                     }
                     Language_T.Text = "言語:" + Languages[Select_Language];
-                    File.Delete(Voice_Set.Special_Path + "/Configs/Temp_Voice_Mod.tmp");
                 }
                 catch (Exception e)
                 {
@@ -841,9 +839,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         {
             //起動時にコピーされるファイルから復元
             if (IsBusy)
-            {
                 return;
-            }
             if (Voice_Set.WoTB_Path == "")
             {
                 Message_Feed_Out("WoTBのフォルダを取得できませんでした。");
@@ -864,17 +860,13 @@ namespace WoTB_Voice_Mod_Creater.Class
                     MessageBox.Show("バックアップから復元しました。この操作でうまく復元できていなかった場合は、\"サーバーから復元\"をお試しください。");
                 }
                 else
-                {
                     Message_Feed_Out("WoTBのバックアップがされていません。");
-                }
             }
         }
         private async void Mod_Server_Backup_B_Click(object sender, RoutedEventArgs e)
         {
             if (IsBusy)
-            {
                 return;
-            }
             if (Voice_Set.WoTB_Path == "")
             {
                 Message_Feed_Out("WoTBのフォルダを取得できませんでした。");

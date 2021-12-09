@@ -212,13 +212,9 @@ namespace WoTB_Voice_Mod_Creater.FMOD
         public static bool FSB_Extract_To_Directory(string FSB_Path, string To_Dir)
         {
             if (!File.Exists(FSB_Path))
-            {
                 return false;
-            }
             if (!Directory.Exists(To_Dir))
-            {
                 Directory.CreateDirectory(To_Dir);
-            }
             StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Wwise/FSB_Extract.bat");
             stw.WriteLine("chcp 65001");
             stw.Write("\"" + Voice_Set.Special_Path + "/Wwise/fsbext.exe\" " + "-d \"" + To_Dir + "\" \"" + FSB_Path + "\"");
@@ -243,9 +239,7 @@ namespace WoTB_Voice_Mod_Creater.FMOD
             List<string> Name_List = new List<string>();
             int NumSubSounds = FSB_GetLength(FSB_File);
             if (NumSubSounds == 0)
-            {
                 return Name_List;
-            }
             Sound MainSound = new Sound();
             Sound SubSound = new Sound();
             for (int i = 0; i < NumSubSounds; i++)
@@ -255,9 +249,7 @@ namespace WoTB_Voice_Mod_Creater.FMOD
                 {
                     StringBuilder SubSoundName = new StringBuilder(256);
                     if (SubSound.getName(SubSoundName, 256) == RESULT.OK && SubSoundName[0] != 0)
-                    {
                         Name_List.Add(SubSoundName.ToString());
-                    }
                 }
                 SubSound.release();
                 MainSound.release();

@@ -36,14 +36,12 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 try
                 {
-                    Sub_Code.File_Decrypt(Voice_Set.Special_Path + "/Configs/Download_Location.conf", Voice_Set.Special_Path + "/Configs/Temp_Location.dat", "Youtube_Download_Location_Save", false);
-                    StreamReader str = new StreamReader(Voice_Set.Special_Path + "/Configs/Temp_Location.dat");
+                    StreamReader str = Sub_Code.File_Decrypt_To_Stream(Voice_Set.Special_Path + "/Configs/Download_Location.conf", "Youtube_Download_Location_Save");
                     Save_Destination_T.Text = str.ReadLine();
                     Type_L.SelectedIndex = int.Parse(str.ReadLine());
                     List_Add_C.IsChecked = bool.Parse(str.ReadLine());
                     Close_C.IsChecked = bool.Parse(str.ReadLine());
                     str.Close();
-                    File.Delete(Voice_Set.Special_Path + "/Configs/Temp_Location.dat");
                 }
                 catch (Exception e)
                 {
