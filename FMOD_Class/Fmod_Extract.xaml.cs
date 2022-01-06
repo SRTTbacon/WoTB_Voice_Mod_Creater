@@ -7,7 +7,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using WK.Libraries.BetterFolderBrowserNS;
 
-namespace WoTB_Voice_Mod_Creater.FMOD
+namespace WoTB_Voice_Mod_Creater.FMOD_Class
 {
     public partial class Fmod_Extract : UserControl
     {
@@ -604,12 +604,9 @@ namespace WoTB_Voice_Mod_Creater.FMOD
                     FModChannel.setVolume(Volume_Now - Down);
                     await Task.Delay(1000 / 60);
                 }
-                FModChannel.setPaused(true);
-                FModChannel = new FMOD_API.Channel();
+                FModChannel.stop();
                 MainSound.release();
                 SubSound.release();
-                MainSound = new FMOD_API.Sound();
-                SubSound = new FMOD_API.Sound();
                 Location_T.Text = "00:00";
                 Location_S.Value = 0;
                 Location_S.Maximum = 0;

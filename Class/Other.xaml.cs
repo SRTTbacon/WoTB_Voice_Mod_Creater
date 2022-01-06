@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FMOD_API;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -38,19 +39,25 @@ namespace WoTB_Voice_Mod_Creater.Class
         bool IsWaveColorLoaded = false;
         bool IsPlayingMouseDown = false;
         bool IsSyncPitch_And_Speed = false;
+        bool IsLeftKeyDown = false;
+        bool IsRightKeyDown = false;
+        bool IsSpaceKeyDown = false;
+        bool IsVolume_Speed_Changed_By_Key = false;
+        bool IsUsingFMOD = false;
         System.Windows.Point Mouse_Point = new System.Windows.Point(0, 0);
         System.Windows.Point Video_Point = new System.Windows.Point(0, 0);
         System.Windows.Media.Imaging.BitmapImage Wave_Gray_Image_Source = null;
         System.Windows.Media.Imaging.BitmapImage Wave_Color_Image_Source = null;
         Un4seen.Bass.Misc.WaveForm WF_Gray = null;
         Un4seen.Bass.Misc.WaveForm WF_Color = null;
+        Sound FMOD_Sound = null;
+        Channel FMOD_Channel = null;
         int Stream;
         int SetFirstDevice = -1;
         int WAVEForm_Image_Width = 0;
         int WAVEForm_Image_Height = 0;
         //曲のリストのインデックス:0～8
         int Music_Select_List = 0;
-        int Music_Select_Index_Before = -1;
         float Music_Frequency = 44100f;
         double X_Move = 0;
         double Y_Move = 0;
@@ -95,20 +102,8 @@ namespace WoTB_Voice_Mod_Creater.Class
             }
             Position_Change();
         }
-        private void Video_V_MediaFailed(object sender, ExceptionRoutedEventArgs e)
+        private void UserControl_Loaded(object sender, RoutedEventArgs e)
         {
-            Video_V.Stop();
-            Video_V.Close();
-            Video_V.Source = new Uri(File_Full_Path[Music_Select_List][Music_List.SelectedIndex]);
-            Video_V.Volume = 0;
-            Video_V.Play();
-            long position = Bass.BASS_ChannelGetPosition(Stream);
-            TimeSpan time = TimeSpan.FromSeconds(Bass.BASS_ChannelBytes2Seconds(Stream, position));
-            Video_V.Position = time;
-        }
-        public async void Window_Show()
-        {
-            Visibility = Visibility.Visible;
             Zoom_S.Value = 1;
             bool IsListSave = false;
             if (File.Exists(Voice_Set.Special_Path + "/Configs/Other_Music_List.dat") && Bass.BASS_ChannelIsActive(Stream) == BASSActive.BASS_ACTIVE_STOPPED)
@@ -146,7 +141,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                     if (IsListSave)
                         Music_List_Save();
                 }
-                catch (Exception e)
+                catch (Exception e1)
                 {
                     System.Windows.MessageBox.Show("リストが破損しているためファイルを読み込めませんでした。\nエラー回避のためリストは削除されます。");
                     File.Delete(Voice_Set.Special_Path + "/Configs/Other_Music_List.dat");
@@ -156,7 +151,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                         File_Name_Path[Number].Clear();
                     }
                     Music_List.Items.Clear();
-                    Sub_Code.Error_Log_Write(e.Message);
+                    Sub_Code.Error_Log_Write(e1.Message);
                 }
             }
             if (File.Exists(Voice_Set.Special_Path + "/Configs/Music_Player.conf"))
@@ -196,7 +191,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                     }
                     str.Close();
                 }
-                catch (Exception e)
+                catch (Exception e1)
                 {
                     System.Windows.MessageBox.Show("設定を読み込めませんでした。。\nエラー回避のため設定は削除されます。");
                     File.Delete(Voice_Set.Special_Path + "/Configs/Music_Player.conf");
@@ -205,10 +200,26 @@ namespace WoTB_Voice_Mod_Creater.Class
                     Random_C.IsChecked = false;
                     Background_C.IsChecked = false;
                     Ex_Sort_C.IsChecked = false;
-                    Sub_Code.Error_Log_Write(e.Message);
+                    Sub_Code.Error_Log_Write(e1.Message);
                 }
             }
             Music_List_Sort();
+            IsSaveOK = true;
+        }
+        private void Video_V_MediaFailed(object sender, ExceptionRoutedEventArgs e)
+        {
+            Video_V.Stop();
+            Video_V.Close();
+            Video_V.Source = new Uri(File_Full_Path[Music_Select_List][Music_List.SelectedIndex]);
+            Video_V.Volume = 0;
+            Video_V.Play();
+            long position = Bass.BASS_ChannelGetPosition(Stream);
+            TimeSpan time = TimeSpan.FromSeconds(Bass.BASS_ChannelBytes2Seconds(Stream, position));
+            Video_V.Position = time;
+        }
+        public async void Window_Show()
+        {
+            Visibility = Visibility.Visible;
             if (Video_V.Source != null && Music_Fix_B.Visibility == Visibility.Visible)
             {
                 Video_V.Play();
@@ -224,8 +235,6 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Window_Bar_Canvas.Margin = new Thickness(0, 25, 0, 0);
             else
                 Window_Bar_Canvas.Margin = new Thickness(0, 0, 0, 0);
-            IsSaveOK = true;
-            Music_List.SelectedIndex = Music_Select_Index_Before;
             while (Opacity < 1 && !IsBusy)
             {
                 Opacity += Sub_Code.Window_Feed_Time;
@@ -234,12 +243,43 @@ namespace WoTB_Voice_Mod_Creater.Class
         }
         async void Position_Change()
         {
+            double nextFrame = (double)Environment.TickCount;
+            float period = 1000f / 15f;
             while (true)
             {
+                //FPSを上回っていたらスキップ
+                double tickCount = (double)Environment.TickCount;
+                if (tickCount < nextFrame)
+                {
+                    if (nextFrame - tickCount > 1)
+                        await Task.Delay((int)(nextFrame - tickCount));
+                    System.Windows.Forms.Application.DoEvents();
+                    continue;
+                }
+                bool IsPlaying = Bass.BASS_ChannelIsActive(Stream) == BASSActive.BASS_ACTIVE_PLAYING;
+                if (IsPlaying)
+                {
+                    Bass.BASS_ChannelUpdate(Stream, 100);
+                    if (Start_Time != -1 && Location_S.Value >= End_Time)
+                    {
+                        Music_Pos_Change(Start_Time, true);
+                        Set_Position_Slider();
+                        TimeSpan time = TimeSpan.FromSeconds(Location_S.Value);
+                        Video_V.Position = time;
+                    }
+                    else if (Start_Time != -1 && Location_S.Value < Start_Time)
+                    {
+                        Music_Pos_Change(Start_Time, true);
+                        Set_Position_Slider();
+                        TimeSpan time = TimeSpan.FromSeconds(Location_S.Value);
+                        Video_V.Position = time;
+                    }
+                }
                 if (Visibility == Visibility.Visible)
                 {
-                    if (Bass.BASS_ChannelIsActive(Stream) == BASSActive.BASS_ACTIVE_PLAYING && !IsLocationChanging)
+                    if (IsPlaying && !IsLocationChanging)
                     {
+                        Set_Position_Slider();
                         if (IsWaveGrayLoaded)
                         {
                             IsWaveGrayLoaded = false;
@@ -249,24 +289,6 @@ namespace WoTB_Voice_Mod_Creater.Class
                         {
                             IsWaveColorLoaded = false;
                             WAVEForm_Color_Image.Source = Wave_Color_Image_Source;
-                        }
-                        long position = Bass.BASS_ChannelGetPosition(Stream);
-                        Location_S.Value = Bass.BASS_ChannelBytes2Seconds(Stream, position);
-                        if (Start_Time != -1 && Location_S.Value >= End_Time)
-                        {
-                            Music_Pos_Change(Start_Time, true);
-                            long position2 = Bass.BASS_ChannelGetPosition(Stream);
-                            Location_S.Value = Bass.BASS_ChannelBytes2Seconds(Stream, position2);
-                            TimeSpan time = TimeSpan.FromSeconds(Location_S.Value);
-                            Video_V.Position = time;
-                        }
-                        else if (Start_Time != -1 && Location_S.Value < Start_Time)
-                        {
-                            Music_Pos_Change(Start_Time, true);
-                            long position2 = Bass.BASS_ChannelGetPosition(Stream);
-                            Location_S.Value = Bass.BASS_ChannelBytes2Seconds(Stream, position2);
-                            TimeSpan time = TimeSpan.FromSeconds(Location_S.Value);
-                            Video_V.Position = time;
                         }
                         if (WAVEForm_Color_Image.Visibility == Visibility.Visible)
                             WAVEForm_Color_Image.Width = (Location_S.Value / Location_S.Maximum) * WAVEForm_Image_Width;
@@ -284,20 +306,109 @@ namespace WoTB_Voice_Mod_Creater.Class
                         Video_V.Pause();
                         Video_V.Visibility = Visibility.Hidden;
                     }
+                    if (Sub_Code.IsForcusWindow)
+                    {
+                        bool IsLeft_or_RightPushed = false;
+                        if ((Keyboard.GetKeyStates(Key.Left) & KeyStates.Down) > 0)
+                        {
+                            if (!IsLeftKeyDown && !IsLeft_or_RightPushed)
+                                Music_Minus_B.PerformClick();
+                            IsLeftKeyDown = true;
+                            IsLeft_or_RightPushed = true;
+                        }
+                        else
+                            IsLeftKeyDown = false;
+                        if ((Keyboard.GetKeyStates(Key.Right) & KeyStates.Down) > 0)
+                        {
+                            if (!IsRightKeyDown && !IsLeft_or_RightPushed)
+                                Music_Plus_B.PerformClick();
+                            IsRightKeyDown = true;
+                            IsLeft_or_RightPushed = true;
+                        }
+                        else
+                            IsRightKeyDown = false;
+                        if ((Keyboard.GetKeyStates(Key.Space) & KeyStates.Down) > 0)
+                        {
+                            if (!IsSpaceKeyDown)
+                            {
+                                if (IsPlaying)
+                                    Music_Pause_B.PerformClick();
+                                else
+                                    Music_Play_B.PerformClick();
+                            }
+                            IsSpaceKeyDown = true;
+                        }
+                        else
+                            IsSpaceKeyDown = false;
+                        if ((Keyboard.GetKeyStates(Key.V) & KeyStates.Down) > 0 && (Keyboard.GetKeyStates(Key.Up) & KeyStates.Down) > 0)
+                        {
+                            double Increase = 1;
+                            if (Volume_S.Value + Increase > 100)
+                                Volume_S.Value = 100;
+                            else
+                                Volume_S.Value += Increase;
+                        }
+                        else if ((Keyboard.GetKeyStates(Key.V) & KeyStates.Down) > 0 && (Keyboard.GetKeyStates(Key.Down) & KeyStates.Down) > 0)
+                        {
+                            double Increase = 1;
+                            if (Volume_S.Value - Increase < 0)
+                                Volume_S.Value = 0;
+                            else
+                                Volume_S.Value -= Increase;
+                        }
+                        if ((Keyboard.GetKeyStates(Key.S) & KeyStates.Down) > 0 && (Keyboard.GetKeyStates(Key.Up) & KeyStates.Down) > 0)
+                        {
+                            double Increase = 0.6;
+                            if (Pitch_Speed_S.Value + Increase > 100)
+                                Pitch_Speed_S.Value = 100;
+                            else
+                                Pitch_Speed_S.Value += Increase;
+                            IsVolume_Speed_Changed_By_Key = true;
+                        }
+                        else if ((Keyboard.GetKeyStates(Key.S) & KeyStates.Down) > 0 && (Keyboard.GetKeyStates(Key.Down) & KeyStates.Down) > 0)
+                        {
+                            double Decrease = 0.6;
+                            if (Pitch_Speed_S.Value + Decrease < 0)
+                                Pitch_Speed_S.Value = 0;
+                            else
+                                Pitch_Speed_S.Value -= Decrease;
+                            IsVolume_Speed_Changed_By_Key = true;
+                        }
+                        if (IsPlaying)
+                        {
+                            if (IsVolume_Speed_Changed_By_Key && (Keyboard.GetKeyStates(Key.S) & KeyStates.Down) == 0 && (Keyboard.GetKeyStates(Key.Up) & KeyStates.Down) == 0 && (Keyboard.GetKeyStates(Key.Down) & KeyStates.Down) == 0)
+                            {
+                                IsVolume_Speed_Changed_By_Key = false;
+                                Pitch_Speed_S_MouseUp(null, null);
+                            }
+                        }
+                    }
                 }
                 if (IsEnded)
                 {
                     if (Loop_C.IsChecked.Value)
                     {
                         Bass.BASS_ChannelStop(Stream);
+                        //FMOD_Channel.setPaused(true);
                         Video_V.Position = TimeSpan.FromSeconds(0);
-                        Bass.BASS_ChannelPlay(Stream, true);
+                        //FMOD_Channel.setPosition(0, TIMEUNIT.MS);
+                        if (IsFMODMode())
+                            FMOD_Channel.setPaused(false);
+                        else
+                            Bass.BASS_ChannelPlay(Stream, true);
                     }
                     else if (Random_C.IsChecked.Value)
                     {
                         if (Music_List.Items.Count == 1)
                         {
-                            Bass.BASS_ChannelSetPosition(Stream, 0);
+                            if (IsFMODMode())
+                            {
+                                FMOD_Channel.setPaused(true);
+                                FMOD_Channel.setPosition(0, TIMEUNIT.MS);
+                                FMOD_Channel.setPaused(false);
+                            }
+                            else
+                                Bass.BASS_ChannelSetPosition(Stream, 0);
                             Video_V.Position = TimeSpan.FromSeconds(0);
                         }
                         else
@@ -332,6 +443,11 @@ namespace WoTB_Voice_Mod_Creater.Class
                     {
                         Bass.BASS_ChannelStop(Stream);
                         Bass.BASS_StreamFree(Stream);
+                        if (FMOD_Channel != null)
+                        {
+                            FMOD_Channel.stop();
+                            FMOD_Sound.release();
+                        }
                         Video_V.Stop();
                         Video_V.Close();
                         Video_V.Source = null;
@@ -344,10 +460,20 @@ namespace WoTB_Voice_Mod_Creater.Class
                         WAVEForm_Color_Image.Source = null;
                         Window_Bar_Canvas.Margin = new Thickness(0, 0, 0, 0);
                     }
-                    IsEnded = false;
                 }
-                await Task.Delay(1000 / 30);
+                IsEnded = false;
+                //次のフレーム時間を計算
+                if ((double)System.Environment.TickCount >= nextFrame + (double)period)
+                {
+                    nextFrame += period;
+                    continue;
+                }
+                nextFrame += period;
             }
+        }
+        async void Pitch_Change_Await()
+        {
+            await Task.Delay(500);
         }
         //動画の位置を変更中の間ループさせる
         async void Video_Click_Loop()
@@ -378,7 +504,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             OpenFileDialog ofd = new OpenFileDialog()
             {
                 Title = "音楽ファイルを選択してください。",
-                Filter = "音楽ファイル(*.mp3;*.wav;*.ogg;*.aiff;*.flac;*.m4a;*.mp4)|*.mp3;*.wav;*.ogg;*.aiff;*.flac;*.m4a;*.mp4",
+                Filter = "音楽ファイル(*.aac;*.mp3;*.wav;*.ogg;*.aiff;*.flac;*.m4a;*.mp4)|*.aac;*.mp3;*.wav;*.ogg;*.aiff;*.flac;*.m4a;*.mp4",
                 Multiselect = true
             };
             if (ofd.ShowDialog() == DialogResult.OK)
@@ -430,7 +556,6 @@ namespace WoTB_Voice_Mod_Creater.Class
             }
         }
         //リストを並び替える
-        //true=拡張子順,false=名前順
         void Music_List_Sort()
         {
             IsNotMusicChange = true;
@@ -439,8 +564,10 @@ namespace WoTB_Voice_Mod_Creater.Class
                 List_Now = Music_List.SelectedItem.ToString();
             if (Ex_Sort_C.IsChecked.Value)
             {
-                string[] Temp_01 = { ".aac", ".aiff", ".mp3", ".mp4", ".ogg", ".wav" };
+                string[] Temp_01 = { ".aac", ".aiff", ".flac", ".mp3", ".m4a", ".mp4", ".ogg", ".wav" };
                 List<List<string>> Temp_02 = new List<List<string>>();
+                Temp_02.Add(new List<string>());
+                Temp_02.Add(new List<string>());
                 Temp_02.Add(new List<string>());
                 Temp_02.Add(new List<string>());
                 Temp_02.Add(new List<string>());
@@ -496,6 +623,11 @@ namespace WoTB_Voice_Mod_Creater.Class
             File_Full_Path[Music_Select_List].RemoveAt(Delete_Number);
             File_Name_Path[Music_Select_List].RemoveAt(Delete_Number);
             Bass.BASS_ChannelStop(Stream);
+            if (FMOD_Channel != null)
+            {
+                FMOD_Channel.stop();
+                FMOD_Sound.release();
+            }
             Video_V.Stop();
             Video_V.Source = null;
             Video_Change_B.Visibility = Visibility.Hidden;
@@ -510,10 +642,8 @@ namespace WoTB_Voice_Mod_Creater.Class
         {
             StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Configs/Temp_Other_Music_List.dat");
             for (int Number = 0; Number < File_Full_Path.Count; Number++)
-            {
                 foreach (string Now in File_Full_Path[Number])
                     stw.WriteLine(Number + "|" + Now);
-            }
             stw.Close();
             Sub_Code.File_Encrypt(Voice_Set.Special_Path + "/Configs/Temp_Other_Music_List.dat", Voice_Set.Special_Path + "/Configs/Other_Music_List.dat", "SRTTbacon_Music_List_Save", true);
         }
@@ -553,31 +683,57 @@ namespace WoTB_Voice_Mod_Creater.Class
                 WAVEForm_Color_Image.Width = 0;
                 Bass.BASS_ChannelStop(Stream);
                 Bass.BASS_StreamFree(Stream);
+                if (FMOD_Channel != null)
+                {
+                    FMOD_Channel.stop();
+                    FMOD_Sound.release();
+                }
                 Location_S.Value = 0;
                 Playing_Music_Name_Now = File_Full_Path[Music_Select_List][Select_Index];
+                Bass.BASS_SetConfig(BASSConfig.BASS_CONFIG_BUFFER, 75);
                 int StreamHandle = Bass.BASS_StreamCreateFile(File_Full_Path[Music_Select_List][Select_Index], 0, 0, BASSFlag.BASS_SAMPLE_FLOAT | BASSFlag.BASS_STREAM_DECODE | BASSFlag.BASS_SAMPLE_LOOP);
                 Stream = BassFx.BASS_FX_TempoCreate(StreamHandle, BASSFlag.BASS_FX_FREESOURCE);
+                Bass.BASS_SetConfig(BASSConfig.BASS_CONFIG_BUFFER, 500);
                 IsMusicEnd = new SYNCPROC(EndSync);
+                //FMOD_Class.Fmod_System.FModSystem.createSound(File_Full_Path[Music_Select_List][Select_Index], MODE.MPEGSEARCH | MODE.CREATESTREAM, ref FMOD_Sound);
+                //FMOD_Class.Fmod_System.FModSystem.playSound(CHANNELINDEX.FREE, FMOD_Sound, true, ref FMOD_Channel);
                 Bass.BASS_ChannelGetAttribute(Stream, BASSAttribute.BASS_ATTRIB_TEMPO_FREQ, ref Music_Frequency);
                 Bass.BASS_ChannelSetSync(Stream, BASSSync.BASS_SYNC_END | BASSSync.BASS_SYNC_MIXTIME, 0, IsMusicEnd, IntPtr.Zero);
                 Bass.BASS_ChannelSetAttribute(Stream, BASSAttribute.BASS_ATTRIB_VOL, (float)Volume_S.Value / 100);
+                //FMOD_Channel.setVolume((float)Volume_S.Value / 100);
                 if (IsSyncPitch_And_Speed)
+                {
                     Bass.BASS_ChannelSetAttribute(Stream, BASSAttribute.BASS_ATTRIB_TEMPO_FREQ, Music_Frequency * (float)(Pitch_Speed_S.Value / 50));
+                    //FMOD_Channel.setFrequency(Music_Frequency * (float)Pitch_Speed_S.Value / 50);
+                }
                 else
                 {
                     Bass.BASS_ChannelSetAttribute(Stream, BASSAttribute.BASS_ATTRIB_TEMPO_PITCH, (float)Pitch_S.Value);
                     Bass.BASS_ChannelSetAttribute(Stream, BASSAttribute.BASS_ATTRIB_TEMPO, (float)Speed_S.Value);
+                    //FMOD_Sound.setMusicSpeed((float)(1 + Speed_S.Value / 100));
                 }
                 Location_S.Maximum = Bass.BASS_ChannelBytes2Seconds(Stream, Bass.BASS_ChannelGetLength(Stream, BASSMode.BASS_POS_BYTES));
                 Start_Time = 0;
                 End_Time = Location_S.Maximum;
                 Loop_Time_T.Text = "再生時間:" + (int)Start_Time + "～" + (int)End_Time;
                 IsPaused = false;
-                Bass.BASS_ChannelPlay(Stream, false);
-                if (Device_L.SelectedIndex != -1)
-                    Bass.BASS_ChannelSetDevice(Stream, Device_L.SelectedIndex + 1);
+                if (IsUsingFMOD)
+                {
+                    FMOD_Channel.setPaused(false);
+                    FMOD_Channel.setPosition(0, TIMEUNIT.MS);
+                }
                 else
+                    Bass.BASS_ChannelPlay(Stream, true);
+                if (Device_L.SelectedIndex != -1)
+                {
+                    Bass.BASS_ChannelSetDevice(Stream, Device_L.SelectedIndex + 1);
+                    //FMOD_Class.Fmod_System.FModSystem.setDriver(0);
+                }
+                else
+                {
                     Bass.BASS_ChannelSetDevice(Stream, SetFirstDevice);
+                    //FMOD_Class.Fmod_System.FModSystem.setDriver(0);
+                }
                 if (Path.GetExtension(File_Full_Path[Music_Select_List][Select_Index]) == ".mp4" && Video_Mode_C.IsChecked.Value)
                 {
                     Video_Mode_Change(true);
@@ -588,9 +744,19 @@ namespace WoTB_Voice_Mod_Creater.Class
                     Video_V.Volume = 0;
                     Video_V.Visibility = Visibility.Visible;
                     Video_V.Play();
-                    long position = Bass.BASS_ChannelGetPosition(Stream);
-                    TimeSpan time = TimeSpan.FromSeconds(Bass.BASS_ChannelBytes2Seconds(Stream, position) + 0.1);
-                    Video_V.Position = time;
+                    if (IsFMODMode())
+                    {
+                        uint position = 0;
+                        FMOD_Channel.getPosition(ref position, TIMEUNIT.MS);
+                        TimeSpan time = TimeSpan.FromSeconds(position / 1000.0 + 0.1);
+                        Video_V.Position = time;
+                    }
+                    else
+                    {
+                        long position = Bass.BASS_ChannelGetPosition(Stream);
+                        TimeSpan time = TimeSpan.FromSeconds(Bass.BASS_ChannelBytes2Seconds(Stream, position) + 0.1);
+                        Video_V.Position = time;
+                    }
                     IsShowWAVEForm = false;
                     WAVEForm_Gray_Image.Visibility = Visibility.Hidden;
                     WAVEForm_Color_Image.Visibility = Visibility.Hidden;
@@ -673,17 +839,30 @@ namespace WoTB_Voice_Mod_Creater.Class
         {
             Volume_T.Text = "音量:" + (int)Volume_S.Value;
             if (!IsPaused)
-                Bass.BASS_ChannelSetAttribute(Stream, BASSAttribute.BASS_ATTRIB_VOL, (float)Volume_S.Value / 100);
+            {
+                if (IsFMODMode())
+                    FMOD_Channel.setVolume((float)Volume_S.Value / 100);
+                else
+                    Bass.BASS_ChannelSetAttribute(Stream, BASSAttribute.BASS_ATTRIB_VOL, (float)Volume_S.Value / 100);
+            }
         }
         private void Pitch_S_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             Pitch_T.Text = "音程:" + (Math.Floor(Pitch_S.Value * 10) / 10).ToString();
-            Bass.BASS_ChannelSetAttribute(Stream, BASSAttribute.BASS_ATTRIB_TEMPO_PITCH, (float)Pitch_S.Value);
+            if (IsFMODMode())
+            {
+
+            }
+            else
+                Bass.BASS_ChannelSetAttribute(Stream, BASSAttribute.BASS_ATTRIB_TEMPO_PITCH, (float)Pitch_S.Value);
         }
         private void Speed_S_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             Speed_T.Text = "速度:" + (Math.Floor(Speed_S.Value * 10) / 10).ToString();
-            Bass.BASS_ChannelSetAttribute(Stream, BASSAttribute.BASS_ATTRIB_TEMPO, (float)Speed_S.Value);
+            if (IsFMODMode())
+                FMOD_Sound.setMusicSpeed((float)(1 + Speed_S.Value / 100));
+            else
+                Bass.BASS_ChannelSetAttribute(Stream, BASSAttribute.BASS_ATTRIB_TEMPO, (float)Speed_S.Value);
         }
         private void Pitch_S_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
@@ -692,21 +871,18 @@ namespace WoTB_Voice_Mod_Creater.Class
         private async void Speed_S_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             Speed_S.Value = 0;
-            if (Video_V.Visibility == Visibility.Visible)
+            if (Music_List_T.Visibility != Visibility.Visible)
             {
-                await Task.Delay(500);
-                Video_V.Pause();
-                Bass.BASS_ChannelPause(Stream);
-                int Start_Time = Environment.TickCount;
-                Bass.BASS_ChannelSetPosition(Stream, Video_V.Position.TotalSeconds);
-                int End_Time = Environment.TickCount;
-                Bass.BASS_ChannelSetPosition(Stream, Video_V.Position.TotalSeconds - ((End_Time - Start_Time) / 1000));
-                if (!IsPaused)
+                Video_V.SpeedRatio = 1;
+                await Task.Delay(400);
+                if (IsFMODMode())
                 {
-                    Bass.BASS_ChannelPlay(Stream, false);
-                    Video_V.Play();
+                    uint Position = 0;
+                    FMOD_Channel.getPosition(ref Position, TIMEUNIT.MS);
+                    Video_V.Position = TimeSpan.FromMilliseconds(Position + 100);
                 }
-                Video_V.SpeedRatio = 1 + Speed_S.Value / 100;
+                else
+                    Video_V.Position = TimeSpan.FromSeconds(Bass.BASS_ChannelBytes2Seconds(Stream, Bass.BASS_ChannelGetPosition(Stream)) + 0.1);
             }
         }
         void Location_MouseDown(object sender, MouseButtonEventArgs e)
@@ -719,6 +895,16 @@ namespace WoTB_Voice_Mod_Creater.Class
                 IsPlayingMouseDown = true;
                 Pause_Volume_Animation(false, 10);
             }
+            else if (IsFMODMode())
+            {
+                bool IsPlaying = false;
+                FMOD_Channel.isPlaying(ref IsPlaying);
+                if (IsPlaying)
+                {
+                    IsPlayingMouseDown = true;
+                    Pause_Volume_Animation(false, 10);
+                }
+            }
             if (Video_V.Visibility == Visibility.Visible)
                 Video_V.Pause();
         }
@@ -730,7 +916,10 @@ namespace WoTB_Voice_Mod_Creater.Class
             IsLocationChanging = false;
             if (WAVEForm_Color_Image.Visibility == Visibility.Visible)
                 WAVEForm_Color_Image.Width = (Location_S.Value / Location_S.Maximum) * WAVEForm_Image_Width;
-            Bass.BASS_ChannelSetPosition(Stream, Location_S.Value);
+            if (IsFMODMode())
+                FMOD_Channel.setPosition((uint)(Location_S.Value * 1000), TIMEUNIT.MS);
+            else
+                Bass.BASS_ChannelSetPosition(Stream, Location_S.Value);
             if (IsPlayingMouseDown)
             {
                 IsPaused = false;
@@ -741,14 +930,29 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 Video_V.Pause();
                 Video_V.Position = TimeSpan.FromSeconds(Location_S.Value);
-                Bass.BASS_ChannelPause(Stream);
-                await Task.Delay(50);
-                Bass.BASS_ChannelSetPosition(Stream, Video_V.Position.TotalSeconds - 0.1);
-                await Task.Delay(50);
-                if (!IsPaused)
+                if (IsFMODMode())
                 {
-                    Video_V.Play();
-                    Bass.BASS_ChannelPlay(Stream, false);
+                    FMOD_Channel.setPaused(true);
+                    await Task.Delay(50);
+                    FMOD_Channel.setPosition((uint)(Video_V.Position.TotalMilliseconds - 100), TIMEUNIT.MS);
+                    await Task.Delay(50);
+                    if (!IsPaused)
+                    {
+                        Video_V.Play();
+                        FMOD_Channel.setPaused(false);
+                    }
+                }
+                else
+                {
+                    Bass.BASS_ChannelPause(Stream);
+                    await Task.Delay(50);
+                    Bass.BASS_ChannelSetPosition(Stream, Video_V.Position.TotalSeconds - 0.1);
+                    await Task.Delay(50);
+                    if (!IsPaused)
+                    {
+                        Video_V.Play();
+                        Bass.BASS_ChannelPlay(Stream, false);
+                    }
                 }
                 if (IsVideoSkip)
                 {
@@ -764,21 +968,19 @@ namespace WoTB_Voice_Mod_Creater.Class
         }
         async void Speed_MouseUp(object sender, MouseButtonEventArgs e)
         {
-            if (Video_V.Visibility == Visibility.Visible)
+            if (Music_List_T.Visibility != Visibility.Visible)
             {
-                await Task.Delay(500);
-                Video_V.Pause();
-                Bass.BASS_ChannelPause(Stream);
-                int Start_Time = Environment.TickCount;
-                Bass.BASS_ChannelSetPosition(Stream, Video_V.Position.TotalSeconds);
-                int End_Time = Environment.TickCount;
-                Bass.BASS_ChannelSetPosition(Stream, Video_V.Position.TotalSeconds - ((End_Time - Start_Time) / 1000));
-                if (!IsPaused)
-                {
-                    Bass.BASS_ChannelPlay(Stream, false);
-                    Video_V.Play();
-                }
                 Video_V.SpeedRatio = 1 + Speed_S.Value / 100;
+                await Task.Delay(400);
+                double Delay_Time = 0.1 * Pitch_Speed_S.Value / 50;
+                if (IsFMODMode())
+                {
+                    uint Position = 0;
+                    FMOD_Channel.getPosition(ref Position, TIMEUNIT.MS);
+                    Video_V.Position = TimeSpan.FromMilliseconds(Position * 1000 + Delay_Time * 1000);
+                }
+                else
+                    Video_V.Position = TimeSpan.FromSeconds(Bass.BASS_ChannelBytes2Seconds(Stream, Bass.BASS_ChannelGetPosition(Stream)) + Delay_Time);
             }
         }
         void Music_Pos_Change(double Pos, bool IsBassPosChange)
@@ -786,7 +988,12 @@ namespace WoTB_Voice_Mod_Creater.Class
             if (IsBusy)
                 return;
             if (IsBassPosChange)
-                Bass.BASS_ChannelSetPosition(Stream, Pos);
+            {
+                if (IsFMODMode())
+                    FMOD_Channel.setPosition((uint)(Pos * 1000), TIMEUNIT.MS);
+                else
+                    Bass.BASS_ChannelSetPosition(Stream, Pos);
+            }
             if (WAVEForm_Color_Image.Visibility == Visibility.Visible)
                 WAVEForm_Color_Image.Width = (Pos / Location_S.Maximum) * WAVEForm_Image_Width;
             TimeSpan Time = TimeSpan.FromSeconds(Pos);
@@ -815,16 +1022,25 @@ namespace WoTB_Voice_Mod_Creater.Class
             IsPaused = false;
             if (Video_V.Visibility == Visibility.Visible)
                 Video_V.Play();
-            Bass.BASS_ChannelPlay(Stream, false);
+            if (IsFMODMode())
+                FMOD_Channel.setPaused(false);
+            else
+                Bass.BASS_ChannelPlay(Stream, false);
             float Volume_Now = 1f;
-            Bass.BASS_ChannelGetAttribute(Stream, BASSAttribute.BASS_ATTRIB_VOL, ref Volume_Now);
+            if (IsFMODMode())
+                FMOD_Channel.getVolume(ref Volume_Now);
+            else
+                Bass.BASS_ChannelGetAttribute(Stream, BASSAttribute.BASS_ATTRIB_VOL, ref Volume_Now);
             float Volume_Plus = (float)(Volume_S.Value / 100) / Feed_Time;
             while (Volume_Now < (float)(Volume_S.Value / 100) && !IsPaused)
             {
                 Volume_Now += Volume_Plus;
                 if (Volume_Now > 1f)
                     Volume_Now = 1f;
-                Bass.BASS_ChannelSetAttribute(Stream, BASSAttribute.BASS_ATTRIB_VOL, Volume_Now);
+                if (IsFMODMode())
+                    FMOD_Channel.setVolume(Volume_Now);
+                else
+                    Bass.BASS_ChannelSetAttribute(Stream, BASSAttribute.BASS_ATTRIB_VOL, Volume_Now);
                 await Task.Delay(1000 / 60);
             }
         }
@@ -832,14 +1048,20 @@ namespace WoTB_Voice_Mod_Creater.Class
         {
             IsPaused = true;
             float Volume_Now = 1f;
-            Bass.BASS_ChannelGetAttribute(Stream, BASSAttribute.BASS_ATTRIB_VOL, ref Volume_Now);
+            if (IsFMODMode())
+                FMOD_Channel.getVolume(ref Volume_Now);
+            else
+                Bass.BASS_ChannelGetAttribute(Stream, BASSAttribute.BASS_ATTRIB_VOL, ref Volume_Now);
             float Volume_Minus = Volume_Now / Feed_Time;
             while (Volume_Now > 0f && IsPaused)
             {
                 Volume_Now -= Volume_Minus;
                 if (Volume_Now < 0f)
                     Volume_Now = 0f;
-                Bass.BASS_ChannelSetAttribute(Stream, BASSAttribute.BASS_ATTRIB_VOL, Volume_Now);
+                if (IsFMODMode())
+                    FMOD_Channel.setVolume(Volume_Now);
+                else
+                    Bass.BASS_ChannelSetAttribute(Stream, BASSAttribute.BASS_ATTRIB_VOL, Volume_Now);
                 await Task.Delay(1000 / 60);
             }
             if (Volume_Now <= 0f)
@@ -848,6 +1070,11 @@ namespace WoTB_Voice_Mod_Creater.Class
                 {
                     Bass.BASS_ChannelStop(Stream);
                     Bass.BASS_StreamFree(Stream);
+                    if (FMOD_Channel != null)
+                    {
+                        FMOD_Channel.stop();
+                        FMOD_Sound.release();
+                    }
                     Video_V.Stop();
                     Video_V.Source = null;
                     WAVEForm_Gray_Image.Source = null;
@@ -861,6 +1088,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 else if (IsPaused)
                 {
                     Bass.BASS_ChannelPause(Stream);
+                    //FMOD_Channel.setPaused(true);
                     Video_V.Pause();
                 }
             }
@@ -872,21 +1100,43 @@ namespace WoTB_Voice_Mod_Creater.Class
             if (Video_V.Visibility == Visibility.Visible)
             {
                 Video_V.Pause();
-                Bass.BASS_ChannelPause(Stream);
-                if (Video_V.Position.TotalSeconds - 5 < 0)
+                if (IsFMODMode())
                 {
-                    Video_V.Position = TimeSpan.FromSeconds(0);
-                    Bass.BASS_ChannelSetPosition(Stream, 0);
+                    FMOD_Channel.setPaused(true);
+                    if (Video_V.Position.TotalSeconds - 5 < 0)
+                    {
+                        Video_V.Position = TimeSpan.FromSeconds(0);
+                        FMOD_Channel.setPosition(0, TIMEUNIT.MS);
+                    }
+                    else
+                    {
+                        Video_V.Position = TimeSpan.FromSeconds(Video_V.Position.TotalSeconds - 5);
+                        FMOD_Channel.setPosition((uint)(Video_V.Position.TotalMilliseconds - 100), TIMEUNIT.MS);
+                    }
+                    if (!IsPaused)
+                    {
+                        FMOD_Channel.setPaused(false);
+                        Video_V.Play();
+                    }
                 }
                 else
                 {
-                    Video_V.Position = TimeSpan.FromSeconds(Video_V.Position.TotalSeconds - 5);
-                    Bass.BASS_ChannelSetPosition(Stream, Video_V.Position.TotalSeconds - 0.1);
-                }
-                if (!IsPaused)
-                {
-                    Bass.BASS_ChannelPlay(Stream, false);
-                    Video_V.Play();
+                    Bass.BASS_ChannelPause(Stream);
+                    if (Video_V.Position.TotalSeconds - 5 < 0)
+                    {
+                        Video_V.Position = TimeSpan.FromSeconds(0);
+                        Bass.BASS_ChannelSetPosition(Stream, 0);
+                    }
+                    else
+                    {
+                        Video_V.Position = TimeSpan.FromSeconds(Video_V.Position.TotalSeconds - 5);
+                        Bass.BASS_ChannelSetPosition(Stream, Video_V.Position.TotalSeconds - 0.1);
+                    }
+                    if (!IsPaused)
+                    {
+                        Bass.BASS_ChannelPlay(Stream, false);
+                        Video_V.Play();
+                    }
                 }
                 Location_S.Value = Video_V.Position.TotalSeconds;
                 Music_Pos_Change(Video_V.Position.TotalSeconds, false);
@@ -908,12 +1158,25 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 Video_V.Pause();
                 Video_V.Position = TimeSpan.FromSeconds(Video_V.Position.TotalSeconds + 5);
-                Bass.BASS_ChannelPause(Stream);
-                Bass.BASS_ChannelSetPosition(Stream, Video_V.Position.TotalSeconds - 0.1);
-                if (!IsPaused)
+                if (IsFMODMode())
                 {
-                    Bass.BASS_ChannelPlay(Stream, false);
-                    Video_V.Play();
+                    FMOD_Channel.setPaused(true);
+                    FMOD_Channel.setPosition((uint)(Video_V.Position.TotalMilliseconds - 100), TIMEUNIT.MS);
+                    if (!IsPaused)
+                    {
+                        FMOD_Channel.setPaused(false);
+                        Video_V.Play();
+                    }
+                }
+                else
+                {
+                    Bass.BASS_ChannelPause(Stream);
+                    Bass.BASS_ChannelSetPosition(Stream, Video_V.Position.TotalSeconds - 0.1);
+                    if (!IsPaused)
+                    {
+                        Bass.BASS_ChannelPlay(Stream, false);
+                        Video_V.Play();
+                    }
                 }
                 Location_S.Value = Video_V.Position.TotalSeconds;
                 Music_Pos_Change(Video_V.Position.TotalSeconds, false);
@@ -1078,16 +1341,31 @@ namespace WoTB_Voice_Mod_Creater.Class
         {
             if (IsBusy)
                 return;
-            Video_V.Pause();
-            Bass.BASS_ChannelPause(Stream);
-            int Start_Time = Environment.TickCount;
-            Bass.BASS_ChannelSetPosition(Stream, Video_V.Position.TotalSeconds);
-            int End_Time = Environment.TickCount;
-            Bass.BASS_ChannelSetPosition(Stream, Video_V.Position.TotalSeconds - ((End_Time - Start_Time) / 1000));
-            if (!IsPaused)
+            if (Music_List_T.Visibility != Visibility.Visible)
             {
-                Bass.BASS_ChannelPlay(Stream, false);
-                Video_V.Play();
+                Video_V.Pause();
+                if (IsFMODMode())
+                {
+                    FMOD_Channel.setPaused(true);
+                    uint Position = 0;
+                    FMOD_Channel.getPosition(ref Position, TIMEUNIT.MS);
+                    Video_V.Position = TimeSpan.FromMilliseconds(Position);
+                    if (!IsPaused)
+                    {
+                        FMOD_Channel.setPaused(false);
+                        Video_V.Play();
+                    }
+                }
+                else
+                {
+                    Bass.BASS_ChannelPause(Stream);
+                    Video_V.Position = TimeSpan.FromSeconds(Bass.BASS_ChannelBytes2Seconds(Stream, Bass.BASS_ChannelGetPosition(Stream)));
+                    if (!IsPaused)
+                    {
+                        Bass.BASS_ChannelPlay(Stream, false);
+                        Video_V.Play();
+                    }
+                }
             }
         }
         private async void Exit_B_Click(object sender, RoutedEventArgs e)
@@ -1095,7 +1373,6 @@ namespace WoTB_Voice_Mod_Creater.Class
             if (!IsBusy)
             {
                 IsBusy = true;
-                Music_Select_Index_Before = Music_List.SelectedIndex;
                 bool IsPaused_Now = IsPaused;
                 if (!Background_C.IsChecked.Value)
                     Pause_Volume_Animation(false, 25);
@@ -1106,9 +1383,13 @@ namespace WoTB_Voice_Mod_Creater.Class
                 }
                 if (!Background_C.IsChecked.Value)
                 {
-                    //Pause_Volume_Animation(true);
                     Bass.BASS_ChannelStop(Stream);
                     Bass.BASS_StreamFree(Stream);
+                    if (FMOD_Channel != null)
+                    {
+                        FMOD_Channel.stop();
+                        FMOD_Sound.release();
+                    }
                     Video_V.Stop();
                     Video_V.Source = null;
                     Location_S.Value = 0;
@@ -1250,6 +1531,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             if (Device_L.SelectedIndex != -1)
             {
                 Bass.BASS_ChannelSetDevice(Stream, Device_L.SelectedIndex + 1);
+                //FMOD_Class.Fmod_System.FModSystem.setDriver(Device_L.SelectedIndex + 1);
                 Video_Mode.Sound_Device = Device_L.SelectedIndex + 1;
             }
         }
@@ -1374,10 +1656,23 @@ namespace WoTB_Voice_Mod_Creater.Class
         {
             if (IsBusy)
                 return;
-            if (Bass.BASS_ChannelIsActive(Stream) == BASSActive.BASS_ACTIVE_PLAYING)
+            if (IsFMODMode())
             {
-                Pause_Volume_Animation(false, 10);
-                IsPlayingMouseDown = true;
+                bool IsPlaying = false;
+                FMOD_Channel.isPlaying(ref IsPlaying);
+                if (IsPlaying)
+                {
+                    Pause_Volume_Animation(false, 10);
+                    IsPlayingMouseDown = true;
+                }
+            }
+            else
+            {
+                if (Bass.BASS_ChannelIsActive(Stream) == BASSActive.BASS_ACTIVE_PLAYING)
+                {
+                    Pause_Volume_Animation(false, 10);
+                    IsPlayingMouseDown = true;
+                }
             }
             IsLocationChanging = true;
             Video_Mode.IsVideoClicked = true;
@@ -1425,11 +1720,23 @@ namespace WoTB_Voice_Mod_Creater.Class
             IsLocationChanging = false;
             Video_Mode.IsVideoClicked = false;
             Location_S.Value = Location_S.Maximum * Percent_End;
-            Bass.BASS_ChannelSetPosition(Stream, Location_S.Maximum * Percent_End);
-            if (IsPlayingMouseDown)
+            if (IsFMODMode())
             {
-                Bass.BASS_ChannelPlay(Stream, false);
-                Play_Volume_Animation(10);
+                FMOD_Channel.setPosition((uint)(Location_S.Maximum * Percent_End * 1000), TIMEUNIT.MS);
+                if (IsPlayingMouseDown)
+                {
+                    FMOD_Channel.setPaused(false);
+                    Play_Volume_Animation(10);
+                }
+            }
+            else
+            {
+                Bass.BASS_ChannelSetPosition(Stream, Location_S.Maximum * Percent_End);
+                if (IsPlayingMouseDown)
+                {
+                    Bass.BASS_ChannelPlay(Stream, false);
+                    Play_Volume_Animation(10);
+                }
             }
             IsPlayingMouseDown = false;
         }
@@ -1451,9 +1758,17 @@ namespace WoTB_Voice_Mod_Creater.Class
             if (IsPitch_Speed_Set)
             {
                 IsSyncPitch_And_Speed = true;
-                Bass.BASS_ChannelSetAttribute(Stream, BASSAttribute.BASS_ATTRIB_TEMPO_FREQ, Music_Frequency * (float)(Pitch_Speed_S.Value / 50));
-                Bass.BASS_ChannelSetAttribute(Stream, BASSAttribute.BASS_ATTRIB_TEMPO_PITCH, 0f);
-                Bass.BASS_ChannelSetAttribute(Stream, BASSAttribute.BASS_ATTRIB_TEMPO, 0f);
+                if (IsFMODMode())
+                {
+                    FMOD_Channel.setFrequency(Music_Frequency * (float)(Pitch_Speed_S.Value / 50));
+                    FMOD_Sound.setMusicSpeed(1.0f);
+                }
+                else
+                {
+                    Bass.BASS_ChannelSetAttribute(Stream, BASSAttribute.BASS_ATTRIB_TEMPO_FREQ, Music_Frequency * (float)(Pitch_Speed_S.Value / 50));
+                    Bass.BASS_ChannelSetAttribute(Stream, BASSAttribute.BASS_ATTRIB_TEMPO_PITCH, 0f);
+                    Bass.BASS_ChannelSetAttribute(Stream, BASSAttribute.BASS_ATTRIB_TEMPO, 0f);
+                }
                 Pitch_Speed_T.Visibility = Visibility.Visible;
                 Pitch_Speed_S.Visibility = Visibility.Visible;
                 Pitch_T.Visibility = Visibility.Hidden;
@@ -1483,9 +1798,17 @@ namespace WoTB_Voice_Mod_Creater.Class
             else
             {
                 IsSyncPitch_And_Speed = false;
-                Bass.BASS_ChannelSetAttribute(Stream, BASSAttribute.BASS_ATTRIB_TEMPO_FREQ, Music_Frequency);
-                Bass.BASS_ChannelSetAttribute(Stream, BASSAttribute.BASS_ATTRIB_TEMPO_PITCH, (float)Pitch_S.Value);
-                Bass.BASS_ChannelSetAttribute(Stream, BASSAttribute.BASS_ATTRIB_TEMPO, (float)Speed_S.Value);
+                if (IsFMODMode())
+                {
+                    FMOD_Channel.setFrequency(Music_Frequency);
+                    FMOD_Sound.setMusicSpeed((float)(1 + Speed_S.Value / 100));
+                }
+                else
+                {
+                    Bass.BASS_ChannelSetAttribute(Stream, BASSAttribute.BASS_ATTRIB_TEMPO_FREQ, Music_Frequency);
+                    Bass.BASS_ChannelSetAttribute(Stream, BASSAttribute.BASS_ATTRIB_TEMPO_PITCH, (float)Pitch_S.Value);
+                    Bass.BASS_ChannelSetAttribute(Stream, BASSAttribute.BASS_ATTRIB_TEMPO, (float)Speed_S.Value);
+                }
                 Pitch_Speed_T.Visibility = Visibility.Hidden;
                 Pitch_Speed_S.Visibility = Visibility.Hidden;
                 if (Music_List_T.Visibility != Visibility.Visible)
@@ -1507,11 +1830,22 @@ namespace WoTB_Voice_Mod_Creater.Class
             }
             if (Music_List_T.Visibility != Visibility.Visible)
             {
-                if (Music_List_T.Visibility != Visibility.Visible)
+                Video_V.Pause();
+                Video_V.Position = TimeSpan.FromSeconds(Location_S.Value);
+                if (IsFMODMode())
                 {
-                    Video_V.Pause();
+                    FMOD_Channel.setPaused(true);
+                    FMOD_Channel.setPosition((uint)(Video_V.Position.TotalMilliseconds - 50), TIMEUNIT.MS);
+                    await Task.Delay(50);
+                    if (!IsPaused)
+                    {
+                        FMOD_Channel.setPaused(false);
+                        Video_V.Play();
+                    }
+                }
+                else
+                {
                     Bass.BASS_ChannelPause(Stream);
-                    Video_V.Position = TimeSpan.FromSeconds(Location_S.Value);
                     Bass.BASS_ChannelSetPosition(Stream, Video_V.Position.TotalSeconds - 0.1);
                     await Task.Delay(50);
                     if (!IsPaused)
@@ -1524,47 +1858,48 @@ namespace WoTB_Voice_Mod_Creater.Class
         }
         private void Pitch_Speed_S_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            Bass.BASS_ChannelSetAttribute(Stream, BASSAttribute.BASS_ATTRIB_TEMPO_FREQ, Music_Frequency * (float)(Pitch_Speed_S.Value / 50));
+            if (IsFMODMode())
+                FMOD_Channel.setFrequency(Music_Frequency * (float)(Pitch_Speed_S.Value / 50));
+            else
+            {
+                Bass.BASS_ChannelSetAttribute(Stream, BASSAttribute.BASS_ATTRIB_TEMPO_FREQ, Music_Frequency * (float)(Pitch_Speed_S.Value / 50));
+                Bass.BASS_ChannelUpdate(Stream, 50);
+            }
             Pitch_Speed_T.Text = "音程と速度:" + (int)Pitch_Speed_S.Value;
         }
         private async void Pitch_Speed_S_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
             Pitch_Speed_S.Value = 50;
-            await Task.Delay(500);
             if (Music_List_T.Visibility != Visibility.Visible)
             {
-                Video_V.Pause();
-                Bass.BASS_ChannelPause(Stream);
-                int Start_Time = Environment.TickCount;
-                Bass.BASS_ChannelSetPosition(Stream, Video_V.Position.TotalSeconds);
-                int End_Time = Environment.TickCount;
-                Bass.BASS_ChannelSetPosition(Stream, Video_V.Position.TotalSeconds - ((End_Time - Start_Time) / 1000));
-                if (!IsPaused)
+                Video_V.SpeedRatio = 1;
+                await Task.Delay(400);
+                if (IsFMODMode())
                 {
-                    Bass.BASS_ChannelPlay(Stream, false);
-                    Video_V.Play();
+                    uint Position = 0;
+                    FMOD_Channel.getPosition(ref Position, TIMEUNIT.MS);
+                    Video_V.Position = TimeSpan.FromMilliseconds(Position + 100);
                 }
+                else
+                    Video_V.Position = TimeSpan.FromSeconds(Bass.BASS_ChannelBytes2Seconds(Stream, Bass.BASS_ChannelGetPosition(Stream)) + 0.1);
             }
-            Video_V.SpeedRatio = Pitch_Speed_S.Value / 50;
         }
         private async void Pitch_Speed_S_MouseUp(object sender, MouseButtonEventArgs e)
         {
-            await Task.Delay(500);
             if (Music_List_T.Visibility != Visibility.Visible)
             {
-                Video_V.Pause();
-                Bass.BASS_ChannelPause(Stream);
-                int Start_Time = Environment.TickCount;
-                Bass.BASS_ChannelSetPosition(Stream, Video_V.Position.TotalSeconds);
-                int End_Time = Environment.TickCount;
-                Bass.BASS_ChannelSetPosition(Stream, Video_V.Position.TotalSeconds - ((End_Time - Start_Time) / 1000));
-                if (!IsPaused)
+                Video_V.SpeedRatio = Pitch_Speed_S.Value / 50;
+                await Task.Delay(400);
+                double Delay_Time = 0.1 * Pitch_Speed_S.Value / 50;
+                if (IsFMODMode())
                 {
-                    Bass.BASS_ChannelPlay(Stream, false);
-                    Video_V.Play();
+                    uint Position = 0;
+                    FMOD_Channel.getPosition(ref Position, TIMEUNIT.MS);
+                    Video_V.Position = TimeSpan.FromMilliseconds(Position + Delay_Time * 1000);
                 }
+                else
+                    Video_V.Position = TimeSpan.FromSeconds(Bass.BASS_ChannelBytes2Seconds(Stream, Bass.BASS_ChannelGetPosition(Stream)) + Delay_Time);
             }
-            Video_V.SpeedRatio = Pitch_Speed_S.Value / 50;
         }
         //曲のリストを変更
         void Music_List_Change(int Index)
@@ -1734,6 +2069,48 @@ namespace WoTB_Voice_Mod_Creater.Class
                 return;
             if (Music_Select_List > 0)
                 Music_List_Change(Music_Select_List - 1);
+        }
+        bool IsFMODMode()
+        {
+            return IsUsingFMOD && FMOD_Channel != null;
+        }
+        void Set_Position_Slider()
+        {
+            if (IsFMODMode())
+            {
+                uint position = 0;
+                FMOD_Channel.getPosition(ref position, TIMEUNIT.MS);
+                Location_S.Value = position / 1000.0;
+            }
+            else
+            {
+                long position = Bass.BASS_ChannelGetPosition(Stream);
+                Location_S.Value = Bass.BASS_ChannelBytes2Seconds(Stream, position);
+            }
+        }
+        private void Volume_S_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            e.Handled = true;
+        }
+        private void Pitch_S_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            e.Handled = true;
+        }
+        private void Speed_S_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            e.Handled = true;
+        }
+        private void Location_S_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            e.Handled = true;
+        }
+        private void Zoom_S_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            e.Handled = true;
+        }
+        private void Pitch_Speed_S_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            e.Handled = true;
         }
     }
 }

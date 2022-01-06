@@ -286,7 +286,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                         Music_Plus_B.Content = "+5秒";
                     }
                     //ウィンドウにフォーカスがあれば実行
-                    if (IsFocusMode)
+                    if (Sub_Code.IsForcusWindow)
                     {
                         //数秒戻る
                         if ((Keyboard.GetKeyStates(Key.Left) & KeyStates.Down) > 0)
@@ -2137,7 +2137,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 //.wseファイルから読み込む
                 Sub_Code.File_Decrypt_To_File(File_Path, File_Path + ".tmp", "Sound_Editor_Save_File", false);
                 string[] Read_Lines = File.ReadAllLines(File_Path + ".tmp");
-                //File.Delete(File_Path + ".tmp");
+                File.Delete(File_Path + ".tmp");
                 //1行目は速度の設定
                 Pitch_S.Value = double.Parse(Read_Lines[0]);
                 //トラックの数だけループ

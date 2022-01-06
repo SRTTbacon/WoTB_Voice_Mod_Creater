@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:local="clr-namespace:WoTB_Voice_Mod_Creater.Class" xmlns:FMOD="clr-namespace:WoTB_Voice_Mod_Creater.FMOD" x:Class="WoTB_Voice_Mod_Creater.Class.Tools"
+             xmlns:local="clr-namespace:WoTB_Voice_Mod_Creater.Class" xmlns:FMOD="clr-namespace:WoTB_Voice_Mod_Creater.FMOD_Class" x:Class="WoTB_Voice_Mod_Creater.Class.Tools"
              mc:Ignorable="d"
              d:DesignHeight="1080" d:DesignWidth="1920">
     <UserControl.Resources>
@@ -120,7 +120,7 @@
             <TextBlock Height="50" Width="625" TextWrapping="Wrap" Text="DVPL化(同じフォルダに作成されます)" Foreground="Aqua" FontSize="40" VerticalAlignment="Top" Margin="-900,50,0,0" TextAlignment="Center"/>
             <Button x:Name="DVPL_Create_B" Content="ファイルを選択" Height="65" Margin="-900,125,0,0" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" VerticalAlignment="Top" Width="350" Click="DVPL_Create_B_Click"/>
             <Button x:Name="DVPL_Create_Dir_B" Content="フォルダを選択" Height="65" Margin="-900,200,0,0" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" VerticalAlignment="Top" Width="350" Click="DVPL_Create_Dir_B_Click"/>
-            <TextBlock x:Name="Message_T" Height="55" Width="1468" Foreground="Aqua" FontSize="40" Margin="-1920,945,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" TextAlignment="Center"/>
+            <TextBlock x:Name="Message_T" Height="99" Width="1468" Foreground="Aqua" FontSize="40" Margin="-1920,945,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" TextAlignment="Center"/>
             <Button x:Name="Exit_B" Content="戻る" Height="75" Margin="-3532,1000,0,0" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" VerticalAlignment="Top" Width="300" Click="Exit_B_Click"/>
             <TextBlock Height="50" Width="175" TextWrapping="Wrap" Text="FEVを再生" Foreground="Aqua" FontSize="40" VerticalAlignment="Top" Margin="-700,300,0,0" TextAlignment="Center"/>
             <Button x:Name="FEV_Select_B" Content="FEVファイルを選択" Height="75" Margin="-700,375,0,0" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="37" VerticalAlignment="Top" Width="316" Click="FEV_Select_B_Click"/>
@@ -135,6 +135,11 @@
             <Slider x:Name="Volume_S" Height="27" IsMoveToPointEnabled="True" VerticalAlignment="Top"  Width="250" Margin="-350,760,0,0" Style="{StaticResource CustomSliderStyle}" Maximum="100" Value="50" ValueChanged="Volume_S_ValueChanged"/>
             <Button x:Name="DDS_B" Content="画像変換ツール" Height="80" Margin="-365,850,0,0" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" VerticalAlignment="Top" Width="325" Click="DDS_B_Click"/>
             <Button x:Name="FSB_Extract_B" Content="FSB変換ツール" Height="80" Margin="-1025,850,0,0" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" VerticalAlignment="Top" Width="325" Click="FSB_Extract_B_Click"/>
+            <Border BorderBrush="Aqua" BorderThickness="1" Background="#11111C" Height="600" VerticalAlignment="Top" Width="950" Margin="-2825,325,0,0"/>
+            <ListBox x:Name="Upload_File_List" Height="550" VerticalAlignment="Top" Width="550" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="37" Margin="-3180,350,0,0"/>
+            <Button x:Name="Upload_File_B" Content="ファイルをアップロード" Height="60" Margin="-2250,375,0,0" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="35" VerticalAlignment="Top" Width="300" Click="Upload_File_B_Click"/>
+            <Button x:Name="Delete_File_B" Content="ファイルを削除" Height="60" Margin="-2250,475,0,0" Background="Transparent" Foreground="PaleVioletRed" BorderBrush="Red" FontSize="35" VerticalAlignment="Top" Width="300" Click="Delete_File_B_Click"/>
+            <Button x:Name="Generate_Link_B" Content="リンクを取得" Height="60" Margin="-2250,750,0,0" Background="Transparent" Foreground="LightGreen" BorderBrush="Green" FontSize="35" VerticalAlignment="Top" Width="300" Click="Generate_Link_B_Click"/>
             <local:DDS_Tool x:Name="DDS_Tool_Window" Height="1080" VerticalAlignment="Top" Width="1920" Margin="-1920,0,0,0" Visibility="Hidden"/>
             <FMOD:Fmod_Extract x:Name="Fmod_Extract_Window" Height="1080" VerticalAlignment="Top" Width="1920" Margin="-1920,0,0,0" Visibility="Hidden"/>
         </DockPanel>

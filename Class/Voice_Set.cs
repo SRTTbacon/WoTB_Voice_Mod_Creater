@@ -4,7 +4,7 @@ using System.IO;
 using System.Text;
 using System.Windows;
 using WoTB_Voice_Mod_Creater.Class;
-using WoTB_Voice_Mod_Creater.FMOD;
+using WoTB_Voice_Mod_Creater.FMOD_Class;
 
 namespace WoTB_Voice_Mod_Creater
 {
@@ -494,7 +494,7 @@ namespace WoTB_Voice_Mod_Creater
         }
         public static void Voice_BGM_Change_List_Init()
         {
-            FTPClient.DownloadFile(Special_Path + "/Wwise/Change_To_Wwise.dat", "/WoTB_Voice_Mod/Update/Data/Change_To_Wwise.txt");
+            FTPClient.DownloadFile("/WoTB_Voice_Mod/Update/Data/Change_To_Wwise.txt", Special_Path + "/Wwise/Change_To_Wwise.dat");
             if (!File.Exists(Special_Path + "/Wwise/Change_To_Wwise.dat"))
                 return;
             try
@@ -525,6 +525,8 @@ namespace WoTB_Voice_Mod_Creater
         {
             if (!Directory.Exists(Dir_Path))
                 return;
+            if (Voice_BGM_Change_List.Count == 0)
+                Voice_BGM_Change_List_Init();
             string[] To_File_Name = { "mikata", "danyaku", "hikantuu", "kantuu", "tokusyu", "tyoudan", "syatyou", "souzyuusyu", "tekikasai", "gekiha", "enjinhason", "enjintaiha", "enjinhukkyuu"
             ,"kasai","syouka","nenryou","housinhason","housintaiha","housinhukkyuu","housyu","soutensyu","musen","musensyu","battle","kansokuhason","kansokutaiha"
             ,"kansokuhukkyuu","ritaihason","ritaitaiha","ritaihukkyuu","houtouhason","houtoutaiha","houtouhukkyuu","taiha","battle_bgm","reload","touzyouin"};
@@ -571,6 +573,8 @@ namespace WoTB_Voice_Mod_Creater
         {
             if (!Directory.Exists(Dir_Path))
                 return new List<List<string>>();
+            if (Voice_BGM_Change_List.Count == 0)
+                Voice_BGM_Change_List_Init();
             List<List<string>> Temp = new List<List<string>>();
             for (int Number_01 = 0; Number_01 < 34; Number_01++)
                 Temp.Add(new List<string>());
@@ -612,6 +616,8 @@ namespace WoTB_Voice_Mod_Creater
             List<List<string>> Temp = new List<List<string>>();
             for (int Number_01 = 0; Number_01 < 34; Number_01++)
                 Temp.Add(new List<string>());
+            if (Voice_BGM_Change_List.Count == 0)
+                Voice_BGM_Change_List_Init();
             List<string> To_File_Name = new List<string>(); To_File_Name.AddRange(new string[]{ "mikata", "danyaku", "hikantuu", "kantuu", "tokusyu", "tyoudan", "syatyou", "souzyuusyu", "tekikasai", "gekiha", "enjinhason", "enjintaiha", "enjinhukkyuu"
             ,"kasai","syouka","nenryou","housinhason","housintaiha","housinhukkyuu","housyu","soutensyu","musen","musensyu","battle","kansokuhason","kansokutaiha"
             ,"kansokuhukkyuu","ritaihason","ritaitaiha","ritaihukkyuu","houtouhason","houtoutaiha","houtouhukkyuu","taiha"});

@@ -218,13 +218,9 @@ namespace WoTB_Voice_Mod_Creater.Class
         private void Password_C_Click(object sender, RoutedEventArgs e)
         {
             if (Password_C.IsChecked.Value)
-            {
-                Password_C.Visibility = Visibility.Visible;
-            }
+                Password_T.Visibility = Visibility.Visible;
             else
-            {
-                Password_C.Visibility = Visibility.Hidden;
-            }
+                Password_T.Visibility = Visibility.Hidden;
         }
         //変更しないで閉じる
         private void Exit_B_Click(object sender, RoutedEventArgs e)

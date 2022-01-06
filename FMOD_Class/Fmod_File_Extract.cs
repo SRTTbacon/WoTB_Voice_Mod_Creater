@@ -6,12 +6,12 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace WoTB_Voice_Mod_Creater.FMOD
+namespace WoTB_Voice_Mod_Creater.FMOD_Class
 {
     public class Fmod_System
     {
-        static FMOD_API.System FModSystem_Temp = new FMOD_API.System();
-        public static FMOD_API.System FModSystem
+        static FMOD_API.FMOD_System FModSystem_Temp = new FMOD_API.FMOD_System();
+        public static FMOD_API.FMOD_System FModSystem
         {
             get { return FModSystem_Temp; }
             set { FModSystem_Temp = value; }
@@ -217,7 +217,7 @@ namespace WoTB_Voice_Mod_Creater.FMOD
                 Directory.CreateDirectory(To_Dir);
             StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Wwise/FSB_Extract.bat");
             stw.WriteLine("chcp 65001");
-            stw.Write("\"" + Voice_Set.Special_Path + "/Wwise/fsbext.exe\" " + "-d \"" + To_Dir + "\" \"" + FSB_Path + "\"");
+            stw.Write("\"" + Voice_Set.Special_Path + "/Wwise/fsbext.exe\" -d \"" + To_Dir + "\" \"" + FSB_Path + "\"");
             stw.Close();
             ProcessStartInfo processStartInfo = new ProcessStartInfo
             {
@@ -261,7 +261,7 @@ namespace WoTB_Voice_Mod_Creater.FMOD
         public static int FSB_GetLength(string FSB_File)
         {
             RESULT FModResult;
-            FMOD_API.System FModSystem = new FMOD_API.System();
+            FMOD_API.FMOD_System FModSystem = new FMOD_API.FMOD_System();
             FModResult = Factory.System_Create(ref FModSystem);
             FModResult = FModSystem.init(16, INITFLAGS.NORMAL, IntPtr.Zero);
             Sound FModSound = new Sound();
@@ -276,7 +276,7 @@ namespace WoTB_Voice_Mod_Creater.FMOD
             else
             {
                 int NumSubSounds = 0;
-                FModSound.getNumSubSounds(ref NumSubSounds);
+                FModResult = FModSound.getNumSubSounds(ref NumSubSounds);
                 FModSound.release();
                 FModSystem.release();
                 return NumSubSounds;

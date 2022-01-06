@@ -8,7 +8,7 @@
     <Viewbox>
         <DockPanel Width="1920" Height="1080">
             <Border BorderBrush="Black" Background="Black" BorderThickness="1" Height="1080" VerticalAlignment="Top" Width="1920" Opacity="0.7"/>
-            <Border BorderBrush="Aqua" BorderThickness="1" Background="#5E0E5A" Height="968" VerticalAlignment="Top" Width="1700" Opacity="0.4" Margin="-1920,0,0,0"/>
+            <Border BorderBrush="Aqua" BorderThickness="1" Background="#FF8842A8" Height="968" VerticalAlignment="Top" Width="1700" Opacity="0.9" Margin="-1920,0,0,0"/>
             <ListBox x:Name="Mod_File_L" Height="650" VerticalAlignment="Top" Width="700" Background="Transparent" Foreground="Aqua" FontSize="40" BorderBrush="Aqua" Margin="-2850,40,0,0" MouseDown="Mod_File_L_MouseDown"/>
             <Button x:Name="Mod_File_Delete_B" Content="ファイル削除" Height="70" VerticalAlignment="Top" Width="275" Margin="-3135,690,0,0" Background="Transparent" Foreground="Aqua" FontSize="40" BorderBrush="Aqua" Click="Mod_File_Delete_B_Click"/>
             <Button x:Name="Mod_File_Add_B" Content="ファイル追加" Height="70" VerticalAlignment="Top" Width="275" Margin="-2565,690,0,0" Background="Transparent" Foreground="Aqua" FontSize="40" BorderBrush="Aqua" Click="Mod_File_Add_B_Click"/>

@@ -9,7 +9,7 @@
     KeyboardNavigation.TabNavigation="None"
     KeyboardNavigation.ControlTabNavigation="None"
     KeyboardNavigation.DirectionalNavigation="None"
-    d:DesignHeight="1080" d:DesignWidth="1920">
+    d:DesignHeight="1080" d:DesignWidth="1920" Loaded="UserControl_Loaded">
     <UserControl.Resources>
         <SolidColorBrush x:Key="CyanBrush" Color="Gray"/>
         <SolidColorBrush x:Key="PinkBrush" Color="Gray"/>
@@ -154,17 +154,17 @@
             <CheckBox x:Name="Video_Mode_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-1300,975,0,0" Focusable="False" Click="Video_Mode_C_Click"/>
             <TextBlock x:Name="Video_Mode_T" FontSize="40" Height="55" Width="478" TextWrapping="Wrap" Text="動画ファイルは動画として再生" VerticalAlignment="Top" Margin="-770,955,0,0" Foreground="Aqua"/>
             <TextBlock x:Name="Volume_T" FontSize="40" Height="55" Width="300" TextWrapping="Wrap" Text="音量:50" VerticalAlignment="Top" Margin="-475,100,0,0" Foreground="Aqua" TextAlignment="Center"/>
-            <Slider x:Name="Volume_S" Height="27" VerticalAlignment="Top" Width="400" Margin="-475,200,0,0" Style="{StaticResource CustomSliderStyle}" Focusable="False" Value="50" SmallChange="1" Maximum="100" ValueChanged="Volume_S_ValueChanged"/>
+            <Slider x:Name="Volume_S" Height="27" VerticalAlignment="Top" Width="400" Margin="-475,200,0,0" Style="{StaticResource CustomSliderStyle}" Focusable="False" Value="50" SmallChange="1" Maximum="100" ValueChanged="Volume_S_ValueChanged" PreviewKeyDown="Volume_S_PreviewKeyDown"/>
             <TextBlock x:Name="Pitch_T" FontSize="40" Height="55" Width="300" TextWrapping="Wrap" Text="音程:0" VerticalAlignment="Top" Margin="-475,300,0,0" Foreground="Aqua" TextAlignment="Center"/>
-            <Slider x:Name="Pitch_S" Height="27" VerticalAlignment="Top" Width="400" Margin="-475,400,0,0" Style="{StaticResource CustomSliderStyle}" Maximum="20" Minimum="-30" LargeChange="0.1" Focusable="False" ValueChanged="Pitch_S_ValueChanged" MouseRightButtonDown="Pitch_S_MouseDoubleClick" SmallChange="0.1"/>
+            <Slider x:Name="Pitch_S" Height="27" VerticalAlignment="Top" Width="400" Margin="-475,400,0,0" Style="{StaticResource CustomSliderStyle}" Maximum="20" Minimum="-30" LargeChange="0.1" Focusable="False" ValueChanged="Pitch_S_ValueChanged" MouseRightButtonDown="Pitch_S_MouseDoubleClick" SmallChange="0.1" PreviewKeyDown="Pitch_S_PreviewKeyDown"/>
             <TextBlock x:Name="Pitch_Speed_T" FontSize="40" Height="55" Width="366" TextWrapping="Wrap" Text="音程と速度:0" VerticalAlignment="Top" Margin="-475,300,0,0" Foreground="Aqua" TextAlignment="Center" Visibility="Hidden"/>
-            <Slider x:Name="Pitch_Speed_S" Height="27" VerticalAlignment="Top" Width="400" Margin="-475,400,0,0" Style="{StaticResource CustomSliderStyle}" Maximum="100" Minimum="0" Value="50" Focusable="False" Visibility="Hidden" SmallChange="1" LargeChange="1" ValueChanged="Pitch_Speed_S_ValueChanged" MouseRightButtonDown="Pitch_Speed_S_MouseRightButtonDown"/>
+            <Slider x:Name="Pitch_Speed_S" Height="27" VerticalAlignment="Top" Width="400" Margin="-475,400,0,0" Style="{StaticResource CustomSliderStyle}" Maximum="100" Minimum="0" Value="50" Focusable="False" Visibility="Hidden" SmallChange="1" LargeChange="1" ValueChanged="Pitch_Speed_S_ValueChanged" MouseRightButtonDown="Pitch_Speed_S_MouseRightButtonDown" PreviewKeyDown="Pitch_Speed_S_PreviewKeyDown"/>
             <TextBlock x:Name="Speed_T" FontSize="40" Height="55" Width="300" TextWrapping="Wrap" Text="速度:0" VerticalAlignment="Top" Margin="-475,500,0,0" Foreground="Aqua" TextAlignment="Center"/>
-            <Slider x:Name="Speed_S" Height="27" VerticalAlignment="Top" Focusable="False"  Width="400" Margin="-475,600,0,0" Style="{StaticResource CustomSliderStyle}" SmallChange="1" Maximum="100" Minimum="-80" ValueChanged="Speed_S_ValueChanged" MouseRightButtonDown="Speed_S_MouseDoubleClick" LargeChange="1"/>
+            <Slider x:Name="Speed_S" Height="27" VerticalAlignment="Top" Focusable="False"  Width="400" Margin="-475,600,0,0" Style="{StaticResource CustomSliderStyle}" SmallChange="1" Maximum="100" Minimum="-80" ValueChanged="Speed_S_ValueChanged" MouseRightButtonDown="Speed_S_MouseDoubleClick" LargeChange="1" PreviewKeyDown="Speed_S_PreviewKeyDown"/>
             <TextBlock x:Name="Location_T" FontSize="40" Height="55" Width="300" TextWrapping="Wrap" Text="00:00" VerticalAlignment="Top" Margin="-475,700,0,0" Foreground="Aqua" TextAlignment="Center"/>
-            <Slider x:Name="Location_S" IsMoveToPointEnabled="True" Height="27" VerticalAlignment="Top" Width="400" Margin="-475,800,0,0" Style="{StaticResource CustomSliderStyle2}" Focusable="False" ValueChanged="Location_S_ValueChanged"/>
+            <Slider x:Name="Location_S" IsMoveToPointEnabled="True" Height="27" VerticalAlignment="Top" Width="400" Margin="-475,800,0,0" Style="{StaticResource CustomSliderStyle2}" Focusable="False" ValueChanged="Location_S_ValueChanged" PreviewKeyDown="Location_S_PreviewKeyDown"/>
             <TextBlock x:Name="Zoom_T" FontSize="40" Height="55" Width="325" TextWrapping="Wrap" Text="拡大率:1" VerticalAlignment="Top" Margin="-475,900,0,0" Foreground="Aqua" TextAlignment="Center"/>
-            <Slider x:Name="Zoom_S" Height="27" VerticalAlignment="Top"  Width="400" Margin="-475,1000,0,0" Style="{StaticResource CustomSliderStyle}" Focusable="False" SmallChange="0" Maximum="4" Minimum="1"  LargeChange="0" ValueChanged="Zoom_S_ValueChanged" MouseRightButtonDown="Zoom_S_MouseRightButtonDown"/>
+            <Slider x:Name="Zoom_S" Height="27" VerticalAlignment="Top"  Width="400" Margin="-475,1000,0,0" Style="{StaticResource CustomSliderStyle}" Focusable="False" SmallChange="0" Maximum="4" Minimum="1"  LargeChange="0" ValueChanged="Zoom_S_ValueChanged" MouseRightButtonDown="Zoom_S_MouseRightButtonDown" PreviewKeyDown="Zoom_S_PreviewKeyDown"/>
             <TextBlock x:Name="Loop_T" FontSize="40" Height="55" Width="175" TextWrapping="Wrap" Text="ループ再生" VerticalAlignment="Top" Margin="-2750,925,0,0" Foreground="Aqua"/>
             <CheckBox x:Name="Loop_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-2975,945,0,0" Focusable="False" Click="Loop_C_Click"/>
             <TextBlock x:Name="Random_T" FontSize="40" Height="55" Width="200" TextWrapping="Wrap" Text="ランダム再生" VerticalAlignment="Top" Margin="-2725,1000,0,0" Foreground="Aqua"/>

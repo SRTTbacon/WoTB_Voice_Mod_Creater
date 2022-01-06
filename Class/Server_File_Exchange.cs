@@ -25,12 +25,6 @@ namespace WoTB_Voice_Mod_Creater
             while (stream.EndOfStream == false)
                 Temp.Add(stream.ReadLine());
             stream.Dispose();
-            if (Temp.Count == 0)
-                throw new Exception("指定したファイルは存在しません。");
-            else if (Temp.Count == 1 && Temp[0] == "")
-                throw new Exception("指定したファイルは存在しません。");
-            else if (Temp.Count == 1 && Temp[0] == null)
-                throw new Exception("指定したファイルは存在しません。");
             return Temp.ToArray();
         }
     }

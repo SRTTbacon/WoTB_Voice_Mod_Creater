@@ -1,4 +1,4 @@
-﻿using DdsFileTypePlus;
+﻿//using DdsFileTypePlus;
 using System;
 using System.Drawing;
 using System.Drawing.Imaging;
@@ -15,7 +15,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         bool IsMessageShowing = false;
         string Select_File = "";
         ImageFormat[] Image_01 = { ImageFormat.Png, ImageFormat.Jpeg, ImageFormat.Bmp, ImageFormat.Gif, ImageFormat.Tiff, ImageFormat.Emf, ImageFormat.Exif, ImageFormat.Icon, ImageFormat.Wmf };
-        DdsFileFormat[] Image_02 = { DdsFileFormat.BC1, DdsFileFormat.BC2, DdsFileFormat.BC3, DdsFileFormat.BC4, DdsFileFormat.BC5, DdsFileFormat.BC6H, DdsFileFormat.BC7 };
+        //DdsFileFormat[] Image_02 = { DdsFileFormat.BC1, DdsFileFormat.BC2, DdsFileFormat.BC3, DdsFileFormat.BC4, DdsFileFormat.BC5, DdsFileFormat.BC6H, DdsFileFormat.BC7 };
         public DDS_Tool()
         {
             InitializeComponent();
@@ -28,13 +28,13 @@ namespace WoTB_Voice_Mod_Creater.Class
             Encode_L.Items.Add("EXIF");
             Encode_L.Items.Add("ICO");
             Encode_L.Items.Add("WMF");
-            Encode_L.Items.Add("DDS(BC1)");
+            /*Encode_L.Items.Add("DDS(BC1)");
             Encode_L.Items.Add("DDS(BC2)");
             Encode_L.Items.Add("DDS(BC3)");
             Encode_L.Items.Add("DDS(BC4)");
             Encode_L.Items.Add("DDS(BC5)");
             Encode_L.Items.Add("DDS(BC6)");
-            Encode_L.Items.Add("DDS(BC7)");
+            Encode_L.Items.Add("DDS(BC7)");*/
         }
         public async void Window_Show()
         {
@@ -74,7 +74,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         {
             string[] Drag_Files = (string[])e.Data.GetData(DataFormats.FileDrop);
             string Ex = Path.GetExtension(Drag_Files[0]);
-            if (Ex == ".dds" || Ex == ".png" || Ex == ".jpg" || Ex == ".jpeg" || Ex == ".bmp" || Ex == ".gif" || Ex == ".tiff" || Ex == ".exif")
+            if (Ex == ".png" || Ex == ".jpg" || Ex == ".jpeg" || Ex == ".bmp" || Ex == ".gif" || Ex == ".tiff" || Ex == ".exif")
             {
                 e.Effects = DragDropEffects.Copy;
             }
@@ -96,11 +96,11 @@ namespace WoTB_Voice_Mod_Creater.Class
                 {
                     string[] Drop_Files = e.Data.GetData(DataFormats.FileDrop) as string[];
                     string Ex = Path.GetExtension(Drop_Files[0]);
-                    if (Ex == ".dds" || Ex == ".png" || Ex == ".jpg" || Ex == ".jpeg" || Ex == ".bmp" || Ex == ".gif" || Ex == ".tiff" || Ex == ".exif")
+                    if (Ex == ".png" || Ex == ".jpg" || Ex == ".jpeg" || Ex == ".bmp" || Ex == ".gif" || Ex == ".tiff" || Ex == ".exif")
                     {
                         if (Ex == ".dds")
                         {
-                            DDS_Main_Image.Source = Sub_Code.Bitmap_To_BitmapImage(DDS_Format.Load_To_Bitmap(Drop_Files[0]));
+                            //DDS_Main_Image.Source = Sub_Code.Bitmap_To_BitmapImage(DDS_Format.Load_To_Bitmap(Drop_Files[0]));
                         }
                         else
                         {
@@ -144,7 +144,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 Title = "画像ファイルを選択してください。",
                 Multiselect = false,
-                Filter = "画像ファイル(*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.tiff;*.exif;*.dds)|*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.tiff;*.exif;*.dds"
+                Filter = "画像ファイル(*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.tiff;*.exif)|*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.tiff;*.exif"
             };
             if (ofd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
@@ -152,7 +152,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 {
                     if (Path.GetExtension(ofd.FileName) == ".dds")
                     {
-                        DDS_Main_Image.Source = Sub_Code.Bitmap_To_BitmapImage(DDS_Format.Load_To_Bitmap(ofd.FileName));
+                        //DDS_Main_Image.Source = Sub_Code.Bitmap_To_BitmapImage(DDS_Format.Load_To_Bitmap(ofd.FileName));
                     }
                     else
                     {
@@ -224,7 +224,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 try
                 {
                     string Ex = Path.GetExtension(Select_File);
-                    if (Encode_L.SelectedIndex >= 9 && Ex == ".dds")
+                    /*if (Encode_L.SelectedIndex >= 9 && Ex == ".dds")
                     {
                         DDS_Format.DDS_To_DDS(Select_File, sfd.FileName, Image_02[Encode_L.SelectedIndex - 9]);
                     }
@@ -235,10 +235,13 @@ namespace WoTB_Voice_Mod_Creater.Class
                     else if (Ex != ".dds" && Encode_L.SelectedIndex >= 9)
                     {
                         DDS_Format.PNG_To_DDS(Select_File, sfd.FileName, Image_02[Encode_L.SelectedIndex - 9]);
-                    }
-                    else if (Ex != ".dds" && Encode_L.SelectedIndex < 9)
+                    }*/
+                    if (Ex != ".dds" && Encode_L.SelectedIndex < 9)
                     {
-                        DDS_Format.PNG_To_PNG(Select_File, sfd.FileName, Image_01[Encode_L.SelectedIndex]);
+                        Bitmap bitmap = new Bitmap(Select_File);
+                        bitmap.Save(sfd.FileName, Image_01[Encode_L.SelectedIndex]);
+                        bitmap.Dispose();
+                        //DDS_Format.PNG_To_PNG(Select_File, sfd.FileName, Image_01[Encode_L.SelectedIndex]);
                     }
                     else
                     {

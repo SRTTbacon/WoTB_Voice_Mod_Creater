@@ -548,7 +548,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                         Sound_Mode = 1;
                         continue;
                     }
-                    else if (line.Contains("!---ここから砲撃音(WoTB用)の項目です。---!"))
+                    else if (line.Contains("!---ここから砲撃音(WoTB用)の項目です。---!") || line.Contains("!---ここから砲撃音の項目です。---!"))
                     {
                         Sound_Mode = 2;
                         continue;
@@ -908,12 +908,12 @@ namespace WoTB_Voice_Mod_Creater.Class
                     }
                     else if (Mod_Page == 2)
                     {
-                        if (Music_Type_WoT_Gun[BGM_Type_L.SelectedIndex].Contains(FilePath))
+                        if (Music_Type_WoTB_Gun[BGM_Type_L.SelectedIndex].Contains(FilePath))
                         {
                             Error_FileName += "\n" + Path.GetFileName(FilePath);
                             continue;
                         }
-                        Music_Type_WoT_Gun[BGM_Type_L.SelectedIndex].Add(FilePath);
+                        Music_Type_WoTB_Gun[BGM_Type_L.SelectedIndex].Add(FilePath);
                     }
                     else if (Mod_Page == 3)
                     {
@@ -1052,7 +1052,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             }
             if (Mod_Page == 0)
             {
-                IList<int> Select_Indexs = BGM_Type_L.SelectedIndexs();
+                IList<int> Select_Indexs = BGM_Type_L.SelectedIndexes();
                 if (Select_Indexs.Contains(13) || Select_Indexs.Contains(14) || Select_Indexs.Contains(15) || Select_Indexs.Contains(16))
                 {
                     if (Music_Type_Music[13].Count == 0 || Music_Type_Music[15].Count == 0)
@@ -1136,7 +1136,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         }
         async Task<bool> Hits_Project_Download(bool IsAll)
         {
-            IList<int> Select_Indexs = BGM_Type_L.SelectedIndexs();
+            IList<int> Select_Indexs = BGM_Type_L.SelectedIndexes();
             if (Select_Indexs.Contains(19) || Select_Indexs.Contains(20) || IsAll)
             {
                 if (File.Exists(Voice_Set.Special_Path + "/Wwise/WoTB_Hits_Sound/Version.dat"))
@@ -1233,6 +1233,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 if (Volume_Now <= 0f)
                     Bass.BASS_ChannelPause(Stream);
                 Message_T.Text = "プロジェクトファイルを作成しています...";
+                List<string> IsNotWAVList = new List<string>();
                 await Task.Delay(50);
                 try
                 {
@@ -1257,13 +1258,20 @@ namespace WoTB_Voice_Mod_Creater.Class
                 "music_maps_desert_sand_river","music_maps_europe_himmelsdorf","music_maps_europe_mannerheim","music_maps_europe_ruinberg","music_maps_japan",
                 "music_maps_russian_malinovka","music_maps_russian_prokhorovka","music_result_screen_basic","music_result_screen_basic", "music_result_screen","music_result_screen",
                 "music_result_screen","music_result_screen","music_battle","music_battle"};
-                        IList<int> Selection_Index = BGM_Type_L.SelectedIndexs();
+                        IList<int> Selection_Index = BGM_Type_L.SelectedIndexes();
                         List<string> Build_Names = new List<string>();
                         if (!IsSelectedOnly)
                         {
                             for (int Number = 0; Number < Music_Type_Music.Count; Number++)
+                            {
                                 for (int Number_01 = 0; Number_01 < Music_Type_Music[Number].Count; Number_01++)
-                                    Wwise.Loading_Music_Add_Wwise(Music_Type_Music[Number][Number_01], Number, Music_Play_Times[Number][Number_01], Music_Feed_In[Number][Number_01], Set_Volume);
+                                {
+                                    if (Path.GetExtension(Music_Type_Music[Number][Number_01]) == ".wav" && !Sub_Code.Audio_IsWAV(Music_Type_Music[Number][Number_01]))
+                                        IsNotWAVList.Add(Music_Type_Music[Number][Number_01]);
+                                    else
+                                        Wwise.Loading_Music_Add_Wwise(Music_Type_Music[Number][Number_01], Number, Music_Play_Times[Number][Number_01], Music_Feed_In[Number][Number_01], Set_Volume);
+                                }
+                            }
                             Message_T.Text = "ファイルを.wavにエンコードしています...";
                             await Task.Delay(50);
                             await Wwise.Sound_To_WAV();
@@ -1293,7 +1301,12 @@ namespace WoTB_Voice_Mod_Creater.Class
                                 if (Number != 19 && Number != 20)
                                 {
                                     for (int Number_01 = 0; Number_01 < Music_Type_Music[Number].Count; Number_01++)
-                                        Wwise.Loading_Music_Add_Wwise(Music_Type_Music[Number][Number_01], Number, Music_Play_Times[Number][Number_01], Music_Feed_In[Number][Number_01], Set_Volume);
+                                    {
+                                        if (Path.GetExtension(Music_Type_Music[Number][Number_01]) == ".wav" && !Sub_Code.Audio_IsWAV(Music_Type_Music[Number][Number_01]))
+                                            IsNotWAVList.Add(Music_Type_Music[Number][Number_01]);
+                                        else
+                                            Wwise.Loading_Music_Add_Wwise(Music_Type_Music[Number][Number_01], Number, Music_Play_Times[Number][Number_01], Music_Feed_In[Number][Number_01], Set_Volume);
+                                    }
                                 }
                             }
                             await Wwise.Sound_To_WAV();
@@ -1335,7 +1348,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                             await Task.Delay(75);
                             Wwise_Hits.Project_Build("hits", bfb.SelectedFolder + "/hits.bnk", null, true);
                             Wwise_Hits.Project_Build("hits_basic", bfb.SelectedFolder + "/hits_basic.bnk", null, true);
-                            Wwise_Hits.Clear(null, true);
+                            Wwise_Hits.Clear(true, null, true);
                             if (File.Exists(Voice_Set.Special_Path + "/Wwise/WoTB_Hits_Sound/Actor-Mixer Hierarchy/Backup.tmp"))
                                 File.Copy(Voice_Set.Special_Path + "/Wwise/WoTB_Hits_Sound/Actor-Mixer Hierarchy/Backup.tmp", Voice_Set.Special_Path + "/Wwise/WoTB_Hits_Sound/Actor-Mixer Hierarchy/Default Work Unit.wwu", true);
                         }
@@ -1346,8 +1359,15 @@ namespace WoTB_Voice_Mod_Creater.Class
                             File.Copy(Voice_Set.Special_Path + "/Wwise/WoTB_UI_Button_Sound/Actor-Mixer Hierarchy/Default Work Unit.wwu", Voice_Set.Special_Path + "/Wwise/WoTB_UI_Button_Sound/Actor-Mixer Hierarchy/Backup.tmp", true);
                         Wwise_Project_Create Wwise = new Wwise_Project_Create(Voice_Set.Special_Path + "/Wwise/WoTB_UI_Button_Sound");
                         for (int Number = 0; Number < Music_Type_Garage_SE.Count; Number++)
+                        {
                             for (int Number_01 = 0; Number_01 < Music_Type_Garage_SE[Number].Count; Number_01++)
-                                Wwise.Loading_Music_Add_Wwise(Music_Type_Garage_SE[Number][Number_01], Number, null, false, 0, 1);
+                            {
+                                if (Path.GetExtension(Music_Type_Garage_SE[Number][Number_01]) == ".wav" && !Sub_Code.Audio_IsWAV(Music_Type_Garage_SE[Number][Number_01]))
+                                    IsNotWAVList.Add(Music_Type_Garage_SE[Number][Number_01]);
+                                else
+                                    Wwise.Loading_Music_Add_Wwise(Music_Type_Garage_SE[Number][Number_01], Number, null, false, 0, 1);
+                            }
+                        }
                         Message_T.Text = "ファイルを.wavにエンコードしています...";
                         await Task.Delay(50);
                         await Wwise.Sound_To_WAV();
@@ -1365,8 +1385,15 @@ namespace WoTB_Voice_Mod_Creater.Class
                             File.Copy(Voice_Set.Special_Path + "/Wwise/WoTB_Gun_Sound/Actor-Mixer Hierarchy/Default Work Unit.wwu", Voice_Set.Special_Path + "/Wwise/WoTB_Gun_Sound/Actor-Mixer Hierarchy/Backup.tmp", true);
                         Wwise_Project_Create Wwise = new Wwise_Project_Create(Voice_Set.Special_Path + "/Wwise/WoTB_Gun_Sound");
                         for (int Number = 0; Number < Music_Type_WoTB_Gun.Count; Number++)
+                        {
                             for (int Number_01 = 0; Number_01 < Music_Type_WoTB_Gun[Number].Count; Number_01++)
-                                Wwise.Loading_Music_Add_Wwise(Music_Type_WoTB_Gun[Number][Number_01], Number, null, false, 0, 2);
+                            {
+                                if (Path.GetExtension(Music_Type_WoTB_Gun[Number][Number_01]) == ".wav" && !Sub_Code.Audio_IsWAV(Music_Type_WoTB_Gun[Number][Number_01]))
+                                    IsNotWAVList.Add(Music_Type_WoTB_Gun[Number][Number_01]);
+                                else
+                                    Wwise.Loading_Music_Add_Wwise(Music_Type_WoTB_Gun[Number][Number_01], Number, null, false, 0, 2);
+                            }
+                        }
                         Message_T.Text = "ファイルを.wavにエンコードしています...";
                         await Task.Delay(50);
                         await Wwise.Sound_To_WAV();
@@ -1387,8 +1414,15 @@ namespace WoTB_Voice_Mod_Creater.Class
                             File.Copy(Voice_Set.Special_Path + "/Wwise/WoT_Gun_Sound/Actor-Mixer Hierarchy/Default Work Unit.wwu", Voice_Set.Special_Path + "/Wwise/WoT_Gun_Sound/Actor-Mixer Hierarchy/Backup.tmp", true);
                         Wwise_Project_Create Wwise = new Wwise_Project_Create(Voice_Set.Special_Path + "/Wwise/WoT_Gun_Sound");
                         for (int Number = 0; Number < Music_Type_WoT_Gun.Count; Number++)
+                        {
                             for (int Number_01 = 0; Number_01 < Music_Type_WoT_Gun[Number].Count; Number_01++)
-                                Wwise.Loading_Music_Add_Wwise(Music_Type_WoT_Gun[Number][Number_01], Number, null, false, 0, 3);
+                            {
+                                if (Path.GetExtension(Music_Type_WoT_Gun[Number][Number_01]) == ".wav" && !Sub_Code.Audio_IsWAV(Music_Type_WoT_Gun[Number][Number_01]))
+                                    IsNotWAVList.Add(Music_Type_WoT_Gun[Number][Number_01]);
+                                else
+                                    Wwise.Loading_Music_Add_Wwise(Music_Type_WoT_Gun[Number][Number_01], Number, null, false, 0, 3);
+                            }
+                        }
                         Message_T.Text = "ファイルを.wavにエンコードしています...";
                         await Task.Delay(50);
                         await Wwise.Sound_To_WAV();
@@ -1408,7 +1442,22 @@ namespace WoTB_Voice_Mod_Creater.Class
                     IsBusy = false;
                     return;
                 }
-                Message_Feed_Out("完了しました。指定したフォルダを参照してください。");
+                bool IsNoneError = true;
+                if (IsNotWAVList.Count > 0)
+                {
+                    StreamWriter stw = File.CreateText(Directory.GetCurrentDirectory() + "\\Error_Extension.txt");
+                    stw.WriteLine("以下のファイルの拡張子が正しくありません。適切な拡張子に修正し再度実行してください。");
+                    foreach (string File_Now in IsNotWAVList)
+                        stw.WriteLine(File_Now);
+                    stw.Write("意味がよく分からない方はご質問ください。");
+                    stw.Close();
+                    stw.Dispose();
+                    IsNoneError = false;
+                }
+                if (IsNoneError)
+                    Message_Feed_Out("完了しました。指定したフォルダを参照してください。");
+                else
+                    Message_Feed_Out("拡張子が正しくないファイルが存在したため、正常に作成できませんでした。詳しくはError_Extension.txtを参照してください。");
                 Flash.Flash_Start();
                 IsBusy = false;
             }
@@ -1655,14 +1704,19 @@ namespace WoTB_Voice_Mod_Creater.Class
                 StreamReader str = new StreamReader(Voice_Set.Special_Path + "/Wwise/WoTB_Gun_Sound/Version.dat");
                 string Ver = str.ReadLine();
                 str.Close();
-                if (Sub_Code.IsWwise_Gun_Update != Ver)
+                if (Sub_Code.IsWwise_Gun_Update != Ver || Sub_Code.IsForceWwise_Gun_Update)
                 {
                     IsMessageShowing = false;
                     Message_T.Text = "砲撃音(WoTB用)のプロジェクトをアップデートしています...";
                     await Task.Delay(50);
+                    if (File.Exists(Voice_Set.Special_Path + "\\Wwise\\WoTB_Gun_Sound\\Actor-Mixer Hierarchy\\Default Work Unit.wwu"))
+                        File.Delete(Voice_Set.Special_Path + "\\Wwise\\WoTB_Gun_Sound\\Actor-Mixer Hierarchy\\Default Work Unit.wwu");
+                    if (File.Exists(Voice_Set.Special_Path + "\\Wwise\\WoTB_Gun_Sound\\Events\\SRTTbacon.wwu"))
+                        File.Delete(Voice_Set.Special_Path + "\\Wwise\\WoTB_Gun_Sound\\Events\\SRTTbacon.wwu");
                     Voice_Set.FTPClient.DownloadFile("/WoTB_Voice_Mod/Update/Wwise/Gun_Project/Actor.wwu", Voice_Set.Special_Path + "\\Wwise\\WoTB_Gun_Sound\\Actor-Mixer Hierarchy\\Default Work Unit.wwu");
                     Voice_Set.FTPClient.DownloadFile("/WoTB_Voice_Mod/Update/Wwise/Gun_Project/Event.wwu", Voice_Set.Special_Path + "\\Wwise\\WoTB_Gun_Sound\\Events\\SRTTbacon.wwu");
                     File.WriteAllText(Voice_Set.Special_Path + "/Wwise/WoTB_Gun_Sound/Version.dat", Sub_Code.IsWwise_Gun_Update);
+                    Sub_Code.IsForceWwise_Gun_Update = false;
                     Message_Feed_Out("正常にアップデートされました。");
                 }
             }

@@ -13,8 +13,8 @@ namespace WoTB_Voice_Mod_Creater.Class
 {
     public class Fmod_Player
     {
-        static Cauldron.FMOD.EventSystem ESystem_01 = new Cauldron.FMOD.EventSystem();
-        public static Cauldron.FMOD.EventSystem ESystem
+        static FMOD_API.EventSystem ESystem_01 = new FMOD_API.EventSystem();
+        public static FMOD_API.EventSystem ESystem
         {
             get { return ESystem_01; }
             set { ESystem_01 = value; }
@@ -145,7 +145,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             IsSaveOK = true;
             while (Opacity > 0)
             {
-                Fmod_Player.ESystem.Update();
+                Fmod_Player.ESystem.update();
                 await Task.Delay(1000 / 60);
             }
         }
@@ -621,9 +621,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         private async void Create_Mod_B_Click(object sender, RoutedEventArgs e)
         {
             if (IsBusy)
-            {
                 return;
-            }
             if (Mod_Select_Name == "" && Fmod_Bank_List.Items.Count == 0 && !SRTTbacon_Server.IsSRTTbaconOwnerMode)
             {
                 Message_Feed_Out("現在Modを公開することはできません。");
@@ -634,9 +632,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             if (Mod_Select_Name == "")
             {
                 while (Mod_Uploads_Window.Visibility == Visibility.Visible)
-                {
                     await Task.Delay(100);
-                }
                 Mod_List_Update();
             }
         }
@@ -914,10 +910,9 @@ namespace WoTB_Voice_Mod_Creater.Class
                 return;
             }
             //？ボタンを押すと表示
-            string Message_01 = "バックアップからファイルの復元を試みます。\n\"サーバーから復元\"はサーバーに置いてあるWoTBの初期状態のファイルをコピーします。\n";
-            string Message_02 = "\"バックアップから復元\"は、このソフトを初めて起動したときにコピーされたファイルから復元します。";
-            string Message_03 = "バックアップでは、日本語の音声ファイル(voiceover_crew.bnk)と一部のSEファイル(reload,ui_battle,ui_chat_quick_commands,music_login_screen)しか復元できませんので、自身で変更したファイルは対応できません。";
-            MessageBox.Show(Message_01 + Message_02 + Message_03);
+            string Message_01 = "\"バックアップから復元\"は、このソフトを初めて起動したときにコピーされたファイルから復元します。";
+            string Message_02 = "バックアップでは、日本語の音声ファイル(voiceover_crew.bnk)と一部のSEファイル(reload,ui_battle,ui_chat_quick_commands,music_login_screen)しか復元できませんので、自身で変更したファイルは対応できません。";
+            MessageBox.Show(Message_01 + Message_02);
         }
         private void Mod_Password_B_Click(object sender, RoutedEventArgs e)
         {

@@ -14,17 +14,18 @@ namespace WoTB_Voice_Mod_Creater.Class
 {
     public partial class Tools : System.Windows.Controls.UserControl
     {
+        public int IsMutualResponse = 0;
         readonly List<string> File_Full_Path = new List<string>();
+        double Max_Stream_Length = 0.0;
         int Voice_Max_Index = 0;
         float Volume = 1f;
         float Pitch = 0f;
         bool IsBusy = false;
         bool IsMessageShowing = false;
         bool IsOpenDialog = false;
-        Cauldron.FMOD.EVENT_LOADINFO ELI = new Cauldron.FMOD.EVENT_LOADINFO();
-        Cauldron.FMOD.EventProject EP = new Cauldron.FMOD.EventProject();
-        Cauldron.FMOD.EventGroup EG = new Cauldron.FMOD.EventGroup();
-        Cauldron.FMOD.Event FE = new Cauldron.FMOD.Event();
+        bool IsInitDownloadLinks = false;
+        FMOD_API.EventGroup EG = new FMOD_API.EventGroup();
+        FMOD_API.Event FE = new FMOD_API.Event();
         public Tools()
         {
             InitializeComponent();
@@ -55,6 +56,9 @@ namespace WoTB_Voice_Mod_Creater.Class
                     Sub_Code.Error_Log_Write(e.Message);
                 }
             }
+            int Start_Time = Environment.TickCount;
+            if (!IsInitDownloadLinks)
+                Voice_Set.TCP_Server.Send("Response|Get_Files|" + Voice_Set.UserName + "/aaa");
             Opacity = 0;
             Visibility = Visibility.Visible;
             while (Opacity < 1 && !IsBusy)
@@ -62,6 +66,27 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Opacity += Sub_Code.Window_Feed_Time;
                 await Task.Delay(1000 / 60);
             }
+            if (!IsInitDownloadLinks)
+            {
+                bool IsNoResponse = false;
+                while (!IsInitDownloadLinks && !IsNoResponse)
+                {
+                    if (Start_Time + 5000 <= Environment.TickCount)
+                        IsNoResponse = true;
+                    await Task.Delay(50);
+                }
+                if (IsNoResponse)
+                    Message_Feed_Out("サーバーが5秒以内に応答しませんでした。");
+            }
+        }
+        public void Set_Download_Links(string Server_Response)
+        {
+            IsInitDownloadLinks = true;
+            Upload_File_List.Items.Clear();
+            string[] Files = Server_Response.Split(':');
+            foreach (string File_Now in Files)
+                if (File_Now != "")
+                    Upload_File_List.Items.Add(Replace_File_Path(Path.GetFileNameWithoutExtension(File_Now) + Path.GetExtension(File_Now)));
         }
         //DVPLを解除(Pythonのプログラムに引数を渡し実行)
         private async void DVPL_Extract_B_Click(object sender, RoutedEventArgs e)
@@ -169,9 +194,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 Number++;
                 if (Number >= 120)
-                {
                     Message_T.Opacity -= 0.025;
-                }
                 await Task.Delay(1000 / 60);
             }
             if (IsMessageShowing)
@@ -201,13 +224,12 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 try
                 {
-                    EP.Release();
-                    FE.Release();
-                    Fmod_Player.ESystem.Load(ofd.FileName, ref ELI, ref EP);
-                    Cauldron.FMOD.EventProject EC = new Cauldron.FMOD.EventProject();
-                    Fmod_Player.ESystem.GetProjectByIndex(0, ref EC);
-                    EC.GetGroupByIndex(0, true, ref EG);
-                    EG.GetNumEvents(ref Voice_Max_Index);
+                    FE.release();
+                    Fmod_Player.ESystem.load(ofd.FileName);
+                    FMOD_API.EventProject EC = new FMOD_API.EventProject();
+                    Fmod_Player.ESystem.getProjectByIndex(0, ref EC);
+                    EC.getGroupByIndex(0, true, ref EG);
+                    EG.getNumEvents(ref Voice_Max_Index);
                     FEV_Index_S.Value = 0;
                     FEV_Index_S.Maximum = Voice_Max_Index - 1;
                     FEV_Index_T.Text = "1/" + Voice_Max_Index;
@@ -227,15 +249,15 @@ namespace WoTB_Voice_Mod_Creater.Class
             if (IsBusy)
                 return;
             if (FE != null)
-                FE.Stop();
-            EG.GetEventByIndex(Voice_Number, Cauldron.FMOD.EVENT_MODE.DEFAULT, ref FE);
-            FE.SetVolume(Volume);
-            FE.SetPitch(Pitch, Cauldron.FMOD.EVENT_PITCHUNITS.TONES);
-            FE.Start();
+                FE.stop();
+            EG.getEventByIndex(Voice_Number, FMOD_API.EVENT_MODE.DEFAULT, ref FE);
+            FE.setVolume(Volume);
+            FE.setPitch(Pitch, FMOD_API.EVENT_PITCHUNITS.TONES);
+            FE.start();
         }
         private void FEV_Stop_B_Click(object sender, RoutedEventArgs e)
         {
-            FE.Stop();
+            FE.stop();
         }
         private void FEV_Play_B_Click(object sender, RoutedEventArgs e)
         {
@@ -251,7 +273,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             Pitch = (float)Pitch_S.Value;
             Pitch_T.Text = "速度:" + Math.Round(Pitch_S.Value, 1, MidpointRounding.AwayFromZero);
             if (FE != null)
-                FE.SetPitch(Pitch, Cauldron.FMOD.EVENT_PITCHUNITS.TONES);
+                FE.setPitch(Pitch, FMOD_API.EVENT_PITCHUNITS.TONES);
         }
         private void Volume_S_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
@@ -259,7 +281,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             Volume = (float)Volume_S.Value / 100;
             Volume_T.Text = "音量:" + (int)Volume_S.Value;
             if (FE != null)
-                FE.SetVolume(Volume);
+                FE.setVolume(Volume);
         }
         private void Pitch_S_MouseRightButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
@@ -466,6 +488,150 @@ namespace WoTB_Voice_Mod_Creater.Class
             bfb.Dispose();
             IsBusy = false;
             IsOpenDialog = false;
+        }
+        private async void Upload_File_B_Click(object sender, RoutedEventArgs e)
+        {
+            if (IsBusy || IsOpenDialog)
+                return;
+            System.Windows.Forms.OpenFileDialog ofd = new OpenFileDialog()
+            {
+                Title = "アップロードするファイルを選択してください。",
+                Filter = "AnyFile(*.*)|*.*",
+                Multiselect = false,
+            };
+            if (ofd.ShowDialog() == DialogResult.OK)
+            {
+                List<string> Noooooo = new List<string>()
+                {
+                    "#",
+                    "%",
+                    "{",
+                    "}",
+                    "^",
+                    "[",
+                    "]",
+                    "`",
+                    "@",
+                    "&",
+                    "=",
+                    "+",
+                    "$",
+                    ","
+                };
+                string FileName = Replace_File_Path(Replace_FileName(Path.GetFileNameWithoutExtension(ofd.FileName), Noooooo.ToArray()) + Path.GetExtension(ofd.FileName));
+                Noooooo.Clear();
+                Voice_Set.TCP_Server.Send("Response|File_Exist|" + Voice_Set.UserName + "/" + FileName);
+                IsMessageShowing = false;
+                Message_T.Opacity = 1;
+                Message_T.Text = "サーバーの応答を待っています...";
+                int Start_Time = Environment.TickCount;
+                bool NoResponse = false;
+                while (IsMutualResponse == 0 && !NoResponse)
+                {
+                    if (Start_Time + 5000 <= Environment.TickCount)
+                        NoResponse = true;
+                    await Task.Delay(50);
+                }
+                if (NoResponse)
+                {
+                    ofd.Dispose();
+                    Message_Feed_Out("サーバーが5秒以内に応答しませんでした。時間を置いて再度実行してください。");
+                    return;
+                }
+                else if (IsMutualResponse == 1)
+                {
+                    IsMutualResponse = 0;
+                    ofd.Dispose();
+                    Message_Feed_Out("名前が同じファイルが存在します。既存のファイルを削除するか、ファイル名を変更してください。");
+                    return;
+                }
+                IsMutualResponse = 0;
+                Message_T.Text = "アップロードしています...";
+                IsBusy = true;
+                bool IsEnd = false;
+                Task aa = Task.Run(() =>
+                {
+                    using (var stream = new FileStream(ofd.FileName, FileMode.Open))
+                    {
+                        Max_Stream_Length = stream.Length / 1024.0 / 1024.0;
+                        Max_Stream_Length = Math.Round(Max_Stream_Length, MidpointRounding.AwayFromZero);
+                        if (Voice_Set.FTPClient.Directory_Exist("/WoTB_Voice_Mod/Users/" + Voice_Set.UserName))
+                            Voice_Set.FTPClient.Directory_Create("/WoTB_Voice_Mod/Users/" + Voice_Set.UserName);
+                        Voice_Set.FTPClient.SFTP_Server.UploadFile(stream, "/WoTB_Voice_Mod/Users/" + Voice_Set.UserName + "/" + FileName, UpdateProgresBar);
+                        IsEnd = true;
+                    }
+                });
+                while (!IsEnd)
+                    await Task.Delay(50);
+                Voice_Set.TCP_Server.Send("Response|Set_Download_Link|" + Voice_Set.UserName + "/" + FileName);
+                Voice_Set.TCP_Server.Send("Message|" + Voice_Set.UserName + "->ファイル:" + FileName + "のダウンロードリンクを生成しました。");
+                Upload_File_List.Items.Add(FileName);
+                await Task.Delay(500);
+                IsBusy = false;
+                Message_Feed_Out("ダウンロードリンクを生成しました。リストから項目を選択し、URLを取得してください。");
+            }
+            ofd.Dispose();
+        }
+        async void UpdateProgresBar(ulong uploaded)
+        {
+            double Now_Stream_Length = uploaded / 1024.0 / 1024.0;
+            Now_Stream_Length = Math.Round(Now_Stream_Length, MidpointRounding.AwayFromZero);
+            await Task.Delay(5);
+            Dispatcher.Invoke(() =>
+            {
+                Message_T.Text = "アップロードしています..." + Now_Stream_Length + " / " + Max_Stream_Length + "MB";
+            });
+        }
+        private void Delete_File_B_Click(object sender, RoutedEventArgs e)
+        {
+            if (IsBusy || IsOpenDialog)
+                return;
+            if (Upload_File_List.SelectedIndex == -1)
+            {
+                Message_Feed_Out("削除する項目を選択してください。");
+                return;
+            }
+            string Name = Upload_File_List.SelectedItem.ToString();
+            MessageBoxResult result = System.Windows.MessageBox.Show(Name + "のリンクを削除しますか?この操作は取り消せません。", "確認", MessageBoxButton.YesNo, MessageBoxImage.Exclamation,
+                MessageBoxResult.No);
+            if (result == MessageBoxResult.Yes)
+            {
+                Upload_File_List.Items.RemoveAt(Upload_File_List.SelectedIndex);
+                Voice_Set.TCP_Server.Send("Response|File_Delete|" + Voice_Set.UserName + "/" + Name);
+                Voice_Set.TCP_Server.Send("Message|" + Voice_Set.UserName + "->ファイル:" + Name + "を削除しました。");
+                Message_Feed_Out(Name + "をサーバーから削除しました。");
+            }
+        }
+        private void Generate_Link_B_Click(object sender, RoutedEventArgs e)
+        {
+            if (IsBusy || IsOpenDialog)
+                return;
+            if (Upload_File_List.SelectedIndex == -1)
+            {
+                Message_Feed_Out("リンクを取得する項目を選択してください。");
+                return;
+            }
+            try
+            {
+                System.Windows.Forms.Clipboard.SetData(System.Windows.DataFormats.Text, "https://battlecry.xyz/Mod_Creater/Users/" + Voice_Set.UserName + "/" + Upload_File_List.SelectedItem.ToString());
+                Message_Feed_Out("クリップボードにダウンロードリンクをコピーしました。");
+            }
+            catch { }
+        }
+        static string Replace_File_Path(string File_Path)
+        {
+            string ReturnString = File_Path;
+            char[] invalidChars = Path.GetInvalidFileNameChars();
+            foreach (char aa in invalidChars)
+                ReturnString = ReturnString.Replace(aa, '_');
+            return ReturnString;
+        }
+        string Replace_FileName(string FileName, string[] Replace_String)
+        {
+            string Return_String = "";
+            for (int Number_01 = 0;  Number_01 < Replace_String.Length; Number_01++)
+                Return_String = FileName.Replace(Replace_String[Number_01], "");
+            return Return_String;
         }
     }
 }

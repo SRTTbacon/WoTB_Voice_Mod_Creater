@@ -11,7 +11,7 @@ namespace WoTB_Voice_Mod_Creater.Class
     {
         public bool IsConnected = false;
         //SSH.NETを使用してSFTPでやり取りします
-        SftpClient SFTP_Server = null;
+        public SftpClient SFTP_Server = null;
         //引数:サーバーIP, ユーザー名, パスワード, ポート (これらはMain_Code.csのSRTTbacon_Serverクラスに記述しています)
         public SFTP_Client(string IP, string UserName, string Password, int Port)
         {

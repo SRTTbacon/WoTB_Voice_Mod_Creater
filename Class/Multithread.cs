@@ -17,7 +17,7 @@ namespace WoTB_Voice_Mod_Creater.Class
     {
         static List<string> From_Files = new List<string>();
         static List<double> From_Gains = new List<double>();
-        public static async Task Conert_OGG_To_Wav(string[] Files, bool IsFromFileDelete)
+        public static async Task Convert_OGG_To_Wav(string[] Files, bool IsFromFileDelete)
         {
             try
             {
@@ -62,7 +62,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         {
             await Convert_To_Wav(From_Dir, From_Dir, IsFromFileDelete, IsUseFFmpeg, BassEncode);
         }
-        public static async Task Convert_To_Wav(string From_Dir, string To_Dir, bool IsFromFileDelete, bool IsUseFFmpeg = false, bool BassEncode = false)
+        public static async Task Convert_To_Wav(string From_Dir, string To_Dir, bool IsFromFileDelete, bool IsUseFFmpeg = false, bool BassEncode = false, bool NoWAVFileMode = true)
         {
             try
             {
@@ -70,15 +70,18 @@ namespace WoTB_Voice_Mod_Creater.Class
                     Directory.CreateDirectory(To_Dir);
                 From_Files.Clear();
                 string[] Ex;
-                if (IsUseFFmpeg)
+                if (IsUseFFmpeg || !NoWAVFileMode)
                     Ex = new string[] { ".mp3", ".aac", ".ogg", ".flac", ".wma", ".wav" };
                 else
                     Ex = new string[] { ".mp3", ".aac", ".ogg", ".flac", ".wma" };
                 From_Files.AddRange(DirectoryEx.GetFiles(From_Dir, SearchOption.TopDirectoryOnly, Ex));
                 var tasks = new List<Task>();
                 for (int i = 0; i < From_Files.Count; i++)
-                    if (!Sub_Code.Audio_IsWAV(From_Files[i]))
-                        tasks.Add(To_WAV(i, To_Dir, IsFromFileDelete, IsUseFFmpeg, BassEncode));
+                {
+                    if (Sub_Code.Audio_IsWAV(From_Files[i]) && NoWAVFileMode)
+                        continue;
+                    tasks.Add(To_WAV(i, To_Dir, IsFromFileDelete, IsUseFFmpeg, BassEncode));
+                }
                 await Task.WhenAll(tasks);
             }
             catch (Exception ex)

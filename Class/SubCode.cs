@@ -39,7 +39,10 @@ namespace WoTB_Voice_Mod_Creater
         public static string IsWwise_Player_Update = "1.0";
         public static string IsWwise_UI_Button_Sound = "1.0";
         public static string SE_Version = "1.0";
-        public static bool IsWindowBarShow = true;
+        public static bool IsWindowBarShow = false;
+        public static bool IsForceWwise_Blitz_Actor_Update = false;
+        public static bool IsForceWwise_Gun_Update = false;
+        public static bool IsForcusWindow = false;
         public static readonly string[] Default_Name = { "ally_killed_by_player", "ammo_bay_damaged", "armor_not_pierced_by_player", "armor_pierced_by_player", "armor_pierced_crit_by_player", "armor_ricochet_by_player",
         "commander_killed","driver_killed","enemy_fire_started_by_player","enemy_killed_by_player","engine_damaged","engine_destroyed","engine_functional","fire_started","fire_stopped",
         "fuel_tank_damaged","gun_damaged","gun_destroyed","gun_functional","gunner_killed","loader_killed","radio_damaged","radioman_killed","start_battle","surveying_devices_damaged",
@@ -105,9 +108,9 @@ namespace WoTB_Voice_Mod_Creater
                 DLL_List.Add("bass_fx.dll");
             if (!File.Exists(DLL_Path + "/DdsFileTypePlusIO_x86.dll"))
                 DLL_List.Add("DdsFileTypePlusIO_x86.dll");
-            if (!File.Exists(DLL_Path + "/fmod_event.dll"))
+            if (!File.Exists(DLL_Path + "/fmod_event64.dll"))
                 DLL_List.Add("fmod_event.dll");
-            if (!File.Exists(DLL_Path + "/fmodex.dll"))
+            if (!File.Exists(DLL_Path + "/fmodex64.dll"))
                 DLL_List.Add("fmodex.dll");
             if (!File.Exists(DLL_Path + "/bassenc.dll"))
                 DLL_List.Add("bassenc.dll");
@@ -940,6 +943,17 @@ namespace WoTB_Voice_Mod_Creater
             stream.Dispose();
             return img;
         }
+        public static System.Drawing.Bitmap BitmapImage_To_Bitmap(BitmapImage bitmapImage)
+        {
+            using (MemoryStream outStream = new MemoryStream())
+            {
+                BitmapEncoder enc = new BmpBitmapEncoder();
+                enc.Frames.Add(BitmapFrame.Create(bitmapImage));
+                enc.Save(outStream);
+                System.Drawing.Bitmap bitmap = new System.Drawing.Bitmap(outStream);
+                return (System.Drawing.Bitmap)bitmap.Clone();
+            }
+        }
         //ファイル名に使用できない文字を_に変更
         public static string File_Replace_Name(string FileName)
         {
@@ -1070,7 +1084,7 @@ namespace WoTB_Voice_Mod_Creater
             }
             catch (Exception e)
             {
-                Sub_Code.Error_Log_Write(e.Message);
+                Error_Log_Write(e.Message);
                 return null;
             }
         }
@@ -1571,6 +1585,7 @@ namespace WoTB_Voice_Mod_Creater
         {
             if (!Directory.Exists(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy") || !Directory.Exists(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Events"))
                 return;
+            File.Delete(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Default Work Unit.wwu");
             Voice_Set.FTPClient.DownloadFile("/WoTB_Voice_Mod/Update/Wwise/Default Work Unit.wwu", Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Default Work Unit.wwu");
             Voice_Set.FTPClient.DownloadFile("/WoTB_Voice_Mod/Update/Wwise/SoundBanks/Default Work Unit.wwu", Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/SoundBanks/Default Work Unit.wwu");
             Voice_Set.FTPClient.DownloadFile("/WoTB_Voice_Mod/Update/Wwise/Events.zip", Voice_Set.Special_Path + "/Wwise/Download_Wwise_Events.dat");
@@ -1582,6 +1597,7 @@ namespace WoTB_Voice_Mod_Creater
             File.Delete(Voice_Set.Special_Path + "/Wwise/Download_Wwise_Events.dat");
             File.Delete(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Backup.tmp");
             Directory.Delete(Voice_Set.Special_Path + "/Wwise/Download_Wwise_Events", true);
+            IsForceWwise_Blitz_Actor_Update = false;
         }
         //Wwiseプロジェクトをサーバーからダウンロード
         public static async Task<int> Wwise_Project_Update(TextBlock Message_T, ProgressBar Download_P, TextBlock Download_T, Border Download_Border)
@@ -1600,7 +1616,7 @@ namespace WoTB_Voice_Mod_Creater
                             StreamReader str3 = new StreamReader(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Version.dat");
                             string Actor_Version_Now = str3.ReadLine();
                             str3.Close();
-                            if (IsWwise_Blitz_Actor_Update != Actor_Version_Now)
+                            if (IsWwise_Blitz_Actor_Update != Actor_Version_Now || IsForceWwise_Blitz_Actor_Update)
                                 Actor_Mixer_Update(IsWwise_Blitz_Actor_Update);
                         }
                         else
@@ -1732,6 +1748,7 @@ namespace WoTB_Voice_Mod_Creater
                             Download_T.Visibility = Visibility.Hidden;
                             Download_Border.Visibility = Visibility.Hidden;
                             Voice_Set.App_Busy = false;
+                            Message_T.Text = "";
                             return 1;
                         }
                         Message_T.Text = "ファイルを展開しています...";
@@ -1742,6 +1759,7 @@ namespace WoTB_Voice_Mod_Creater
                         Download_P.Visibility = Visibility.Hidden;
                         Download_T.Visibility = Visibility.Hidden;
                         Download_Border.Visibility = Visibility.Hidden;
+                        Message_T.Text = "";
                         Voice_Set.App_Busy = false;
                         return 0;
                     }
@@ -1757,6 +1775,7 @@ namespace WoTB_Voice_Mod_Creater
                 Download_P.Visibility = Visibility.Hidden;
                 Download_T.Visibility = Visibility.Hidden;
                 Download_Border.Visibility = Visibility.Hidden;
+                Message_T.Text = "";
                 Voice_Set.App_Busy = false;
                 return 5;
             }
@@ -1825,6 +1844,7 @@ namespace WoTB_Voice_Mod_Creater
                                     Download_T.Visibility = Visibility.Hidden;
                                     Download_Border.Visibility = Visibility.Hidden;
                                     Voice_Set.App_Busy = false;
+                                    Message_T.Text = "";
                                     return 1;
                                 }
                                 System.IO.Compression.ZipFile.ExtractToDirectory(Voice_Set.Special_Path + "/WoT_Sound_Mod.dat", Voice_Set.Special_Path + "/Wwise/WoT_Sound_Mod");
@@ -1834,6 +1854,7 @@ namespace WoTB_Voice_Mod_Creater
                                 Download_T.Visibility = Visibility.Hidden;
                                 Download_Border.Visibility = Visibility.Hidden;
                                 Voice_Set.App_Busy = false;
+                                Message_T.Text = "";
                                 return 0;
                             }
                             else
@@ -1893,6 +1914,7 @@ namespace WoTB_Voice_Mod_Creater
                             Download_T.Visibility = Visibility.Hidden;
                             Download_Border.Visibility = Visibility.Hidden;
                             Voice_Set.App_Busy = false;
+                            Message_T.Text = "";
                             return 1;
                         }
                         Message_T.Text = "ファイルを展開しています...";
@@ -1904,6 +1926,7 @@ namespace WoTB_Voice_Mod_Creater
                         Download_T.Visibility = Visibility.Hidden;
                         Download_Border.Visibility = Visibility.Hidden;
                         Voice_Set.App_Busy = false;
+                        Message_T.Text = "";
                         return 0;
                     }
                     else
@@ -1917,6 +1940,7 @@ namespace WoTB_Voice_Mod_Creater
                 Download_T.Visibility = Visibility.Hidden;
                 Download_Border.Visibility = Visibility.Hidden;
                 Voice_Set.App_Busy = false;
+                Message_T.Text = "";
                 return 5;
             }
             return 0;

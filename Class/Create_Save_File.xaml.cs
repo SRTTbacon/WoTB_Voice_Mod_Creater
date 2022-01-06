@@ -4,7 +4,7 @@ using System.IO;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using WoTB_Voice_Mod_Creater.FMOD;
+using WoTB_Voice_Mod_Creater.FMOD_Class;
 using WoTB_Voice_Mod_Creater.Wwise_Class;
 
 namespace WoTB_Voice_Mod_Creater.Class
@@ -294,7 +294,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                         Fmod_File_Extract_V2.FSB_Extract_To_Directory(Selected_File, Voice_Set.Local_Path + "/Projects/" + Project_Name_T.Text + "/All_Voices_Temp");
                         Message_T.Text = ".wavファイルをエンコードしています...";
                         await Task.Delay(50);
-                        await Multithread.Convert_To_Wav(Voice_Set.Local_Path + "/Projects/" + Project_Name_T.Text + "/All_Voices_Temp", Voice_Set.Local_Path + "/Projects/" + Project_Name_T.Text + "/All_Voices", true, true);
+                        await Multithread.Convert_To_Wav(Voice_Set.Local_Path + "/Projects/" + Project_Name_T.Text + "/All_Voices_Temp", Voice_Set.Local_Path + "/Projects/" + Project_Name_T.Text + "/All_Voices", true, true, false, false);
                         Directory.Delete(Voice_Set.Local_Path + "/Projects/" + Project_Name_T.Text + "/All_Voices_Temp", true);
                     }
                     else if (Ex == ".bnk")
