@@ -289,8 +289,14 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             };
             if (bfb.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
-                IsBusy = true;
                 Sub_Code.Set_Directory_Path(bfb.SelectedFolder);
+                if (!Sub_Code.CanDirectoryAccess(bfb.SelectedFolder))
+                {
+                    Message_Feed_Out("指定したフォルダにアクセスできませんでした。管理者権限で起動する必要があります。");
+                    IsOpenDialog = false;
+                    return;
+                }
+                IsBusy = true;
                 Message_T.Text = "BNKファイルを解析しています...";
                 await Task.Delay(50);
                 BNK_To_Wwise_Projects BNK_To_Project = new BNK_To_Wwise_Projects(Init_File, BNK_File, PCK_File, SoundbankInfo_File, No_SoundInfo_C.IsChecked.Value);
@@ -315,8 +321,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             string Message_02 = "・一部のサウンドファイルでしか検証していないため、うまく動作しないファイルがあるかもしれません。\n";
             string Message_03 = "・すべての設定を正確に移植することは不可能なので、Wwise起動時に何かしらエラーが出るかもしれません。\n";
             string Message_04 = "・SoundbanksInfo.jsonは指定しなくても作成はできますが、絶望的に時間がかかりますので現実的ではありません。\n";
-            string Message_05 = "・Advanced SettingsとStatesの設定はまだ反映できていません。今後のアップデートで利用できるようになります。";
-            MessageBox.Show(Message_01 + Message_02 + Message_03 + Message_04 + Message_05);
+            MessageBox.Show(Message_01 + Message_02 + Message_03 + Message_04);
         }
         private void Delete_B_Click(object sender, RoutedEventArgs e)
         {

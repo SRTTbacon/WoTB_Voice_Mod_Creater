@@ -17,6 +17,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class.BNK_To_Wwise_Project
         public State_Relation(uint Short_ID, double Volume, double Pitch, double LPF, double HPF, double MakeUpGain)
         {
             this.GUID = Guid.NewGuid().ToString().ToUpper();
+            this.Volume = Volume;
             this.Short_ID = Short_ID;
             this.Pitch = Pitch;
             this.LPF = LPF;

@@ -9,7 +9,7 @@ using Un4seen.Bass;
 using Un4seen.Bass.AddOn.Fx;
 using WK.Libraries.BetterFolderBrowserNS;
 using WoTB_Voice_Mod_Creater.Class;
-using WoTB_Voice_Mod_Creater.FMOD;
+using WoTB_Voice_Mod_Creater.FMOD_Class;
 
 namespace WoTB_Voice_Mod_Creater.Wwise_Class
 {
@@ -51,13 +51,9 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                         string Minutes = Time.Minutes.ToString();
                         string Seconds = Time.Seconds.ToString();
                         if (Time.Minutes < 10)
-                        {
                             Minutes = "0" + Time.Minutes;
-                        }
                         if (Time.Seconds < 10)
-                        {
                             Seconds = "0" + Time.Seconds;
-                        }
                         Location_T.Text = Minutes + ":" + Seconds;
                     }
                     else if (Bass.BASS_ChannelIsActive(Stream) == BASSActive.BASS_ACTIVE_STOPPED && !IsLocationChanging && !IsPaused)
@@ -111,9 +107,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             {
                 Number++;
                 if (Number >= 120)
-                {
                     Message_T.Opacity -= 0.025;
-                }
                 await Task.Delay(1000 / 60);
             }
             IsMessageShowing = false;
@@ -134,9 +128,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                     Opacity -= Sub_Code.Window_Feed_Time;
                     Volume_Now -= Volume_Minus;
                     if (Volume_Now < 0f)
-                    {
                         Volume_Now = 0f;
-                    }
                     Bass.BASS_ChannelSetAttribute(Stream, BASSAttribute.BASS_ATTRIB_VOL, Volume_Now);
                     await Task.Delay(1000 / 60);
                 }
@@ -179,9 +171,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                     try
                     {
                         if (Directory.Exists(Voice_Set.Special_Path + "/Wwise/BNK_WAV_WoT"))
-                        {
                             Directory.Delete(Voice_Set.Special_Path + "/Wwise/BNK_WAV_WoT", true);
-                        }
                     }
                     catch (Exception e1)
                     {
@@ -209,9 +199,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 try
                 {
                     if (Directory.Exists(Voice_Set.Special_Path + "/Wwise/BNK_WAV_WoT"))
-                    {
                         Directory.Delete(Voice_Set.Special_Path + "/Wwise/BNK_WAV_WoT", true);
-                    }
                 }
                 catch (Exception e1)
                 {
@@ -235,9 +223,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         {
             Volume_T.Text = "音量:" + (int)Volume_S.Value;
             if (!IsPaused)
-            {
                 Bass.BASS_ChannelSetAttribute(Stream, BASSAttribute.BASS_ATTRIB_VOL, (float)Volume_S.Value / 100);
-            }
         }
         void Location_MouseDown(object sender, MouseButtonEventArgs e)
         {
@@ -258,9 +244,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             {
                 Volume_Now += Volume_Plus;
                 if (Volume_Now > 1f)
-                {
                     Volume_Now = 1f;
-                }
                 Bass.BASS_ChannelSetAttribute(Stream, BASSAttribute.BASS_ATTRIB_VOL, Volume_Now);
                 await Task.Delay(1000 / 60);
             }
@@ -268,47 +252,33 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         private void Location_S_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             if (IsLocationChanging)
-            {
                 Music_Pos_Change(Location_S.Value, false);
-            }
         }
         void Music_Pos_Change(double Pos, bool IsBassPosChange)
         {
             if (IsClosing || IsBusy)
-            {
                 return;
-            }
             if (IsBassPosChange)
-            {
                 Bass.BASS_ChannelSetPosition(Stream, Pos);
-            }
             TimeSpan Time = TimeSpan.FromSeconds(Pos);
             string Minutes = Time.Minutes.ToString();
             string Seconds = Time.Seconds.ToString();
             if (Time.Minutes < 10)
-            {
                 Minutes = "0" + Time.Minutes;
-            }
             if (Time.Seconds < 10)
-            {
                 Seconds = "0" + Time.Seconds;
-            }
             Location_T.Text = Minutes + ":" + Seconds;
         }
         private void Play_B_Click(object sender, RoutedEventArgs e)
         {
             if (Voices_L.SelectedIndex == -1 || BNK_FSB_Voices.Count == 0 || IsBusy || IsClosing)
-            {
                 return;
-            }
             Bass.BASS_ChannelPlay(Stream, false);
         }
         private void Pause_B_Click(object sender, RoutedEventArgs e)
         {
             if (IsClosing || IsBusy)
-            {
                 return;
-            }
             Bass.BASS_ChannelPause(Stream);
         }
         void Volume_MouseUp(object sender, System.Windows.Input.MouseEventArgs e)
@@ -343,9 +313,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         private async void Open_File_B_Click(object sender, RoutedEventArgs e)
         {
             if (IsClosing || IsBusy)
-            {
                 return;
-            }
             OpenFileDialog ofd = new OpenFileDialog()
             {
                 Title = "WoTBの音声Modを選択してください。",
@@ -357,26 +325,22 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 IsBusy = true;
                 try
                 {
-                    Message_T.Text = ".bnkファイルを解析しています...";
-                    await Task.Delay(50);
                     string To_Dir = Voice_Set.Special_Path + "/Wwise/BNK_WAV_WoT";
                     try
                     {
                         if (Directory.Exists(To_Dir))
-                        {
                             Directory.Delete(To_Dir, true);
-                        }
                     }
                     catch (Exception e1)
                     {
                         Sub_Code.Error_Log_Write(e1.Message);
                     }
                     for (int Number = 0; Number < 34; Number++)
-                    {
                         BNK_FSB_Enable.Add(new List<bool>());
-                    }
                     if (Path.GetExtension(ofd.FileName) == ".bnk")
                     {
+                        Message_T.Text = ".bnkファイルを解析しています...";
+                        await Task.Delay(50);
                         Wwise_Class.BNK_Parse p = new Wwise_Class.BNK_Parse(ofd.FileName);
                         if (!p.IsVoiceFile(true))
                         {
@@ -387,12 +351,8 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                         BNK_FSB_Voices = p.Get_Voices(true);
                         List<string> Need_Files = new List<string>();
                         foreach (List<string> Types in BNK_FSB_Voices)
-                        {
                             foreach (string File_Now in Types)
-                            {
                                 Need_Files.Add(File_Now);
-                            }
-                        }
                         if (Need_Files.Count == 0)
                         {
                             Message_T.Text = "移植できるファイルが見つからなかったため、特殊な方法で解析しています...";
@@ -400,12 +360,8 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                             p.SpecialBNKFileMode = 1;
                             BNK_FSB_Voices = p.Get_Voices(true);
                             foreach (List<string> Types in BNK_FSB_Voices)
-                            {
                                 foreach (string File_Now in Types)
-                                {
                                     Need_Files.Add(File_Now);
-                                }
-                            }
                             if (Need_Files.Count == 0)
                             {
                                 p.Clear();
@@ -419,11 +375,6 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                         Voices_L.Items.Clear();
                         Content_L.Items.Clear();
                         Now_Stream_Count = 0;
-                        for (int Number = 0; Number < 34; Number++)
-                        {
-                            Now_Stream_Count += BNK_FSB_Voices[Number].Count;
-                            Voices_L.Items.Add(Voice_Set.Get_Voice_Type_Japanese_Name_V2(Number) + " : " + BNK_FSB_Voices[Number].Count + "個");
-                        }
                         Message_T.Text = ".wavまたは.oggに変換しています...";
                         await Task.Delay(50);
                         Wwise_File_Extract_V2 Wwise_BNK = new Wwise_File_Extract_V2(ofd.FileName);
@@ -434,18 +385,12 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                         await Task.Delay(50);
                         string[] All_Files = Directory.GetFiles(To_Dir, "*", SearchOption.TopDirectoryOnly);
                         foreach (string File_Now in All_Files)
-                        {
                             if (!Need_Files.Contains(Path.GetFileNameWithoutExtension(File_Now)))
-                            {
                                 Sub_Code.File_Delete_V2(File_Now);
-                            }
-                        }
                         //効果音を削除(これ以外は取り除けない)
                         string[] Files = Directory.GetFiles(To_Dir, "*.wem", SearchOption.TopDirectoryOnly);
                         foreach (string File_Now in Files)
-                        {
                             Sub_Code.File_Delete_V2(File_Now);
-                        }
                         Message_T.Text = ".oggファイルを.wavファイルに変換しています...";
                         await Task.Delay(50);
                         await Multithread.Convert_To_Wav(Directory.GetFiles(To_Dir, "*.ogg", SearchOption.TopDirectoryOnly), To_Dir, true, true);
@@ -480,7 +425,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                         Fmod_File_Extract_V2.FSB_Extract_To_Directory(ofd.FileName, To_Dir + "_TMP");
                         Message_T.Text = ".wavファイルを修正しています...";
                         await Task.Delay(50);
-                        await Multithread.Convert_To_Wav(To_Dir + "_TMP", To_Dir, true, true, true);
+                        await Multithread.Convert_To_Wav(To_Dir + "_TMP", To_Dir, true, true, false, false);
                         Directory.Delete(To_Dir + "_TMP", true);
                         Message_T.Text = "ファイル名からリストに配置しています...";
                         await Task.Delay(50);
@@ -488,11 +433,6 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                         Voices_L.Items.Clear();
                         Content_L.Items.Clear();
                         Now_Stream_Count = 0;
-                        for (int Number = 0; Number < 34; Number++)
-                        {
-                            Now_Stream_Count += BNK_FSB_Voices[Number].Count;
-                            Voices_L.Items.Add(Voice_Set.Get_Voice_Type_Japanese_Name_V2(Number) + " : " + BNK_FSB_Voices[Number].Count + "個");
-                        }
                         Message_T.Text = "不要なファイルを削除しています...";
                         await Task.Delay(50);
                         foreach (string File_Name in Directory.GetFiles(To_Dir, "*", SearchOption.TopDirectoryOnly))
@@ -510,25 +450,26 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                                     }
                                 }
                                 if (IsExsist)
-                                {
                                     break;
-                                }
                             }
                             if (!IsExsist)
-                            {
                                 Sub_Code.File_Delete_V2(File_Name);
-                            }
                         }
                         File_Name_T.Text = Path.GetFileName(ofd.FileName);
                         Message_Feed_Out(".fsbファイルをロードしました。");
                     }
-                    for (int Number_01 = 0; Number_01 < BNK_FSB_Voices.Count; Number_01++)
+                    if (BNK_FSB_Voices[5].Count == 0 && BNK_FSB_Voices[2].Count > 0)
+                        BNK_FSB_Voices[5] = new List<string>(BNK_FSB_Voices[2]);
+                    if (BNK_FSB_Voices[4].Count == 0 && BNK_FSB_Voices[3].Count > 0)
+                        BNK_FSB_Voices[4] = new List<string>(BNK_FSB_Voices[3]);
+                    for (int Number = 0; Number < 34; Number++)
                     {
-                        for (int Number_02 = 0; Number_02 < BNK_FSB_Voices[Number_01].Count; Number_02++)
-                        {
-                            BNK_FSB_Enable[Number_01].Add(true);
-                        }
+                        Now_Stream_Count += BNK_FSB_Voices[Number].Count;
+                        Voices_L.Items.Add(Voice_Set.Get_Voice_Type_Japanese_Name_V2(Number) + " : " + BNK_FSB_Voices[Number].Count + "個");
                     }
+                    for (int Number_01 = 0; Number_01 < BNK_FSB_Voices.Count; Number_01++)
+                        for (int Number_02 = 0; Number_02 < BNK_FSB_Voices[Number_01].Count; Number_02++)
+                            BNK_FSB_Enable[Number_01].Add(true);
                 }
                 catch (Exception e1)
                 {
@@ -699,7 +640,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             Message_T.Text = "voiceover.bnkを作成しています...";
             await Task.Delay(50);
             Wwise.Project_Build("voiceover", Save_Dir + "/voiceover.bnk", "WinHighRes");
-            Wwise.Clear("Windows_HighRes");
+            Wwise.Clear(true, "Windows_HighRes");
             if (File.Exists(Voice_Set.Special_Path + "/Wwise/WoT_Sound_Mod/Actor-Mixer Hierarchy/Backup.tmp"))
             {
                 File.Copy(Voice_Set.Special_Path + "/Wwise/WoT_Sound_Mod/Actor-Mixer Hierarchy/Backup.tmp", Voice_Set.Special_Path + "/Wwise/WoT_Sound_Mod/Actor-Mixer Hierarchy/Default Work Unit.wwu", true);

@@ -1119,8 +1119,6 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class.BNK_To_Wwise_Project
                 if (Read_Line.Contains("name=\"bHoldListenerOrient\""))
                     if (Get_Config.Get_Property_Value(Read_Line) == "1")
                         More_Class.List_Add(BNK_Info.Actor_Mixer_Hierarchy_Project, "<Property Name=\"HoldListenerOrientation\" Type=\"bool\" Value=\"True\"/>");
-                if (SpeakerPanning_Volume != 100)
-                    More_Class.List_Add(BNK_Info.Actor_Mixer_Hierarchy_Project, "<Property Name=\"SpeakerPanning3DSpatializationMix\" Type=\"int32\" Value=\"" + SpeakerPanning_Volume + "\"/>");
                 if (Read_Line.Contains("type=\"u16\" name=\"sLoopCount\""))
                 {
                     int Value = int.Parse(Get_Config.Get_Property_Value(Read_Line));
@@ -1197,6 +1195,8 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class.BNK_To_Wwise_Project
                         More_Class.List_Add(BNK_Info.Actor_Mixer_Hierarchy_Project, "<Property Name=\"IsLoopingEnabled\" Type=\"bool\" Value=\"True\"/>");
                 }
             }
+            if (SpeakerPanning_Volume != 100)
+                More_Class.List_Add(BNK_Info.Actor_Mixer_Hierarchy_Project, "<Property Name=\"SpeakerPanning3DSpatializationMix\" Type=\"int32\" Value=\"" + SpeakerPanning_Volume + "\"/>");
             //入力する場所を再取得
             Line_Start = Line_Start_Temp;
             while (true)

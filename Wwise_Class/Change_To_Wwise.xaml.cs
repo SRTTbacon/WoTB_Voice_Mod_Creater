@@ -6,7 +6,7 @@ using System.Windows;
 using System.Windows.Forms;
 using WK.Libraries.BetterFolderBrowserNS;
 using WoTB_Voice_Mod_Creater.Class;
-using WoTB_Voice_Mod_Creater.FMOD;
+using WoTB_Voice_Mod_Creater.FMOD_Class;
 
 namespace WoTB_Voice_Mod_Creater.Wwise_Class
 {
@@ -318,7 +318,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                     }
                     Message_T.Text = ".wavファイルをエンコードしています...";
                     await Task.Delay(50);
-                    await Multithread.Convert_To_Wav(Voice_Set.Special_Path + "/Wwise/FSB_Extract_Voices_TMP", Voice_Set.Special_Path + "/Wwise/FSB_Extract_Voices", true, true);
+                    await Multithread.Convert_To_Wav(Voice_Set.Special_Path + "/Wwise/FSB_Extract_Voices_TMP", Voice_Set.Special_Path + "/Wwise/FSB_Extract_Voices", true, true, false, false);
                     Directory.Delete(Voice_Set.Special_Path + "/Wwise/FSB_Extract_Voices_TMP", true);
                     if (BGM_Add_Only.Count > 0)
                     {

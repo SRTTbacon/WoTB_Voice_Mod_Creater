@@ -6,6 +6,7 @@
         xmlns:Class1="clr-namespace:WoTB_Voice_Mod_Creater.Class"
         xmlns:Class2="clr-namespace:WoTB_Voice_Mod_Creater.Wwise_Class"
         xmlns:Class3="clr-namespace:WoTB_Voice_Mod_Creater.Multiplayer"
+        xmlns:Class4="clr-namespace:WoTB_Voice_Mod_Creater.Class.Texture_Editor"
         mc:Ignorable="d"
         WindowStyle="None"
         WindowStartupLocation="CenterScreen"
@@ -16,62 +17,6 @@
         AllowDrop="True"
         Title="WoTB_Voice_Mod_Creater" Height="1080" Width="1920" Closing="Window_Closing" PreviewDragOver="Window_PreviewDragOver" Drop="Window_Drop" MouseUp="Window_MouseUp" Loaded="Window_Loaded" SizeChanged="Window_SizeChanged">
     <Window.Resources>
-        <SolidColorBrush x:Key="CyanBrush" Color="Gray"/>
-        <SolidColorBrush x:Key="PinkBrush" Color="Gray"/>
-        <SolidColorBrush x:Key="LimeBrush" Color="Gray"/>
-        <Style x:Key="SliderThumbStyle" TargetType="{x:Type Thumb}">
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="{x:Type Thumb}">
-                        <Ellipse Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Slider}, Mode=FindAncestor}}" Width="25" Height="25"/>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-        <Style x:Key="CustomSliderStyle" TargetType="{x:Type Slider}">
-            <Style.Triggers>
-                <Trigger Property="Orientation" Value="Horizontal">
-                    <Setter Property="Template">
-                        <Setter.Value>
-                            <ControlTemplate>
-                                <Grid>
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="25"/>
-                                        <RowDefinition Height="Auto"/>
-                                    </Grid.RowDefinitions>
-                                    <TickBar Grid.Row="0" x:Name="TopTick" Placement="Top" Visibility="Collapsed" Fill="{TemplateBinding Foreground}" Height="8" Opacity="0.64" Margin="0,0,0,2"/>
-                                    <TickBar Grid.Row="2" x:Name="BottomTick" Placement="Bottom" Visibility="Collapsed" Fill="{TemplateBinding Foreground}" Height="8" Opacity="0.64" Margin="0,2,0,0"/>
-                                    <Track Grid.Row="1" x:Name="PART_Track">
-                                        <Track.DecreaseRepeatButton>
-                                            <RepeatButton Command="Slider.DecreaseLarge" Background="Aqua" Height="5" BorderBrush="{x:Null}" Opacity="0.2"/>
-                                        </Track.DecreaseRepeatButton>
-                                        <Track.IncreaseRepeatButton>
-                                            <RepeatButton Command="Slider.IncreaseLarge" Background="Gray" Height="5" BorderBrush="{x:Null}" Opacity="0.5"/>
-                                        </Track.IncreaseRepeatButton>
-                                        <Track.Thumb>
-                                            <Thumb Style="{StaticResource SliderThumbStyle}"/>
-                                        </Track.Thumb>
-                                    </Track>
-                                </Grid>
-                                <ControlTemplate.Triggers>
-                                    <Trigger Property="Slider.TickPlacement" Value="TopLeft">
-                                        <Setter TargetName="TopTick" Property="Visibility" Value="Visible"/>
-                                    </Trigger>
-                                    <Trigger Property="Slider.TickPlacement" Value="BottomRight">
-                                        <Setter TargetName="BottomTick" Property="Visibility" Value="Visible"/>
-                                    </Trigger>
-                                    <Trigger Property="Slider.TickPlacement" Value="Both">
-                                        <Setter TargetName="TopTick" Property="Visibility" Value="Visible"/>
-                                        <Setter TargetName="BottomTick" Property="Visibility" Value="Visible"/>
-                                    </Trigger>
-                                </ControlTemplate.Triggers>
-                            </ControlTemplate>
-                        </Setter.Value>
-                    </Setter>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
         <Style x:Key="ComboBoxStyle" TargetType="{x:Type ComboBox}">
             <Setter Property="Template">
                 <Setter.Value>
@@ -208,6 +153,7 @@
             <Class1:ChangeLog x:Name="ChangeLog_Window" Width="1920" Height="1080" Margin="-1920,0,0,0" Visibility="Hidden"/>
             <Class1:Sound_Editor x:Name="Sound_Editor_Window" Width="1920" Height="1080" Margin="-1920,0,0,0" Visibility="Hidden"/>
             <Class2:Wwise_Event_Player x:Name="Wwise_Event_Player_Window" Width="1920" Height="1080" Margin="-1920,0,0,0" Visibility="Hidden"/>
+            <Class4:Texture_Editor x:Name="Texture_Editor_Window" Width="1920" Height="1080" Margin="-1920,0,0,0" Visibility="Hidden"/>
             <Canvas x:Name="WindowBarCanvas" Width="1920" Height="25" Background="White" VerticalAlignment="Top" Margin="-1920,0,0,0" MouseLeftButtonDown="Canvas_MouseLeftButtonDown">
                 <Image x:Name="Icon_Small_Image" Stretch="Fill" Width="22" Height="22" Focusable="False" Margin="2,1,0,0"/>
                 <TextBlock Width="500" Height="20" Text="WoTB_Mod_Creator" FontSize="15" TextDecorations="{x:Null}" Margin="33,2,0,0" Focusable="False"/>

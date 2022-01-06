@@ -75,7 +75,7 @@
     <ErrorReport>prompt</ErrorReport>
     <Prefer32Bit>true</Prefer32Bit>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <Optimize>true</Optimize>
+    <Optimize>false</Optimize>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
     <OutputPath>bin\x86\Release\</OutputPath>
@@ -95,7 +95,7 @@
     <ErrorReport>prompt</ErrorReport>
     <Prefer32Bit>true</Prefer32Bit>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <Optimize>true</Optimize>
+    <Optimize>false</Optimize>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
     <OutputPath>bin\x64\Release\</OutputPath>
@@ -128,6 +128,9 @@
     <Reference Include="Bass.Net">
       <HintPath>..\..\Downloads\Google Downloads\Bass.Net.dll</HintPath>
       <Private>False</Private>
+    </Reference>
+    <Reference Include="FMOD.NET">
+      <HintPath>.\FMOD.NET.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
@@ -179,16 +182,24 @@
       <DependentUpon>Sound_Editor_Setting.xaml</DependentUpon>
     </Compile>
     <Compile Include="Class\TCP_Client.cs" />
+    <Compile Include="Class\Texture_Editor\Texture_Core.cs" />
+    <Compile Include="Class\Texture_Editor\Texture_Editor.xaml.cs">
+      <DependentUpon>Texture_Editor.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Class\Vocal_Inst_Cut.xaml.cs">
       <DependentUpon>Vocal_Inst_Cut.xaml</DependentUpon>
     </Compile>
     <Compile Include="Class\Vocal_Inst_Cut_User.xaml.cs">
       <DependentUpon>Vocal_Inst_Cut_User.xaml</DependentUpon>
     </Compile>
+    <Compile Include="FMOD_Class\fmod.cs" />
+    <Compile Include="FMOD_Class\fmod_dsp.cs" />
+    <Compile Include="FMOD_Class\fmod_errors.cs" />
+    <Compile Include="FMOD_Class\fmod_event.cs" />
+    <Compile Include="FMOD_Class\fmod_memoryinfo.cs" />
     <Compile Include="Multiplayer\Administrator_Control.xaml.cs">
       <DependentUpon>Administrator_Control.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Class\DDS.cs" />
     <Compile Include="Class\DDS_Tool.xaml.cs">
       <DependentUpon>DDS_Tool.xaml</DependentUpon>
     </Compile>
@@ -314,6 +325,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Class\Texture_Editor\Texture_Editor.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Class\Vocal_Inst_Cut.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -414,9 +429,6 @@
     <Compile Include="Class\Youtube_Link.xaml.cs">
       <DependentUpon>Youtube_Link.xaml</DependentUpon>
     </Compile>
-    <Compile Include="FMOD_Class\fmod.cs" />
-    <Compile Include="FMOD_Class\fmod_dsp.cs" />
-    <Compile Include="FMOD_Class\fmod_errors.cs" />
     <Compile Include="FMOD_Class\Fmod_Extract.xaml.cs">
       <DependentUpon>Fmod_Extract.xaml</DependentUpon>
     </Compile>
@@ -511,9 +523,6 @@
     <PackageReference Include="Cauldron.Core">
       <Version>2.0.0</Version>
     </PackageReference>
-    <PackageReference Include="Cauldron.FMOD">
-      <Version>2.0.0</Version>
-    </PackageReference>
     <PackageReference Include="Cauldron.Game">
       <Version>2.0.0</Version>
     </PackageReference>
@@ -529,9 +538,6 @@
     </PackageReference>
     <PackageReference Include="Crc32.NET">
       <Version>1.2.0</Version>
-    </PackageReference>
-    <PackageReference Include="DdsFileTypePlusHack">
-      <Version>1.0.4</Version>
     </PackageReference>
     <PackageReference Include="Fody">
       <Version>6.3.0</Version>
@@ -607,7 +613,7 @@
       <Version>4.5.0</Version>
     </PackageReference>
     <PackageReference Include="YoutubeExplode">
-      <Version>6.0.5</Version>
+      <Version>6.0.7</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
@@ -648,6 +654,7 @@
   <PropertyGroup>
     <PostBuildEvent>cd $(ProjectDir)
 $(SolutionDir)packages\Obfuscar.2.2.28\tools\Obfuscar.Console.exe ObfuscarConfig.xml
-rd /s /q "$(TargetDir)Addon"</PostBuildEvent>
+rd /s /q "$(TargetDir)Addon"
+del "$(TargetDir)*.dll"</PostBuildEvent>
   </PropertyGroup>
 </Project>

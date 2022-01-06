@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -498,6 +499,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             Bass.BASS_ChannelStop(Stream);
             Bass.BASS_StreamFree(Stream);
             File.Delete(Voice_Set.Special_Path + "/Wwise/Temp_02.ogg");
+            Message_Feed_Out("クリアしました。");
         }
         private void Change_Volume_Help_B_Click(object sender, RoutedEventArgs e)
         {
@@ -641,7 +643,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                     Wwise_Pck.Wwise_Extract_To_OGG_OR_WAV_Directory(Voice_Set.Special_Path + "\\Other\\Extract_To_WAV", true);
                 else
                     Wwise_Bnk.Wwise_Extract_To_OGG_OR_WAV_Directory(Voice_Set.Special_Path + "\\Other\\Extract_To_WAV", true);
-                await Multithread.Conert_OGG_To_Wav(Directory.GetFiles(Voice_Set.Special_Path + "\\Other\\Extract_To_WAV", "*.ogg", SearchOption.TopDirectoryOnly), true);
+                await Multithread.Convert_OGG_To_Wav(Directory.GetFiles(Voice_Set.Special_Path + "\\Other\\Extract_To_WAV", "*.ogg", SearchOption.TopDirectoryOnly), true);
                 Message_T.Text = "音量を調整しています...";
                 await Task.Delay(50);
                 string[] WAV_Files = Directory.GetFiles(Voice_Set.Special_Path + "\\Other\\Extract_To_WAV", "*.wav", SearchOption.TopDirectoryOnly);
@@ -661,17 +663,24 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                     File.Copy(Project_Dir + "/Actor-Mixer Hierarchy/Backup.tmp", Project_Dir + "/Actor-Mixer Hierarchy/Default Work Unit.wwu", true);
                 else
                     File.Copy(Project_Dir + "/Actor-Mixer Hierarchy/Default Work Unit.wwu", Project_Dir + "/Actor-Mixer Hierarchy/Backup.tmp", true);
-                Wwise_Project_Create Wwise_Project = new Wwise_Project_Create(Project_Dir);
-                foreach (string File_Now in WAV_Files)
-                    Wwise_Project.Add_Sound("778220130", File_Now, "SFX", false, null, "", 0, false, false);
-                Wwise_Project.Save();
-                Wwise_Project.Project_Build("WEM_Create", Voice_Set.Special_Path + "\\Other\\Temp.bnk");
-                File.Delete(Voice_Set.Special_Path + "\\Other\\Temp.bnk");
+                List<List<string>> WAV_Limit_List = new List<string>(WAV_Files).Split(199);
                 string Dir = Voice_Set.Special_Path + "\\Other\\WEM_Create\\.cache\\Windows\\SFX";
-                foreach (string Name in Directory.GetFiles(Dir, "*.wem", SearchOption.TopDirectoryOnly))
+                foreach (List<string> List_Now in WAV_Limit_List)
                 {
-                    string Name_Only = Path.GetFileNameWithoutExtension(Name);
-                    File.Move(Name, Path.GetDirectoryName(Name) + "\\" + Name_Only.Substring(0, Name_Only.IndexOf('_')) + ".wem");
+                    Wwise_Project_Create Wwise_Project = new Wwise_Project_Create(Project_Dir);
+                    foreach (string File_Now in List_Now)
+                        Wwise_Project.Add_Sound("778220130", File_Now, "SFX", false, null, "", 0, false, false);
+                    Wwise_Project.Save();
+                    Wwise_Project.Project_Build("WEM_Create", Voice_Set.Special_Path + "\\Other\\Temp.bnk");
+                    File.Delete(Voice_Set.Special_Path + "\\Other\\Temp.bnk");
+                    foreach (string Name in Directory.GetFiles(Dir, "*.wem", SearchOption.TopDirectoryOnly))
+                    {
+                        string Name_Only = Path.GetFileNameWithoutExtension(Name);
+                        File.Move(Name, Path.GetDirectoryName(Name) + "\\" + Name_Only.Substring(0, Name_Only.IndexOf('_')) + ".wem");
+                    }
+                    Wwise_Project.Clear(false);
+                    if (File.Exists(Project_Dir + "/Actor-Mixer Hierarchy/Backup.tmp"))
+                        File.Copy(Project_Dir + "/Actor-Mixer Hierarchy/Backup.tmp", Project_Dir + "/Actor-Mixer Hierarchy/Default Work Unit.wwu", true);
                 }
                 Message_T.Text = ".bnk内の.wemと交換しています...";
                 await Task.Delay(50);
@@ -689,13 +698,13 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 };
                 Process p = Process.Start(processStartInfo1);
                 p.WaitForExit();
+                Wwise_Project_Create.Delete_Cache(Project_Dir);
                 File.Delete(Voice_Set.Special_Path + "/Other/Replace_WEM_" + Number1 + ".bat");
-                Wwise_Project.Clear();
-                if (File.Exists(Project_Dir + "/Actor-Mixer Hierarchy/Backup.tmp"))
-                    File.Copy(Project_Dir + "/Actor-Mixer Hierarchy/Backup.tmp", Project_Dir + "/Actor-Mixer Hierarchy/Default Work Unit.wwu", true);
                 Directory.Delete(Voice_Set.Special_Path + "\\Other\\Extract_To_WAV", true);
                 foreach (string Name in Directory.GetFiles(Dir, "*.wem", SearchOption.TopDirectoryOnly))
                     Sub_Code.File_Delete_V2(Name);
+                foreach (string Temp_File in Directory.GetFiles(Voice_Set.Special_Path + "\\Other", "wavegain.tmp*", SearchOption.TopDirectoryOnly))
+                    Sub_Code.File_Delete_V2(Temp_File);
                 Message_Feed_Out("完了しました。");
             }
             catch (Exception e1)

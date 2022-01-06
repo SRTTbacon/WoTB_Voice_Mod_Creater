@@ -181,7 +181,10 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             try
             {
                 BankName = BankName.Replace(" ", "_");
-                string Project_File = Directory.GetFiles(Project_Dir, "*.wproj", SearchOption.TopDirectoryOnly)[0];
+                string[] Files = Directory.GetFiles(Project_Dir, "*.wproj", SearchOption.TopDirectoryOnly);
+                if (Files.Length == 0)
+                    throw new Exception("エラー:プロジェクトファイル(*.wproj)が見つかりませんでした。");
+                string Project_File = Files[0];
                 StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Wwise/Project_Build.bat");
                 stw.WriteLine("chcp 65001");
                 stw.Write("\"" + Voice_Set.Special_Path + "/Wwise/x64/Release/bin/WwiseCLI.exe\" \"" + Project_File + "\" -GenerateSoundBanks -Language ja -Platform Windows ");
@@ -201,9 +204,19 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 File.Delete(Voice_Set.Special_Path + "/Wwise/Project_Build.bat");
                 string GeneratedFile;
                 if (GeneratedSoundBanksPath == null)
-                    GeneratedFile = Directory.GetFiles(Project_Dir + "/GeneratedSoundBanks/Windows", BankName + ".bnk", SearchOption.AllDirectories)[0];
+                {
+                    string[] Files_BNK = Directory.GetFiles(Project_Dir + "/GeneratedSoundBanks/Windows", BankName + ".bnk", SearchOption.AllDirectories);
+                    if (Files_BNK.Length == 0)
+                        throw new Exception("エラー:プロジェクトをビルドできませんでした。プロジェクトファイルが破損している可能性があります。");
+                    GeneratedFile = Files_BNK[0];
+                }
                 else
-                    GeneratedFile = Directory.GetFiles(Project_Dir + "/GeneratedSoundBanks/" + GeneratedSoundBanksPath, BankName + ".bnk", SearchOption.AllDirectories)[0];
+                {
+                    string[] Files_BNK = Directory.GetFiles(Project_Dir + "/GeneratedSoundBanks/" + GeneratedSoundBanksPath, BankName + ".bnk", SearchOption.AllDirectories);
+                    if (Files_BNK.Length == 0)
+                        throw new Exception("エラー:プロジェクトをビルドできませんでした。プロジェクトファイルが破損している可能性があります。");
+                    GeneratedFile = Files_BNK[0];
+                }
                 Sub_Code.File_Move(GeneratedFile, OutputFilePath, true);
             }
             catch (Exception e)
@@ -213,7 +226,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         }
         //使わなくなったら必ず実行させる
         //一時ファイルを削除
-        public void Clear(string CachePath = null, bool IsOnlyAddFile = false)
+        public void Clear(bool IsDeleteCache = true, string CachePath = null, bool IsOnlyAddFile = false)
         {
             try
             {
@@ -229,33 +242,36 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 }
                 foreach (string File_Now in Delete_FIles)
                     Sub_Code.File_Delete_V2(File_Now);
-                string[] GetWEMFiles;
-                if (CachePath == null)
-                    GetWEMFiles = Directory.GetFiles(Project_Dir + "/.cache/Windows", "*.wem", SearchOption.AllDirectories);
-                else
-                    GetWEMFiles = Directory.GetFiles(Project_Dir + "/.cache/" + CachePath, "*.wem", SearchOption.AllDirectories);
-                if (IsOnlyAddFile)
+                if (IsDeleteCache)
                 {
-                    List<string> Lists = new List<string>();
-                    foreach (string File_Now in Add_WEM_Files)
+                    string[] GetWEMFiles = { };
+                    if (CachePath == null)
+                        GetWEMFiles = Directory.GetFiles(Project_Dir + "/.cache/Windows", "*.wem", SearchOption.AllDirectories);
+                    else
+                        GetWEMFiles = Directory.GetFiles(Project_Dir + "/.cache/" + CachePath, "*.wem", SearchOption.AllDirectories);
+                    if (IsOnlyAddFile)
                     {
-                        foreach (string File_WEM in GetWEMFiles)
+                        List<string> Lists = new List<string>();
+                        foreach (string File_Now in Add_WEM_Files)
                         {
-                            string GetName = Path.GetFileNameWithoutExtension(File_WEM);
-                            if (GetName.Contains(File_Now + "_"))
+                            foreach (string File_WEM in GetWEMFiles)
                             {
-                                Lists.Add(File_WEM);
-                                break;
+                                string GetName = Path.GetFileNameWithoutExtension(File_WEM);
+                                if (GetName.Contains(File_Now + "_"))
+                                {
+                                    Lists.Add(File_WEM);
+                                    break;
+                                }
                             }
                         }
+                        foreach (string File_Now in Lists)
+                            Sub_Code.File_Delete_V2(File_Now);
                     }
-                    foreach (string File_Now in Lists)
-                        Sub_Code.File_Delete_V2(File_Now);
-                }
-                else
-                {
-                    foreach (string File_Now in GetWEMFiles)
-                        Sub_Code.File_Delete_V2(File_Now);
+                    else
+                    {
+                        foreach (string File_Now in GetWEMFiles)
+                            Sub_Code.File_Delete_V2(File_Now);
+                    }
                 }
                 Actor_Mixer_Hierarchy.Clear();
                 Add_Wav_Files.Clear();
@@ -272,6 +288,12 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             {
                 Sub_Code.Error_Log_Write(e.Message);
             }
+        }
+        public static void Delete_Cache(string Project_Dir)
+        {
+            string[] Temp = Directory.GetFiles(Project_Dir + "/.cache", "*.wem", SearchOption.AllDirectories);
+            foreach (string File_Now in Temp)
+                Sub_Code.File_Delete_V2(File_Now);
         }
         //以下の文字を指定した行に追加
         //GUIDやSourceIDはどんな数でも問題ないっぽいのでランダムに作成させる

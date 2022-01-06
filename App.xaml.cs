@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows;
@@ -17,7 +18,7 @@ namespace WoTB_Voice_Mod_Creater
             try
             {
                 hasHandle = mutex.WaitOne(0, false);
-                if (!hasHandle)
+                if (!hasHandle && Environment.CommandLine.IndexOf("/up", StringComparison.CurrentCultureIgnoreCase) == -1)
                 {
                     MessageBoxResult result = MessageBox.Show("既にアプリが起動されています。\nソフトを強制終了させますか？", "確認", MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.No);
                     if (result == MessageBoxResult.Yes)
@@ -51,8 +52,8 @@ namespace WoTB_Voice_Mod_Creater
             //dllの位置を変更
             string dllPath = System.IO.Path.Combine(System.IO.Directory.GetParent(System.Reflection.Assembly.GetExecutingAssembly().Location).FullName, @"dll");
             SetDllDirectory(dllPath);
-            MainCode windows = new MainCode();
-            windows.Show();
+            MainCode Windows = new MainCode();
+            Windows.Show();
         }
     }
 }
