@@ -645,6 +645,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 try
                 {
                     Message_T.Opacity = 1;
+                    IsMessageShowing = false;
                     List<string> Add_BGM_List = new List<string>();
                     if (BGM_Add_List.Items.Count > 0)
                     {
@@ -668,14 +669,17 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                     {
                         Message_T.Text = ".wavに変換しています...";
                         await Task.Delay(50);
-                        await Multithread.Convert_To_Wav(Directory.GetFiles(Voice_Set.Special_Path + "/Wwise/BNK_WAV", "*", SearchOption.TopDirectoryOnly), Voice_Set.Special_Path + "/Wwise/BNK_WAV", true);
+                        await Multithread.Convert_To_Wav(Directory.GetFiles(Voice_Set.Special_Path + "/Wwise/BNK_WAV", "*", SearchOption.TopDirectoryOnly), Voice_Set.Special_Path + "/Wwise/BNK_WAV", true, true);
                         Message_T.Text = "音量をWoTB用に調整しています...";
                         await Task.Delay(50);
                         Sub_Code.Volume_Set(Voice_Set.Special_Path + "/Wwise/BNK_WAV", Encode_Mode.WAV);
                     }
-                    Message_T.Text = ".wavに変換しています...";
-                    await Task.Delay(50);
-                    await Multithread.Convert_To_Wav(Directory.GetFiles(Voice_Set.Special_Path + "/Wwise/BNK_WAV", "*", SearchOption.TopDirectoryOnly), Voice_Set.Special_Path + "/Wwise/BNK_WAV", true, true);
+                    else
+                    {
+                        Message_T.Text = ".wavに変換しています...";
+                        await Task.Delay(50);
+                        await Multithread.Convert_To_Wav(Directory.GetFiles(Voice_Set.Special_Path + "/Wwise/BNK_WAV", "*", SearchOption.TopDirectoryOnly), Voice_Set.Special_Path + "/Wwise/BNK_WAV", true, true);
+                    }
                     Message_T.Text = "ファイルをコピーしています...";
                     if (Directory.Exists(Voice_Set.Special_Path + "/Wwise/BNK_WAV/Voices"))
                         Directory.Delete(Voice_Set.Special_Path + "/Wwise/BNK_WAV/Voices", true);

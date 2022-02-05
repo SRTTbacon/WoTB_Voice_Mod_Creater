@@ -185,6 +185,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 if (Files.Length == 0)
                     throw new Exception("エラー:プロジェクトファイル(*.wproj)が見つかりませんでした。");
                 string Project_File = Files[0];
+                Sub_Code.Wwise_Repair_Project(Project_Dir);
                 StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Wwise/Project_Build.bat");
                 stw.WriteLine("chcp 65001");
                 stw.Write("\"" + Voice_Set.Special_Path + "/Wwise/x64/Release/bin/WwiseCLI.exe\" \"" + Project_File + "\" -GenerateSoundBanks -Language ja -Platform Windows ");
