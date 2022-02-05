@@ -151,8 +151,8 @@
             <Button x:Name="Music_Add_B" Content="音楽を追加" Height="80" VerticalAlignment="Top" Width="332" Style="{StaticResource Button_MouseOver_Style}" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Focusable="False" Margin="-457,830,0,0" Click="Music_Add_B_Click"/>
             <Button x:Name="Music_Delete_B" Content="リストから除去" Height="80" VerticalAlignment="Top" Width="332" Style="{StaticResource Button_MouseOver_Style}" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Focusable="False" Margin="-1145,830,0,0" Click="Music_Delete_B_Click"/>
             <TextBlock x:Name="Music_List_T" FontSize="45" Height="55" Width="196" TextWrapping="Wrap" Text="音楽リスト" VerticalAlignment="Top" Margin="-800,50,0,0" Foreground="Aqua"/>
-            <CheckBox x:Name="Video_Mode_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-1300,975,0,0" Focusable="False" Click="Video_Mode_C_Click"/>
-            <TextBlock x:Name="Video_Mode_T" FontSize="40" Height="55" Width="478" TextWrapping="Wrap" Text="動画ファイルは動画として再生" VerticalAlignment="Top" Margin="-770,955,0,0" Foreground="Aqua"/>
+            <CheckBox x:Name="Video_Mode_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-1300,945,0,0" Focusable="False" Click="Video_Mode_C_Click"/>
+            <TextBlock x:Name="Video_Mode_T" FontSize="40" Height="55" Width="478" TextWrapping="Wrap" Text="動画ファイルは動画として再生" VerticalAlignment="Top" Margin="-770,925,0,0" Foreground="Aqua"/>
             <TextBlock x:Name="Volume_T" FontSize="40" Height="55" Width="300" TextWrapping="Wrap" Text="音量:50" VerticalAlignment="Top" Margin="-475,100,0,0" Foreground="Aqua" TextAlignment="Center"/>
             <Slider x:Name="Volume_S" Height="27" VerticalAlignment="Top" Width="400" Margin="-475,200,0,0" Style="{StaticResource CustomSliderStyle}" Focusable="False" Value="50" SmallChange="1" Maximum="100" ValueChanged="Volume_S_ValueChanged" PreviewKeyDown="Volume_S_PreviewKeyDown"/>
             <TextBlock x:Name="Pitch_T" FontSize="40" Height="55" Width="300" TextWrapping="Wrap" Text="音程:0" VerticalAlignment="Top" Margin="-475,300,0,0" Foreground="Aqua" TextAlignment="Center"/>
@@ -189,12 +189,14 @@
             <TextBlock x:Name="Loop_Time_T" FontSize="37" Height="50" Width="550" TextWrapping="Wrap" Text="再生時間:0～0" VerticalAlignment="Top" Margin="-1325,1025,0,0" Foreground="Aqua"/>
             <TextBlock x:Name="List_Number_T" FontSize="30" Height="37" Width="175" TextWrapping="Wrap" Text="リスト番号:1" VerticalAlignment="Top" Margin="-300,80,0,0" Foreground="Aqua" TextAlignment="Center"/>
             <Button x:Name="Exit_B" Content="戻る" Height="75" VerticalAlignment="Top" Width="325" Style="{StaticResource Button_MouseOver_Style}" Focusable="False" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Margin="-3513,1005,0,0" Click="Exit_B_Click"/>
+            <Button x:Name="Setting_B" Content="音響設定" Height="75" VerticalAlignment="Top" Width="325" Style="{StaticResource Button_MouseOver_Style}" Focusable="False" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Margin="-325,1005,0,0" Click="Setting_B_Click"/>
             <Button x:Name="Page_Next_B" Content="→" Height="55" VerticalAlignment="Top" Width="63" Style="{StaticResource Button_MouseOver_Style}" Focusable="False" Foreground="Aqua" BorderBrush="Aqua" FontSize="37" Margin="-63,400,0,0" Click="Page_Next_B_Click"/>
             <Button x:Name="Page_Back_B" Content="←" Height="55" VerticalAlignment="Top" Width="63" Style="{StaticResource Button_MouseOver_Style}" Focusable="False" Foreground="Aqua" BorderBrush="Aqua" FontSize="37" Margin="-63,500,0,0" Click="Page_Back_B_Click"/>
             <local:Youtube_Link x:Name="Youtube_Link_Window" Height="1080" VerticalAlignment="Top" Width="1920" Margin="-1920,0,0,0" Visibility="Hidden"/>
             <local:Load_Data x:Name="Load_Window" Width="1920" Height="1080" VerticalAlignment="Top" Margin="-1920,0,0,0" Visibility="Hidden"/>
             <local:Vocal_Inst_Cut x:Name="Vocal_Inst_Cut_Window" Width="1920" Height="1080" VerticalAlignment="Top" Margin="-1920,0,0,0" Visibility="Hidden"/>
             <local:Vocal_Inst_Cut_User x:Name="Vocal_Inst_Cut_User_Window" Width="1920" Height="1080" VerticalAlignment="Top" Margin="-1920,0,0,0" Visibility="Hidden"/>
+            <local:Music_Player_Setting x:Name="Music_Player_Setting_Window" Width="1920" Height="1080" VerticalAlignment="Top" Margin="-1920,0,0,0" Visibility="Hidden"/>
         </DockPanel>
     </Viewbox>
 </UserControl>

@@ -15,6 +15,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Interop;
 using System.Windows.Media.Imaging;
+using WoTB_Voice_Mod_Creater.Class;
 
 namespace WoTB_Voice_Mod_Creater
 {
@@ -106,8 +107,6 @@ namespace WoTB_Voice_Mod_Creater
                 DLL_List.Add("bass.dll");
             if (!File.Exists(DLL_Path + "/bass_fx.dll"))
                 DLL_List.Add("bass_fx.dll");
-            if (!File.Exists(DLL_Path + "/DdsFileTypePlusIO_x86.dll"))
-                DLL_List.Add("DdsFileTypePlusIO_x86.dll");
             if (!File.Exists(DLL_Path + "/fmod_event64.dll"))
                 DLL_List.Add("fmod_event.dll");
             if (!File.Exists(DLL_Path + "/fmodex64.dll"))
@@ -234,7 +233,7 @@ namespace WoTB_Voice_Mod_Creater
             }
         }
         //ディレクトリをコピー(サブフォルダを含む)
-        public static void Directory_Copy(string From_Dir, string To_Dir)
+        public static void Directory_Copy(string From_Dir, string To_Dir, bool IsIncludeDirMode = true)
         {
             if (!Directory.Exists(From_Dir))
                 return;
@@ -246,17 +245,18 @@ namespace WoTB_Voice_Mod_Creater
                 if (!dir.Exists)
                     return;
                 DirectoryInfo[] dirs = dir.GetDirectories();
-                Directory.CreateDirectory(To_Dir + "\\" + Path.GetFileName(From_Dir));
+                string To = IsIncludeDirMode ? To_Dir + "\\" + Path.GetFileName(From_Dir) : To_Dir;
+                Directory.CreateDirectory(To);
                 FileInfo[] files = dir.GetFiles();
                 foreach (FileInfo file in files)
                 {
-                    string tempPath = Path.Combine(To_Dir + "\\" + Path.GetFileName(From_Dir), file.Name);
+                    string tempPath = Path.Combine(To, file.Name);
                     file.CopyTo(tempPath, true);
                 }
                 foreach (DirectoryInfo subdir in dirs)
                 {
-                    string tempPath = Path.Combine(To_Dir + "\\" + Path.GetFileName(From_Dir), subdir.Name);
-                    Directory_Copy(subdir.FullName, tempPath);
+                    string tempPath = Path.Combine(To, subdir.Name);
+                    Directory_Copy(subdir.FullName, tempPath, IsIncludeDirMode);
                 }
             }
             catch (Exception e)
@@ -546,14 +546,59 @@ namespace WoTB_Voice_Mod_Creater
                     catch (Exception e)
                     {
                         Sub_Code.Error_Log_Write(e.Message);
-                        return "ファイルをコピーできませんでした。";
+                        return "サウンドファイルをコピーできませんでした。";
                     }
                 }
                 Romaji_Number++;
             }
             return "";
         }
-        //↑の拡張子もフォルダ名もいらないバージョン
+        public static string Set_Voice_Type_Change_Name_By_Index(string Dir, WVS_Load WVS_File, List<List<string>> Lists, int List_01_Count, int List_02_Count)
+        {
+            if (!Directory.Exists(Dir))
+                Directory.CreateDirectory(Dir);
+            for (int Number_01 = 0; Number_01 < Lists.Count; Number_01++)
+            {
+                int List_Index = 0;
+                if (Number_01 >= List_01_Count + List_02_Count)
+                    List_Index = 2;
+                else if (Number_01 >= List_01_Count)
+                    List_Index = 1;
+                for (int Number_02 = 0; Number_02 < Lists[Number_01].Count; Number_02++)
+                {
+                    try
+                    {
+                        int Voice_Index = Number_01;
+                        if (Number_01 >= List_01_Count + List_02_Count)
+                            Voice_Index -= List_01_Count + List_02_Count;
+                        else if (Number_01 >= List_01_Count)
+                            Voice_Index -= List_01_Count;
+                        string Name_Temp = Dir + "/" + Voice_Set.Get_Voice_Type_Romaji_Name(Number_01);
+                        if (Number_02 < 10)
+                        {
+                            if (!Lists[Number_01][Number_02].Contains("\\"))
+                                WVS_File.Sound_To_File(Name_Temp + "_0" + Number_02 + Path.GetExtension(Lists[Number_01][Number_02]), List_Index, Voice_Index, Number_02);
+                            else
+                                File.Copy(Lists[Number_01][Number_02], Name_Temp + "_0" + Number_02 + Path.GetExtension(Lists[Number_01][Number_02]), true);
+                        }
+                        else
+                        {
+                            if (!Lists[Number_01][Number_02].Contains("\\"))
+                                WVS_File.Sound_To_File(Name_Temp + "_" + Number_02 + Path.GetExtension(Lists[Number_01][Number_02]), List_Index, Voice_Index, Number_02);
+                            else
+                                File.Copy(Lists[Number_01][Number_02], Name_Temp + "_" + Number_02 + Path.GetExtension(Lists[Number_01][Number_02]), true);
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Sub_Code.Error_Log_Write(e.Message);
+                        return "サウンドファイルをコピーできませんでした。";
+                    }
+                }
+            }
+            return "";
+        }
+        //2つ↑の拡張子もフォルダ名もいらないバージョン
         public static string Set_Voice_Type_Change_Name_By_Index(string From_Dir, string To_Dir, List<List<string>> Lists, List<List<bool>> Lists_Enable = null)
         {
             if (!Directory.Exists(To_Dir))
@@ -1581,6 +1626,46 @@ namespace WoTB_Voice_Mod_Creater
                 Number++;
             }
         }
+        public static void Wwise_Repair_Project(string Project_Dir)
+        {
+            string[] Files = Directory.GetFiles(Project_Dir, "*.wproj", SearchOption.TopDirectoryOnly);
+            if (Files.Length == 0)
+                return;
+            string Project_File = Files[0];
+            string SoundBanksFile = Project_Dir + "\\SoundBanks\\Default Work Unit.wwu";
+            System.Collections.Generic.List<string> Project_Line = new List<string>();
+            Project_Line.AddRange(File.ReadAllLines(Project_File));
+            System.Collections.Generic.List<string> SoundBanks_Line = new List<string>();
+            SoundBanks_Line.AddRange(File.ReadAllLines(SoundBanksFile));
+            bool IsProjectChanged = false;
+            bool IsSoundBanksChanged = false;
+            for (int Number = 0; Number < Project_Line.Count; Number++)
+            {
+                if (Project_Line[Number].Contains("Path=\"Events\\Download_Wwise_Events\"") || Project_Line[Number].Contains("Path=\"Events\\Download_Wwise_Events\\LoadBGM"))
+                {
+                    Project_Line.RemoveAt(Number);
+                    Project_Line.RemoveAt(Number);
+                    Project_Line.RemoveAt(Number);
+                    Number--;
+                    IsProjectChanged = true;
+                }
+            }
+            for (int Number = 0; Number < SoundBanks_Line.Count; Number++)
+            {
+                if (SoundBanks_Line[Number].Contains("</WwiseDocument>") && SoundBanks_Line.Count - 1 > Number + 1)
+                {
+                    SoundBanks_Line.RemoveRange(Number + 1, SoundBanks_Line.Count - Number - 1);
+                    IsSoundBanksChanged = true;
+                    break;
+                }
+            }
+            if (IsProjectChanged)
+                File.WriteAllLines(Project_File, Project_Line);
+            if (IsSoundBanksChanged)
+                File.WriteAllLines(SoundBanksFile, SoundBanks_Line);
+            Project_Line.Clear();
+            SoundBanks_Line.Clear();
+        }
         public static void Actor_Mixer_Update(string Version)
         {
             if (!Directory.Exists(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy") || !Directory.Exists(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Events"))
@@ -1593,7 +1678,7 @@ namespace WoTB_Voice_Mod_Creater
             stw.Write(Version);
             stw.Close();
             System.IO.Compression.ZipFile.ExtractToDirectory(Voice_Set.Special_Path + "/Wwise/Download_Wwise_Events.dat", Voice_Set.Special_Path + "/Wwise/Download_Wwise_Events");
-            Sub_Code.Directory_Copy(Voice_Set.Special_Path + "/Wwise/Download_Wwise_Events", Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Events");
+            Sub_Code.Directory_Copy(Voice_Set.Special_Path + "/Wwise/Download_Wwise_Events", Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Events", false);
             File.Delete(Voice_Set.Special_Path + "/Wwise/Download_Wwise_Events.dat");
             File.Delete(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Backup.tmp");
             Directory.Delete(Voice_Set.Special_Path + "/Wwise/Download_Wwise_Events", true);

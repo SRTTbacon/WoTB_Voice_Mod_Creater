@@ -83,7 +83,7 @@ public class SRTTbacon_Server
     public static string IP_Global = "非公開";
     public static string Name = "非公開";
     public static string Password = "非公開";
-    public const string Version = "1.4.9.3";
+    public const string Version = "1.4.9.6.3";
     public static int TCP_Port = -1;
     public static int SFTP_Port = -1;
     public static bool IsSRTTbaconOwnerMode = false;
@@ -128,8 +128,6 @@ namespace WoTB_Voice_Mod_Creater
                 MessageBox.Show("インターネットに接続されていません。\nソフトは強制終了されます");
                 Application.Current.Shutdown();
             }
-            if (!File.Exists(Path + "/dll/DdsFileTypePlusIO_x86.dll"))
-                DVPL.Resources_Extract("DdsFileTypePlusIO_x86.dll");
             if (!File.Exists(Path + "/dll/bassenc.dll"))
                 DVPL.Resources_Extract("bassenc.dll");
             if (!File.Exists(Path + "/dll/bassmix.dll"))
@@ -276,14 +274,14 @@ namespace WoTB_Voice_Mod_Creater
                     File.Delete(Voice_Set.Special_Path + "/FSB_Select_Temp_01.fsb");
                     File.Delete(Voice_Set.Special_Path + "/FSB_Select_Temp_02.fsb");
                     File.Delete(Voice_Set.Special_Path + "/FSB_Select_Temp_03.fsb");
-                    File.Delete(Voice_Set.Special_Path + "/Wwise/Temp_01.ogg");
-                    File.Delete(Voice_Set.Special_Path + "/Wwise/Temp_02.ogg");
-                    File.Delete(Voice_Set.Special_Path + "/Wwise/WoT_To_Blitz_Temp.ogg");
+                    if (Directory.Exists(Voice_Set.Special_Path + "/Wwise"))
+                    {
+                        File.Delete(Voice_Set.Special_Path + "/Wwise/Temp_01.ogg");
+                        File.Delete(Voice_Set.Special_Path + "/Wwise/Temp_02.ogg");
+                        File.Delete(Voice_Set.Special_Path + "/Wwise/WoT_To_Blitz_Temp.ogg");
+                    }
                 }
-                catch (Exception e)
-                {
-                    Sub_Code.Error_Log_Write(e.Message);
-                }
+                catch { }
                 if (File.Exists(Voice_Set.Special_Path + "/Configs/Main_Configs_Save.conf"))
                 {
                     try
@@ -702,6 +700,14 @@ namespace WoTB_Voice_Mod_Creater
                     Sub_Code.IsForceWwise_Blitz_Actor_Update = IsForceUpdateActorMode;
                     Sub_Code.IsForceWwise_Gun_Update = IsForceUpdateGunMode;
                 }
+                //バグで謎のフォルダが存在していた場合削除し、再ダウンロードさせる
+                if (Directory.Exists(Voice_Set.Special_Path + "\\Wwise\\WoTB_Sound_Mod\\Events\\Download_Wwise_Events"))
+                {
+                    Directory.Delete(Voice_Set.Special_Path + "\\Wwise\\WoTB_Sound_Mod\\Events\\Download_Wwise_Events", true);
+                    Sub_Code.IsWwise_Blitz_Actor_Update = "1.0";
+                }
+                if (Directory.Exists(Voice_Set.Special_Path + "\\Wwise\\WoTB_Sound_Mod"))
+                    Sub_Code.Wwise_Repair_Project(Voice_Set.Special_Path + "\\Wwise\\WoTB_Sound_Mod");
                 Load_Data_Window.Window_Stop();
             }
             catch (Exception e)
@@ -843,7 +849,7 @@ namespace WoTB_Voice_Mod_Creater
                         Connect_Mode_Layout();
                         Chat_Mode_Change(2);
                         Message_Feed_Out("ログインしました。ご利用ありがとうございます！！！");
-                        Voice_Set.TCP_Server.Send("Login|" + Voice_Set.UserName);
+                        Voice_Set.TCP_Server.Send("Login|" + Voice_Set.UserName + "|" + SRTTbacon_Server.Version);
                     }
                 }
                 else
@@ -891,7 +897,6 @@ namespace WoTB_Voice_Mod_Creater
                 stw.WriteLine(User_Name_T.Text + ":" + User_Password_T.Text);
                 stw.Close();
                 Sub_Code.File_Encrypt(Voice_Set.Special_Path + "/Temp_User_Set.dat", Path + "/User.dat", "SRTTbacon_Server_User_Pass_Save", true);
-                File.Delete(Voice_Set.Special_Path + "/Temp_User_Chat.dat");
                 if (Login())
                 {
                     Connectiong = true;

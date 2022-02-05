@@ -171,6 +171,9 @@
     </Compile>
     <Compile Include="Class\ffmpeg.cs" />
     <Compile Include="Class\GoogleDrive.cs" />
+    <Compile Include="Class\Music_Player_Setting.xaml.cs">
+      <DependentUpon>Music_Player_Setting.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Class\SE_Change.xaml.cs">
       <DependentUpon>SE_Change.xaml</DependentUpon>
     </Compile>
@@ -192,6 +195,7 @@
     <Compile Include="Class\Vocal_Inst_Cut_User.xaml.cs">
       <DependentUpon>Vocal_Inst_Cut_User.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Class\WVS_Save.cs" />
     <Compile Include="FMOD_Class\fmod.cs" />
     <Compile Include="FMOD_Class\fmod_dsp.cs" />
     <Compile Include="FMOD_Class\fmod_errors.cs" />
@@ -310,6 +314,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Class\Create_Save_File.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Class\Music_Player_Setting.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

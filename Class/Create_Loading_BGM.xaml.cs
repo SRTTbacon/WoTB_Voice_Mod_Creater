@@ -1077,7 +1077,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 bool IsHitsUpdated = await Hits_Project_Download(false);
                 if (!IsHitsUpdated)
                 {
-                    Message_Feed_Out("被弾音をダウンロードまたはアップデートする必要があります。");
+                    Message_Feed_Out("被弾音のプロジェクトをダウンロードまたはアップデートする必要があります。");
                     return;
                 }
             }
@@ -1673,13 +1673,16 @@ namespace WoTB_Voice_Mod_Creater.Class
                     });
                     while (IsDownloading)
                     {
-                        FileInfo fi = new FileInfo(Voice_Set.Special_Path + "\\WoTB_UI_Button.dat");
-                        long File_Size_Now = fi.Length;
-                        double Size_MB_Now = File_Size_Now / 1024.0 / 1024.0;
-                        Size_MB_Now = (Math.Floor(Size_MB_Now * 10)) / 10;
-                        if (File_Size_Now >= Full_Size)
-                            break;
-                        Message_T.Text = "プロジェクトファイルをダウンロードしています...\n" + Size_MB_Now + " / " + SizeMB + "MB";
+                        if (File.Exists(Voice_Set.Special_Path + "\\WoTB_UI_Button.dat"))
+                        {
+                            FileInfo fi = new FileInfo(Voice_Set.Special_Path + "\\WoTB_UI_Button.dat");
+                            long File_Size_Now = fi.Length;
+                            double Size_MB_Now = File_Size_Now / 1024.0 / 1024.0;
+                            Size_MB_Now = (Math.Floor(Size_MB_Now * 10)) / 10;
+                            if (File_Size_Now >= Full_Size)
+                                break;
+                            Message_T.Text = "プロジェクトファイルをダウンロードしています...\n" + Size_MB_Now + " / " + SizeMB + "MB";
+                        }
                         await Task.Delay(100);
                     }
                     if (!IsDownloading)

@@ -117,7 +117,8 @@ namespace WoTB_Voice_Mod_Creater
                     }
                     catch (System.IO.IOException)
                     {
-                        //LANケーブルが抜けたときKeepaliveによってこの例外が発生する
+                        //一定期間サーバーとの通信がなかったら自動で切断されるため、例外を吐く
+                        Connect(SRTTbacon_Server.IP, SRTTbacon_Server.TCP_Port);
                     }
                     if (result_size == 0)
                     {

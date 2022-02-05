@@ -53,22 +53,31 @@ namespace WoTB_Voice_Mod_Creater.Class
             if (IsMessageShowing)
             {
                 IsMessageShowing = false;
-                await Task.Delay(1000 / 30);
+                await Task.Delay(1000 / 59);
             }
             Message_T.Text = Message;
             IsMessageShowing = true;
             Message_T.Opacity = 1;
             int Number = 0;
-            while (Message_T.Opacity > 0 && IsMessageShowing)
+            bool IsForce = false;
+            while (Message_T.Opacity > 0)
             {
+                if (!IsMessageShowing)
+                {
+                    IsForce = true;
+                    break;
+                }
                 Number++;
                 if (Number >= 120)
-                    Message_T.Opacity -= Sub_Code.Window_Feed_Time;
+                    Message_T.Opacity -= 0.025;
                 await Task.Delay(1000 / 60);
             }
-            IsMessageShowing = false;
-            Message_T.Text = "";
-            Message_T.Opacity = 1;
+            if (!IsForce)
+            {
+                IsMessageShowing = false;
+                Message_T.Text = "";
+                Message_T.Opacity = 1;
+            }
         }
         public void Window_Show()
         {
@@ -102,7 +111,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             Configs_Load();
             SE_Dir = Voice_Set.Special_Path + "/SE";
             Project_T.Text = "プロジェクト名:" + Project_Name;
-            for (int Number = 0; Number <= Lists.Count - 1; Number++)
+            for (int Number = 0; Number < Lists.Count; Number++)
             {
                 string Name = Voice_Set.Get_Voice_Type_Japanese_Name_V2(Number);
                 int Number_01 = Lists[Number].Count;

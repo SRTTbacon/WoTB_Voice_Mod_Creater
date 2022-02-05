@@ -443,6 +443,11 @@ namespace WoTB_Voice_Mod_Creater.Class
                                 Pitch_S.Value -= Decrease;
                             IsVolume_Speed_Changed_By_Key = true;
                         }
+                        else if ((Keyboard.GetKeyStates(Key.S) & KeyStates.Down) > 0 && (Keyboard.GetKeyStates(Key.R) & KeyStates.Down) > 0)
+                        {
+                            Pitch_S.Value = 50;
+                            IsVolume_Speed_Changed_By_Key = true;
+                        }
                         if (IsPlaying)
                         {
                             if (IsVolume_Speed_Changed_By_Key && (Keyboard.GetKeyStates(Key.S) & KeyStates.Down) == 0 && (Keyboard.GetKeyStates(Key.Up) & KeyStates.Down) == 0 && (Keyboard.GetKeyStates(Key.Down) & KeyStates.Down) == 0)

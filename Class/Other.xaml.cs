@@ -42,6 +42,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         bool IsLeftKeyDown = false;
         bool IsRightKeyDown = false;
         bool IsSpaceKeyDown = false;
+        bool IsLControlKeyDown = false;
         bool IsVolume_Speed_Changed_By_Key = false;
         bool IsUsingFMOD = false;
         System.Windows.Point Mouse_Point = new System.Windows.Point(0, 0);
@@ -50,9 +51,15 @@ namespace WoTB_Voice_Mod_Creater.Class
         System.Windows.Media.Imaging.BitmapImage Wave_Color_Image_Source = null;
         Un4seen.Bass.Misc.WaveForm WF_Gray = null;
         Un4seen.Bass.Misc.WaveForm WF_Color = null;
+        BASS_BFX_BQF LPF_Setting = new BASS_BFX_BQF(BASSBFXBQF.BASS_BFX_BQF_LOWPASS, 500f, 0f, 0.707f, 0f, 0f, BASSFXChan.BASS_BFX_CHANALL);
+        BASS_BFX_BQF HPF_Setting = new BASS_BFX_BQF(BASSBFXBQF.BASS_BFX_BQF_HIGHPASS, 1000f, 0f, 0.707f, 0f, 0f, BASSFXChan.BASS_BFX_CHANALL);
+        BASS_BFX_ECHO4 ECHO_Setting = new BASS_BFX_ECHO4(0, 0, 0, 0, true, BASSFXChan.BASS_BFX_CHANALL);
         Sound FMOD_Sound = null;
         Channel FMOD_Channel = null;
         int Stream;
+        int Stream_LPF = 0;
+        int Stream_HPF = 0;
+        int Stream_ECHO = 0;
         int SetFirstDevice = -1;
         int WAVEForm_Image_Width = 0;
         int WAVEForm_Image_Height = 0;
@@ -101,6 +108,32 @@ namespace WoTB_Voice_Mod_Creater.Class
                 File_Name_Path.Add(new List<string>());
             }
             Position_Change();
+            Music_Player_Setting_Window.ChangeLPFEnable += delegate (bool IsEnable)
+            {
+                if (IsEnable)
+                {
+                    LPF_Setting.fCenter = 500f + 4000f * (1 - (float)Music_Player_Setting_Window.LPF_S.Value / 100f);
+                    Bass.BASS_FXSetParameters(Stream_LPF, LPF_Setting);
+                }
+                else
+                {
+                    Bass.BASS_ChannelRemoveFX(Stream, Stream_LPF);
+                    Stream_LPF = Bass.BASS_ChannelSetFX(Stream, BASSFXType.BASS_FX_BFX_BQF, 2);
+                }
+            };
+            Music_Player_Setting_Window.ChangeHPFEnable += delegate (bool IsEnable)
+            {
+                if (IsEnable)
+                {
+                    HPF_Setting.fCenter = 100f + 4000f * (float)Music_Player_Setting_Window.HPF_S.Value / 100f;
+                    Bass.BASS_FXSetParameters(Stream_HPF, HPF_Setting);
+                }
+                else
+                {
+                    Bass.BASS_ChannelRemoveFX(Stream, Stream_HPF);
+                    Stream_HPF = Bass.BASS_ChannelSetFX(Stream, BASSFXType.BASS_FX_BFX_BQF, 1);
+                }
+            };
         }
         private void UserControl_Loaded(object sender, RoutedEventArgs e)
         {
@@ -244,7 +277,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         async void Position_Change()
         {
             double nextFrame = (double)Environment.TickCount;
-            float period = 1000f / 15f;
+            float period = 1000f / 30f;
             while (true)
             {
                 //FPSを上回っていたらスキップ
@@ -259,7 +292,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 bool IsPlaying = Bass.BASS_ChannelIsActive(Stream) == BASSActive.BASS_ACTIVE_PLAYING;
                 if (IsPlaying)
                 {
-                    Bass.BASS_ChannelUpdate(Stream, 100);
+                    Bass.BASS_ChannelUpdate(Stream, 425);
                     if (Start_Time != -1 && Location_S.Value >= End_Time)
                     {
                         Music_Pos_Change(Start_Time, true);
@@ -306,9 +339,45 @@ namespace WoTB_Voice_Mod_Creater.Class
                         Video_V.Pause();
                         Video_V.Visibility = Visibility.Hidden;
                     }
+                    if (Stream_LPF != 0 && Music_Player_Setting_Window.Visibility == Visibility.Visible)
+                    {
+                        if (Music_Player_Setting_Window.IsLPFChanged && Music_Player_Setting_Window.IsLPFEnable)
+                        {
+                            LPF_Setting.fCenter = 500f + 4000f * (1 - (float)Music_Player_Setting_Window.LPF_S.Value / 100f);
+                            Bass.BASS_FXSetParameters(Stream_LPF, LPF_Setting);
+                            Music_Player_Setting_Window.IsLPFChanged = false;
+                        }
+                        if (Music_Player_Setting_Window.IsHPFChanged && Music_Player_Setting_Window.IsHPFEnable)
+                        {
+                            HPF_Setting.fCenter = 100f + 4000f * (float)Music_Player_Setting_Window.HPF_S.Value / 100f;
+                            Bass.BASS_FXSetParameters(Stream_HPF, HPF_Setting);
+                            Music_Player_Setting_Window.IsHPFChanged = false;
+                        }
+                        if (Music_Player_Setting_Window.IsECHOChanged)
+                        {
+                            ECHO_Setting.fDelay = (float)Music_Player_Setting_Window.ECHO_Delay_S.Value;
+                            ECHO_Setting.fDryMix = (float)Music_Player_Setting_Window.ECHO_Power_Original_S.Value / 100f;
+                            ECHO_Setting.fWetMix = (float)Music_Player_Setting_Window.ECHO_Power_ECHO_S.Value / 100f;
+                            ECHO_Setting.fFeedback = (float)Music_Player_Setting_Window.ECHO_Length_S.Value / 100f;
+                            Bass.BASS_FXSetParameters(Stream_ECHO, ECHO_Setting);
+                            Music_Player_Setting_Window.IsECHOChanged = false;
+                        }
+                    }
                     if (Sub_Code.IsForcusWindow)
                     {
                         bool IsLeft_or_RightPushed = false;
+                        if ((Keyboard.GetKeyStates(Key.LeftCtrl) & KeyStates.Down) > 0)
+                        {
+                            Music_Minus_B.Content = "-10秒";
+                            Music_Plus_B.Content = "+10秒";
+                            IsLControlKeyDown = true;
+                        }
+                        else if (IsLControlKeyDown)
+                        {
+                            Music_Minus_B.Content = "-5秒";
+                            Music_Plus_B.Content = "+5秒";
+                            IsLControlKeyDown = false;
+                        }
                         if ((Keyboard.GetKeyStates(Key.Left) & KeyStates.Down) > 0)
                         {
                             if (!IsLeftKeyDown && !IsLeft_or_RightPushed)
@@ -358,28 +427,84 @@ namespace WoTB_Voice_Mod_Creater.Class
                         }
                         if ((Keyboard.GetKeyStates(Key.S) & KeyStates.Down) > 0 && (Keyboard.GetKeyStates(Key.Up) & KeyStates.Down) > 0)
                         {
-                            double Increase = 0.6;
-                            if (Pitch_Speed_S.Value + Increase > 100)
-                                Pitch_Speed_S.Value = 100;
+                            if (IsSyncPitch_And_Speed)
+                            {
+                                double Increase = 0.6;
+                                if (Pitch_Speed_S.Value + Increase > 100)
+                                    Pitch_Speed_S.Value = 100;
+                                else
+                                    Pitch_Speed_S.Value += Increase;
+                            }
                             else
-                                Pitch_Speed_S.Value += Increase;
+                            {
+                                if (Speed_S.Value + 1 > 100)
+                                    Speed_S.Value = 100;
+                                else
+                                    Speed_S.Value += 1;
+                            }
                             IsVolume_Speed_Changed_By_Key = true;
                         }
                         else if ((Keyboard.GetKeyStates(Key.S) & KeyStates.Down) > 0 && (Keyboard.GetKeyStates(Key.Down) & KeyStates.Down) > 0)
                         {
-                            double Decrease = 0.6;
-                            if (Pitch_Speed_S.Value + Decrease < 0)
-                                Pitch_Speed_S.Value = 0;
+                            if (IsSyncPitch_And_Speed)
+                            {
+                                double Decrease = 0.6;
+                                if (Pitch_Speed_S.Value - Decrease < 0)
+                                    Pitch_Speed_S.Value = 0;
+                                else
+                                    Pitch_Speed_S.Value -= Decrease;
+                            }
                             else
-                                Pitch_Speed_S.Value -= Decrease;
+                            {
+                                if (Speed_S.Value - 1 < -80)
+                                    Speed_S.Value = -80;
+                                else
+                                    Speed_S.Value -= 1;
+                            }
                             IsVolume_Speed_Changed_By_Key = true;
+                        }
+                        else if ((Keyboard.GetKeyStates(Key.S) & KeyStates.Down) > 0 && (Keyboard.GetKeyStates(Key.R) & KeyStates.Down) > 0)
+                        {
+                            Speed_S.Value = 0;
+                            Pitch_S.Value = 0;
+                            Pitch_Speed_S.Value = 50;
+                            if (IsSyncPitch_And_Speed)
+                                Pitch_Speed_S_MouseUp(null, null);
+                            else
+                                Pitch_Speed_S_MouseUp(null, null);
+                            Configs_Save();
+                        }
+                        else if ((Keyboard.GetKeyStates(Key.P) & KeyStates.Down) > 0 && (Keyboard.GetKeyStates(Key.Up) & KeyStates.Down) > 0)
+                        {
+                            if (!IsSyncPitch_And_Speed)
+                            {
+                                double Decrease = 0.3;
+                                if (Pitch_S.Value + Decrease > 20)
+                                    Pitch_S.Value = 20;
+                                else
+                                    Pitch_S.Value += Decrease;
+                            }
+                        }
+                        else if ((Keyboard.GetKeyStates(Key.P) & KeyStates.Down) > 0 && (Keyboard.GetKeyStates(Key.Down) & KeyStates.Down) > 0)
+                        {
+                            if (!IsSyncPitch_And_Speed)
+                            {
+                                double Decrease = 0.3;
+                                if (Pitch_S.Value - Decrease < -30)
+                                    Pitch_S.Value = -30;
+                                else
+                                    Pitch_S.Value -= Decrease;
+                            }
                         }
                         if (IsPlaying)
                         {
                             if (IsVolume_Speed_Changed_By_Key && (Keyboard.GetKeyStates(Key.S) & KeyStates.Down) == 0 && (Keyboard.GetKeyStates(Key.Up) & KeyStates.Down) == 0 && (Keyboard.GetKeyStates(Key.Down) & KeyStates.Down) == 0)
                             {
                                 IsVolume_Speed_Changed_By_Key = false;
-                                Pitch_Speed_S_MouseUp(null, null);
+                                if (IsSyncPitch_And_Speed)
+                                    Pitch_Speed_S_MouseUp(null, null);
+                                else
+                                    Speed_MouseUp(null, null);
                             }
                         }
                     }
@@ -682,6 +807,9 @@ namespace WoTB_Voice_Mod_Creater.Class
                 WAVEForm_Color_Image.Source = null;
                 WAVEForm_Color_Image.Width = 0;
                 Bass.BASS_ChannelStop(Stream);
+                Bass.BASS_FXReset(Stream_LPF);
+                Bass.BASS_FXReset(Stream_HPF);
+                Bass.BASS_FXReset(Stream_ECHO);
                 Bass.BASS_StreamFree(Stream);
                 if (FMOD_Channel != null)
                 {
@@ -700,6 +828,25 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Bass.BASS_ChannelGetAttribute(Stream, BASSAttribute.BASS_ATTRIB_TEMPO_FREQ, ref Music_Frequency);
                 Bass.BASS_ChannelSetSync(Stream, BASSSync.BASS_SYNC_END | BASSSync.BASS_SYNC_MIXTIME, 0, IsMusicEnd, IntPtr.Zero);
                 Bass.BASS_ChannelSetAttribute(Stream, BASSAttribute.BASS_ATTRIB_VOL, (float)Volume_S.Value / 100);
+                Stream_LPF = Bass.BASS_ChannelSetFX(Stream, BASSFXType.BASS_FX_BFX_BQF, 2);
+                Stream_HPF = Bass.BASS_ChannelSetFX(Stream, BASSFXType.BASS_FX_BFX_BQF, 1);
+                Stream_ECHO = Bass.BASS_ChannelSetFX(Stream, BASSFXType.BASS_FX_BFX_ECHO4, 0);
+                HPF_Setting.fCenter = 1000f;
+                if (Music_Player_Setting_Window.IsLPFEnable)
+                {
+                    LPF_Setting.fCenter = 500 + 4000f * (1 - (float)Music_Player_Setting_Window.LPF_S.Value / 100.0f);
+                    Bass.BASS_FXSetParameters(Stream_LPF, LPF_Setting);
+                }
+                if (Music_Player_Setting_Window.IsHPFEnable)
+                {
+                    HPF_Setting.fCenter = 1000 + 4000f * (float)Music_Player_Setting_Window.HPF_S.Value / 100.0f;
+                    Bass.BASS_FXSetParameters(Stream_HPF, HPF_Setting);
+                }
+                ECHO_Setting.fDelay = (float)Music_Player_Setting_Window.ECHO_Delay_S.Value;
+                ECHO_Setting.fDryMix = (float)Music_Player_Setting_Window.ECHO_Power_Original_S.Value / 100f;
+                ECHO_Setting.fWetMix = (float)Music_Player_Setting_Window.ECHO_Power_ECHO_S.Value / 100f;
+                ECHO_Setting.fFeedback = (float)Music_Player_Setting_Window.ECHO_Length_S.Value / 100f;
+                Bass.BASS_FXSetParameters(Stream_ECHO, ECHO_Setting);
                 //FMOD_Channel.setVolume((float)Volume_S.Value / 100);
                 if (IsSyncPitch_And_Speed)
                 {
@@ -853,7 +1000,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
 
             }
-            else
+            else if (!IsSyncPitch_And_Speed)
                 Bass.BASS_ChannelSetAttribute(Stream, BASSAttribute.BASS_ATTRIB_TEMPO_PITCH, (float)Pitch_S.Value);
         }
         private void Speed_S_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
@@ -861,7 +1008,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             Speed_T.Text = "速度:" + (Math.Floor(Speed_S.Value * 10) / 10).ToString();
             if (IsFMODMode())
                 FMOD_Sound.setMusicSpeed((float)(1 + Speed_S.Value / 100));
-            else
+            else if (!IsSyncPitch_And_Speed)
                 Bass.BASS_ChannelSetAttribute(Stream, BASSAttribute.BASS_ATTRIB_TEMPO, (float)Speed_S.Value);
         }
         private void Pitch_S_MouseDoubleClick(object sender, MouseButtonEventArgs e)
@@ -1097,20 +1244,23 @@ namespace WoTB_Voice_Mod_Creater.Class
         {
             if (IsBusy)
                 return;
+            int Move_Time = 5;
+            if (IsLControlKeyDown)
+                Move_Time = 10;
             if (Video_V.Visibility == Visibility.Visible)
             {
                 Video_V.Pause();
                 if (IsFMODMode())
                 {
                     FMOD_Channel.setPaused(true);
-                    if (Video_V.Position.TotalSeconds - 5 < 0)
+                    if (Video_V.Position.TotalSeconds - Move_Time < 0)
                     {
                         Video_V.Position = TimeSpan.FromSeconds(0);
                         FMOD_Channel.setPosition(0, TIMEUNIT.MS);
                     }
                     else
                     {
-                        Video_V.Position = TimeSpan.FromSeconds(Video_V.Position.TotalSeconds - 5);
+                        Video_V.Position = TimeSpan.FromSeconds(Video_V.Position.TotalSeconds - Move_Time);
                         FMOD_Channel.setPosition((uint)(Video_V.Position.TotalMilliseconds - 100), TIMEUNIT.MS);
                     }
                     if (!IsPaused)
@@ -1122,14 +1272,14 @@ namespace WoTB_Voice_Mod_Creater.Class
                 else
                 {
                     Bass.BASS_ChannelPause(Stream);
-                    if (Video_V.Position.TotalSeconds - 5 < 0)
+                    if (Video_V.Position.TotalSeconds - Move_Time < 0)
                     {
                         Video_V.Position = TimeSpan.FromSeconds(0);
                         Bass.BASS_ChannelSetPosition(Stream, 0);
                     }
                     else
                     {
-                        Video_V.Position = TimeSpan.FromSeconds(Video_V.Position.TotalSeconds - 5);
+                        Video_V.Position = TimeSpan.FromSeconds(Video_V.Position.TotalSeconds - Move_Time);
                         Bass.BASS_ChannelSetPosition(Stream, Video_V.Position.TotalSeconds - 0.1);
                     }
                     if (!IsPaused)
@@ -1143,10 +1293,10 @@ namespace WoTB_Voice_Mod_Creater.Class
             }
             else
             {
-                if (Location_S.Value <= 5)
+                if (Location_S.Value <= Move_Time)
                     Location_S.Value = 0;
                 else
-                    Location_S.Value -= 5;
+                    Location_S.Value -= Move_Time;
                 Music_Pos_Change(Location_S.Value, true);
             }
         }
@@ -1154,10 +1304,13 @@ namespace WoTB_Voice_Mod_Creater.Class
         {
             if (IsBusy)
                 return;
+            int Move_Time = 5;
+            if (IsLControlKeyDown)
+                Move_Time = 10;
             if (Video_V.Visibility == Visibility.Visible)
             {
                 Video_V.Pause();
-                Video_V.Position = TimeSpan.FromSeconds(Video_V.Position.TotalSeconds + 5);
+                Video_V.Position = TimeSpan.FromSeconds(Video_V.Position.TotalSeconds + Move_Time);
                 if (IsFMODMode())
                 {
                     FMOD_Channel.setPaused(true);
@@ -1183,10 +1336,10 @@ namespace WoTB_Voice_Mod_Creater.Class
             }
             else
             {
-                if (Location_S.Value + 5 >= Location_S.Maximum)
+                if (Location_S.Value + Move_Time >= Location_S.Maximum)
                     Location_S.Value = Location_S.Maximum;
                 else
-                    Location_S.Value += 5;
+                    Location_S.Value += Move_Time;
                 Music_Pos_Change(Location_S.Value, true);
             }
         }
@@ -1227,6 +1380,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Device_T.Visibility = Visibility.Hidden;
                 Device_L.Visibility = Visibility.Hidden;
                 Youtube_Link_B.Visibility = Visibility.Hidden;
+                Setting_B.Visibility = Visibility.Hidden;
                 Music_Vocal_Inst_Cut_B.Visibility = Visibility.Hidden;
                 Vocal_Inst_Cut_Mode_C.Visibility = Visibility.Hidden;
                 Vocal_Inst_Cut_Mode_T.Visibility = Visibility.Hidden;
@@ -1277,6 +1431,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Device_T.Visibility = Visibility.Visible;
                 Device_L.Visibility = Visibility.Visible;
                 Youtube_Link_B.Visibility = Visibility.Visible;
+                Setting_B.Visibility = Visibility.Visible;
                 Music_Vocal_Inst_Cut_B.Visibility = Visibility.Visible;
                 Vocal_Inst_Cut_Mode_C.Visibility = Visibility.Visible;
                 Vocal_Inst_Cut_Mode_T.Visibility = Visibility.Visible;
@@ -1533,6 +1688,8 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Bass.BASS_ChannelSetDevice(Stream, Device_L.SelectedIndex + 1);
                 //FMOD_Class.Fmod_System.FModSystem.setDriver(Device_L.SelectedIndex + 1);
                 Video_Mode.Sound_Device = Device_L.SelectedIndex + 1;
+                Bass.BASS_ChannelPause(Stream);
+                Play_Volume_Animation(20f);
             }
         }
         private void Message_B_Click(object sender, RoutedEventArgs e)
@@ -1860,7 +2017,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         {
             if (IsFMODMode())
                 FMOD_Channel.setFrequency(Music_Frequency * (float)(Pitch_Speed_S.Value / 50));
-            else
+            else if (IsSyncPitch_And_Speed)
             {
                 Bass.BASS_ChannelSetAttribute(Stream, BASSAttribute.BASS_ATTRIB_TEMPO_FREQ, Music_Frequency * (float)(Pitch_Speed_S.Value / 50));
                 Bass.BASS_ChannelUpdate(Stream, 50);
@@ -2111,6 +2268,10 @@ namespace WoTB_Voice_Mod_Creater.Class
         private void Pitch_Speed_S_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
             e.Handled = true;
+        }
+        private void Setting_B_Click(object sender, RoutedEventArgs e)
+        {
+            Music_Player_Setting_Window.Window_Show();
         }
     }
 }
