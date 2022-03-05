@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Forms;
 using System.Windows.Input;
+using System.Windows.Media;
 using Un4seen.Bass;
 using Un4seen.Bass.AddOn.Fx;
 using WK.Libraries.BetterFolderBrowserNS;
@@ -486,9 +488,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         {
             Now_Stream_Count = 0;
             for (int Number = 0; Number < BNK_FSB_Voices.Count; Number++)
-            {
                 Now_Stream_Count += BNK_FSB_Voices[Number].Count;
-            }
         }
         private void Volume_Set_C_Click(object sender, RoutedEventArgs e)
         {
@@ -497,9 +497,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         private void Details_B_Click(object sender, RoutedEventArgs e)
         {
             if (IsClosing || IsBusy)
-            {
                 return;
-            }
             if (BNK_FSB_Voices.Count == 0)
             {
                 Message_Feed_Out("音声ファイルが指定されていないため、表示できる情報がありません。");
@@ -510,9 +508,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         private void Volume_Set_Help_B_Click(object sender, RoutedEventArgs e)
         {
             if (IsClosing || IsBusy)
-            {
                 return;
-            }
             string Message_01 = "・音量をWoT用に調整します。(MP3Gainで音量を100にします。)\n";
             string Message_02 = "・一度MP3形式に変換し、音量を調整してからWAV形式にしますので、通常より多くの時間が必要になります。";
             string Message_03 = "・変換中は、CPU使用率が高くなりますので、なるべく他の作業をしないことをおすすめします。";
@@ -556,7 +552,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                     {
                         Message_T.Text = ".wavに変換しています...";
                         await Task.Delay(50);
-                        await Multithread.Convert_To_Wav(Directory.GetFiles(To_Dir, "*", SearchOption.TopDirectoryOnly), To_Dir, true);
+                        await Multithread.Convert_To_Wav(Directory.GetFiles(To_Dir, "*", SearchOption.TopDirectoryOnly), To_Dir, true, true);
                         Message_T.Text = "音量をWoT用に調整しています...";
                         await Task.Delay(50);
                         Sub_Code.Volume_Set(To_Dir, Encode_Mode.WAV);
@@ -620,20 +616,14 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         async Task BNK_Create_V2(string Voice_Dir, string Save_Dir)
         {
             if (!Directory.Exists(Voice_Dir))
-            {
                 return;
-            }
             Message_T.Text = "プロジェクトファイルを作成しています...";
             await Task.Delay(50);
             FileInfo fi = new FileInfo(Voice_Set.Special_Path + "/Wwise/WoT_Sound_Mod/Actor-Mixer Hierarchy/Default Work Unit.wwu");
             if (File.Exists(Voice_Set.Special_Path + "/Wwise/WoT_Sound_Mod/Actor-Mixer Hierarchy/Backup.tmp") && fi.Length >= 200000)
-            {
                 File.Copy(Voice_Set.Special_Path + "/Wwise/WoT_Sound_Mod/Actor-Mixer Hierarchy/Backup.tmp", Voice_Set.Special_Path + "/Wwise/WoT_Sound_Mod/Actor-Mixer Hierarchy/Default Work Unit.wwu", true);
-            }
             if (!File.Exists(Voice_Set.Special_Path + "/Wwise/WoT_Sound_Mod/Actor-Mixer Hierarchy/Backup.tmp"))
-            {
                 File.Copy(Voice_Set.Special_Path + "/Wwise/WoT_Sound_Mod/Actor-Mixer Hierarchy/Default Work Unit.wwu", Voice_Set.Special_Path + "/Wwise/WoT_Sound_Mod/Actor-Mixer Hierarchy/Backup.tmp", true);
-            }
             Wwise_Class.Wwise_Project_Create Wwise = new Wwise_Class.Wwise_Project_Create(Voice_Set.Special_Path + "/Wwise/WoT_Sound_Mod");
             Wwise.Sound_Add_Wwise(Voice_Dir, true);
             Wwise.Save();
@@ -642,20 +632,17 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             Wwise.Project_Build("voiceover", Save_Dir + "/voiceover.bnk", "WinHighRes");
             Wwise.Clear(true, "Windows_HighRes");
             if (File.Exists(Voice_Set.Special_Path + "/Wwise/WoT_Sound_Mod/Actor-Mixer Hierarchy/Backup.tmp"))
-            {
                 File.Copy(Voice_Set.Special_Path + "/Wwise/WoT_Sound_Mod/Actor-Mixer Hierarchy/Backup.tmp", Voice_Set.Special_Path + "/Wwise/WoT_Sound_Mod/Actor-Mixer Hierarchy/Default Work Unit.wwu", true);
-            }
         }
         private void Voice_Enable_B_Click(object sender, RoutedEventArgs e)
         {
             int SelectedIndex = Content_L.SelectedIndex;
             if (SelectedIndex == -1 || Voices_L.SelectedIndex == -1)
-            {
                 return;
-            }
             IsModeChanging = true;
             BNK_FSB_Enable[Voices_L.SelectedIndex][SelectedIndex] = true;
             string Get_Name = Content_L.SelectedItem.ToString();
+            Get_Name = Get_Name.Replace("System.Windows.Controls.ListBoxItem: ", "");
             Content_L.Items[SelectedIndex] = Get_Name.Substring(0, Get_Name.LastIndexOf('|') + 1) + "有効";
             Content_L.SelectedIndex = SelectedIndex;
         }
@@ -663,56 +650,61 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         {
             int SelectedIndex = Content_L.SelectedIndex;
             if (SelectedIndex == -1 || Voices_L.SelectedIndex == -1)
-            {
                 return;
-            }
             IsModeChanging = true;
             BNK_FSB_Enable[Voices_L.SelectedIndex][SelectedIndex] = false;
             string Get_Name = Content_L.SelectedItem.ToString();
-            Content_L.Items[SelectedIndex] = Get_Name.Substring(0, Get_Name.LastIndexOf('|') + 1) + "無効";
+            Get_Name = Get_Name.Replace("System.Windows.Controls.ListBoxItem: ", "");
+            ListBoxItem LBI = new ListBoxItem();
+            LBI.Content = Get_Name.Substring(0, Get_Name.LastIndexOf('|') + 1) + "無効";
+            LBI.Foreground = (Brush)new BrushConverter().ConvertFromString("#BFFF2C8C");
+            Content_L.Items[SelectedIndex] = LBI;
             Content_L.SelectedIndex = SelectedIndex;
         }
         private void Voices_L_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
             Content_L.Items.Clear();
             if (Voices_L.SelectedIndex == -1 || Voices_L.Items.Count == 1)
-            {
                 return;
-            }
             foreach (string Name in BNK_FSB_Voices[Voices_L.SelectedIndex])
             {
                 string Name_Temp = Name;
+                bool IsEnable = true;
                 if (Name_Temp.Length > 15)
                 {
                     if (BNK_FSB_Enable[Voices_L.SelectedIndex][Content_L.Items.Count])
-                    {
                         Name_Temp = Name_Temp.Substring(0, 16) + "...|有効";
-                    }
                     else
                     {
                         Name_Temp = Name_Temp.Substring(0, 16) + "...|無効";
+                        IsEnable = false;
                     }
                 }
                 else
                 {
                     if (BNK_FSB_Enable[Voices_L.SelectedIndex][Content_L.Items.Count])
-                    {
                         Name_Temp += "|有効";
-                    }
                     else
                     {
                         Name_Temp += "|無効";
+                        IsEnable = false;
                     }
                 }
-                Content_L.Items.Add(Name_Temp);
+                if (IsEnable)
+                    Content_L.Items.Add(Name_Temp);
+                else
+                {
+                    ListBoxItem LBI = new ListBoxItem();
+                    LBI.Content = Name_Temp;
+                    LBI.Foreground = (Brush)new BrushConverter().ConvertFromString("#BFFF2C8C");
+                    Content_L.Items.Add(LBI);
+                }
             }
         }
         private void Content_L_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
             if (Content_L.SelectedIndex == -1)
-            {
                 return;
-            }
             if (IsModeChanging)
             {
                 IsModeChanging = false;

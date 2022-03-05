@@ -323,6 +323,8 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             string Index = Read_All[Number_02 + 3].Remove(0, Read_All[Number_02 + 3].IndexOf("value=\"") + 7);
             Index = Index.Remove(Index.IndexOf("\""));
             uint Child_ID = uint.Parse(Index);
+            if (WoTB_Voice_Mod_Creater.Class.Voice_Create.ShortIDs.Contains(Child_ID) || Child_ID == 649358221)
+                return new List<string>();
             if (SpecialBNKFileMode == 1)
                 return Children_Sort_Special(Child_ID);
             else

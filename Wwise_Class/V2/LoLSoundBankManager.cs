@@ -110,12 +110,15 @@ namespace BNKManager
             int result = 0;
             using (BinaryReader br = new BinaryReader(new MemoryStream(data)))
             {
-                br.BaseStream.Seek(4, SeekOrigin.Begin);
-                float fileSize = br.ReadUInt32();
-                br.BaseStream.Seek(28, SeekOrigin.Begin);
-                float bytesPerSecond = br.ReadUInt32();
-                float seconds = fileSize / bytesPerSecond;
-                result = (int)Math.Round(seconds);
+                if (br.BaseStream.Length >= 40)
+                {
+                    br.BaseStream.Seek(4, SeekOrigin.Begin);
+                    float fileSize = br.ReadUInt32();
+                    br.BaseStream.Seek(28, SeekOrigin.Begin);
+                    float bytesPerSecond = br.ReadUInt32();
+                    float seconds = fileSize / bytesPerSecond;
+                    result = (int)Math.Round(seconds);
+                }
             }
             return result;
         }

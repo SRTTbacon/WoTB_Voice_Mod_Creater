@@ -158,6 +158,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 Location_S.Value = 0;
                 Location_S.Maximum = 0;
                 Voices_L.SelectedIndex = -1;
+                Voice_Type_L.SelectedIndex = -1;
                 BGM_Add_List.SelectedIndex = -1;
                 Visibility = Visibility.Hidden;
                 IsClosing = false;
@@ -209,8 +210,6 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                     Wwise_Class.BNK_Parse p = new Wwise_Class.BNK_Parse(ofd.FileName);
                     Message_T.Text = "audio_mods.xmlからイベントIDを取得しています...";
                     await Task.Delay(50);
-                    if (XML_Mode_C.IsChecked.Value)
-                        p.Get_Event_ID_From_XML(XML_File_Path);
                     if (!p.IsVoiceFile())
                     {
                         Message_Feed_Out("選択されたbnkファイルは音声データではありません。");
@@ -221,6 +220,14 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                     await Task.Delay(50);
                     BNK_Voices_Enable.Clear();
                     BNK_Voices = p.Get_Voices(false);
+                    if (XML_Mode_C.IsChecked.Value)
+                    {
+                        p.Get_Event_ID_From_XML(XML_File_Path);
+                        List<List<string>> Temp = p.Get_Voices(false);
+                        for (int Number = 0; Number < Temp.Count; Number++)
+                            if (BNK_Voices[Number].Count == 0)
+                                BNK_Voices[Number] = Temp[Number];
+                    }
                     List<string> Need_Files = new List<string>();
                     foreach (List<string> Types in BNK_Voices)
                     {
@@ -604,7 +611,10 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 return;
             }
             string Get_Number = BNK_Voices[Voices_L.SelectedIndex][Voice_Type_L.SelectedIndex];
-            Load_Sound(Sub_Code.File_Get_FileName_No_Extension(Voice_Set.Special_Path + "/Wwise/BNK_WAV/" + Get_Number));
+            string File_Path = Sub_Code.File_Get_FileName_No_Extension(Voice_Set.Special_Path + "/Wwise/BNK_WAV/" + Get_Number);
+            if (File_Path == "")
+                Message_Feed_Out(".bnkファイル内に指定したサウンドは存在しません。");
+            Load_Sound(File_Path);
         }
         private async void Start_B_Click(object sender, RoutedEventArgs e)
         {

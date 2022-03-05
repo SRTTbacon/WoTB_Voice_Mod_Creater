@@ -846,7 +846,10 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                     else if (Name_Only == "ritaitaiha" || Name_Only == "track_destroyed")
                         Add_Sound("37535832", Voice_Now, "ja");
                     else if (Name_Only == "ritaihukkyuu" || Name_Only == "track_functional")
+                    {
                         Add_Sound("558576963", Voice_Now, "ja");
+                        Add_Sound("403125077", Voice_Now, "ja");
+                    }
                     else if (Name_Only == "houtouhason" || Name_Only == "turret_rotator_damaged")
                         Add_Sound("1014565012", Voice_Now, "ja");
                     else if (Name_Only == "houtoutaiha" || Name_Only == "turret_rotator_destroyed")
