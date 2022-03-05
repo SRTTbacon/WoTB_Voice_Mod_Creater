@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Renci.SshNet;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -75,15 +76,15 @@ public static class ListExtensions
 }
 public class SRTTbacon_Server
 {
-    public const string IP_LocalHost = "localhost";
-    public const string IP_GlocalHost = "srttbacon-lostwords.net";
-    public const string SFTP_UserName = "SRTTbacon_Server";
-    public const string SFTP_Password = "Local_Period_Lost_Words";
+    public const string IP_LocalHost = "非公開";
+    public const string IP_GlocalHost = "非公開";
+    public const string SFTP_UserName = "非公開";
+    public const string SFTP_Password = "非公開";
     public static string IP_Local = "非公開";
     public static string IP_Global = "非公開";
     public static string Name = "非公開";
     public static string Password = "非公開";
-    public const string Version = "1.4.9.6.3";
+    public const string Version = "1.4.9.8";
     public static int TCP_Port = -1;
     public static int SFTP_Port = -1;
     public static bool IsSRTTbaconOwnerMode = false;
@@ -1080,11 +1081,16 @@ namespace WoTB_Voice_Mod_Creater
                         Message_T.Text = "ダウンロード中です。処理が完了したらソフトを再起動します...";
                         await Task.Delay(50);
                         IsProcessing = true;
+                        File.Delete(Path + "\\WoTB_Voice_Mod_Creater.exe.bak");
                         File.Move(Path + "\\WoTB_Voice_Mod_Creater.exe", Path + "\\WoTB_Voice_Mod_Creater.exe.bak");
                         if (Voice_Set.UserName == "")
                             Voice_Set.TCP_Server.Send("Update|ゲスト");
                         else
                             Voice_Set.TCP_Server.Send("Update|" + Voice_Set.UserName);
+                        ConnectionInfo ConnNfo = new ConnectionInfo(SRTTbacon_Server.IP, SRTTbacon_Server.SFTP_Port, SRTTbacon_Server.Name, new AuthenticationMethod[]
+                        { new PasswordAuthenticationMethod(SRTTbacon_Server.Name, SRTTbacon_Server.Password) });
+                        SftpClient SFTP_Server = new SftpClient(ConnNfo);
+                        SFTP_Server.Connect();
                         foreach (string File_Name in Voice_Set.FTPClient.GetFiles("/WoTB_Voice_Mod/Update/" + Line, false, false))
                         {
                             try
@@ -1092,7 +1098,8 @@ namespace WoTB_Voice_Mod_Creater
                                 long File_Size_Full = Voice_Set.FTPClient.GetFileSize("/WoTB_Voice_Mod/Update/" + Line + "/" + File_Name);
                                 Task task = Task.Run(() =>
                                 {
-                                    Voice_Set.FTPClient.DownloadFile("/WoTB_Voice_Mod/Update/" + Line + "/" + File_Name, Path + "\\" + File_Name);
+                                    using (Stream fs = File.OpenWrite(Path + "\\" + File_Name))
+                                        SFTP_Server.DownloadFile("/WoTB_Voice_Mod/Update/" + Line + "/" + File_Name, fs);
                                 });
                                 while (true)
                                 {
@@ -1120,10 +1127,12 @@ namespace WoTB_Voice_Mod_Creater
                                 Sub_Code.Error_Log_Write(e1.Message);
                             }
                         }
+                        SFTP_Server.Dispose();
                         Message_T.Text = "再起動しています...";
                         await Task.Delay(75);
                         StreamWriter stw = File.CreateText(Path + "/Update.bat");
-                        stw.WriteLine("timeout 3");
+                        stw.WriteLine("chcp 65001");
+                        stw.WriteLine("timeout 2.5");
                         stw.Write("\"" + Path + "/WoTB_Voice_Mod_Creater.exe\" /up " + Process.GetCurrentProcess().Id);
                         stw.Close();
                         ProcessStartInfo processStartInfo1 = new ProcessStartInfo

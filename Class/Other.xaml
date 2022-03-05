@@ -171,8 +171,6 @@
             <CheckBox x:Name="Random_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-2975,1020,0,0" Focusable="False" Click="Random_C_Click"/>
             <TextBlock x:Name="Background_T" FontSize="37" Height="50" Width="300" TextWrapping="Wrap" Text="バックグラウンド再生" VerticalAlignment="Top" Margin="-2000,1005,0,0" Foreground="Aqua"/>
             <CheckBox x:Name="Background_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-2350,1020,0,0" Focusable="False" Click="Background_C_Click"/>
-            <TextBlock x:Name="WAVEForm_T" FontSize="37" Height="50" Width="180" TextWrapping="Wrap" Text="波形を表示" VerticalAlignment="Top" Margin="-3130,855,0,0" Foreground="Aqua" Visibility="Hidden"/>
-            <CheckBox x:Name="WAVEForm_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-3350,875,0,0" Click="WAVEForm_C_Click" Focusable="False" Visibility="Hidden"/>
             <TextBlock x:Name="Mode_T" FontSize="37" Height="50" Width="280" TextWrapping="Wrap" Text="音程と速度を同期" VerticalAlignment="Top" Margin="-2025,925,0,0" Foreground="Aqua"/>
             <CheckBox x:Name="Mode_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-2350,945,0,0" Focusable="False" Click="Mode_C_Click"/>
             <TextBlock x:Name="Vocal_Inst_Cut_Mode_T" FontSize="32" Height="45" Width="280" TextWrapping="Wrap" Text="クライアント側で処理" VerticalAlignment="Top" Margin="-2175,960,0,0" Foreground="Aqua"/>

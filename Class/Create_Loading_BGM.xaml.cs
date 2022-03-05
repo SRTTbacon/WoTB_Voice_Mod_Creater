@@ -752,9 +752,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 Volume_Now -= Volume_Minus;
                 if (Volume_Now < 0f)
-                {
                     Volume_Now = 0f;
-                }
                 Bass.BASS_ChannelSetAttribute(Stream, BASSAttribute.BASS_ATTRIB_VOL, Volume_Now);
                 await Task.Delay(1000 / 60);
             }

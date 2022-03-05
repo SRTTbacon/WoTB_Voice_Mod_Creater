@@ -622,6 +622,8 @@ namespace WoTB_Voice_Mod_Creater
                             if (Lists_Enable != null && !Lists_Enable[Romaji_Number][File_Number_01])
                                 continue;
                             string File_Path_01 = File_Get_FileName_No_Extension(From_Dir + "/" + File_Path);
+                            if (File_Path_01 == "")
+                                continue;
                             if (File_Number < 10)
                                 File.Copy(File_Path_01, To_Dir + "/" + Voice_Set.Get_Voice_Type_Romaji_Name(Romaji_Number) + "_0" + File_Number + Path.GetExtension(File_Path_01), true);
                             else

@@ -221,7 +221,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         }
         public void Delete_Sound(int List_Index, int Voice_Index, int Sound_Index)
         {
-            if (IsLoaded && List_Index >= 0 && List_Index < 3)
+            if (IsLoaded && List_Index >= 0 && List_Index < 3 && Voice_Index != -1 && Sound_Index != -1)
             {
                 if (List_Index == 0 && Voice_Main_List_Sound_Position.Count > Voice_Index && Voice_Main_List_Sound_Position[Voice_Index].Count > Sound_Index)
                     Voice_Main_List_Sound_Position[Voice_Index].RemoveAt(Sound_Index);

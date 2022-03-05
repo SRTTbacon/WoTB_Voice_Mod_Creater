@@ -113,8 +113,6 @@
             <TextBlock x:Name="Project_Name_Text" Height="50" Width="575" TextWrapping="Wrap" Text="プロジェクト名" Foreground="Aqua" FontSize="35" Margin="-1920,715,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
             <TextBox x:Name="Project_Name_T" Height="60" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="500" FontSize="40" Margin="-1920,775,0,0" TextAlignment="Center"/>
             <Border x:Name="Border_All" BorderBrush="Transparent" BorderThickness="1" Background="Black" Height="1080" VerticalAlignment="Top" Visibility="Hidden" Width="1920" Opacity=" 0.001" Margin="-1920,0,0,0"/>
-            <CheckBox x:Name="ColorMode_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-3425,40,0,0" Focusable="False" Click="ColorMode_C_Click"/>
-            <TextBlock x:Name="ColorMode_T"  Height="50" Width="284" TextWrapping="Wrap" Text="未選択に色を付ける" Foreground="Aqua" FontSize="35" Margin="-3090,25,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
             <CheckBox x:Name="BGM_Reload_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-2220,425,0,0" Click="BGM_Reload_C_Click" Visibility="Hidden"/>
             <TextBlock Height="45" Width="338" TextWrapping="Wrap" Text="BGMをreload.bnkに含める" Foreground="Aqua" FontSize="30" Margin="-1850,410,0,0" VerticalAlignment="Top" TextAlignment="Center" Visibility="Hidden"/>
             <Image x:Name="Execute_WoTB_C" Height="30" VerticalAlignment="Top" Width="30" Focusable="False" Margin="-1300,1025,0,0" MouseDown="Execute_WoTB_C_MouseDown" MouseEnter="Execute_WoTB_C_MouseEnter" MouseLeave="Execute_WoTB_C_MouseLeave"/>

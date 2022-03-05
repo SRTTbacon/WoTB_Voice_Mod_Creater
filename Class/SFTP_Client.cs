@@ -369,7 +369,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             }
             catch (Exception e)
             {
-                if (IsErrorLogMode && !IsDownloading)
+                if (IsErrorLogMode)
                     Sub_Code.Error_Log_Write(e.Message);
                 IsDownloading = false;
                 return false;

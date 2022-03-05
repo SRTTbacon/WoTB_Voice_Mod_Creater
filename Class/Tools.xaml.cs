@@ -109,6 +109,8 @@ namespace WoTB_Voice_Mod_Creater.Class
                     DVPL.DVPL_UnPack(File_Path, Path.GetDirectoryName(File_Path) + "/" + Path.GetFileNameWithoutExtension(File_Path), false);
                     if (!File.Exists(Path.GetDirectoryName(File_Path) + "/" + Path.GetFileNameWithoutExtension(File_Path)))
                         Error_Path += File_Path + "\n";
+                    else
+                        File.Delete(File_Path);
                 }
                 Message_Feed_Out("DVPLファイルを展開しました。");
                 if (Error_Path != "")

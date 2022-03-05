@@ -74,6 +74,8 @@
             <Slider x:Name="ECHO_Power_ECHO_S" Height="27" VerticalAlignment="Top" Width="400" Style="{StaticResource CustomSliderStyle_Yoko}" Margin="-1000,565,0,0" Maximum="100" LargeChange="0.1" Focusable="False" PreviewKeyDown="LPF_S_PreviewKeyDown" ValueChanged="ECHO_Power_ECHO_S_ValueChanged"/>
             <TextBlock x:Name="ECHO_Length_T" Height="45" TextWrapping="Wrap" Text="エコー(長さ):0" Foreground="Aqua" FontSize="30" Width="250" Margin="-1000,625,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
             <Slider x:Name="ECHO_Length_S" Height="27" VerticalAlignment="Top" Width="400" Style="{StaticResource CustomSliderStyle_Yoko}" Margin="-1000,690,0,0" Maximum="100" LargeChange="0.1" Focusable="False" PreviewKeyDown="LPF_S_PreviewKeyDown" ValueChanged="ECHO_Length_S_ValueChanged"/>
+            <Image x:Name="ECHO_Enable_C" Height="30" VerticalAlignment="Top" Width="30" Margin="-1250,777,0,0" MouseDown="ECHO_Enable_C_MouseDown" MouseEnter="ECHO_Enable_C_MouseEnter" MouseLeave="ECHO_Enable_C_MouseLeave" Focusable="False"/>
+            <TextBlock TextWrapping="Wrap" Text="エコーを有効にする" Foreground="Aqua" FontSize="30" TextAlignment="Center" Width="225" Height="40" Margin="-975,500,0,0"/>
             <Button x:Name="Back_B" Content="戻る" Height="80" VerticalAlignment="Top" Width="300" Foreground="Aqua" BorderBrush="Aqua" Background="Transparent" FontSize="35" Margin="-525,936,0,0" Click="Back_B_Click"/>
         </DockPanel>
     </Viewbox>

@@ -58,7 +58,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             }
             From_Files.Clear();
         }
-        public static async Task Convert_To_Wav(string From_Dir, bool IsFromFileDelete, bool IsUseFFmpeg = false, bool BassEncode = false)
+        public static async Task Convert_To_Wav(string From_Dir, bool IsFromFileDelete, bool IsUseFFmpeg, bool BassEncode)
         {
             await Convert_To_Wav(From_Dir, From_Dir, IsFromFileDelete, IsUseFFmpeg, BassEncode);
         }
@@ -90,7 +90,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             }
             From_Files.Clear();
         }
-        public static async Task Convert_To_Wav(string[] Files, string To_Dir, bool IsFromFileDelete, bool BassEncode = false)
+        public static async Task Convert_To_Wav(string[] Files, string To_Dir, bool IsFromFileDelete, bool BassEncode)
         {
             try
             {

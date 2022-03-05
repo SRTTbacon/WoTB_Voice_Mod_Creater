@@ -83,9 +83,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 Number++;
                 if (Number >= 120)
-                {
                     Message_T.Opacity -= 0.025;
-                }
                 await Task.Delay(1000 / 60);
             }
             IsMessageShowing = false;
@@ -101,9 +99,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         private void Mod_File_Delete_B_Click(object sender, RoutedEventArgs e)
         {
             if (IsBusy)
-            {
                 return;
-            }
             if (Mod_File_L.SelectedIndex != -1)
             {
                 int Index = Mod_File_L.SelectedIndex;
@@ -131,13 +127,9 @@ namespace WoTB_Voice_Mod_Creater.Class
                     Number_Add++;
                 }
                 if (!IsDeleteExist)
-                {
                     Delete_Files.Add(Mod_File_L.Items[Index].ToString());
-                }
                 if (IsAddExist)
-                {
                     Add_Files.RemoveAt(Number_Add);
-                }
                 Mod_File_L.Items.RemoveAt(Index);
             }
         }
@@ -145,9 +137,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         private void Mod_File_Add_B_Click(object sender, RoutedEventArgs e)
         {
             if (IsBusy)
-            {
                 return;
-            }
             System.Windows.Forms.OpenFileDialog ofd = new System.Windows.Forms.OpenFileDialog()
             {
                 Title = "Modファイルを選択してください。",
@@ -197,13 +187,9 @@ namespace WoTB_Voice_Mod_Creater.Class
                             }
                         }
                         if (IsDeleteExist)
-                        {
                             Delete_Files.RemoveAt(Number_Delete);
-                        }
                         if (!IsAddExist)
-                        {
                             Add_Files.Add(SelectFile);
-                        }
                         Mod_File_L.Items.Add(Path.GetFileName(SelectFile));
                     }
                 }
@@ -246,9 +232,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         private async void Save_B_Click(object sender, RoutedEventArgs e)
         {
             if (IsBusy)
-            {
                 return;
-            }
             if (Mod_File_L.Items.Count == 0)
             {
                 Message_Feed_Out("最低1つはファイルが必要です。");
@@ -331,11 +315,11 @@ namespace WoTB_Voice_Mod_Creater.Class
                 {
                     Voice_Set.FTPClient.Directory_Move("/WoTB_Voice_Mod/Mods/" + Mod_Name, "/WoTB_Voice_Mod/Mods/" + Mod_Name_T.Text, true);
                     StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Temp_Mod_Names.dat");
-                    StreamReader str = Voice_Set.FTPClient.GetFileRead("/WoTB_Voice_Mod/Mods/Mod_Names.dat");
+                    StreamReader str = Voice_Set.FTPClient.GetFileRead("/WoTB_Voice_Mod/Mods/Mod_Names_Wwise.dat");
                     string line;
                     while ((line = str.ReadLine()) != null)
                     {
-                        if (line == Mod_Name)
+                        if (Path.GetFileName(line) == Path.GetFileName(Mod_Name))
                         {
                             stw.WriteLine(Mod_Name_T.Text);
                             continue;
@@ -344,7 +328,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                     }
                     str.Close();
                     stw.Close();
-                    Voice_Set.FTPClient.UploadFile(Voice_Set.Special_Path + "/Temp_Mod_Names.dat", "/WoTB_Voice_Mod/Mods/Mod_Names.dat");
+                    Voice_Set.FTPClient.UploadFile(Voice_Set.Special_Path + "/Temp_Mod_Names.dat", "/WoTB_Voice_Mod/Mods/Mod_Names_Wwise.dat");
                     File.Delete(Voice_Set.Special_Path + "/Temp_Mod_Names.dat");
                     Voice_Set.TCP_Server.Send("Message|" + Voice_Set.UserName + "->配布Mod:" + Mod_Name + "を変更しました。変更後:" + Mod_Name_T.Text);
                 }
