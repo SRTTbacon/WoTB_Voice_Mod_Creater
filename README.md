@@ -6,8 +6,7 @@ Wwiseの使い方がわからなくても自動でプロジェクトを作成、
 バグや不具合、わからないことがあればSRTTbacon#2395までご連絡を！<br>
 V1.2.7から.NetFramework4.6.1に変更しましたので、Windows7などはマイクロソフトからダウンロード&インストールする必要があります。<br>
 <br>
-ダウンロード(V1.4.9.2):https://drive.google.com/file/d/1rTmmRGbGPCuXOSDNt31pz6hQ1cqGWWb1/view<br>
-ダウンロード(V1.4.9.3以降):https://battlecry.xyz/Mod_Creater/WoTB_Voice_Mod_Creater.zip
+ダウンロード:https://drive.google.com/file/d/1Exlp9xKWyMTvpHDB1R28t4cfDyMg3pYV/view
 <br>
 ソース内のWwise_Class/V1とV2の違いは、V1では.pckファイルを扱い、V2では.bnkファイルを扱う感じです。<br>
 <br>
