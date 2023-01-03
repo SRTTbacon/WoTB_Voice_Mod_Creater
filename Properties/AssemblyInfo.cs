@@ -6,11 +6,11 @@ using System.Windows;
 // アセンブリに関連付けられている情報を変更するには、
 // これらの属性値を変更してください。
 [assembly: AssemblyTitle("WoTB_Voice_Mod_Creater")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("WoTBの音声Modを半自動で作成")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("SRTTbacon")]
 [assembly: AssemblyProduct("WoTB_Voice_Mod_Creater")]
-[assembly: AssemblyCopyright("Copyright ©  2020")]
+[assembly: AssemblyCopyright("Copyright ©  2020-2022 SRTTbacon")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 // ComVisible を false に設定すると、このアセンブリ内の型は COM コンポーネントから
