@@ -222,7 +222,7 @@ namespace WoTB_Voice_Mod_Creater
             {
                 IsClosing = true;
                 Voice_Set.App_Busy = true;
-                Other_Window.Pause_Volume_Animation(true, 25);
+                Music_Player_Window.Pause_Volume_Animation(true, 25);
                 while (Opacity > 0)
                 {
                     Opacity -= 0.05;
@@ -366,7 +366,7 @@ namespace WoTB_Voice_Mod_Creater
         {
             if (IsClosing)
                 return;
-            Other_Window.Window_Show();
+            Music_Player_Window.Window_Show();
         }
         private void WoTB_Select_B_Click(object sender, RoutedEventArgs e)
         {
@@ -507,7 +507,7 @@ namespace WoTB_Voice_Mod_Creater
         bool IsOtherWindowShowed()
         {
             if (Save_Window.Visibility == Visibility.Visible || Voice_Mods_Window.Visibility == Visibility.Visible || Tools_Window.Visibility == Visibility ||
-                Other_Window.Visibility == Visibility.Visible || Voice_Create_Window.Visibility == Visibility.Visible ||
+                Music_Player_Window.Visibility == Visibility.Visible || Voice_Create_Window.Visibility == Visibility.Visible ||
                 Tools_V2_Window.Visibility == Visibility.Visible || Change_To_Wwise_Window.Visibility == Visibility.Visible || WoT_To_Blitz_Window.Visibility == Visibility.Visible ||
                 Blitz_To_WoT_Window.Visibility == Visibility.Visible || Bank_Editor_Window.Visibility == Visibility.Visible || Create_Save_File_Window.Visibility == Visibility.Visible ||
                 Create_Loading_BGM_Window.Visibility == Visibility.Visible || BNK_Event_Window.Visibility == Visibility.Visible || BNK_To_Project_Window.Visibility == Visibility.Visible ||
@@ -520,8 +520,8 @@ namespace WoTB_Voice_Mod_Creater
         {
             if (IsClosing)
                 return;
-            if (Other_Window.Visibility == Visibility.Visible)
-                Other_Window.RootWindow_KeyDown(e);
+            if (Music_Player_Window.Visibility == Visibility.Visible)
+                Music_Player_Window.RootWindow_KeyDown(e);
             //ファイル名を入力中にShift+Fが働いてしまうと困るので設定
             if (Sound_Editor_Window.Setting_Window.Visibility == Visibility)
                 return;
@@ -576,7 +576,7 @@ namespace WoTB_Voice_Mod_Creater
                 if (result == MessageBoxResult.Yes)
                 {
                     Voice_Set.App_Busy = true;
-                    Other_Window.Pause_Volume_Animation(true, 25);
+                    Music_Player_Window.Pause_Volume_Animation(true, 25);
                     Message_T.Text = "一時ファイルを削除しています...";
                     await Task.Delay(50);
                     try
@@ -598,7 +598,7 @@ namespace WoTB_Voice_Mod_Creater
                     {
                         Sub_Code.Error_Log_Write(e1.Message);
                     }
-                    Other_Window.Pause_Volume_Animation(true, 25);
+                    Music_Player_Window.Pause_Volume_Animation(true, 25);
                     while (Opacity > 0)
                     {
                         Opacity -= Sub_Code.Window_Feed_Time;
@@ -738,7 +738,7 @@ namespace WoTB_Voice_Mod_Creater
             string Ex = System.IO.Path.GetExtension(Drag_Files[0]);
             if (Ex == ".wvs" || Ex == ".wms" || Ex == ".wse")
                 e.Effects = DragDropEffects.Copy;
-            else if (Other_Window.Visibility == Visibility.Visible)
+            else if (Music_Player_Window.Visibility == Visibility.Visible)
             {
                 if (Ex == ".mp3" || Ex == ".wav" || Ex == ".ogg" || Ex == ".aiff" || Ex == ".flac" || Ex == ".m4a" || Ex == ".mp4")
                     e.Effects = DragDropEffects.Copy;
@@ -773,10 +773,10 @@ namespace WoTB_Voice_Mod_Creater
                 {
                     string[] Drop_Files = e.Data.GetData(DataFormats.FileDrop) as string[];
                     string Ex = System.IO.Path.GetExtension(Drop_Files[0]);
-                    if (Other_Window.Visibility == Visibility.Visible)
+                    if (Music_Player_Window.Visibility == Visibility.Visible)
                     {
                         if (Ex == ".mp3" || Ex == ".wav" || Ex == ".ogg" || Ex == ".aiff" || Ex == ".flac" || Ex == ".m4a" || Ex == ".mp4")
-                            Other_Window.Add_Music_From_Drop(Drop_Files);
+                            Music_Player_Window.Add_Music_From_Drop(Drop_Files);
                         else
                             Message_Feed_Out("対応したファイルをドラッグしてください。");
                     }

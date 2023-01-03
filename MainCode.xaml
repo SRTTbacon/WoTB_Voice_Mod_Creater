@@ -131,7 +131,7 @@
             <Class1:Save_Configs x:Name="Save_Window" Width="1920" Height="1080" Margin="-1920,0,0,0" Visibility="Hidden"/>
             <Class1:Voice_Mod_Distribution x:Name="Voice_Mods_Window" Width="1920" Height="1080" Margin="-1920,0,0,0" Visibility="Hidden"/>
             <Class1:Tools x:Name="Tools_Window" Width="1920" Height="1080" Margin="-1920,0,0,0" Visibility="Hidden"/>
-            <Class1:Other x:Name="Other_Window" Width="1920" Height="1080" Margin="-1920,0,0,0" Visibility="Hidden"/>
+            <Class1:Music_Player x:Name="Music_Player_Window" Width="1920" Height="1080" Margin="-1920,0,0,0" Visibility="Hidden"/>
             <Class1:Voice_Create x:Name="Voice_Create_Window" Width="1920" Height="1080" Margin="-1920,0,0,0" Visibility="Hidden"/>
             <Class2:Bank_Editor x:Name="Bank_Editor_Window" Width="1920" Height="1080" Margin="-1920,0,0,0" Visibility="Hidden"/>
             <Class2:Tools_V2 x:Name="Tools_V2_Window" Height="1080" VerticalAlignment="Top" Width="1920" Margin="-1920,0,0,0" Visibility="Hidden"/>
