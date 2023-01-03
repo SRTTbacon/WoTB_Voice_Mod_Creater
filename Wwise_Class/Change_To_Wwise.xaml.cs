@@ -354,27 +354,28 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                     else
                         Message_T.Text = ".bnkファイルを作成しています...";
                     await Task.Delay(50);
-                    FileInfo fi = new FileInfo(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Default Work Unit.wwu");
-                    if (File.Exists(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Backup.tmp") && fi.Length >= 800000)
-                        File.Copy(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Backup.tmp", Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Default Work Unit.wwu", true);
-                    if (!File.Exists(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Backup.tmp"))
-                        File.Copy(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Default Work Unit.wwu", Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Backup.tmp", true);
+                    File.Copy(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/WoT_Blitz_Project.tmp", Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Default Work Unit.wwu", true);
+                    File.Copy(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Events/WoT_To_Blitz_base_capture.tmp", Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Events/base_capture.wwu", true);
+                    File.Copy(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Events/WoT_To_Blitz_Chat.tmp", Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Events/Chat.wwu", true);
+                    File.Copy(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Events/WoT_To_Blitz_Crew.tmp", Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Events/Crew.wwu", true);
+                    File.Copy(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Events/WoT_To_Blitz_Quick_Commands.tmp", Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Events/Quick_Commands.wwu", true);
+                    File.Copy(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Events/WoT_To_Blitz_Reload.tmp", Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Events/Reload.wwu", true);
+                    File.Copy(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Events/WoT_To_Blitz_UI_Battle.tmp", Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Events/UI_Battle.wwu", true);
+                    File.Copy(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Events/WoT_To_Blitz_UI_Battle_Basic.tmp", Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Events/UI_Battle_Basic.wwu", true);
                     Wwise_Class.Wwise_Project_Create Wwise = new Wwise_Class.Wwise_Project_Create(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod");
                     Wwise.Sound_Add_Wwise(Voice_Set.Special_Path + "/Wwise/FSB_Extract_Voices");
                     Wwise.Save();
                     Directory.Delete(Voice_Set.Special_Path + "/Wwise/FSB_Extract_Voices", true);
                     Wwise.Project_Build("voiceover_crew", sfd.SelectedFolder + "/voiceover_crew.bnk");
                     await Task.Delay(500);
-                    Wwise.Project_Build("ui_battle", sfd.SelectedFolder + "/ui_battle.bnk");
+                    /*Wwise.Project_Build("ui_battle", sfd.SelectedFolder + "/ui_battle.bnk");
                     await Task.Delay(500);
                     Wwise.Project_Build("ui_battle_basic", sfd.SelectedFolder + "/ui_battle_basic.bnk");
                     await Task.Delay(500);
                     Wwise.Project_Build("ui_chat_quick_commands", sfd.SelectedFolder + "/ui_chat_quick_commands.bnk");
                     await Task.Delay(500);
-                    Wwise.Project_Build("reload", sfd.SelectedFolder + "/reload.bnk");
+                    Wwise.Project_Build("reload", sfd.SelectedFolder + "/reload.bnk");*/
                     Wwise.Clear();
-                    if (File.Exists(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Backup.tmp"))
-                        File.Copy(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Backup.tmp", Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Default Work Unit.wwu", true);
                     if (DVPL_C.IsChecked.Value)
                     {
                         Message_T.Text = "DVPL化しています...";
@@ -391,10 +392,12 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                         await Task.Delay(50);
                         Sub_Code.DVPL_File_Delete(Voice_Set.WoTB_Path + "/Data/WwiseSound/ja/voiceover_crew.bnk");
                         Sub_Code.DVPL_File_Delete(Voice_Set.WoTB_Path + "/Data/WwiseSound/ui_battle.bnk");
+                        Sub_Code.DVPL_File_Delete(Voice_Set.WoTB_Path + "/Data/WwiseSound/ui_battle_basic.bnk");
                         Sub_Code.DVPL_File_Delete(Voice_Set.WoTB_Path + "/Data/WwiseSound/ui_chat_quick_commands.bnk");
                         Sub_Code.DVPL_File_Delete(Voice_Set.WoTB_Path + "/Data/WwiseSound/reload.bnk");
                         Sub_Code.DVPL_File_Copy(sfd.SelectedFolder + "/voiceover_crew.bnk", Voice_Set.WoTB_Path + "/Data/WwiseSound/ja/voiceover_crew.bnk", true);
                         Sub_Code.DVPL_File_Copy(sfd.SelectedFolder + "/ui_battle.bnk", Voice_Set.WoTB_Path + "/Data/WwiseSound/ui_battle.bnk", true);
+                        Sub_Code.DVPL_File_Copy(sfd.SelectedFolder + "/ui_battle_basic.bnk", Voice_Set.WoTB_Path + "/Data/WwiseSound/ui_battle_basic.bnk", true);
                         Sub_Code.DVPL_File_Copy(sfd.SelectedFolder + "/ui_chat_quick_commands.bnk", Voice_Set.WoTB_Path + "/Data/WwiseSound/ui_chat_quick_commands.bnk", true);
                         Sub_Code.DVPL_File_Copy(sfd.SelectedFolder + "/reload.bnk", Voice_Set.WoTB_Path + "/Data/WwiseSound/reload.bnk", true);
                     }

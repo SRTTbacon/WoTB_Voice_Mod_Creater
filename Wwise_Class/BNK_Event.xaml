@@ -70,6 +70,7 @@
             <TextBlock x:Name="Message_T" Height="105" Width="884" TextWrapping="Wrap" Text="" Foreground="Aqua" FontSize="37" Margin="-1920,905,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
             <ListBox x:Name="Event_Type_L" Height="750" VerticalAlignment="Top" Width="550" Margin="-3200,150,0,0" Background="Transparent" BorderBrush="Aqua" Foreground="Aqua" FontSize="37" SelectionChanged="Event_Type_L_SelectionChanged"/>
             <TextBlock Height="50" TextWrapping="Wrap" Text="イベントID一覧" VerticalAlignment="Top" Width="224" Foreground="Aqua" FontSize="37" Margin="-3200,75,0,0"/>
+            <Button x:Name="Event_ID_Copy_B" Content="コピー" Height="50" VerticalAlignment="Top" Width="150" Foreground="Aqua" FontSize="35" Background="Transparent" BorderBrush="Aqua" Margin="-2800,75,0,0" Click="Event_ID_Copy_B_Click"/>
             <TextBlock x:Name="File_Name_T" Height="50" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="665" Foreground="Aqua" FontSize="37" Margin="-1920,200,0,0" TextAlignment="Center"/>
             <ListBox x:Name="Sound_L" Height="750" VerticalAlignment="Top" Width="550" Margin="-675,150,0,0" Background="Transparent" BorderBrush="Aqua" Foreground="Aqua" FontSize="37" SelectionChanged="Sound_L_SelectionChanged"/>
             <TextBlock Height="50" TextWrapping="Wrap" Text="サウンドID一覧" VerticalAlignment="Top" Width="224" Foreground="Aqua" FontSize="37" Margin="-675,75,0,0"/>

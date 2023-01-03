@@ -85,6 +85,8 @@
             <Button x:Name="Minus_B" Content="-5秒" Height="60" VerticalAlignment="Top" Width="200" Background="Transparent" Margin="-1130,800,0,0" Foreground="Aqua" BorderBrush="Aqua" FontSize="38" Focusable="False" Click="Minus_B_Click"/>
             <Button x:Name="Reload_B" Content="再取得" Height="45" VerticalAlignment="Top" Width="100" Background="Transparent" Margin="-575,690,0,0" Foreground="Aqua" BorderBrush="Aqua" FontSize="25" Focusable="False" Click="Reload_B_Click"/>
             <Button x:Name="Reload_Help_B" Content="?" Height="45" VerticalAlignment="Top" Width="45" Background="Transparent" Margin="-425,690,0,0" Foreground="Aqua" BorderBrush="Aqua" FontSize="25" Focusable="False" Click="Reload_Help_B_Click"/>
+            <TextBlock Height="50" TextWrapping="Wrap" Text="State:ズーム時の効果を有効" VerticalAlignment="Top" Width="450" Foreground="Aqua" FontSize="40" Margin="-2745,825,0,0"/>
+            <Image x:Name="Zoom_Mode_C" Height="30" VerticalAlignment="Top" Width="30" Margin="-3245,841,0,0" MouseDown="Zoom_Mode_C_MouseDown" MouseEnter="Zoom_Mode_C_MouseEnter" MouseLeave="Zoom_Mode_C_MouseLeave" Focusable="False"/>
         </DockPanel>
     </Viewbox>
 </UserControl>

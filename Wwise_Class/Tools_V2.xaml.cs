@@ -262,7 +262,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 Bass.BASS_ChannelStop(Stream);
                 Location_S.Value = 0;
                 Bass.BASS_StreamFree(Stream);
-                int StreamHandle = Bass.BASS_StreamCreateFile(Voice_Set.Special_Path + "/Wwise/Temp_02.wav", 0, 0, BASSFlag.BASS_SAMPLE_FLOAT | BASSFlag.BASS_STREAM_DECODE | BASSFlag.BASS_SAMPLE_LOOP);
+                int StreamHandle = Bass.BASS_StreamCreateFile(Voice_Set.Special_Path + "/Wwise/Temp_02.ogg", 0, 0, BASSFlag.BASS_SAMPLE_FLOAT | BASSFlag.BASS_STREAM_DECODE | BASSFlag.BASS_SAMPLE_LOOP);
                 Stream = BassFx.BASS_FX_TempoCreate(StreamHandle, BASSFlag.BASS_FX_FREESOURCE);
                 IsMusicEnd = new SYNCPROC(EndSync);
                 Bass.BASS_ChannelSetDevice(Stream, Video_Mode.Sound_Device);
@@ -687,7 +687,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 int Number1 = Sub_Code.r.Next(0, 10000);
                 StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Other/Replace_WEM_" + Number1 + ".bat");
                 stw.WriteLine("chcp 65001");
-                stw.Write("\"" + Voice_Set.Special_Path + "/Wwise/wwiseutil.exe\" -replace -f \"" + BNK_PCK_File + "\" -t " + Dir + " -o \"" + To_File_Path + "\"");
+                stw.Write("\"" + Voice_Set.Special_Path + "/Wwise/wwiseutil.exe\" -replace -f \"" + BNK_PCK_File + "\" -t \"" + Dir + "\" -o \"" + To_File_Path + "\"");
                 stw.Close();
                 ProcessStartInfo processStartInfo1 = new ProcessStartInfo
                 {

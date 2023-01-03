@@ -87,13 +87,10 @@
             <Slider x:Name="Location_S" Height="27" VerticalAlignment="Top"  Width="410" Margin="-1820,550,0,0" Style="{StaticResource CustomSliderStyle}" SmallChange="0" LargeChange="0" Maximum="0" ValueChanged="Location_S_ValueChanged"/>
             <Button x:Name="Start_B" Content="変換開始" Height="75" VerticalAlignment="Top" Width="300" Background="Transparent" Margin="-1500,825,0,0" Foreground="Aqua" BorderBrush="Aqua" FontSize="38" Click="Start_B_Click"/>
             <Button x:Name="Configs_B" Content="SE設定" Height="75" VerticalAlignment="Top" Width="300" Background="Transparent" Margin="-2125,825,0,0" Foreground="Aqua" BorderBrush="Aqua" FontSize="38" Click="Configs_B_Click"/>
-            <CheckBox x:Name="DVPL_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-2075,625,0,0" Click="DVPL_C_Click"/>
-            <TextBlock Height="50" TextWrapping="Wrap" Text="DVPL化" VerticalAlignment="Top" Width="125" Foreground="Aqua" FontSize="37" Margin="-1900,607,0,0"/>
-            <CheckBox x:Name="Install_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-2075,700,0,0" Click="Install_C_Click"/>
-            <TextBlock Height="50" TextWrapping="Wrap" Text="WoTBに適応" VerticalAlignment="Top" Width="200" Foreground="Aqua" FontSize="37" Margin="-1825,682,0,0"/>
-            <CheckBox x:Name="Volume_Set_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-2075,775,0,0" Click="Volume_Set_C_Click"/>
-            <TextBlock Height="50" TextWrapping="Wrap" Text="音量を調整" VerticalAlignment="Top" Width="200" Foreground="Aqua" FontSize="37" Margin="-1825,757,0,0"/>
-            <Button x:Name="Volume_Set_Help_B" Content="?" Height="50" VerticalAlignment="Top" Width="50" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="35" Margin="-1575,757,0,0" Click="Volume_Set_Help_B_Click"/>
+            <CheckBox x:Name="DVPL_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-2075,650,0,0" Click="DVPL_C_Click"/>
+            <TextBlock Height="50" TextWrapping="Wrap" Text="DVPL化" VerticalAlignment="Top" Width="125" Foreground="Aqua" FontSize="37" Margin="-1900,632,0,0"/>
+            <CheckBox x:Name="Install_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-2075,725,0,0" Click="Install_C_Click"/>
+            <TextBlock Height="50" TextWrapping="Wrap" Text="WoTBに適応" VerticalAlignment="Top" Width="200" Foreground="Aqua" FontSize="37" Margin="-1825,707,0,0"/>
             <Button x:Name="Help_B" Content="注意事項" Height="70" VerticalAlignment="Top" Width="275" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="35" Margin="-275,1010,0,0" Click="Help_B_Click"/>
             <CheckBox x:Name="PCK_Mode_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-2440,50,0,0" Click="PCK_Mode_C_Click"/>
             <TextBlock Height="50" TextWrapping="Wrap" Text="PCKファイルを含む" VerticalAlignment="Top" Width="266" Foreground="Aqua" FontSize="37" Margin="-2130,32,0,0"/>

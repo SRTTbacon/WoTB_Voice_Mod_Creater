@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using WoTB_Voice_Mod_Creater.Class;
 
@@ -180,7 +181,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                     Directory.CreateDirectory(To_Dir);
                 StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Wwise_Parse/BNK_Extract.bat");
                 stw.WriteLine("chcp 65001");
-                stw.Write(Voice_Set.Special_Path + "/Wwise_Parse/BNK_Extract.exe -a \"" + Selected_BNK_File + "\" -o \"" + To_Dir + "\" --oggs-only");
+                stw.Write("\"" + Voice_Set.Special_Path + "/Wwise_Parse/BNK_Extract.exe\" -a \"" + Selected_BNK_File + "\" -o \"" + To_Dir + "\" --oggs-only");
                 stw.Close();
                 ProcessStartInfo processStartInfo = new ProcessStartInfo
                 {
@@ -196,6 +197,20 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             catch
             {
                 return false;
+            }
+        }
+        public byte[] Wwise_Extract_To_WEM_Bytes(uint ShortID)
+        {
+            if (IsClear)
+                return null;
+            try
+            {
+                return LOL.GetFileData(ShortID);
+            }
+            catch (Exception e)
+            {
+                Sub_Code.Error_Log_Write(e.Message);
+                return null;
             }
         }
         //.bnkファイルから.wemファイルを抽出(1つのみ)
@@ -227,16 +242,11 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 return false;
             try
             {
-                int Index = -1;
-                for (int Number = 0; Number < WEML.Count; Number++)
-                    if (WEML[Number].ID == ShortID)
-                        Index = Number;
-                if (Index == -1)
-                    return false;
-                LoLSoundBankManager.WEMFile File_Index = WEML[Index];
-                using (FileStream ms = new FileStream(To_File, FileMode.Create))
+                byte[] Write_Bytes = LOL.GetFileData(ShortID);
+                if (Write_Bytes != null)
+                    using (FileStream ms = new FileStream(To_File, FileMode.Create))
                     using (BinaryWriter bw = new BinaryWriter(ms))
-                        bw.Write(LOL.GetFileData(File_Index.ID));
+                        bw.Write(Write_Bytes);
                 return true;
             }
             catch (Exception e)
@@ -363,6 +373,10 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 }
             }
         }
+        public bool Get_ShortID_Exist(uint ShortID)
+        {
+            return WEML.Select(h => h.ID).Contains(ShortID);
+        }
         //.wemファイルを.bnkファイルに書き込む
         //Save = trueをしない場合ファイルには書き込まれず、メモリに情報を保存するだけになります。
         public bool Bank_Edit_Sound(int Index, string From_File, bool Save)
@@ -372,6 +386,23 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             try
             {
                 LOL.EditAudioFile(WEML[Index].ID, File.ReadAllBytes(From_File));
+                if (Save)
+                    LOL.Save();
+                return true;
+            }
+            catch (Exception e)
+            {
+                Sub_Code.Error_Log_Write(e.Message);
+                return false;
+            }
+        }
+        public bool Bank_Edit_Sound(uint ShortID, byte[] WEM_Data, bool Save)
+        {
+            if (IsClear)
+                return false;
+            try
+            {
+                LOL.EditAudioFile(ShortID, WEM_Data);
                 if (Save)
                     LOL.Save();
                 return true;
@@ -411,6 +442,36 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             {
                 Sub_Code.Error_Log_Write(e.Message);
                 return false;
+            }
+        }
+        public void Wwise_BNK_Save(string To_File, string Set_Dir, bool IsOverWrite)
+        {
+            if (!Directory.Exists(Set_Dir) || !File.Exists(Selected_BNK_File) || IsClear)
+                return;
+            if (File.Exists(To_File) && !IsOverWrite)
+                return;
+            try
+            {
+                StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Wwise/Wwise_BNK_Repack.bat");
+                stw.WriteLine("chcp 65001");
+                if (Selected_BNK_File == To_File)
+                    stw.Write("\"" + Voice_Set.Special_Path + "/Wwise/wwiseutil.exe\" -f \"" + Selected_BNK_File + "\" -r -t \"" + Set_Dir + "\"");
+                else
+                    stw.Write("\"" + Voice_Set.Special_Path + "/Wwise/wwiseutil.exe\" -f \"" + Selected_BNK_File + "\" -o \"" + To_File + "\" -r -t \"" + Set_Dir + "\"");
+                stw.Close();
+                ProcessStartInfo processStartInfo = new ProcessStartInfo
+                {
+                    FileName = Voice_Set.Special_Path + "/Wwise/Wwise_BNK_Repack.bat",
+                    CreateNoWindow = true,
+                    UseShellExecute = false
+                };
+                Process p = Process.Start(processStartInfo);
+                p.WaitForExit();
+                File.Delete(Voice_Set.Special_Path + "/Wwise/Wwise_BNK_Repack.bat");
+            }
+            catch (Exception e)
+            {
+                Sub_Code.Error_Log_Write(e.Message);
             }
         }
         //初期化

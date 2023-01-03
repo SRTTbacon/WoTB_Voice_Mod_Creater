@@ -8,7 +8,7 @@
     <OutputType>WinExe</OutputType>
     <RootNamespace>WoTB_Voice_Mod_Creater</RootNamespace>
     <AssemblyName>WoTB_Voice_Mod_Creater</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <WarningLevel>4</WarningLevel>
@@ -136,7 +136,6 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.IO.Compression" />
-    <Reference Include="System.IO.Compression.FileSystem" />
     <Reference Include="System.Net.Http.WebRequest" />
     <Reference Include="System.Numerics" />
     <Reference Include="System.Web" />
@@ -174,26 +173,38 @@
     <Compile Include="Class\Music_Player_Setting.xaml.cs">
       <DependentUpon>Music_Player_Setting.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Class\Server_GetData.cs" />
     <Compile Include="Class\SE_Change.xaml.cs">
       <DependentUpon>SE_Change.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Class\SFTP_Client.cs" />
     <Compile Include="Class\Sound_Editor.xaml.cs">
       <DependentUpon>Sound_Editor.xaml</DependentUpon>
     </Compile>
     <Compile Include="Class\Sound_Editor_Setting.xaml.cs">
       <DependentUpon>Sound_Editor_Setting.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Class\TCP_Client.cs" />
     <Compile Include="Class\Texture_Editor\Texture_Core.cs" />
     <Compile Include="Class\Texture_Editor\Texture_Editor.xaml.cs">
       <DependentUpon>Texture_Editor.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Class\Vocal_Inst_Cut.xaml.cs">
-      <DependentUpon>Vocal_Inst_Cut.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Class\Vocal_Inst_Cut_User.xaml.cs">
       <DependentUpon>Vocal_Inst_Cut_User.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Class\Voice_Create_Event_Setting.xaml.cs">
+      <DependentUpon>Voice_Create_Event_Setting.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Class\Voice_Create_Setting.xaml.cs">
+      <DependentUpon>Voice_Create_Setting.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Class\WMS_Save.cs" />
+    <Compile Include="Class\WoT_Sound_Mod.xaml.cs">
+      <DependentUpon>WoT_Sound_Mod.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Class\WoT_Sound_Mod_Settings.xaml.cs">
+      <DependentUpon>WoT_Sound_Mod_Settings.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Class\WoWS_To_WoTB.xaml.cs">
+      <DependentUpon>WoWS_To_WoTB.xaml</DependentUpon>
     </Compile>
     <Compile Include="Class\WVS_Save.cs" />
     <Compile Include="FMOD_Class\fmod.cs" />
@@ -201,9 +212,6 @@
     <Compile Include="FMOD_Class\fmod_errors.cs" />
     <Compile Include="FMOD_Class\fmod_event.cs" />
     <Compile Include="FMOD_Class\fmod_memoryinfo.cs" />
-    <Compile Include="Multiplayer\Administrator_Control.xaml.cs">
-      <DependentUpon>Administrator_Control.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Class\DDS_Tool.xaml.cs">
       <DependentUpon>DDS_Tool.xaml</DependentUpon>
     </Compile>
@@ -211,15 +219,6 @@
     <Compile Include="Class\Encode.cs" />
     <Compile Include="Class\Multithread.cs" />
     <Compile Include="FMOD_Class\Fmod_File_Extract.cs" />
-    <Compile Include="Class\Load_Data.xaml.cs">
-      <DependentUpon>Load_Data.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Class\Message.xaml.cs">
-      <DependentUpon>Message.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Class\Mod_Uploads.xaml.cs">
-      <DependentUpon>Mod_Uploads.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Class\Other.xaml.cs">
       <DependentUpon>Other.xaml</DependentUpon>
     </Compile>
@@ -227,27 +226,15 @@
     <Compile Include="Class\Save_Configs.xaml.cs">
       <DependentUpon>Save_Configs.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Multiplayer\Server_Create.xaml.cs">
-      <DependentUpon>Server_Create.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Class\Tools.xaml.cs">
       <DependentUpon>Tools.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Multiplayer\Server_Voices_Sort.xaml.cs">
-      <DependentUpon>Server_Voices_Sort.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Multiplayer\Voice_Control.xaml.cs">
-      <DependentUpon>Voice_Control.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Multiplayer\Server_Select.xaml.cs">
-      <DependentUpon>Server_Select.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Multiplayer\Server_Voices.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="Version.cs" />
     <Compile Include="Wwise_Class\Bank_Editor.xaml.cs">
       <DependentUpon>Bank_Editor.xaml</DependentUpon>
     </Compile>
@@ -297,6 +284,7 @@
     <Compile Include="Wwise_Class\WEM_To_Ogg\Packet.cs" />
     <Compile Include="Wwise_Class\WEM_To_Ogg\Packet8.cs" />
     <Compile Include="Wwise_Class\WEM_To_Ogg\WEMFile.cs" />
+    <Compile Include="Wwise_Class\WoT_Create_XML.cs" />
     <Compile Include="Wwise_Class\WoT_To_Blitz.xaml.cs">
       <DependentUpon>WoT_To_Blitz.xaml</DependentUpon>
     </Compile>
@@ -337,31 +325,19 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Class\Vocal_Inst_Cut.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="Class\Vocal_Inst_Cut_User.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Multiplayer\Administrator_Control.xaml">
+    <Page Include="Class\Voice_Create_Event_Setting.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Class\Voice_Create_Setting.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Class\DDS_Tool.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Class\Load_Data.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Class\Message.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Class\Mod_Uploads.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -373,19 +349,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Multiplayer\Server_Create.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="Class\Tools.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Multiplayer\Server_Voices_Sort.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Multiplayer\Voice_Control_Sub.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -393,11 +357,19 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Class\Voice_Mod_Change.xaml">
+    <Page Include="Class\Voice_Mod_Distribution.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Class\Voice_Mod_Distribution.xaml">
+    <Page Include="Class\WoT_Sound_Mod.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Class\WoT_Sound_Mod_Settings.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Class\WoWS_To_WoTB.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -417,18 +389,9 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Class\Connecting.cs" />
-    <Compile Include="Class\NotConnect.cs" />
-    <Compile Include="Class\Server_File_Exchange.cs" />
     <Compile Include="Class\SubCode.cs" />
-    <Compile Include="Multiplayer\Voice_Control_Sub.xaml.cs">
-      <DependentUpon>Voice_Control_Sub.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Class\Voice_Create.xaml.cs">
       <DependentUpon>Voice_Create.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Class\Voice_Mod_Change.xaml.cs">
-      <DependentUpon>Voice_Mod_Change.xaml</DependentUpon>
     </Compile>
     <Compile Include="Class\Voice_Mod_Distribution.xaml.cs">
       <DependentUpon>Voice_Mod_Distribution.xaml</DependentUpon>
@@ -444,14 +407,6 @@
       <DependentUpon>MainCode.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Page Include="Multiplayer\Voice_Control.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Multiplayer\Server_Select.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="Wwise_Class\Bank_Editor.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -541,14 +496,17 @@
       <Version>2.0.0</Version>
     </PackageReference>
     <PackageReference Include="Costura.Fody">
-      <Version>4.1.0</Version>
+      <Version>5.7.0</Version>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Crc32.NET">
       <Version>1.2.0</Version>
     </PackageReference>
+    <PackageReference Include="DotNetZip">
+      <Version>1.16.0</Version>
+    </PackageReference>
     <PackageReference Include="Fody">
-      <Version>6.3.0</Version>
+      <Version>6.5.5</Version>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
@@ -590,9 +548,6 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="SSH.NET">
-      <Version>2020.0.1</Version>
-    </PackageReference>
     <PackageReference Include="System.Buffers">
       <Version>4.5.1</Version>
     </PackageReference>
@@ -620,8 +575,11 @@
     <PackageReference Include="System.ValueTuple">
       <Version>4.5.0</Version>
     </PackageReference>
+    <PackageReference Include="TagLibSharp">
+      <Version>2.3.0</Version>
+    </PackageReference>
     <PackageReference Include="YoutubeExplode">
-      <Version>6.0.7</Version>
+      <Version>6.2.5</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
@@ -639,16 +597,7 @@
       <Install>false</Install>
     </BootstrapperPackage>
   </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Resources\DdsFileTypePlusIO_x86.dll" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Resources\bassenc.dll" />
-  </ItemGroup>
   <ItemGroup />
-  <ItemGroup>
-    <EmbeddedResource Include="Resources\bassmix.dll" />
-  </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\Check_01.png" />
     <EmbeddedResource Include="Resources\Check_02.png" />

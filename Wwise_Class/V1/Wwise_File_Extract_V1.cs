@@ -114,6 +114,25 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 return false;
             }
         }
+        public byte[] Wwise_Extract_To_WEM_Bytes(uint ShortID)
+        {
+            if (!IsPCKSelected)
+                return null;
+            try
+            {
+                int Index = -1;
+                for (int Number = 0; Number < Sounds.Count; Number++)
+                    if (Sounds[Number].id == ShortID)
+                        Index = Number;
+                if (Index == -1)
+                    return null;
+                return Wwise.Get_WEM_Data(Index);
+            }
+            catch
+            {
+                return null;
+            }
+        }
         //.bnkファイルから.wemファイルを抽出(1つのみ)
         public bool Wwise_Extract_To_WEM_File(int Index, string To_File, bool IsOverWrite)
         {
@@ -151,6 +170,28 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             catch
             {
                 return false;
+            }
+        }
+        public string Wwise_Extract_To_WEM_File(uint ShortID, string To_Dir)
+        {
+            if (!Directory.Exists(To_Dir))
+                Directory.CreateDirectory(To_Dir);
+            if (!IsPCKSelected)
+                return "";
+            try
+            {
+                int Index = -1;
+                for (int Number = 0; Number < Sounds.Count; Number++)
+                    if (Sounds[Number].id == ShortID)
+                        Index = Number;
+                if (Index == -1)
+                    return "";
+                Wwise.ExtractFileIndex(Index, To_Dir + "\\" + Sounds[Index].id + ".wem");
+                return To_Dir + "\\" + Sounds[Index].id + ".wem";
+            }
+            catch
+            {
+                return "";
             }
         }
         //.pckファイルから.wemファイルを抽出し、oggに変換(1つのみ)

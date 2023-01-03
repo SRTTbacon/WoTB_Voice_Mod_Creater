@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -18,6 +19,9 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         const string Master_Audio_Bus_ID = "1514A4D8-1DA6-412A-A17E-75CA0C2149F3";
         const string Master_Audio_Bus_WorkID = "005C6247-5812-4D7E-86EA-2F3C50B5E166";
         public string Project_Dir { get; private set; }
+        List<string> Add_Voice_From = new List<string>();
+        List<string> Add_Voice_To = new List<string>();
+        List<string> Add_Voice_Type = new List<string>();
         List<string> Actor_Mixer_Hierarchy = new List<string>();
         List<string> Add_Wav_Files = new List<string>();
         List<string> Add_Other_Files = new List<string>();
@@ -51,15 +55,21 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             else
                 await Multithread.Convert_To_Wav(Add_All_Files, Add_Wav_Files, Add_All_Files_Time, false);
         }
+        public bool Add_Sound(string Container_ShortID, string Audio_File, string Language, double Probability)
+        {
+            return Add_Sound(Container_ShortID, Audio_File, Language, false, null, "", 0, false, true, false, Probability);
+        }
         //取得したデータから指定したイベントにサウンドを追加(Save()が呼ばれるまで保存しない)
-        public bool Add_Sound(string Container_ShortID, string Audio_File, string Language, bool IsSetShortIDMode = false, Music_Play_Time Time = null, string Effect = "", int Set_Volume = 0, bool IsDeleteCAkSound = false, bool IsUseHash = true, bool IsLoop = false)
+        public bool Add_Sound(string Container_ShortID, string Audio_File, string Language, bool IsSetShortIDMode = false, Music_Play_Time Time = null, string Effect = "", int Set_Volume = 0, bool IsDeleteCAkSound = false, bool IsUseHash = true, bool IsLoop = false, double Probability = 50, uint Set_ShortID = 0)
         {
             if (Project_Dir == "")
                 return false;
             try
             {
                 string FileName_Short_ID;
-                if (IsUseHash)
+                if (Set_ShortID != 0)
+                    FileName_Short_ID = Set_ShortID.ToString();
+                else if (IsUseHash)
                     FileName_Short_ID = WwiseHash.HashString(Audio_File + Container_ShortID).ToString();
                 else
                     FileName_Short_ID = Path.GetFileNameWithoutExtension(Audio_File);
@@ -142,20 +152,233 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                     More_Class.List_Add(Actor_Mixer_Hierarchy, "<ChildrenList>");
                     More_Class.List_Add(Actor_Mixer_Hierarchy, "</ChildrenList>");
                     if (IsSetShortIDMode)
-                        return List_Add_File(ReferenceListEnd_Line + 2, FileName_Short_ID + ".wav", Language, uint.Parse(FileName_Short_ID), Effect, Set_Volume, IsLoop);
-                    return List_Add_File(ReferenceListEnd_Line + 2, FileName_Short_ID + ".wav", Language, 0, Effect, Set_Volume, IsLoop);
+                        return List_Add_File(ReferenceListEnd_Line + 2, FileName_Short_ID + ".wav", Language, uint.Parse(FileName_Short_ID), Effect, Set_Volume, IsLoop, Probability);
+                    return List_Add_File(ReferenceListEnd_Line + 2, FileName_Short_ID + ".wav", Language, 0, Effect, Set_Volume, IsLoop, Probability);
                 }
                 else
                 {
                     if (IsSetShortIDMode)
-                        return List_Add_File(ChildrenList_Line + 1, FileName_Short_ID + ".wav", Language, uint.Parse(FileName_Short_ID), Effect, Set_Volume, IsLoop);
-                    return List_Add_File(ChildrenList_Line + 1, FileName_Short_ID + ".wav", Language, 0, Effect, Set_Volume, IsLoop);
+                        return List_Add_File(ChildrenList_Line + 1, FileName_Short_ID + ".wav", Language, uint.Parse(FileName_Short_ID), Effect, Set_Volume, IsLoop, Probability);
+                    return List_Add_File(ChildrenList_Line + 1, FileName_Short_ID + ".wav", Language, 0, Effect, Set_Volume, IsLoop, Probability);
                 }
             }
             catch
             {
                 return false;
             }
+        }
+        public bool Add_Sound(SE_Info_Parent Info, WVS_Load WVS_File)
+        {
+            Voice_Event_Setting Setting = new Voice_Event_Setting(0, Info.SE_ShortID);
+            Voice_Sound_Setting Sound = new Voice_Sound_Setting(Info.SE_Path);
+            Sound.Stream_Position = Info.Stream_Position;
+            Setting.Sounds.Add(Sound);
+            return Add_Sound(Setting, WVS_File, false, true, "Japanese");
+        }
+        //音声Mod作成の際の処理です。V1.5.0にて大幅な仕様変更があったためそれに合わせて関数を分けています。
+        public bool Add_Sound(Voice_Event_Setting Event_Setting, WVS_Load WVS_File, bool IsWoTToBlitzMode = false, bool IsIgnoreParent = false, string Language = "ja")
+        {
+            try
+            {
+                if (!IsIgnoreParent)
+                {
+                    int ShortID_Line = Get_Line_By_ShortID(Event_Setting.Event_ShortID);
+                    if (ShortID_Line == -1)
+                        return false;
+                    bool Temp2 = Delete_Property(Event_Setting.Event_ShortID);
+                    if (!Temp2)
+                    {
+                        More_Class.List_Init(ShortID_Line + 1);
+                        More_Class.List_Add(Actor_Mixer_Hierarchy, "<PropertyList>");
+                        More_Class.List_Add(Actor_Mixer_Hierarchy, "</PropertyList>");
+                    }
+                    int ProLine = 0;
+                    for (int Number = ShortID_Line; Number < Actor_Mixer_Hierarchy.Count; Number++)
+                    {
+                        if (Actor_Mixer_Hierarchy[Number].Contains("<PropertyList>"))
+                        {
+                            ProLine = Number;
+                            break;
+                        }
+                    }
+                    if (ProLine == 0)
+                        return false;
+                    More_Class.List_Init(ProLine + 1);
+                    Add_Event_Settings(Event_Setting);
+                }
+                int ChildrenList_Line = 0;
+                int ReferenceListEnd_Line = 0;
+                int Voice_ShortID_Line = Get_Line_By_ShortID(Event_Setting.Voice_ShortID);
+                if (Voice_ShortID_Line == -1)
+                    return false;
+                for (int Number = Voice_ShortID_Line; Number < Actor_Mixer_Hierarchy.Count; Number++)
+                {
+                    if (Actor_Mixer_Hierarchy[Number].Contains("<ChildrenList>"))
+                    {
+                        ChildrenList_Line = Number;
+                        break;
+                    }
+                    if (Actor_Mixer_Hierarchy[Number].Contains("</ReferenceList>"))
+                        ReferenceListEnd_Line = Number;
+                    if (Actor_Mixer_Hierarchy[Number].Contains("</RandomSequenceContainer>"))
+                        break;
+                }
+                if (ChildrenList_Line == 0 && ReferenceListEnd_Line == 0)
+                    return false;
+                int Start_Line = ChildrenList_Line + 1;
+                if (ChildrenList_Line == 0)
+                {
+                    More_Class.List_Init(ReferenceListEnd_Line + 1);
+                    More_Class.List_Add(Actor_Mixer_Hierarchy, "<ChildrenList>");
+                    More_Class.List_Add(Actor_Mixer_Hierarchy, "</ChildrenList>");
+                    Start_Line = ReferenceListEnd_Line + 2;
+                }
+                bool IsOK = true;
+                foreach (Voice_Sound_Setting Setting in Event_Setting.Sounds)
+                {
+                    string Random_ID = Get_Random_ShortID();
+                    if (Setting.File_Path.Contains("\\"))
+                    {
+                        Add_Voice_From.Add(Setting.File_Path.Replace("/", "\\"));
+                        Add_Voice_To.Add(Random_ID);
+                        Add_Voice_Type.Add("Voices\\" + Language);
+                    }
+                    else if (IsWoTToBlitzMode)
+                        File.Copy(Voice_Set.Special_Path + "\\Wwise\\No_Sound.wav", Project_Dir + "\\Originals\\Voices\\" + Language + "\\" + Setting.File_Path + ".wav", true);
+                    else
+                    {
+                        string Ex = Path.GetExtension(Setting.File_Path);
+                        File.WriteAllBytes(Project_Dir + "/Originals/Voices/" + Language + "/Temp_" + Random_ID + Ex, WVS_File.Load_Sound(Setting.Stream_Position));
+                        Add_Voice_From.Add(Project_Dir + "\\Originals\\Voices\\" + Language + "\\Temp_" + Random_ID + Ex);
+                        Add_Voice_To.Add(Random_ID);
+                        Add_Voice_Type.Add("Voices\\" + Language);
+                    }
+                    if (!IsWoTToBlitzMode)
+                        Add_Wav_Files.Add(Project_Dir + "\\Originals\\Voices\\" + Language + "\\" + Random_ID + ".wav");
+                    Setting.Delay += Event_Setting.Delay;
+                    bool Temp = IsWoTToBlitzMode ? List_Add_File(Start_Line, Setting.File_Path + ".wav", Language, uint.Parse(Setting.File_Path), "", 0, false, 50, Setting) : List_Add_File(Start_Line, Random_ID + ".wav", Language, 0, "", 0, false, 50, Setting);
+                    Setting.Delay -= Event_Setting.Delay;
+                    if (!Temp)
+                        IsOK = false;
+                }
+                return IsOK;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+        public bool Add_Sound(uint Container_ID, string SE_File, double Volume = 0, bool IsLoop = false)
+        {
+            int ChildrenList_Line = 0;
+            int ReferenceListEnd_Line = 0;
+            int Voice_ShortID_Line = Get_Line_By_ShortID(Container_ID);
+            if (Voice_ShortID_Line == -1)
+                return false;
+            for (int Number = Voice_ShortID_Line; Number < Actor_Mixer_Hierarchy.Count; Number++)
+            {
+                if (Actor_Mixer_Hierarchy[Number].Contains("<ChildrenList>"))
+                {
+                    ChildrenList_Line = Number;
+                    break;
+                }
+                if (Actor_Mixer_Hierarchy[Number].Contains("</ReferenceList>"))
+                    ReferenceListEnd_Line = Number;
+                if (Actor_Mixer_Hierarchy[Number].Contains("</RandomSequenceContainer>"))
+                    break;
+            }
+            if (ChildrenList_Line == 0 && ReferenceListEnd_Line == 0)
+                return false;
+            int Start_Line = ChildrenList_Line + 1;
+            if (ChildrenList_Line == 0)
+            {
+                More_Class.List_Init(ReferenceListEnd_Line + 1);
+                More_Class.List_Add(Actor_Mixer_Hierarchy, "<ChildrenList>");
+                More_Class.List_Add(Actor_Mixer_Hierarchy, "</ChildrenList>");
+                Start_Line = ReferenceListEnd_Line + 2;
+            }
+            string Random_ID = Get_Random_ShortID();
+            Add_Voice_From.Add(SE_File.Replace("/", "\\"));
+            Add_Voice_To.Add(Random_ID);
+            Add_Voice_Type.Add("SFX");
+            Add_Wav_Files.Add(Project_Dir + "\\Originals\\SFX\\" + Random_ID + ".wav");
+            return List_Add_File(Start_Line, Random_ID + ".wav", "SFX", 0, "", Volume, IsLoop, 50);
+        }
+        //ランダムな数字を生成(天文学的確率ですが、仮に数字が被った場合は再度生成)
+        private string Get_Random_ShortID()
+        {
+            string Random_ID = More_Class.CreateShortID();
+            if (Add_Voice_To.Contains(Random_ID))
+                return Get_Random_ShortID();
+            return Random_ID;
+        }
+        private int Get_Line_By_ShortID(uint ShortID)
+        {
+            return Get_Line_By_ShortID(ShortID.ToString());
+        }
+        //指定したShortIDが存在する行を取得
+        private int Get_Line_By_ShortID(string ShortID)
+        {
+            int ShortID_Line = 0;
+            for (int Number = 0; Number < Actor_Mixer_Hierarchy.Count; Number++)
+            {
+                if (Actor_Mixer_Hierarchy[Number].Contains("ShortID=\"" + ShortID + "\""))
+                {
+                    ShortID_Line = Number;
+                    break;
+                }
+            }
+            if (ShortID_Line == 0)
+                return -1;
+            return ShortID_Line;
+        }
+        //指定したShortIDのコンテナ内のプロパティをすべて削除
+        private bool Delete_Property(uint ShortID)
+        {
+            int ShortID_Line = 0;
+            for (int Number = 0; Number < Actor_Mixer_Hierarchy.Count; Number++)
+            {
+                if (Actor_Mixer_Hierarchy[Number].Contains("ShortID=\"" + ShortID + "\""))
+                {
+                    ShortID_Line = Number;
+                    break;
+                }
+            }
+            if (ShortID_Line == 0)
+                return false;
+            bool IsExistPropertyList = false;
+            bool IsKeepedProperty = false;
+            int Index = -1;
+            for (int Number = ShortID_Line + 1; Number < Actor_Mixer_Hierarchy.Count; Number++)
+            {
+                if (Actor_Mixer_Hierarchy[Number].Contains("<ChildrenList>") || Actor_Mixer_Hierarchy[Number].Contains("<ReferenceList>"))
+                    break;
+                if (Actor_Mixer_Hierarchy[Number].Contains("</PropertyList>"))
+                {
+                    /*if (IsDeletePropertyList)
+                        Actor_Mixer_Hierarchy.RemoveAt(Number);*/
+                    break;
+                }
+                if (Actor_Mixer_Hierarchy[Number].Contains("<PropertyList>"))
+                {
+                    IsExistPropertyList = true;
+                    IsKeepedProperty = true;
+                    Index = Number;
+                }
+                else if (Actor_Mixer_Hierarchy[Number].Contains("NormalOrShuffle") || Actor_Mixer_Hierarchy[Number].Contains("OverrideOutput"))
+                    IsKeepedProperty = true;
+                else if (IsExistPropertyList)
+                {
+                    Actor_Mixer_Hierarchy.RemoveAt(Number);
+                    Number--;
+                }
+            }
+            /*if (!IsDeletePropertyList)
+            {
+                More_Class.List_Init(Index);
+                More_Class.List_Add(Actor_Mixer_Hierarchy, "<PropertyList>");
+            }*/
+            return IsKeepedProperty;
         }
         //追加したサウンドをファイルに保存する
         public bool Save()
@@ -174,7 +397,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             }
         }
         //保存されたデータをもとに.bnkファイルをビルド(内容によって時間がかかります)
-        public void Project_Build(string BankName, string OutputFilePath, string GeneratedSoundBanksPath = null, bool IsUseCache = false)
+        public void Project_Build(string BankName, string OutputFilePath, string GeneratedSoundBanksPath = null, bool IsUseCache = false, string Language = "ja")
         {
             if (Project_Dir == "" || !Directory.Exists(Path.GetDirectoryName(OutputFilePath)))
                 return;
@@ -188,9 +411,9 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 Sub_Code.Wwise_Repair_Project(Project_Dir);
                 StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Wwise/Project_Build.bat");
                 stw.WriteLine("chcp 65001");
-                stw.Write("\"" + Voice_Set.Special_Path + "/Wwise/x64/Release/bin/WwiseCLI.exe\" \"" + Project_File + "\" -GenerateSoundBanks -Language ja -Platform Windows ");
+                stw.Write("\"" + Voice_Set.Special_Path + "/Wwise/x64/Release/bin/WwiseCLI.exe\" \"" + Project_File + "\" -GenerateSoundBanks -Language " + Language + " -Platform Windows ");
                 if (IsUseCache)
-                    stw.Write("-Bank " + BankName);
+                    stw.Write("-Bank " + BankName + " --no-wwise-dat");
                 else
                     stw.Write("-Bank " + BankName + " -ClearAudioFileCache");
                 stw.Close();
@@ -298,7 +521,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         }
         //以下の文字を指定した行に追加
         //GUIDやSourceIDはどんな数でも問題ないっぽいのでランダムに作成させる
-        bool List_Add_File(int Line_Number, string FileName, string Language, uint Set_Media_ID = 0, string Effect = "", int Set_Volume = 0, bool IsLoop = false)
+        bool List_Add_File(int Line_Number, string FileName, string Language, uint Set_Media_ID = 0, string Effect = "", double Set_Volume = 0, bool IsLoop = false, double Probability = 50, Voice_Sound_Setting Setting = null)
         {
             try
             {
@@ -323,14 +546,27 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                     More_Class.List_Add(Actor_Mixer_Hierarchy, "<Property Name=\"IsLoopingEnabled\" Type=\"bool\" Value=\"True\"/>");
                 if (Language != "SFX")
                     More_Class.List_Add(Actor_Mixer_Hierarchy, "<Property Name=\"IsVoice\" Type=\"bool\" Value=\"True\"/>");
-                if (Set_Volume != 0)
+                if (Setting == null)
                 {
-                    More_Class.List_Add(Actor_Mixer_Hierarchy, "<Property Name=\"Volume\" Type=\"Real64\">");
-                    More_Class.List_Add(Actor_Mixer_Hierarchy, "<ValueList>");
-                    More_Class.List_Add(Actor_Mixer_Hierarchy, "<Value>" + Set_Volume + "</Value>");
-                    More_Class.List_Add(Actor_Mixer_Hierarchy, "</ValueList>");
-                    More_Class.List_Add(Actor_Mixer_Hierarchy, "</Property>");
+                    if (Probability != 50)
+                    {
+                        More_Class.List_Add(Actor_Mixer_Hierarchy, "<Property Name=\"Weight\" Type=\"Real64\">\"");
+                        More_Class.List_Add(Actor_Mixer_Hierarchy, "<ValueList>");
+                        More_Class.List_Add(Actor_Mixer_Hierarchy, "<Value>" + Probability + "</Value>");
+                        More_Class.List_Add(Actor_Mixer_Hierarchy, "</ValueList>");
+                        More_Class.List_Add(Actor_Mixer_Hierarchy, "</Property>");
+                    }
+                    if (Set_Volume != 0)
+                    {
+                        More_Class.List_Add(Actor_Mixer_Hierarchy, "<Property Name=\"Volume\" Type=\"Real64\">");
+                        More_Class.List_Add(Actor_Mixer_Hierarchy, "<ValueList>");
+                        More_Class.List_Add(Actor_Mixer_Hierarchy, "<Value>" + Set_Volume + "</Value>");
+                        More_Class.List_Add(Actor_Mixer_Hierarchy, "</ValueList>");
+                        More_Class.List_Add(Actor_Mixer_Hierarchy, "</Property>");
+                    }
                 }
+                else
+                    Add_Sound_Settings(Setting);
                 More_Class.List_Add(Actor_Mixer_Hierarchy, "</PropertyList>");
                 More_Class.List_Add(Actor_Mixer_Hierarchy, "<ReferenceList>");
                 More_Class.List_Add(Actor_Mixer_Hierarchy, "<Reference Name=\"Conversion\">");
@@ -342,10 +578,33 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 More_Class.List_Add(Actor_Mixer_Hierarchy, "</ReferenceList>");
                 More_Class.List_Add(Actor_Mixer_Hierarchy, "<ChildrenList>");
                 More_Class.List_Add(Actor_Mixer_Hierarchy, "<AudioFileSource Name=\"" + Replace_Name + "\" ID=\"{" + AudioFileSource_GUID + "}\">");
-                if (Effect != "")
+                if (Effect != "" || Setting != null)
                 {
                     More_Class.List_Add(Actor_Mixer_Hierarchy, "<PropertyList>");
-                    if (Effect == "Feed_In")
+                    if (Setting != null)
+                    {
+                        if (Setting.Play_Time.Max_Time != 0)
+                        {
+                            double Play_Time;
+                            if (Setting.Play_Time.Start_Time != 0)
+                                More_Class.List_Add(Actor_Mixer_Hierarchy, "<Property Name=\"TrimBegin\" Type=\"Real64\" Value=\"" + Setting.Play_Time.Start_Time + "\"/>");
+                            if (Setting.Play_Time.End_Time != 0)
+                            {
+                                More_Class.List_Add(Actor_Mixer_Hierarchy, "<Property Name=\"TrimEnd\" Type=\"Real64\" Value=\"" + Setting.Play_Time.End_Time + "\"/>");
+                                Play_Time = Setting.Play_Time.End_Time - Setting.Play_Time.Start_Time;
+                            }
+                            else
+                                Play_Time = Setting.Play_Time.Max_Time - Setting.Play_Time.Start_Time;
+                            if (Play_Time > 0.5)
+                            {
+                                if (Setting.IsFadeIn)
+                                    More_Class.List_Add(Actor_Mixer_Hierarchy, "<Property Name=\"FadeInDuration\" Type=\"Real64\" Value=\"0.5\"/>");
+                                if (Setting.IsFadeOut)
+                                    More_Class.List_Add(Actor_Mixer_Hierarchy, "<Property Name=\"FadeOutDuration\" Type=\"Real64\" Value=\"0.5\"/>");
+                            }
+                        }
+                    }
+                    else if (Effect == "Feed_In")
                     {
                         More_Class.List_Add(Actor_Mixer_Hierarchy, "<Property Name=\"FadeInDuration\" Type=\"Real64\" Value=\"1.5\"/>");
                         More_Class.List_Add(Actor_Mixer_Hierarchy, "<Property Name=\"FadeOutDuration\" Type=\"Real64\" Value=\"1.5\"/>");
@@ -371,6 +630,122 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 return false;
             }
         }
+        //イベントの親コンテナの設定を反映
+        private void Add_Event_Settings(Voice_Event_Setting Setting)
+        {
+            More_Class.List_Add(Actor_Mixer_Hierarchy, "<Property Name=\"Highpass\" Type=\"int16\">");
+            if (Setting.IsHPFRange)
+                Add_Effect_Text(Setting.HPF_Range.Start, Setting.HPF_Range.End);
+            else
+                Add_Effect_Text(Setting.High_Pass_Filter);
+            More_Class.List_Add(Actor_Mixer_Hierarchy, "</Property>");
+            if (Setting.Limit_Sound_Instance != 50 || Setting.When_Limit_Reached != 0 || Setting.When_Priority_Equal != 0)
+                More_Class.List_Add(Actor_Mixer_Hierarchy, "<Property Name=\"IgnoreParentMaxSoundInstance\" Type=\"bool\" Value=\"True\"/>");
+            More_Class.List_Add(Actor_Mixer_Hierarchy, "<Property Name=\"Lowpass\" Type=\"int16\">");
+            if (Setting.IsLPFRange)
+                Add_Effect_Text(Setting.LPF_Range.Start, Setting.LPF_Range.End);
+            else
+                Add_Effect_Text(Setting.Low_Pass_Filter);
+            More_Class.List_Add(Actor_Mixer_Hierarchy, "</Property>");
+            if (Setting.When_Priority_Equal != 0)
+                More_Class.List_Add(Actor_Mixer_Hierarchy, "<Property Name=\"MaxReachedBehavior\" Type=\"int16\" Value=\"" + Setting.When_Priority_Equal + "\"/>");
+            if (Setting.Limit_Sound_Instance != 50)
+            {
+                More_Class.List_Add(Actor_Mixer_Hierarchy, "<Property Name=\"MaxSoundPerInstance\" Type=\"int16\">");
+                Add_Effect_Text(Setting.Limit_Sound_Instance);
+                More_Class.List_Add(Actor_Mixer_Hierarchy, "</Property>");
+            }
+            if (Setting.When_Limit_Reached != 0)
+                More_Class.List_Add(Actor_Mixer_Hierarchy, "<Property Name=\"OverLimitBehavior\" Type=\"int16\" Value=\"" + Setting.When_Limit_Reached + "\"/>");
+            More_Class.List_Add(Actor_Mixer_Hierarchy, "<Property Name=\"Pitch\" Type=\"int32\">");
+            if (Setting.IsPitchRange)
+                Add_Effect_Text(Setting.Pitch_Range.Start, Setting.Pitch_Range.End);
+            else
+                Add_Effect_Text(Setting.Pitch);
+            More_Class.List_Add(Actor_Mixer_Hierarchy, "</Property>");
+            if (Setting.Limit_Sound_Instance != 50 || Setting.When_Limit_Reached != 0 || Setting.When_Priority_Equal != 0)
+            {
+                More_Class.List_Add(Actor_Mixer_Hierarchy, "<Property Name=\"UseMaxSoundPerInstance\" Type=\"bool\">");
+                Add_Effect_Text(true);
+                More_Class.List_Add(Actor_Mixer_Hierarchy, "</Property>");
+            }
+            More_Class.List_Add(Actor_Mixer_Hierarchy, "<Property Name=\"Volume\" Type=\"Real64\">");
+            if (Setting.IsVolumeRange)
+                Add_Effect_Text(Setting.Volume_Range.Start, Setting.Volume_Range.End);
+            else
+                Add_Effect_Text(Setting.Volume);
+            More_Class.List_Add(Actor_Mixer_Hierarchy, "</Property>");
+        }
+        //イベントの音声コンテナの設定を反映
+        private void Add_Sound_Settings(Voice_Sound_Setting Setting)
+        {
+            More_Class.List_Add(Actor_Mixer_Hierarchy, "<Property Name=\"Highpass\" Type=\"int16\">");
+            if (Setting.IsHPFRange)
+                Add_Effect_Text(Setting.HPF_Range.Start, Setting.HPF_Range.End);
+            else
+                Add_Effect_Text(Setting.High_Pass_Filter);
+            More_Class.List_Add(Actor_Mixer_Hierarchy, "</Property>");
+            if (Setting.Delay > 0)
+            {
+                More_Class.List_Add(Actor_Mixer_Hierarchy, "<Property Name=\"InitialDelay\" Type=\"Real64\">");
+                Add_Effect_Text(Setting.Delay);
+                More_Class.List_Add(Actor_Mixer_Hierarchy, "</Property>");
+            }
+            More_Class.List_Add(Actor_Mixer_Hierarchy, "<Property Name=\"Lowpass\" Type=\"int16\">");
+            if (Setting.IsLPFRange)
+                Add_Effect_Text(Setting.LPF_Range.Start, Setting.LPF_Range.End);
+            else
+                Add_Effect_Text(Setting.Low_Pass_Filter);
+            More_Class.List_Add(Actor_Mixer_Hierarchy, "</Property>");
+            More_Class.List_Add(Actor_Mixer_Hierarchy, "<Property Name=\"Pitch\" Type=\"int32\">");
+            if (Setting.IsPitchRange)
+                Add_Effect_Text(Setting.Pitch_Range.Start, Setting.Pitch_Range.End);
+            else
+                Add_Effect_Text(Setting.Pitch);
+            More_Class.List_Add(Actor_Mixer_Hierarchy, "</Property>");
+            More_Class.List_Add(Actor_Mixer_Hierarchy, "<Property Name=\"Volume\" Type=\"Real64\">");
+            if (Setting.IsVolumeRange)
+                Add_Effect_Text(Setting.Volume_Range.Start, Setting.Volume_Range.End);
+            else
+                Add_Effect_Text(Setting.Volume);
+            More_Class.List_Add(Actor_Mixer_Hierarchy, "</Property>");
+            if (Setting.Probability != 50)
+            {
+                More_Class.List_Add(Actor_Mixer_Hierarchy, "<Property Name=\"Weight\" Type=\"Real64\">");
+                Add_Effect_Text(Setting.Probability);
+                More_Class.List_Add(Actor_Mixer_Hierarchy, "</Property>");
+            }
+        }
+        //上2つの関数のお手伝い
+        private void Add_Effect_Text(double Min, double Max)
+        {
+            More_Class.List_Add(Actor_Mixer_Hierarchy, "<ModifierList>");
+            More_Class.List_Add(Actor_Mixer_Hierarchy, "<ModifierInfo>");
+            More_Class.List_Add(Actor_Mixer_Hierarchy, "<Modifier Name=\"\" ID=\"{" + Guid.NewGuid().ToString().ToUpper() + "}\">");
+            More_Class.List_Add(Actor_Mixer_Hierarchy, "<PropertyList>");
+            More_Class.List_Add(Actor_Mixer_Hierarchy, "<Property Name=\"Enabled\" Type=\"bool\" Value=\"True\"/>");
+            More_Class.List_Add(Actor_Mixer_Hierarchy, "<Property Name=\"Max\" Type=\"Real64\" Value=\"" + Max + "\"/>");
+            More_Class.List_Add(Actor_Mixer_Hierarchy, "<Property Name=\"Min\" Type=\"Real64\" Value=\"" + Min + "\"/>");
+            More_Class.List_Add(Actor_Mixer_Hierarchy, "</PropertyList>");
+            More_Class.List_Add(Actor_Mixer_Hierarchy, "</Modifier>");
+            More_Class.List_Add(Actor_Mixer_Hierarchy, "</ModifierInfo>");
+            More_Class.List_Add(Actor_Mixer_Hierarchy, "</ModifierList>");
+        }
+        //同上
+        private void Add_Effect_Text(double Value)
+        {
+            Add_Effect_Text(Value.ToString());
+        }
+        private void Add_Effect_Text(bool Value)
+        {
+            Add_Effect_Text(Value.ToString());
+        }
+        private void Add_Effect_Text(string Value)
+        {
+            More_Class.List_Add(Actor_Mixer_Hierarchy, "<ValueList>");
+            More_Class.List_Add(Actor_Mixer_Hierarchy, "<Value>" + Value + "</Value>");
+            More_Class.List_Add(Actor_Mixer_Hierarchy, "</ValueList>");
+        }
         //プロジェクトに戦闘BGMを追加
         public void Sound_Music_Add_Wwise(string Dir_Name)
         {
@@ -391,6 +766,10 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             }
         }
         //指定したShortIDのコンテナ内のサウンド(CAkSound)を削除
+        public void Delete_CAkSounds(uint Container_ShortID)
+        {
+            Delete_CAkSounds(Container_ShortID.ToString());
+        }
         public void Delete_CAkSounds(string Container_ShortID)
         {
             int ShortID_Line = 0;
@@ -406,8 +785,6 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 return;
             for (int Number = ShortID_Line; Number < Actor_Mixer_Hierarchy.Count; Number++)
             {
-                if (Actor_Mixer_Hierarchy.Count - 1 <= Number)
-                    break;
                 if (Actor_Mixer_Hierarchy[Number].Contains("<Sound Name=\""))
                 {
                     bool IsEnd = false;
@@ -422,6 +799,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                             break;
                         }
                     }
+                    Number = ShortID_Line;
                 }
                 if (Actor_Mixer_Hierarchy[Number].Contains("</RandomSequenceContainer>"))
                     break;
@@ -533,54 +911,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                     Add_Sound("192152217", Music_File, "ja", true, null, "", 0, true);
             }
             else if (Page == 2)
-            {
-                if (Music_Index == 0)
-                    Add_Sound("555986239", Music_File, "SFX", true, null, "", 0, true);
-                else if (Music_Index == 1)
-                    Add_Sound("619554811", Music_File, "SFX", true, null, "", 0, true);
-                else if (Music_Index == 2)
-                    Add_Sound("829566014", Music_File, "SFX", true, null, "", 0, true);
-                else if (Music_Index == 3)
-                    Add_Sound("241860450", Music_File, "SFX", true, null, "", 0, true);
-                else if (Music_Index == 4)
-                    Add_Sound("965905418", Music_File, "SFX", true, null, "", 0, true);
-                else if (Music_Index == 5)
-                    Add_Sound("653928250", Music_File, "SFX", true, null, "", 0, true);
-                else if (Music_Index == 6)
-                    Add_Sound("804829376", Music_File, "SFX", true, null, "", 0, true);
-                else if (Music_Index == 7)
-                    Add_Sound("154294053", Music_File, "SFX", true, null, "", 0, true);
-                else if (Music_Index == 8)
-                    Add_Sound("16495624", Music_File, "SFX", true, null, "", 0, true);
-                else if (Music_Index == 9)
-                    Add_Sound("775116295", Music_File, "SFX", true, null, "", 0, true);
-                else if (Music_Index == 10)
-                    Add_Sound("967718012", Music_File, "SFX", true, null, "", 0, true);
-                else if (Music_Index == 11)
-                    Add_Sound("468718711", Music_File, "SFX", true, null, "", 0, true);
-                else if (Music_Index == 12)
-                    Add_Sound("180566240", Music_File, "SFX", true, null, "", 0, true);
-                else if (Music_Index == 13)
-                    Add_Sound("654889295", Music_File, "SFX", true, null, "", 0, true);
-                else if (Music_Index == 14)
-                    Add_Sound("331635238", Music_File, "SFX", true, null, "", 0, true);
-                else if (Music_Index == 15)
-                    Add_Sound("318614965", Music_File, "SFX", true, null, "", 0, true);
-                else if (Music_Index == 16)
-                    Add_Sound("635980657", Music_File, "SFX", true, null, "", 0, true);
-                else if (Music_Index == 17)
-                    Add_Sound("235998534", Music_File, "SFX", true, null, "", 0, true);
-                else if (Music_Index == 18)
-                    Add_Sound("580241268", Music_File, "SFX", true, null, "", 0, true);
-                else if (Music_Index == 19)
-                    Add_Sound("787886846", Music_File, "SFX", true, null, "", 0, true);
-                else if (Music_Index == 20)
-                    Add_Sound("872967597", Music_File, "SFX", true, null, "", 0, true);
-                else if (Music_Index == 21)
-                    Add_Sound("641527237", Music_File, "SFX", true, null, "", 0, true);
-                else if (Music_Index == 22)
-                    Add_Sound("75387743", Music_File, "SFX", true, null, "", 0, true);
-            }
+                Add_Sound(Sub_Code.Get_WoTB_New_Gun_Sound_ShortID(Music_Index).ToString(), Music_File, "SFX", true, null, "", 0, true);
             else if (Page == 3)
             {
                 if (Music_Index == 0)
@@ -910,6 +1241,125 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 }
             }
         }
+        public void Sound_Add_Wwise(List<List<Voice_Event_Setting>> Event_Settings, WVS_Load WVS_File, List<string> SE_Preset, List<Dictionary<uint, string>> Default_SE)
+        {
+            foreach (List<Voice_Event_Setting> Settings in Event_Settings)
+            {
+                foreach (Voice_Event_Setting Setting in Settings)
+                {
+                    Add_Sound(Setting, WVS_File);
+                    if (Setting.SE_Index != -1)
+                    {
+                        if (Voice_Set.SE_Enable_Disable[Setting.SE_Index - 1])
+                        {
+                            string Temp = SE_Preset[Setting.SE_Index];
+                            foreach (string File_Now in Temp.Split('|'))
+                                if (File.Exists(File_Now))
+                                    Add_Sound(Setting.SE_ShortID, File_Now, Setting.SE_Volume);
+                        }
+                        else
+                        {
+                            foreach (uint ShortID in Default_SE[Setting.SE_Index - 1].Keys)
+                            {
+                                string Temp = Default_SE[Setting.SE_Index - 1][ShortID];
+                                foreach (string File_Now in Temp.Split('|'))
+                                    if (File.Exists(File_Now))
+                                        Add_Sound(ShortID, File_Now);
+                            }
+                        }
+                    }
+                }
+            }
+            SE_Add_Wwise(SE_Preset, Default_SE);
+        }
+        public void Sound_Add_Wwise(List<Dictionary<string, Voice_Event_Setting>> Event_Settings, Dictionary<string, List<SE_Info_Parent>> SE_Info, WVS_Load WVS_File)
+        {
+            foreach (Dictionary<string, Voice_Event_Setting> Settings in Event_Settings)
+                foreach (string Key_Name in Settings.Keys)
+                    Add_Sound(Settings[Key_Name], WVS_File, false, true, "Japanese");
+            foreach (string Key_Name in SE_Info.Keys)
+                foreach (SE_Info_Parent Parent in SE_Info[Key_Name])
+                    Add_Sound(Parent, WVS_File);
+        }
+        public void Sound_Add_Wwise(List<Voice_Event_Setting> Event_Settings, List<string> SE_Preset, List<Dictionary<uint, string>> Default_SE)
+        {
+            foreach (Voice_Event_Setting Settings in Event_Settings)
+            {
+                Add_Sound(Settings, null, true);
+                if (Settings.SE_Index != -1)
+                {
+                    if (Voice_Set.SE_Enable_Disable[Settings.SE_Index - 1])
+                    {
+                        string Temp = SE_Preset[Settings.SE_Index];
+                        foreach (string File_Now in Temp.Split('|'))
+                            if (File.Exists(File_Now))
+                                Add_Sound(Settings.SE_ShortID, File_Now, Settings.SE_Volume);
+                    }
+                    else
+                    {
+                        foreach (uint ShortID in Default_SE[Settings.SE_Index - 1].Keys)
+                        {
+                            string Temp = Default_SE[Settings.SE_Index - 1][ShortID];
+                            foreach (string File_Now in Temp.Split('|'))
+                                if (File.Exists(File_Now))
+                                    Add_Sound(ShortID, File_Now);
+                        }
+                    }
+                }
+            }
+            SE_Add_Wwise(SE_Preset, Default_SE);
+        }
+        private void SE_Add_Wwise(List<string> SE_Preset, List<Dictionary<uint, string>> Default_SE)
+        {
+            Delete_CAkSounds("816581364");
+            Delete_CAkSounds("921545948");
+            if (Voice_Set.SE_Enable_Disable[13])
+            {
+                string Temp = SE_Preset[14];
+                foreach (string File_Now in Temp.Split('|'))
+                    if (File.Exists(File_Now))
+                        Add_Sound(816581364, File_Now, 0, true);
+            }
+            else
+            {
+                string Temp = Default_SE[13][816581364];
+                foreach (string File_Now in Temp.Split('|'))
+                    if (File.Exists(File_Now))
+                        Add_Sound(816581364, File_Now, 0, true);
+            }
+            if (Voice_Set.SE_Enable_Disable[16])
+            {
+                string Temp = SE_Preset[17];
+                foreach (string File_Now in Temp.Split('|'))
+                    if (File.Exists(File_Now))
+                        Add_Sound(921545948, File_Now, 0);
+            }
+            else
+            {
+                string Temp = Default_SE[16][921545948];
+                foreach (string File_Now in Temp.Split('|'))
+                    if (File.Exists(File_Now))
+                        Add_Sound(921545948, File_Now, 0);
+            }
+        }
+        public async Task Encode_WAV()
+        {
+            List<string> To_Files = new List<string>();
+            for (int Number = 0; Number < Add_Voice_From.Count; Number++)
+                To_Files.Add(Project_Dir + "\\Originals\\" + Add_Voice_Type[Number] + "\\" + Add_Voice_To[Number] + ".wav");
+            await Multithread.Convert_To_Wav(Add_Voice_From.ToArray(), To_Files.ToArray(), false, true);
+            for (int Number = 0; Number < Add_Voice_From.Count; Number++)
+                if (Add_Voice_From[Number].Contains(Project_Dir + "\\Originals\\" + Add_Voice_Type[Number] + "\\"))
+                    File.Delete(Add_Voice_From[Number]);
+        }
+        public void Set_Volume()
+        {
+            List<string> To_Files = new List<string>();
+            for (int Number = 0; Number < Add_Voice_From.Count; Number++)
+                if (Add_Voice_Type[Number] != "SFX")
+                    To_Files.Add(Project_Dir + "\\Originals\\" + Add_Voice_Type[Number] + "\\" + Add_Voice_To[Number] + ".wav");
+            Sub_Code.Volume_Set(To_Files.ToArray(), Encode_Mode.WAV);
+        }
         //イベント内の指定したShortIDの項目を無効にする
         //階層が存在する場合はフォルダの指定もする必要あり
         public void Event_Not_Include(string Event_Name, uint ShortID)
@@ -956,6 +1406,43 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             {
                 string To_File = Path.GetDirectoryName(Name_Now) + "\\" + Path.GetFileNameWithoutExtension(Name_Now);
                 Sub_Code.File_Move(Name_Now, To_File, true);
+            }
+        }
+        //CAkSoundをすべて削除する
+        public void Clear_All_Sounds(List<List<Voice_Event_Setting>> Sound_Settings)
+        {
+            foreach (List<Voice_Event_Setting> Settings in Sound_Settings)
+            {
+                foreach (Voice_Event_Setting Setting in Settings)
+                {
+                    if (Setting.SE_ShortID != 0)
+                        Delete_CAkSounds(Setting.SE_ShortID);
+                    Delete_CAkSounds(Setting.Voice_ShortID);
+                }
+            }
+        }
+        public void Clear_All_Sounds(List<Dictionary<string, Voice_Event_Setting>> Sound_Settings, Dictionary<string, List<SE_Info_Parent>> SE_Info)
+        {
+            foreach (Dictionary<string, Voice_Event_Setting> Settings in Sound_Settings)
+            {
+                foreach (string Key_Name in Settings.Keys)
+                {
+                    if (Settings[Key_Name].SE_ShortID != 0)
+                        Delete_CAkSounds(Settings[Key_Name].SE_ShortID);
+                    Delete_CAkSounds(Settings[Key_Name].Voice_ShortID);
+                }
+            }
+            foreach (string Key_Name in SE_Info.Keys)
+                foreach (SE_Info_Parent Parent in SE_Info[Key_Name])
+                    Delete_CAkSounds(Parent.SE_ShortID);
+        }
+        public void Clear_All_Sounds(List<Voice_Event_Setting> Sound_Settings)
+        {
+            foreach (Voice_Event_Setting Setting in Sound_Settings)
+            {
+                if (Setting.SE_ShortID != 0)
+                    Delete_CAkSounds(Setting.SE_ShortID);
+                Delete_CAkSounds(Setting.Voice_ShortID);
             }
         }
     }

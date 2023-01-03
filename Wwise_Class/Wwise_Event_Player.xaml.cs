@@ -23,6 +23,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         bool IsPaused = false;
         bool IsLocationChanging = false;
         bool IsPlayingMouseDown = false;
+        bool IsZoomMode = false;
         Random r = new Random();
         public Wwise_Event_Player()
         {
@@ -32,6 +33,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             Location_S.AddHandler(MouseDownEvent, new MouseButtonEventHandler(Location_MouseDown), true);
             Location_S.AddHandler(MouseUpEvent, new MouseButtonEventHandler(Location_MouseUp), true);
             Volume_S.Value = 75;
+            Zoom_Mode_C.Source = Sub_Code.Check_01;
         }
         public async void Window_Show()
         {
@@ -146,24 +148,6 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 }
                 if (Bank_Names.Count > 0)
                 {
-                    /*List<int> Temp = Wwise_Player.Get_End_Event_List();
-                    if (Temp.Count > 0)
-                    {
-                        string Text = "";
-                        for (int Number = 0; Number < Event_Info[Page].Count; Number++)
-                        {
-                            if (Temp.Contains(Event_Info[Page][Number].Container_ID))
-                            {
-                                if (Text == "")
-                                    Text = Event_Info[Page][Number].Container_ID.ToString();
-                                else
-                                    Text += " | " + Event_Info[Page][Number].Container_ID;
-                                Event_Info[Page][Number].Max_Length = 0;
-                            }
-                        }
-                        Message_Feed_Out("次のIDのイベントは終了されました : " + Text);
-                    }
-                    Temp.Clear();*/
                     if (Event_Name_List.SelectedIndex != -1 && Location_S.Maximum > 0 && !IsLocationChanging && !IsPaused)
                     {
                         int Position_Now = 0;
@@ -247,18 +231,6 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         {
             if (IsClosing)
                 return;
-            if (!File.Exists(Voice_Set.Special_Path + "\\Wwise\\SoundbanksInfo.json"))
-            {
-                Message_T.Text = "必要なデータをダウンロードしています...(約4.7MB)";
-                await Task.Delay(75);
-                if (!Voice_Set.FTPClient.DownloadFile("/WoTB_Voice_Mod/Update/Wwise/SoundbanksInfo.json", Voice_Set.Special_Path + "\\Wwise\\SoundbanksInfo.json", true))
-                {
-                    Message_Feed_Out("エラー:データのダウンロードに失敗しました。処理を実行できません。");
-                    return;
-                }
-                Message_T.Text = "";
-                await Task.Delay(75);
-            }
             System.Windows.Forms.OpenFileDialog ofd = new System.Windows.Forms.OpenFileDialog()
             {
                 Title = ".bnkファイルを選択してください。",
@@ -288,7 +260,15 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                     foreach (string File_Now in ofd.FileNames)
                     {
                         if (!Wwise_Player.Load_Bank(File_Now))
+                        {
+                            uint ErrorCode = Wwise_Player.Get_Result_Index();
+                            if (ErrorCode == 69)
+                            {
+                                Message_Feed_Out("既にロードされている.bnkファイルが存在します。");
+                                return;
+                            }
                             throw new Exception("ファイル:" + File_Now + "をロードできませんでした。\nエラーコード:" + Wwise_Player.Get_Result_Index());
+                        }
                         string Name_Only = Path.GetFileName(File_Now);
                         IsMessageShowing = false;
                         Message_T.Text = Name_Only + "を追加しています...";
@@ -328,6 +308,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                             Page_Next_B.Visibility = Visibility.Visible;
                     }
                     Event_List_Change();
+                    Change_Zoom_Mode();
                     Message_Feed_Out(".bnkファイルを読み込みました。");
                 }
                 catch (Exception e1)
@@ -439,6 +420,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 Event_Names.Clear();
                 Event_Name_List.Items.Clear();
                 Window_Show_Volumes.Clear();
+                Event_Info.Clear();
                 Page = 0;
                 IsInitSelected = false;
                 Location_S.Value = 0;
@@ -608,6 +590,39 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             string Message_01 = "ループ再生するサウンドは、いつ最初に戻るのか取得できないので手動でサウンドの長さを再度取得します。\n";
             string Message_02 = "サウンドの長さの再取得には0.2秒ほどかかります。";
             MessageBox.Show(Message_01 + Message_02);
+        }
+        private void Zoom_Mode_C_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            IsZoomMode = !IsZoomMode;
+            if (IsZoomMode)
+                Zoom_Mode_C.Source = Sub_Code.Check_04;
+            else
+                Zoom_Mode_C.Source = Sub_Code.Check_02;
+            Change_Zoom_Mode();
+        }
+        private void Zoom_Mode_C_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            if (IsZoomMode)
+                Zoom_Mode_C.Source = Sub_Code.Check_04;
+            else
+                Zoom_Mode_C.Source = Sub_Code.Check_02;
+        }
+        private void Zoom_Mode_C_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            if (IsZoomMode)
+                Zoom_Mode_C.Source = Sub_Code.Check_03;
+            else
+                Zoom_Mode_C.Source = Sub_Code.Check_01;
+        }
+        void Change_Zoom_Mode()
+        {
+            if (Wwise_Player.IsInited())
+            {
+                if (IsZoomMode)
+                    Wwise_Player.Set_State("STATE_view_play_mode", "STATE_view_play_mode_sniper");
+                else
+                    Wwise_Player.Set_State("STATE_view_play_mode", "STATE_view_play_mode_arcade");
+            }
         }
     }
 }

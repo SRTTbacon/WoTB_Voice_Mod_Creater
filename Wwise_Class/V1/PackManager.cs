@@ -231,11 +231,20 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             br2.Close();
             return Temp;
         }
+        public byte[] Get_WEM_Data(int Index)
+        {
+            BinaryReader br = new BinaryReader(File.Open(_packPath, FileMode.Open, FileAccess.Read, FileShare.Read));
+            soundFile file = soundFileList[Index];
+            br.BaseStream.Seek(file.fileOffset, 0);
+            byte[] Read_Bytes = br.ReadBytes((int)file.fileSize);
+            br.Close();
+            return Read_Bytes;
+        }
         public void ExtractFileIndex(int Index, string To_File)
         {
-            var asyncBinaryReader = new BinaryReader(File.Open(_packPath, FileMode.Open, FileAccess.Read, FileShare.Read));
-            var br = asyncBinaryReader;
-            var file = soundFileList[Index];
+            BinaryReader asyncBinaryReader = new BinaryReader(File.Open(_packPath, FileMode.Open, FileAccess.Read, FileShare.Read));
+            BinaryReader br = asyncBinaryReader;
+            soundFile file = soundFileList[Index];
             string fileExtractionPath = To_File;
             Directory.CreateDirectory(Path.GetDirectoryName(fileExtractionPath));
             using (FileStream writeStream = File.Create(fileExtractionPath))

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows;
@@ -10,7 +11,7 @@ namespace WoTB_Voice_Mod_Creater
     {
         [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         static extern bool SetDllDirectory(string lpPathName);
-        private static readonly string mutexName = "SRTTbacon_WoTB_Voice_Mod_Creater_V1.4";
+        private static readonly string mutexName = "SRTTbacon_WoTB_Voice_Mod_Creater_V1.5";
         private static readonly Mutex mutex = new Mutex(false, mutexName);
         private static bool hasHandle = false;
         protected override void OnStartup(StartupEventArgs e)
@@ -18,7 +19,7 @@ namespace WoTB_Voice_Mod_Creater
             try
             {
                 hasHandle = mutex.WaitOne(0, false);
-                if (!hasHandle && Environment.CommandLine.IndexOf("/up", StringComparison.CurrentCultureIgnoreCase) == -1)
+                if (!hasHandle)
                 {
                     MessageBoxResult result = MessageBox.Show("既にアプリが起動されています。\nソフトを強制終了させますか？", "確認", MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.No);
                     if (result == MessageBoxResult.Yes)
@@ -28,7 +29,13 @@ namespace WoTB_Voice_Mod_Creater
                             e_Now.Kill();
                     }
                     else
-                        this.Shutdown();
+                        Shutdown();
+                    return;
+                }
+                if (Environment.CommandLine.IndexOf("/Version", StringComparison.CurrentCultureIgnoreCase) != -1)
+                {
+                    File.WriteAllText(Directory.GetCurrentDirectory() + "\\Version.dat", SRTTbacon.Version.Version_Name);
+                    Shutdown();
                     return;
                 }
             }
@@ -42,9 +49,7 @@ namespace WoTB_Voice_Mod_Creater
         {
             base.OnExit(e);
             if (hasHandle)
-            {
                 mutex.ReleaseMutex();
-            }
             mutex.Close();
         }
         private void ApplicationStartup(object sender, StartupEventArgs e)

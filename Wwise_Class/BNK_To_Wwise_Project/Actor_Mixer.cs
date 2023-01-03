@@ -22,7 +22,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class.BNK_To_Wwise_Project
         }
     }
     //よく使う関数をまとめています
-    class Get_Config
+    public class Get_Config
     {
         //FNV_Hash_Classを初期化(ShortIDから文字列を作成します)
         static FNV_Hash_Class hasher = new FNV_Hash_Class();

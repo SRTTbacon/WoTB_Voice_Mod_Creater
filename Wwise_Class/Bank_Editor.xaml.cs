@@ -13,6 +13,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
 {
     public partial class Bank_Editor : System.Windows.Controls.UserControl
     {
+        string Selected_File_Path = "";
         int Stream;
         int SelectIndex = -2;
         float SetFirstFreq = 44100f;
@@ -65,13 +66,9 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                     string Minutes = Time.Minutes.ToString();
                     string Seconds = Time.Seconds.ToString();
                     if (Time.Minutes < 10)
-                    {
                         Minutes = "0" + Time.Minutes;
-                    }
                     if (Time.Seconds < 10)
-                    {
                         Seconds = "0" + Time.Seconds;
-                    }
                     Location_T.Text = Minutes + ":" + Seconds;
                 }
                 await Task.Delay(100);
@@ -80,9 +77,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         void Location_MouseDown(object sender, MouseButtonEventArgs e)
         {
             if (IsClosing)
-            {
                 return;
-            }
             IsLocationChanging = true;
             IsPaused = true;
             Bass.BASS_ChannelSetAttribute(Stream, BASSAttribute.BASS_ATTRIB_VOL, 0f);
@@ -90,9 +85,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         async void Location_MouseUp(object sender, MouseButtonEventArgs e)
         {
             if (IsClosing)
-            {
                 return;
-            }
             IsLocationChanging = false;
             IsPaused = false;
             Bass.BASS_ChannelSetPosition(Stream, Location_S.Value);
@@ -103,9 +96,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             {
                 Volume_Now += Volume_Plus;
                 if (Volume_Now > 1f)
-                {
                     Volume_Now = 1f;
-                }
                 Bass.BASS_ChannelSetAttribute(Stream, BASSAttribute.BASS_ATTRIB_VOL, Volume_Now);
                 await Task.Delay(1000 / 60);
             }
@@ -113,31 +104,21 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         private void Location_S_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             if (IsLocationChanging)
-            {
                 Music_Pos_Change(Location_S.Value, false);
-            }
         }
         void Music_Pos_Change(double Pos, bool IsBassPosChange)
         {
             if (IsClosing)
-            {
                 return;
-            }
             if (IsBassPosChange)
-            {
                 Bass.BASS_ChannelSetPosition(Stream, Pos);
-            }
             TimeSpan Time = TimeSpan.FromSeconds(Pos);
             string Minutes = Time.Minutes.ToString();
             string Seconds = Time.Seconds.ToString();
             if (Time.Minutes < 10)
-            {
                 Minutes = "0" + Time.Minutes;
-            }
             if (Time.Seconds < 10)
-            {
                 Seconds = "0" + Time.Seconds;
-            }
             Location_T.Text = Minutes + ":" + Seconds;
         }
         async void Message_Feed_Out(string Message)
@@ -155,9 +136,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             {
                 Number++;
                 if (Number >= 120)
-                {
                     Message_T.Opacity -= 0.025;
-                }
                 await Task.Delay(1000 / 60);
             }
             IsMessageShowing = false;
@@ -167,16 +146,12 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         void EndSync(int handle, int channel, int data, IntPtr user)
         {
             if (!IsEnded)
-            {
                 IsEnded = true;
-            }
         }
         private void Open_File_B_Click(object sender, System.Windows.RoutedEventArgs e)
         {
             if (IsClosing)
-            {
                 return;
-            }
             OpenFileDialog ofd = new OpenFileDialog()
             {
                 Title = "サウンドファイルを選択してください。",
@@ -192,31 +167,25 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                     Change_List.Items.Clear();
                     Change_Sound_Full_Name.Clear();
                     if (Wwise_Bnk != null)
-                    {
                         Wwise_Bnk.Bank_Clear();
-                    }
                     if (Wwise_Pck != null)
-                    {
                         Wwise_Pck.Pck_Clear();
-                    }
+                    Selected_File_Path = "";
                     if (Ex == ".bnk")
                     {
                         Wwise_Bnk = new Wwise_File_Extract_V2(ofd.FileName);
                         foreach (string Name_ID in Wwise_Bnk.Wwise_Get_Names())
-                        {
                             Sound_List.Items.Add((Sound_List.Items.Count + 1) + ":" + Name_ID);
-                        }
                         IsPCKFile = false;
                     }
                     else if (Ex == ".pck")
                     {
                         Wwise_Pck = new Wwise_File_Extract_V1(ofd.FileName);
                         foreach (string Name_ID in Wwise_Pck.Wwise_Get_Banks_ID())
-                        {
                             Sound_List.Items.Add((Sound_List.Items.Count + 1) + ":" + Name_ID);
-                        }
                         IsPCKFile = true;
                     }
+                    Selected_File_Path = ofd.FileName;
                 }
                 catch (Exception e1)
                 {
@@ -259,9 +228,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         private void Change_List_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (IsClosing)
-            {
                 return;
-            }
             if (Change_List.SelectedIndex != -1)
             {
                 string Sound_File = Change_Sound_Full_Name[Change_List.SelectedIndex];
@@ -281,13 +248,9 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         private void Play_B_Click(object sender, System.Windows.RoutedEventArgs e)
         {
             if (IsClosing)
-            {
                 return;
-            }
             if (Sound_List.SelectedIndex == -1 && Change_List.SelectedIndex == -1)
-            {
                 return;
-            }
             else if (Sound_List.SelectedIndex != -1 && !File.Exists(Voice_Set.Special_Path + "/Wwise/Temp_01.ogg"))
             {
                 Message_Feed_Out("サウンドファイルが変換されませんでした。");
@@ -300,6 +263,8 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             }
             if (SelectIndex == Sound_List.SelectedIndex || SelectIndex == Change_List.SelectedIndex)
             {
+                Bass.BASS_ChannelSetAttribute(Stream, BASSAttribute.BASS_ATTRIB_VOL, (float)Volume_S.Value / 100);
+                Bass.BASS_ChannelSetAttribute(Stream, BASSAttribute.BASS_ATTRIB_TEMPO_FREQ, SetFirstFreq + (float)Speed_S.Value);
                 Bass.BASS_ChannelPlay(Stream, false);
             }
             else
@@ -331,6 +296,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 Bass.BASS_ChannelSetAttribute(Stream, BASSAttribute.BASS_ATTRIB_VOL, (float)Volume_S.Value / 100);
                 Bass.BASS_ChannelGetAttribute(Stream, BASSAttribute.BASS_ATTRIB_TEMPO_FREQ, ref SetFirstFreq);
                 Bass.BASS_ChannelSetAttribute(Stream, BASSAttribute.BASS_ATTRIB_TEMPO_FREQ, SetFirstFreq + (float)Speed_S.Value);
+                Speed_T.Text = "速度:" + (SetFirstFreq + Math.Floor(Speed_S.Value));
                 Location_S.Maximum = Bass.BASS_ChannelBytes2Seconds(Stream, Bass.BASS_ChannelGetLength(Stream, BASSMode.BASS_POS_BYTES));
             }
             IsPaused = false;
@@ -355,17 +321,13 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             {
                 Volume_T.Text = "音量:" + (int)Volume_S.Value;
                 if (!IsPaused)
-                {
                     Bass.BASS_ChannelSetAttribute(Stream, BASSAttribute.BASS_ATTRIB_VOL, (float)Volume_S.Value / 100);
-                }
             }
         }
         private void Change_File_B_Click(object sender, RoutedEventArgs e)
         {
             if (IsClosing)
-            {
                 return;
-            }
             try
             {
                 if (Sound_List.SelectedIndex == -1)
@@ -383,21 +345,15 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 {
                     int Number_01 = -1;
                     for (int Number = 0; Number < Change_List.Items.Count; Number++)
-                    {
                         if (Change_List.Items[Number] == Sound_List.SelectedItem)
-                        {
                             Number_01 = Number;
-                        }
-                    }
                     if (Number_01 == -1)
                     {
                         Change_List.Items.Add(Sound_List.SelectedItem);
                         Change_Sound_Full_Name.Add(ofd.FileName);
                     }
                     else
-                    {
                         Change_Sound_Full_Name[Number_01] = ofd.FileName;
-                    }
                 }
             }
             catch (Exception e1)
@@ -408,9 +364,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         private async void Save_B_Click(object sender, RoutedEventArgs e)
         {
             if (IsClosing)
-            {
                 return;
-            }
             if (Change_List.Items.Count == 0)
             {
                 Message_Feed_Out("変更点が見つかりませんでした。");
@@ -420,13 +374,9 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             {
                 string Save_Ex;
                 if (IsPCKFile)
-                {
                     Save_Ex = "*.pck";
-                }
                 else
-                {
                     Save_Ex = "*.bnk";
-                }
                 SaveFileDialog sfd = new SaveFileDialog()
                 {
                     Title = "保存先を指定してください。",
@@ -434,43 +384,44 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 };
                 if (sfd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                 {
+                    if (sfd.FileName == Selected_File_Path)
+                    {
+                        Message_Feed_Out("現在開いているファイルに上書きすることはできません。");
+                        sfd.Dispose();
+                        return;
+                    }
                     Border_All.Visibility = Visibility.Visible;
                     if (Directory.Exists(Voice_Set.Special_Path + "/Wwise/Temp"))
-                    {
                         Directory.Delete(Voice_Set.Special_Path + "/Wwise/Temp", true);
-                    }
                     Directory.CreateDirectory(Voice_Set.Special_Path + "/Wwise/Temp");
                     int Number = 0;
                     IsMessageShowing = false;
                     Message_T.Opacity = 1;
                     foreach (string Name in Change_List.Items)
                     {
-                        int Index = int.Parse(Name.Substring(0, Name.IndexOf(':'))) - 1;
-                        Message_T.Text = (Index + 1) + "番目の項目をWEMファイルに変換しています...";
+                        int Index = int.Parse(Name.Substring(0, Name.IndexOf(':')));
+                        Message_T.Text = Index + "番目の項目をWEMファイルに変換しています...";
                         await Task.Delay(50);
-                        Sub_Code.File_To_WEM(Change_Sound_Full_Name[Number], Voice_Set.Special_Path + "/Wwise/Temp/" + (Index + 1) + ".wem", true);
-                        if (!IsPCKFile)
+                        Sub_Code.File_To_WEM(Change_Sound_Full_Name[Number], Voice_Set.Special_Path + "/Wwise/Temp/" + Index + ".wem", true);
+                        /*if (!IsPCKFile)
                         {
                             Message_T.Text = (Index + 1) + "番目の項目をBNKファイルに差し替えています...";
                             await Task.Delay(50);
                             Wwise_Bnk.Bank_Edit_Sound(Index, Voice_Set.Special_Path + "/Wwise/Temp/" + (Index + 1) + ".wem", false);
-                        }
+                        }*/
                         Number++;
                     }
-                    Message_T.Text = "BNKファイルを保存しています...";
+                    Message_T.Text = (IsPCKFile ? "PCK" : "BNK") + "ファイルを保存しています...";
                     await Task.Delay(50);
                     if (IsPCKFile)
-                    {
                         Wwise_Pck.Wwise_PCK_Save(sfd.FileName, Voice_Set.Special_Path + "/Wwise/Temp", true);
-                    }
                     else
-                    {
-                        Wwise_Bnk.Bank_Save(sfd.FileName);
-                    }
+                        Wwise_Bnk.Wwise_BNK_Save(sfd.FileName, Voice_Set.Special_Path + "/Wwise/Temp", true);
                     Border_All.Visibility = Visibility.Hidden;
                     Message_Feed_Out("変更を保存しました。");
                     Directory.Delete(Voice_Set.Special_Path + "/Wwise/Temp", true);
                 }
+                sfd.Dispose();
             }
             catch (Exception e1)
             {
@@ -498,45 +449,31 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         private void Minus_B_Click(object sender, RoutedEventArgs e)
         {
             if (IsClosing)
-            {
                 return;
-            }
             long position = Bass.BASS_ChannelGetPosition(Stream);
             if (Bass.BASS_ChannelBytes2Seconds(Stream, position) > 5)
-            {
                 Music_Pos_Change(Bass.BASS_ChannelBytes2Seconds(Stream, position) - 5, true);
-            }
             else
-            {
                 Music_Pos_Change(0, true);
-            }
             long position2 = Bass.BASS_ChannelGetPosition(Stream);
             Location_S.Value = Bass.BASS_ChannelBytes2Seconds(Stream, position2);
         }
         private void Plus_B_Click(object sender, RoutedEventArgs e)
         {
             if (IsClosing)
-            {
                 return;
-            }
             long position = Bass.BASS_ChannelGetPosition(Stream);
             if (Bass.BASS_ChannelBytes2Seconds(Stream, position) + 5 > Location_S.Maximum)
-            {
                 Music_Pos_Change(Location_S.Maximum, true);
-            }
             else
-            {
                 Music_Pos_Change(Bass.BASS_ChannelBytes2Seconds(Stream, position) + 5, true);
-            }
             long position2 = Bass.BASS_ChannelGetPosition(Stream);
             Location_S.Value = Bass.BASS_ChannelBytes2Seconds(Stream, position2);
         }
         private void Search_B_Click(object sender, RoutedEventArgs e)
         {
             if (IsClosing)
-            {
                 return;
-            }
             int Number = 0;
             bool IsExist = false;
             foreach (string Name_Now in Sound_List.Items)
@@ -549,32 +486,22 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 Number++;
             }
             if (IsExist)
-            {
                 Sound_List.ScrollIntoView(Sound_List.Items[Number]);
-            }
             else
-            {
                 Message_Feed_Out("リスト内に存在しませんでした。");
-            }
         }
         Random r = new Random();
         private void Content_Save_B_Click(object sender, RoutedEventArgs e)
         {
             if (IsClosing)
-            {
                 return;
-            }
             if (Sound_List.Items.Count == 0)
             {
                 int r1 = r.Next(0, 11);
                 if (r1 == 0)
-                {
                     Message_Feed_Out("内容がないようです。");
-                }
                 else
-                {
                     Message_Feed_Out("保存する内容がありません。");
-                }
                 return;
             }
             SaveFileDialog sfd = new SaveFileDialog()
@@ -588,13 +515,9 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 {
                     StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Temp_Bank_Editor_Save.dat");
                     if (IsPCKFile)
-                    {
                         stw.WriteLine(Wwise_Pck.Selected_PCK_File);
-                    }
                     else
-                    {
                         stw.WriteLine(Wwise_Bnk.Selected_BNK_File);
-                    }
                     for (int Number = 0; Number < Change_List.Items.Count; Number++)
                     {
                         int Index = int.Parse(Change_List.Items[Number].ToString().Substring(0, Change_List.Items[Number].ToString().IndexOf(':'))) - 1;
@@ -614,9 +537,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         private void Content_Load_B_Click(object sender, RoutedEventArgs e)
         {
             if (IsClosing)
-            {
                 return;
-            }
             OpenFileDialog ofd = new OpenFileDialog()
             {
                 Title = ".wbeファイルを選択してください。",
@@ -684,6 +605,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 Location_S.Value = 0;
                 Location_S.Maximum = 0;
                 Location_T.Text = "00:00";
+                Selected_File_Path = "";
             }
         }
     }

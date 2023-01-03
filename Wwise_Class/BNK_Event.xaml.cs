@@ -423,5 +423,19 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 }
             }
         }
+        private void Event_ID_Copy_B_Click(object sender, RoutedEventArgs e)
+        {
+            if (Event_Type_L.SelectedIndex != -1)
+            {
+                try
+                {
+                    string Item = Event_Type_L.SelectedItem.ToString();
+                    string ID = Item.Substring(Item.IndexOf(':') + 1);
+                    Clipboard.SetText(ID);
+                }
+                catch { }
+                Message_Feed_Out("イベントIDをコピーしました。");
+            }
+        }
     }
 }

@@ -96,6 +96,8 @@ namespace WoTB_Voice_Mod_Creater
         [DllImport(Wwise_Player_DLL)]
         protected static extern IntPtr Wwise_Get_Volume_All();
         [DllImport(Wwise_Player_DLL)]
+        protected static extern bool Wwise_Set_State(string State_Parent_Name, string State_Child_Name);
+        [DllImport(Wwise_Player_DLL)]
         protected static extern IntPtr Wwise_Get_All_Container_ID();
         [DllImport(Wwise_Player_DLL)]
         protected static extern void Wwise_Dispose();
@@ -277,7 +279,8 @@ namespace WoTB_Voice_Mod_Creater
         ///</summary>
         public static int Get_Max_Length(string Event_Name)
         {
-            return Wwise_Get_Max_Length_Name(Event_Name);
+            int Length = Wwise_Get_Max_Length_Name(Event_Name);
+            return Length >= 0 ? Length : 0;
         }
         ///<summary>
         ///指定したイベントIDのサウンドの長さを取得
@@ -285,7 +288,8 @@ namespace WoTB_Voice_Mod_Creater
         ///</summary>
         public static int Get_Max_Length(uint Event_ID)
         {
-            return Wwise_Get_Max_Length_ID(Event_ID);
+            int Length = Wwise_Get_Max_Length_ID(Event_ID);
+            return Length >= 0 ? Length : 0;
         }
         ///<summary>
         ///指定したコンテナIDのサウンドの長さを取得
@@ -293,7 +297,8 @@ namespace WoTB_Voice_Mod_Creater
         ///</summary>
         public static int Get_Max_Length(int Container_ID)
         {
-            return Wwise_Get_Max_Length_Container_ID(Container_ID);
+            int Length = Wwise_Get_Max_Length_Container_ID(Container_ID);
+            return Length >= 0 ? Length : 0;
         }
         ///<summary>
         ///指定したイベント名の音量を設定(0～1の範囲)
@@ -372,6 +377,10 @@ namespace WoTB_Voice_Mod_Creater
                 Result.Add(Temp);
             }
             return Result;
+        }
+        public static bool Set_State(string State_Parent_Name, string State_Child_Name)
+        {
+            return Wwise_Set_State(State_Parent_Name, State_Child_Name);
         }
         ///<summary>
         ///メモリを解放
