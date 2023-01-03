@@ -41,9 +41,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 Number++;
                 if (Number >= 120)
-                {
                     Message_T.Opacity -= 0.025;
-                }
                 await Task.Delay(1000 / 60);
             }
             IsMessageShowing = false;
@@ -77,9 +75,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         private async void Open_File_B_Click(object sender, RoutedEventArgs e)
         {
             if (IsClosing || IsBusy)
-            {
                 return;
-            }
             System.Windows.Forms.OpenFileDialog ofd = new System.Windows.Forms.OpenFileDialog()
             {
                 Title = "音声Modを選択してください。",
@@ -133,9 +129,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                         try
                         {
                             if (Directory.Exists(To_Dir))
-                            {
                                 Directory.Delete(To_Dir, true);
-                            }
                         }
                         catch (Exception e1)
                         {
@@ -156,13 +150,9 @@ namespace WoTB_Voice_Mod_Creater.Class
                         int BNK_Mode = 0;
                         Wwise_Class.BNK_Parse p = new Wwise_Class.BNK_Parse(ofd.FileName);
                         if (p.IsVoiceFile(true))
-                        {
                             BNK_Mode = 1;
-                        }
                         else if (p.IsVoiceFile())
-                        {
                             BNK_Mode = 2;
-                        }
                         else
                         {
                             Message_Feed_Out("選択されたbnkファイルは音声データではありません。");
@@ -171,13 +161,9 @@ namespace WoTB_Voice_Mod_Creater.Class
                         }
                         bool Mode;
                         if (BNK_Mode == 1)
-                        {
                             Mode = true;
-                        }
                         else if (BNK_Mode == 2)
-                        {
                             Mode = false;
-                        }
                         else
                         {
                             Message_Feed_Out("選択されたbnkファイルは音声データではありません。");
@@ -186,12 +172,8 @@ namespace WoTB_Voice_Mod_Creater.Class
                         }
                         BNK_FSB_Voices = p.Get_Voices(Mode);
                         foreach (List<string> Types in BNK_FSB_Voices)
-                        {
                             foreach (string File_Now in Types)
-                            {
                                 Need_Files.Add(File_Now);
-                            }
-                        }
                         if (Need_Files.Count == 0)
                         {
                             Message_T.Text = "移植できるファイルが見つからなかったため、特殊な方法で解析しています...";
@@ -199,12 +181,8 @@ namespace WoTB_Voice_Mod_Creater.Class
                             p.SpecialBNKFileMode = 1;
                             BNK_FSB_Voices = p.Get_Voices(Mode);
                             foreach (List<string> Types in BNK_FSB_Voices)
-                            {
                                 foreach (string File_Now in Types)
-                                {
                                     Need_Files.Add(File_Now);
-                                }
-                            }
                         }
                         if (Need_Files.Count == 0)
                         {
@@ -265,9 +243,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Directory.CreateDirectory(Voice_Set.Special_Path + "/Temp/" + Project_Name_T.Text);
                 Directory.Delete(Voice_Set.Special_Path + "/Temp", true);
                 if (Project_Name_T.Text.Contains("/") || Project_Name_T.Text.Contains("\\"))
-                {
                     throw new Exception("プロジェクト名に'/'を付けることはできません。");
-                }
             }
             catch (Exception e1)
             {
@@ -318,27 +294,17 @@ namespace WoTB_Voice_Mod_Creater.Class
                         await Task.Delay(50);
                         string[] All_Files = Directory.GetFiles(Voice_Set.Local_Path + "/Projects/" + Project_Name_T.Text + "/All_Voices", "*", SearchOption.TopDirectoryOnly);
                         foreach (string File_Now in All_Files)
-                        {
                             if (!Need_Files.Contains(Path.GetFileNameWithoutExtension(File_Now)))
-                            {
                                 Sub_Code.File_Delete_V2(File_Now);
-                            }
-                        }
                         string[] Files = Directory.GetFiles(Voice_Set.Local_Path + "/Projects/" + Project_Name_T.Text + "/All_Voices", "*.wem", SearchOption.TopDirectoryOnly);
                         foreach (string File_Now in Files)
-                        {
                             Sub_Code.File_Delete_V2(File_Now);
-                        }
                     }
                     StreamWriter stw = File.CreateText(sfd.FileName + ".tmp");
                     stw.WriteLine(Project_Name_T.Text + "|IsNotChangeProjectNameMode=true");
                     for (int Number = 0; Number < BNK_FSB_Voices.Count; Number++)
-                    {
                         foreach (string Name in BNK_FSB_Voices[Number])
-                        {
                             stw.WriteLine(Number + "|" + Sub_Code.File_Get_FileName_No_Extension(Voice_Set.Local_Path + "\\Projects\\" + Project_Name_T.Text + "\\All_Voices\\" + Name));
-                        }
-                    }
                     stw.Close();
                     Sub_Code.File_Encrypt(sfd.FileName + ".tmp", sfd.FileName, "SRTTbacon_Create_Voice_Save", true);
                     Message_Feed_Out("保存しました。\nProjectsフォルダに該当する音声が入っています。");
@@ -356,9 +322,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         private void Clear_B_Click(object sender, RoutedEventArgs e)
         {
             if (IsClosing || IsBusy || Selected_File == "")
-            {
                 return;
-            }
             MessageBoxResult result = MessageBox.Show("クリアしますか？", "確認", MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.No);
             if (result == MessageBoxResult.Yes)
             {
@@ -378,9 +342,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         private void Details_B_Click(object sender, RoutedEventArgs e)
         {
             if (IsClosing || IsBusy)
-            {
                 return;
-            }
             if (BNK_FSB_Voices.Count == 0)
             {
                 Message_Feed_Out("音声ファイルが指定されていないため、表示できる情報がありません。");

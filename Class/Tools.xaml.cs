@@ -16,14 +16,12 @@ namespace WoTB_Voice_Mod_Creater.Class
     {
         public int IsMutualResponse = 0;
         readonly List<string> File_Full_Path = new List<string>();
-        double Max_Stream_Length = 0.0;
         int Voice_Max_Index = 0;
         float Volume = 1f;
         float Pitch = 0f;
         bool IsBusy = false;
         bool IsMessageShowing = false;
         bool IsOpenDialog = false;
-        bool IsInitDownloadLinks = false;
         FMOD_API.EventGroup EG = new FMOD_API.EventGroup();
         FMOD_API.Event FE = new FMOD_API.Event();
         public Tools()
@@ -57,8 +55,6 @@ namespace WoTB_Voice_Mod_Creater.Class
                 }
             }
             int Start_Time = Environment.TickCount;
-            if (!IsInitDownloadLinks)
-                Voice_Set.TCP_Server.Send("Response|Get_Files|" + Voice_Set.UserName + "/aaa");
             Opacity = 0;
             Visibility = Visibility.Visible;
             while (Opacity < 1 && !IsBusy)
@@ -66,27 +62,6 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Opacity += Sub_Code.Window_Feed_Time;
                 await Task.Delay(1000 / 60);
             }
-            if (!IsInitDownloadLinks)
-            {
-                bool IsNoResponse = false;
-                while (!IsInitDownloadLinks && !IsNoResponse)
-                {
-                    if (Start_Time + 5000 <= Environment.TickCount)
-                        IsNoResponse = true;
-                    await Task.Delay(50);
-                }
-                if (IsNoResponse)
-                    Message_Feed_Out("サーバーが5秒以内に応答しませんでした。");
-            }
-        }
-        public void Set_Download_Links(string Server_Response)
-        {
-            IsInitDownloadLinks = true;
-            Upload_File_List.Items.Clear();
-            string[] Files = Server_Response.Split(':');
-            foreach (string File_Now in Files)
-                if (File_Now != "")
-                    Upload_File_List.Items.Add(Replace_File_Path(Path.GetFileNameWithoutExtension(File_Now) + Path.GetExtension(File_Now)));
         }
         //DVPLを解除(Pythonのプログラムに引数を渡し実行)
         private async void DVPL_Extract_B_Click(object sender, RoutedEventArgs e)
@@ -106,11 +81,9 @@ namespace WoTB_Voice_Mod_Creater.Class
                 string Error_Path = "";
                 foreach (string File_Path in ofd.FileNames)
                 {
-                    DVPL.DVPL_UnPack(File_Path, Path.GetDirectoryName(File_Path) + "/" + Path.GetFileNameWithoutExtension(File_Path), false);
+                    DVPL.DVPL_UnPack(File_Path, Path.GetDirectoryName(File_Path) + "/" + Path.GetFileNameWithoutExtension(File_Path), DVPL_Delete_C.IsChecked.Value);
                     if (!File.Exists(Path.GetDirectoryName(File_Path) + "/" + Path.GetFileNameWithoutExtension(File_Path)))
                         Error_Path += File_Path + "\n";
-                    else
-                        File.Delete(File_Path);
                 }
                 Message_Feed_Out("DVPLファイルを展開しました。");
                 if (Error_Path != "")
@@ -145,7 +118,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                     }
                     try
                     {
-                        DVPL.DVPL_Pack(File_Path, File_Path + ".dvpl", false);
+                        DVPL.DVPL_Pack(File_Path, File_Path + ".dvpl", DVPL_Delete_C.IsChecked.Value);
                         if (!File.Exists(File_Path + ".dvpl"))
                             throw new Exception(".dvplファイルが作成できていません。");
                     }
@@ -491,280 +464,6 @@ namespace WoTB_Voice_Mod_Creater.Class
             IsBusy = false;
             IsOpenDialog = false;
         }
-        private async void Upload_File_B_Click(object sender, RoutedEventArgs e)
-        {
-            if (IsBusy || IsOpenDialog)
-                return;
-            System.Windows.Forms.OpenFileDialog ofd = new OpenFileDialog()
-            {
-                Title = "アップロードするファイルを選択してください。",
-                Filter = "AnyFile(*.*)|*.*",
-                Multiselect = false,
-            };
-            if (ofd.ShowDialog() == DialogResult.OK)
-            {
-                List<string> Noooooo = new List<string>()
-                {
-                    "#",
-                    "%",
-                    "{",
-                    "}",
-                    "^",
-                    "[",
-                    "]",
-                    "`",
-                    "@",
-                    "&",
-                    "=",
-                    "+",
-                    "$",
-                    ","
-                };
-                string FileName = Replace_File_Path(Replace_FileName(Path.GetFileNameWithoutExtension(ofd.FileName), Noooooo.ToArray()) + Path.GetExtension(ofd.FileName));
-                Noooooo.Clear();
-                Voice_Set.TCP_Server.Send("Response|File_Exist|" + Voice_Set.UserName + "/" + FileName);
-                IsMessageShowing = false;
-                Message_T.Opacity = 1;
-                Message_T.Text = "サーバーの応答を待っています...";
-                int Start_Time = Environment.TickCount;
-                bool NoResponse = false;
-                while (IsMutualResponse == 0 && !NoResponse)
-                {
-                    if (Start_Time + 5000 <= Environment.TickCount)
-                        NoResponse = true;
-                    await Task.Delay(50);
-                }
-                if (NoResponse)
-                {
-                    ofd.Dispose();
-                    Message_Feed_Out("サーバーが5秒以内に応答しませんでした。時間を置いて再度実行してください。");
-                    return;
-                }
-                else if (IsMutualResponse == 1)
-                {
-                    IsMutualResponse = 0;
-                    ofd.Dispose();
-                    Message_Feed_Out("名前が同じファイルが存在します。既存のファイルを削除するか、ファイル名を変更してください。");
-                    return;
-                }
-                IsMutualResponse = 0;
-                Message_T.Text = "アップロードしています...";
-                IsBusy = true;
-                bool IsEnd = false;
-                Task aa = Task.Run(() =>
-                {
-                    using (var stream = new FileStream(ofd.FileName, FileMode.Open))
-                    {
-                        Max_Stream_Length = stream.Length / 1024.0 / 1024.0;
-                        Max_Stream_Length = Math.Round(Max_Stream_Length, MidpointRounding.AwayFromZero);
-                        if (Voice_Set.FTPClient.Directory_Exist("/WoTB_Voice_Mod/Users/" + Voice_Set.UserName))
-                            Voice_Set.FTPClient.Directory_Create("/WoTB_Voice_Mod/Users/" + Voice_Set.UserName);
-                        Voice_Set.FTPClient.SFTP_Server.UploadFile(stream, "/WoTB_Voice_Mod/Users/" + Voice_Set.UserName + "/" + FileName, UpdateProgresBar);
-                        IsEnd = true;
-                    }
-                });
-                while (!IsEnd)
-                    await Task.Delay(50);
-                Voice_Set.TCP_Server.Send("Response|Set_Download_Link|" + Voice_Set.UserName + "/" + FileName);
-                Voice_Set.TCP_Server.Send("Message|" + Voice_Set.UserName + "->ファイル:" + FileName + "のダウンロードリンクを生成しました。");
-                Upload_File_List.Items.Add(FileName);
-                await Task.Delay(500);
-                IsBusy = false;
-                Message_Feed_Out("ダウンロードリンクを生成しました。リストから項目を選択し、URLを取得してください。");
-            }
-            ofd.Dispose();
-        }
-        async void UpdateProgresBar(ulong uploaded)
-        {
-            double Now_Stream_Length = uploaded / 1024.0 / 1024.0;
-            Now_Stream_Length = Math.Round(Now_Stream_Length, MidpointRounding.AwayFromZero);
-            await Task.Delay(5);
-            Dispatcher.Invoke(() =>
-            {
-                Message_T.Text = "アップロードしています..." + Now_Stream_Length + " / " + Max_Stream_Length + "MB";
-            });
-        }
-        private void Delete_File_B_Click(object sender, RoutedEventArgs e)
-        {
-            if (IsBusy || IsOpenDialog)
-                return;
-            if (Upload_File_List.SelectedIndex == -1)
-            {
-                Message_Feed_Out("削除する項目を選択してください。");
-                return;
-            }
-            string Name = Upload_File_List.SelectedItem.ToString();
-            MessageBoxResult result = System.Windows.MessageBox.Show(Name + "のリンクを削除しますか?この操作は取り消せません。", "確認", MessageBoxButton.YesNo, MessageBoxImage.Exclamation,
-                MessageBoxResult.No);
-            if (result == MessageBoxResult.Yes)
-            {
-                Upload_File_List.Items.RemoveAt(Upload_File_List.SelectedIndex);
-                Voice_Set.TCP_Server.Send("Response|File_Delete|" + Voice_Set.UserName + "/" + Name);
-                Voice_Set.TCP_Server.Send("Message|" + Voice_Set.UserName + "->ファイル:" + Name + "を削除しました。");
-                Message_Feed_Out(Name + "をサーバーから削除しました。");
-            }
-        }
-        private void Generate_Link_B_Click(object sender, RoutedEventArgs e)
-        {
-            if (IsBusy || IsOpenDialog)
-                return;
-            if (Upload_File_List.SelectedIndex == -1)
-            {
-                Message_Feed_Out("リンクを取得する項目を選択してください。");
-                return;
-            }
-            try
-            {
-                System.Windows.Forms.Clipboard.SetData(System.Windows.DataFormats.Text, "https://battlecry.xyz/Mod_Creater/Users/" + Voice_Set.UserName + "/" + Upload_File_List.SelectedItem.ToString());
-                Message_Feed_Out("クリップボードにダウンロードリンクをコピーしました。");
-            }
-            catch { }
-        }
-        static string Replace_File_Path(string File_Path)
-        {
-            string ReturnString = File_Path;
-            char[] invalidChars = Path.GetInvalidFileNameChars();
-            foreach (char aa in invalidChars)
-                ReturnString = ReturnString.Replace(aa, '_');
-            return ReturnString;
-        }
-        string Replace_FileName(string FileName, string[] Replace_String)
-        {
-            string Return_String = "";
-            for (int Number_01 = 0;  Number_01 < Replace_String.Length; Number_01++)
-                Return_String = FileName.Replace(Replace_String[Number_01], "");
-            return Return_String;
-        }
-    }
-}
-public class BGM_Create
-{
-    //新サウンドエンジンでは曲が終わったら次の曲を流すということができないため、ランダムで曲をつなげて5分以上にします
-    //戦闘時間は7分なので7分30秒以降はカットされます
-    public static void Set_Music_Mix_Random(string BGM_Dir, int Max_Second = 440)
-    {
-        try
-        {
-            Random r = new Random();
-            string[] Ex = { ".mp3", ".mp2", ".wav", ".ogg", "aiff", ".aif", ".asf", ".flac", ".wma" };
-            string[] BGM_Files_Temp = DirectoryEx.GetFiles(BGM_Dir, SearchOption.TopDirectoryOnly, Ex);
-            Directory.CreateDirectory(WoTB_Voice_Mod_Creater.Voice_Set.Special_Path + "/BGM_Temp");
-            foreach (string BGM_File_Now in BGM_Files_Temp)
-                File.Copy(BGM_File_Now, WoTB_Voice_Mod_Creater.Voice_Set.Special_Path + "/BGM_Temp/" + Path.GetFileName(BGM_File_Now), true);
-            string[] BGM_Files = DirectoryEx.GetFiles(WoTB_Voice_Mod_Creater.Voice_Set.Special_Path + "/BGM_Temp", SearchOption.TopDirectoryOnly, Ex);
-            int File_Number_Now = -1;
-            foreach (string BGM_File_Now in BGM_Files)
-            {
-                File_Number_Now++;
-                int stream = Bass.BASS_StreamCreateFile(BGM_File_Now, 0, 0, BASSFlag.BASS_STREAM_DECODE);
-                int length = (int)Bass.BASS_ChannelBytes2Seconds(stream, Bass.BASS_ChannelGetLength(stream));
-                Bass.BASS_StreamFree(stream);
-                if (length >= 300)
-                    continue;
-                List<int> Include_Numbers = new List<int>();
-                Include_Numbers.Add(File_Number_Now);
-                for (int Number = 0; Number < BGM_Files.Length; Number++)
-                {
-                    if (Include_Numbers.Count >= BGM_Files.Length)
-                    {
-                        Include_Numbers.Clear();
-                        Number = -1;
-                        continue;
-                    }
-                    int Include_Number = 0;
-                    while (true)
-                    {
-                        int Temp = r.Next(0, BGM_Files.Length);
-                        bool IsIncluded = false;
-                        foreach (int Number_Now in Include_Numbers)
-                        {
-                            if (Number_Now == Temp)
-                            {
-                                IsIncluded = true;
-                                break;
-                            }
-                        }
-                        if (!IsIncluded)
-                        {
-                            Include_Number = Temp;
-                            break;
-                        }
-                    }
-                    Include_Numbers.Add(Include_Number);
-                    int stream2 = Bass.BASS_StreamCreateFile(BGM_Files[Include_Number], 0, 0, BASSFlag.BASS_STREAM_DECODE);
-                    int length2 = (int)Bass.BASS_ChannelBytes2Seconds(stream2, Bass.BASS_ChannelGetLength(stream2));
-                    Bass.BASS_StreamFree(stream2);
-                    length += length2;
-                    if (length >= 300)
-                        break;
-                }
-                StreamWriter stw = File.CreateText(WoTB_Voice_Mod_Creater.Voice_Set.Special_Path + "/Encode_Mp3/BGM_Mix.bat");
-                stw.WriteLine("chcp 65001");
-                stw.Write("\"" + WoTB_Voice_Mod_Creater.Voice_Set.Special_Path + "/Encode_Mp3/ffmpeg.exe\" -y ");
-                foreach (int Number in Include_Numbers)
-                    stw.Write("-i \"" + BGM_Files[Number] + "\" ");
-                stw.Write("-filter_complex \"concat=n=" + Include_Numbers.Count + ":v=0:a=1\" -t " + Max_Second + " \"" + BGM_Dir + "/" + Path.GetFileName(BGM_Files[File_Number_Now]) + "\"");
-                stw.Close();
-                ProcessStartInfo processStartInfo1 = new ProcessStartInfo
-                {
-                    FileName = WoTB_Voice_Mod_Creater.Voice_Set.Special_Path + "/Encode_Mp3/BGM_Mix.bat",
-                    CreateNoWindow = true,
-                    UseShellExecute = false
-                };
-                Process p = Process.Start(processStartInfo1);
-                p.WaitForExit();
-                File.Delete(WoTB_Voice_Mod_Creater.Voice_Set.Special_Path + "/Encode_Mp3/BGM_Mix.bat");
-            }
-            Directory.Delete(WoTB_Voice_Mod_Creater.Voice_Set.Special_Path + "/BGM_Temp", true);
-        }
-        catch (Exception e)
-        {
-            WoTB_Voice_Mod_Creater.Sub_Code.Error_Log_Write(e.Message);
-        }
-    }
-    //WoTBの初期の音声ファイルの言語を取得
-    public static string Get_Voice_Language(List<string> Files)
-    {
-        if (Files.Contains("783658022"))
-            return "English(US)";
-        else if (Files.Contains("148236242"))
-            return "arb";
-        else if (Files.Contains("522280109"))
-            return "gup";
-        else if (Files.Contains("897549921"))
-            return "pbr";
-        else if (Files.Contains("1003460716"))
-            return "vi";
-        else if (Files.Contains("348256779"))
-            return "tr";
-        else if (Files.Contains("270859153"))
-            return "th";
-        else if (Files.Contains("892963782"))
-            return "ru";
-        else if (Files.Contains("778579436"))
-            return "pl";
-        else if (Files.Contains("885986556"))
-            return "ko";
-        else if (Files.Contains("1056502513"))
-            return "ja";
-        else if (Files.Contains("549350697"))
-            return "it";
-        else if (Files.Contains("26760078"))
-            return "fr";
-        else if (Files.Contains("327412030"))
-            return "fi";
-        else if (Files.Contains("365235587"))
-            return "en";
-        else if (Files.Contains("286527395"))
-            return "es";
-        else if (Files.Contains("970759741"))
-            return "de";
-        else if (Files.Contains("513502435"))
-            return "cs";
-        else if (Files.Contains("586623688"))
-            return "cn";
-        else
-            return "";
     }
 }
 //フォルダ内のファイルを取得(複数の拡張子を指定できます)

@@ -1,0 +1,3 @@
+D:\Projects\WoTB_Voice_Mod_Creater\Check_Update\obj\Debug\Check_Update.csproj.AssemblyReference.cache
+D:\Projects\WoTB_Voice_Mod_Creater\Check_Update\obj\Debug\Check_Update.csproj.SuggestedBindingRedirects.cache
+D:\Projects\WoTB_Voice_Mod_Creater\Check_Update\obj\Debug\Check_Update.csproj.CoreCompileInputs.cache

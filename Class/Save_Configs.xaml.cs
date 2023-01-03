@@ -23,30 +23,68 @@ namespace WoTB_Voice_Mod_Creater.Class
         int Select_Language = 10;
         int Stream;
         double Wwise_Version = 1.0;
-        double SizeMB = 0;
         bool IsClosing = false;
         bool IsMessageShowing = false;
         public Save_Configs()
         {
             InitializeComponent();
-            SE_Lists.Items.Add("時間切れ&占領ポイントMax | 有効");
-            SE_Lists.Items.Add("クイックコマンド | 有効");
-            SE_Lists.Items.Add("弾薬庫破損 | 有効");
-            SE_Lists.Items.Add("自車両大破 | 有効");
-            SE_Lists.Items.Add("貫通 | 有効");
-            SE_Lists.Items.Add("敵モジュール破損 | 有効");
-            SE_Lists.Items.Add("無線機破損 | 有効");
-            SE_Lists.Items.Add("燃料タンク破損 | 有効");
-            SE_Lists.Items.Add("非貫通 | 有効");
-            SE_Lists.Items.Add("装填完了 | 有効");
-            SE_Lists.Items.Add("第六感 | 有効");
-            SE_Lists.Items.Add("敵発見 | 有効");
-            SE_Lists.Items.Add("戦闘開始前タイマー | 有効");
-            SE_Lists.Items.Add("ロックオン | 有効");
-            SE_Lists.Items.Add("アンロック | 有効");
-            SE_Lists.Items.Add("ノイズ音 | 有効");
+            Add_SE_List("時間切れ&占領ポイントMax", true);
+            Add_SE_List("クイックコマンド", true);
+            Add_SE_List("弾薬庫破損", true);
+            Add_SE_List("自車両大破", true);
+            Add_SE_List("貫通", true);
+            Add_SE_List("敵モジュール破損", true);
+            Add_SE_List("無線機破損", true);
+            Add_SE_List("燃料タンク破損", true);
+            Add_SE_List("非貫通-無効弾", true);
+            Add_SE_List("非貫通-跳弾", true);
+            Add_SE_List("装填完了", true);
+            Add_SE_List("第六感", true);
+            Add_SE_List("敵発見", true);
+            Add_SE_List("戦闘開始前タイマー", true);
+            Add_SE_List("ロックオン", true);
+            Add_SE_List("アンロック", true);
+            Add_SE_List("ノイズ音", true);
+            Add_SE_List("搭乗員負傷", true);
+            Add_SE_List("モジュール破損", true);
+            Add_SE_List("モジュール大破", true);
+            Add_SE_List("モジュール復旧", true);
+            Add_SE_List("戦闘開始", true);
+            Add_SE_List("敵炎上", true);
             for (int Number = 0; Number < SE_Lists.Items.Count; Number++)
                 Voice_Set.SE_Enable_Disable.Add(true);
+        }
+        void Add_SE_List(string Text, bool IsEnable)
+        {
+            ListBoxItem Item = new ListBoxItem()
+            {
+                Content = Text + " | "
+            };
+            if (IsEnable)
+                Item.Content += "有効";
+            else
+            {
+                Item.Content += "無効";
+                Item.Foreground = (Brush)new BrushConverter().ConvertFromString("#BFFF2C8C");
+            }
+            SE_Lists.Items.Add(Item);
+        }
+        void Change_SE_List(int Index)
+        {
+            ListBoxItem Item = SE_Lists.Items[Index] as ListBoxItem;
+            string Text = Item.Content.ToString();
+            Text = Text.Substring(0, Text.IndexOf('|') + 2);
+            if (Voice_Set.SE_Enable_Disable[Index])
+            {
+                Text += "有効";
+                Item.Foreground = Brushes.Aqua;
+            }
+            else
+            {
+                Text += "無効";
+                Item.Foreground = (Brush)new BrushConverter().ConvertFromString("#BFFF2C8C");
+            }
+            Item.Content = Text;
         }
         async void Message_Feed_Out(string Message)
         {
@@ -95,8 +133,9 @@ namespace WoTB_Voice_Mod_Creater.Class
             Sub_Code.Get_Voice_Type_And_Index(Voice_Set.Special_Path + "/Server/" + Voice_Set.SRTTbacon_Server_Name + "/Voices", ref Voice_Type, ref Voice_Type_Number);
             for (int Number = 0; Number <= Voice_Type.Count - 1; Number++)
                 Voice_Lists.Items.Add(Voice_Type[Number] + ":" + Voice_Type_Number[Number] + "個");
+            Only_Wwise_C.IsChecked = false;
         }
-        public void Window_Show_V2(string Project_Name, List<List<string>> Lists)
+        public void Window_Show_V2(string Project_Name, List<Voice_Event_Setting> Lists)
         {
             //画面を表示(オフラインモードで行った場合)
             Volume_Set_C.Visibility = Visibility.Visible;
@@ -114,13 +153,13 @@ namespace WoTB_Voice_Mod_Creater.Class
             for (int Number = 0; Number < Lists.Count; Number++)
             {
                 string Name = Voice_Set.Get_Voice_Type_Japanese_Name_V2(Number);
-                int Number_01 = Lists[Number].Count;
+                int Number_01 = Lists[Number].Sounds.Count;
                 Voice_Type.Add(Name);
                 Voice_Type_Number.Add(Number_01);
                 Voice_Lists.Items.Add(Name + ":" + Number_01 + "個");
             }
         }
-        public async void Window_Show_V3(string BNK_Name, List<List<string>> Lists)
+        public async void Window_Show_V3(string BNK_Name, List<Voice_Event_Setting> Lists)
         {
             Opacity = 0;
             Visibility = Visibility.Visible;
@@ -141,7 +180,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             for (int Number = 0; Number <= Lists.Count - 1; Number++)
             {
                 string Name = Voice_Set.Get_Voice_Type_Japanese_Name_V2(Number);
-                int Number_01 = Lists[Number].Count;
+                int Number_01 = Lists[Number].Sounds.Count;
                 Voice_Type.Add(Name);
                 Voice_Type_Number.Add(Number_01);
                 Voice_Lists.Items.Add(Name + ":" + Number_01 + "個");
@@ -174,10 +213,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                     for (int Number = 0; Number <= 14; Number++)
                     {
                         Voice_Set.SE_Enable_Disable[Number] = bool.Parse(str.ReadLine());
-                        if (Voice_Set.SE_Enable_Disable[Number])
-                            SE_Lists.Items[Number] = SE_Lists.Items[Number].ToString().Replace("| 無効", "| 有効");
-                        else
-                            SE_Lists.Items[Number] = SE_Lists.Items[Number].ToString().Replace("| 有効", "| 無効");
+                        Change_SE_List(Number);
                     }
                     str.Close();
                 }
@@ -317,7 +353,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                     SE_Disable_B.BorderBrush = Brushes.Red;
                     SE_Enable_B.Background = Brushes.Transparent;
                     SE_Enable_B.BorderBrush = Brushes.Aqua;
-                    SE_Lists.Items[SE_Lists.SelectedIndex] = SE_Lists.Items[SE_Lists.SelectedIndex].ToString().Replace("| 有効", "| 無効");
+                    Change_SE_List(SE_Lists.SelectedIndex);
                     SE_Lists.SelectedIndex = Number;
                 }
             }
@@ -335,7 +371,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                     SE_Disable_B.BorderBrush = Brushes.Aqua;
                     SE_Enable_B.Background = (Brush)bc.ConvertFrom("#59999999");
                     SE_Enable_B.BorderBrush = Brushes.Red;
-                    SE_Lists.Items[SE_Lists.SelectedIndex] = SE_Lists.Items[SE_Lists.SelectedIndex].ToString().Replace("| 無効", "| 有効");
+                    Change_SE_List(SE_Lists.SelectedIndex);
                     SE_Lists.SelectedIndex = Number;
                 }
             }
@@ -363,6 +399,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Sub_Code.DVPL_Encode = DVPL_C.IsChecked.Value;
                 Sub_Code.SetLanguage = Languages[Select_Language];
                 Sub_Code.Default_Voice = Default_Voice_Mode_C.IsChecked.Value;
+                Sub_Code.Only_Wwise_Project = Only_Wwise_C.IsChecked.Value;
                 Configs_Save();
                 while (Opacity > 0)
                 {
@@ -430,7 +467,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 SE_Disable_B.BorderBrush = Brushes.Aqua;
                 SE_Enable_B.Background = (Brush)bc.ConvertFrom("#59999999");
                 SE_Enable_B.BorderBrush = Brushes.Red;
-                SE_Lists.Items[Number] = SE_Lists.Items[Number].ToString().Replace("| 無効", "| 有効");
+                Change_SE_List(Number);
             }
             SE_Lists.SelectedIndex = SelectedIndex;
         }
@@ -449,35 +486,13 @@ namespace WoTB_Voice_Mod_Creater.Class
                 SE_Disable_B.BorderBrush = Brushes.Red;
                 SE_Enable_B.Background = Brushes.Transparent;
                 SE_Enable_B.BorderBrush = Brushes.Aqua;
-                SE_Lists.Items[Number] = SE_Lists.Items[Number].ToString().Replace("| 有効", "| 無効");
+                Change_SE_List(Number);
             }
             SE_Lists.SelectedIndex = SelectedIndex;
         }
-        private async void Default_Voice_Mode_C_Click(object sender, RoutedEventArgs e)
+        private void Default_Voice_Mode_C_Click(object sender, RoutedEventArgs e)
         {
-            if (!File.Exists(Voice_Set.Special_Path + "\\SE\\Voices\\armor_pierced_by_player_10.mp3"))
-            {
-                if (SizeMB == 0)
-                {
-                    SizeMB = (double)(Voice_Set.FTPClient.GetFileSize("/WoTB_Voice_Mod/Update/Wwise/Default_Voices.zip") / 1024.0 / 1024.0);
-                    SizeMB = (Math.Floor(SizeMB * 10)) / 10;
-                }
-                MessageBoxResult result = MessageBox.Show("音声データをサーバーからダウンロードする必要があります。続行しますか?\nサイズ:およそ" + SizeMB + "MB", "確認",
-                    MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.Yes);
-                if (result == MessageBoxResult.Yes)
-                {
-                    Message_T.Text = "サーバーからデータをダウンロードしています...";
-                    await Task.Delay(75);
-                    if (Directory.Exists(Voice_Set.Special_Path + "/SE/Voices"))
-                        Directory.Delete(Voice_Set.Special_Path + "/SE/Voices", true);
-                    Voice_Set.FTPClient.DownloadFile("/WoTB_Voice_Mod/Update/Wwise/Default_Voices.zip", Voice_Set.Special_Path + "/Default_Voices.dat");
-                    System.IO.Compression.ZipFile.ExtractToDirectory(Voice_Set.Special_Path + "/Default_Voices.dat", Voice_Set.Special_Path + "/SE/Voices");
-                    File.Delete(Voice_Set.Special_Path + "/Default_Voices.dat");
-                    Message_Feed_Out("正常にダウンロードされました。");
-                }
-                else
-                    Default_Voice_Mode_C.IsChecked = false;
-            }
+
         }
         private void SE_Change_B_Click(object sender, RoutedEventArgs e)
         {
@@ -490,6 +505,16 @@ namespace WoTB_Voice_Mod_Creater.Class
             SE_Enable_B.Background = Brushes.Transparent;
             SE_Enable_B.BorderBrush = Brushes.Aqua;
             SE_Lists.SelectedIndex = -1;
+        }
+        private void Only_Wwise_C_Click(object sender, RoutedEventArgs e)
+        {
+            if (Only_Wwise_C.IsChecked.Value)
+            {
+                MessageBoxResult result = MessageBox.Show("この項目にチェックを入れると、音声Mod(*.bnk)を作成するのではなく、音声Modを作成するためのWwiseのプロジェクトファイルが生成" +
+                    "されます。\n続行しますか?", "確認", MessageBoxButton.YesNo, MessageBoxImage.Exclamation);
+                if (result == MessageBoxResult.No)
+                    Only_Wwise_C.IsChecked = false;
+            }
         }
     }
 }

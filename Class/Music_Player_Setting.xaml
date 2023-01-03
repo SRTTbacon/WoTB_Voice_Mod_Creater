@@ -57,8 +57,8 @@
     </UserControl.Resources>
     <Viewbox>
         <DockPanel Width="1920" Height="1080">
-            <Border BorderBrush="Black" BorderThickness="1" Background="Black" Height="1080" VerticalAlignment="Top" Width="1920" Opacity="0.6"/>
-            <Border BorderBrush="Aqua" Background="#111216" BorderThickness="2" Height="968" VerticalAlignment="Top" Width="1700" Opacity="0.6" Margin="-1920,50,0,0" Focusable="False"/>
+            <Border BorderBrush="Black" BorderThickness="1" Background="Black" Height="1080" VerticalAlignment="Top" Width="1920" Opacity="0.75"/>
+            <Border BorderBrush="Aqua" Background="#111216" BorderThickness="2" Height="968" VerticalAlignment="Top" Width="1700" Opacity="0.75" Margin="-1920,50,0,0" Focusable="False"/>
             <TextBlock Height="45" TextWrapping="Wrap" Text="音楽プレイヤー:音響設定" Foreground="Aqua" FontSize="35" Width="355" Margin="-1920,100,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
             <TextBlock x:Name="LPF_T" Height="45" TextWrapping="Wrap" Text="Low Pass Filter:0" Foreground="Aqua" FontSize="30" Width="250" Margin="-2750,250,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
             <Slider x:Name="LPF_S" Height="27" VerticalAlignment="Top" Width="400" Style="{StaticResource CustomSliderStyle_Yoko}" Margin="-2750,315,0,0" Maximum="100" LargeChange="0.1" Focusable="False" PreviewKeyDown="LPF_S_PreviewKeyDown" ValueChanged="LPF_S_ValueChanged"/>

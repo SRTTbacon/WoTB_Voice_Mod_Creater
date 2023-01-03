@@ -16,10 +16,12 @@
             <TextBlock Height="50" Width="616" TextWrapping="Wrap" Text="注意:動画の長さによって時間がかかります。" Foreground="Aqua" FontSize="36" Margin="-2750,450,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
             <Button x:Name="Save_Destination_B" Content="保存先を指定" Height="60" VerticalAlignment="Top" Width="300" Foreground="Aqua" FontSize="40" Margin="-1250,370,0,0" BorderBrush="Aqua" Background="Transparent" Click="Save_Destination_B_Click"/>
             <TextBlock x:Name="Save_Destination_T" Height="45" Width="1026" TextWrapping="Wrap" Text="" Foreground="Aqua" FontSize="30" Margin="-1250,305,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
-            <CheckBox x:Name="List_Add_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-3180,575,0,0" Click="List_Add_C_Click"/>
-            <CheckBox x:Name="Close_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-3180,650,0,0" Click="Close_C_Click"/>
+            <CheckBox x:Name="List_Add_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-3180,575,0,0" Click="CheckBox_Clicked"/>
+            <CheckBox x:Name="Close_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-3180,650,0,0" Click="CheckBox_Clicked"/>
+            <CheckBox x:Name="Thumbnail_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-3180,725,0,0" Click="CheckBox_Clicked"/>
             <TextBlock Height="60" Width="375" TextWrapping="Wrap" Text="保存したらリストに追加" Foreground="Aqua" FontSize="40" Margin="-2750,553,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
             <TextBlock Height="60" Width="390" TextWrapping="Wrap" Text="保存したら画面を閉じる" Foreground="Aqua" FontSize="40" Margin="-2740,628,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
+            <TextBlock Height="60" Width="375" TextWrapping="Wrap" Text="サムネイルを埋め込む" Foreground="Aqua" FontSize="40" Margin="-2740,703,0,0" VerticalAlignment="Top" TextAlignment="Left"/>
             <Image x:Name="Thumbnail_Image" Height="360" VerticalAlignment="Top" Stretch="Uniform" Width="640" Margin="-1230,475,0,0"/>
             <TextBlock x:Name="Message_T" Height="71" Width="1050" TextWrapping="Wrap" Text="" Foreground="Aqua" FontSize="37" Margin="-1920,875,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
             <Button x:Name="Back_B" Content="キャンセル" Height="70" VerticalAlignment="Top" Width="300" Foreground="Aqua" FontSize="40" Margin="-3318,897,0,0" BorderBrush="Aqua" Background="Transparent" Click="Back_B_Click"/>

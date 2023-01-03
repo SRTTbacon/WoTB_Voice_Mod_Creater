@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.IO;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
@@ -7,6 +8,7 @@ namespace WoTB_Voice_Mod_Creater.Class
 {
     public partial class ChangeLog : UserControl
     {
+        new bool IsLoaded = false;
         bool IsClosing = false;
         public ChangeLog()
         {
@@ -16,6 +18,13 @@ namespace WoTB_Voice_Mod_Creater.Class
         {
             Opacity = 0;
             Visibility = Visibility.Visible;
+            if (!IsLoaded)
+            {
+                string Dir = Directory.GetCurrentDirectory();
+                if (File.Exists(Dir + "\\ChangeLog.txt"))
+                    Text_Change(File.ReadAllLines(Dir + "\\ChangeLog.txt"));
+                IsLoaded = true;
+            }
             while (Opacity < 1 && !IsClosing)
             {
                 Opacity += Sub_Code.Window_Feed_Time;

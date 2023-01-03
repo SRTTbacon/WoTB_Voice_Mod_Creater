@@ -1,5 +1,4 @@
-﻿using Renci.SshNet.Messages;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -32,6 +31,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         List<int> Music_Convert_Mode = new List<int>();
         string To_Dir_Path = "";
         string Remove_Name = "";
+        readonly bool IsCanSpleeterDownload = false;
         bool IsClosing = false;
         bool IsDownloading = false;
         bool IsMessageShowing = false;
@@ -404,51 +404,55 @@ namespace WoTB_Voice_Mod_Creater.Class
             }
             if (Download_B.Content.ToString() == "Spleeterをダウンロード")
             {
-                //自前のサーバーでは耐えきれないと判断し、GoogleDriveを使用
-                double FileSize = 1350;
-                MessageBoxResult result = MessageBox.Show("Spleeterをダウンロードしますか?\nファイルサイズが大きいため、インターネット回線が良いときに実行することをお勧めします。\nダウンロードサイズ:約" + FileSize + "MB",
-                    "確認", MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.No);
-                if (result == MessageBoxResult.Yes)
+                if (IsCanSpleeterDownload)
                 {
-                    IsDownloading = true;
-                    Download_P.Value = 0;
-                    Download_P.Visibility = Visibility.Visible;
-                    Download_B.Content = "ダウンロード中...";
-                    Message_T.Text = "ファイルをダウンロードしています。しばらくお待ちください...";
-                    Voice_Set.TCP_Server.Send("Message|" + Voice_Set.UserName + "->Spleeterをダウンロードしています...");
-                    Download_Size_T.Text = "0 / " + FileSize + "MB";
-                    Download_Size_T.Visibility = Visibility.Visible;
-                    fileDownloader.DownloadProgressChanged += (sender1, e1) =>
+                    //自前のサーバーでは耐えきれないと判断し、GoogleDriveを使用
+                    double FileSize = 1350;
+                    MessageBoxResult result = MessageBox.Show("Spleeterをダウンロードしますか?\nファイルサイズが大きいため、インターネット回線が良いときに実行することをお勧めします。\nダウンロードサイズ:約" + FileSize + "MB",
+                        "確認", MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.No);
+                    if (result == MessageBoxResult.Yes)
                     {
-                        double Now_Downloaded = e1.BytesReceived / 1024.0 / 1024.0;
-                        double Full_Download_Size = e1.TotalBytesToReceive / 1024.0 / 1024.0;
-                        Download_Size_T.Text = (int)Now_Downloaded + " / " + (int)Full_Download_Size + "MB";
-                        Download_P.Value = (Now_Downloaded / Full_Download_Size) * 100.0;
-                    };
-                    fileDownloader.DownloadFileCompleted += (sender1, e1) =>
-                    {
-                        Download_Size_T.Visibility = Visibility.Hidden;
-                        Download_Size_T.Text = "0 / 0MB";
-                        Download_P.Visibility = Visibility.Hidden;
+                        IsDownloading = true;
                         Download_P.Value = 0;
-                        if (!e1.Cancelled)
+                        Download_P.Visibility = Visibility.Visible;
+                        Download_B.Content = "ダウンロード中...";
+                        Message_T.Text = "ファイルをダウンロードしています。しばらくお待ちください...";
+                        Download_Size_T.Text = "0 / " + FileSize + "MB";
+                        Download_Size_T.Visibility = Visibility.Visible;
+                        fileDownloader.DownloadProgressChanged += (sender1, e1) =>
                         {
-                            Message_T.Text = "ファイルのダウンロードが完了しました。解凍ボタンを押してください。";
-                            Download_B.Content = "解凍";
-                            Spleeter_Progress = 1;
-                            Configs_Save();
-                        }
-                        else
+                            double Now_Downloaded = e1.BytesReceived / 1024.0 / 1024.0;
+                            double Full_Download_Size = e1.TotalBytesToReceive / 1024.0 / 1024.0;
+                            Download_Size_T.Text = (int)Now_Downloaded + " / " + (int)Full_Download_Size + "MB";
+                            Download_P.Value = (Now_Downloaded / Full_Download_Size) * 100.0;
+                        };
+                        fileDownloader.DownloadFileCompleted += (sender1, e1) =>
                         {
-                            Message_Feed_Out("ダウンロードをキャンセルしました。");
-                            Download_B.Content = "Spleeterをダウンロード";
-                            Sub_Code.File_Delete_V2(Voice_Set.Special_Path + "\\Spleeter_Miniconda.dat");
-                        }
-                        IsDownloading = false;
-                        fileDownloader.Dispose();
-                    };
-                    fileDownloader.DownloadFileAsync("https://drive.google.com/file/d/1hl352XOyFFCzn7adz8gfLkO4dkryYwNH/view?usp=sharing", Voice_Set.Special_Path + "\\Spleeter_Miniconda.dat");
+                            Download_Size_T.Visibility = Visibility.Hidden;
+                            Download_Size_T.Text = "0 / 0MB";
+                            Download_P.Visibility = Visibility.Hidden;
+                            Download_P.Value = 0;
+                            if (!e1.Cancelled)
+                            {
+                                Message_T.Text = "ファイルのダウンロードが完了しました。解凍ボタンを押してください。";
+                                Download_B.Content = "解凍";
+                                Spleeter_Progress = 1;
+                                Configs_Save();
+                            }
+                            else
+                            {
+                                Message_Feed_Out("ダウンロードをキャンセルしました。");
+                                Download_B.Content = "Spleeterをダウンロード";
+                                Sub_Code.File_Delete_V2(Voice_Set.Special_Path + "\\Spleeter_Miniconda.dat");
+                            }
+                            IsDownloading = false;
+                            fileDownloader.Dispose();
+                        };
+                        fileDownloader.DownloadFileAsync("https://drive.google.com/file/d/1hl352XOyFFCzn7adz8gfLkO4dkryYwNH", Voice_Set.Special_Path + "\\Spleeter_Miniconda.dat");
+                    }
                 }
+                else
+                    Message_Feed_Out("この機能は非推奨です。既にインストールしている方以外は、Spleeter公式からGUI版をインストールすることをお勧めします。");
             }
             else if (Download_B.Content.ToString() == "解凍")
             {
@@ -490,7 +494,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                                 Configs_Save();
                             }
                         };
-                        ExtractToDirectory(Voice_Set.Special_Path + "\\Spleeter_Miniconda.dat", Voice_Set.Special_Path + "\\Other\\Spleeter_Miniconda", Zip_Progress, true);
+                        ExtractToDirectory(Voice_Set.Special_Path + "\\Spleeter_Miniconda.dat", Voice_Set.Special_Path + "\\Other\\Spleeter_Miniconda", Zip_Progress);
                     }
                     catch (Exception e1)
                     {
@@ -501,40 +505,41 @@ namespace WoTB_Voice_Mod_Creater.Class
             }
             else if (Download_B.Content.ToString() == "Spleeterをインストール")
             {
-                Message_T.Text = "Spleeterをインストールしています。しばらくお待ちください...";
-                Download_B.Content = "インストール中...";
-                StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "\\Other\\Vocal_Inst_Cut.bat");
-                stw.WriteLine("chcp 65001");
-                stw.WriteLine("call \"" + Voice_Set.Special_Path + "\\Other\\Spleeter_Miniconda\\Scripts\\activate.bat\"");
-                stw.Write("call conda env create -p \"" + Voice_Set.Special_Path + "\\Other\\Spleeter_Miniconda\\envs\\spleeter-cpu\" -f \"" + Voice_Set.Special_Path + "\\Other\\Spleeter_Miniconda\\Scripts\\spleeter.yaml\"");
-                stw.Close();
-                IsInstalling = true;
-                Install_Complete();
-                Task task_02 = Task.Run(() =>
+                MessageBoxResult result = MessageBox.Show("データをインストールしますか?\nファイルサイズが大きいため、時間がかかる可能性があります。",
+                   "確認", MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.No);
+                if (result == MessageBoxResult.Yes)
                 {
-                    ProcessStartInfo processStartInfo1 = new ProcessStartInfo
+                    Message_T.Text = "Spleeterをインストールしています。しばらくお待ちください...";
+                    Download_B.Content = "インストール中...";
+                    StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "\\Other\\Vocal_Inst_Cut.bat");
+                    stw.WriteLine("chcp 65001");
+                    stw.WriteLine("call \"" + Voice_Set.Special_Path + "\\Other\\Spleeter_Miniconda\\Scripts\\activate.bat\"");
+                    stw.Write("call conda env create -p \"" + Voice_Set.Special_Path + "\\Other\\Spleeter_Miniconda\\envs\\spleeter-cpu\" -f \"" + Voice_Set.Special_Path + "\\Other\\Spleeter_Miniconda\\Scripts\\spleeter.yaml\"");
+                    stw.Close();
+                    IsInstalling = true;
+                    Install_Complete();
+                    Task task_02 = Task.Run(() =>
                     {
-                        FileName = Voice_Set.Special_Path + "\\Other\\Vocal_Inst_Cut.bat",
-                        CreateNoWindow = true,
-                        WorkingDirectory = Voice_Set.Special_Path + "\\Other\\Spleeter_Miniconda\\Scripts",
-                        RedirectStandardOutput = true,
-                        UseShellExecute = false
-                    };
-                    Process p = Process.Start(processStartInfo1);
-                    p.OutputDataReceived += (object sender1, DataReceivedEventArgs e1) =>
-                    {
-                        if (e1.Data == null)
-                            return;
-                        //いつ閉じたらいいかわからないためごり押し
-                        if (e1.Data.Contains("# To deactivate an active environment, use"))
+                        ProcessStartInfo processStartInfo1 = new ProcessStartInfo
                         {
-                            p.Close();
-                            IsInstalling = false;
-                        }
-                    };
-                    p.BeginOutputReadLine();
-                    p.WaitForExit();
-                });
+                            FileName = Voice_Set.Special_Path + "\\Other\\Vocal_Inst_Cut.bat",
+                            CreateNoWindow = true,
+                            WorkingDirectory = Voice_Set.Special_Path + "\\Other\\Spleeter_Miniconda\\Scripts",
+                            RedirectStandardOutput = true,
+                            UseShellExecute = false
+                        };
+                        Process p = Process.Start(processStartInfo1);
+                        p.OutputDataReceived += (object sender1, DataReceivedEventArgs e1) =>
+                        {
+                            if (e1.Data == null)
+                                return;
+                        };
+                        p.BeginOutputReadLine();
+                        p.WaitForExit();
+                        p.Close();
+                        IsInstalling = false;
+                    });
+                }
             }
         }
         async void Install_Complete()
@@ -568,33 +573,36 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Main_Layout.Visibility = Visibility.Visible;
             }
         }
-        async void ExtractToDirectory(string ZipFilePath, string destinationDirectoryName, IProgress<ZipProgress> progress, bool overwrite)
+        async void ExtractToDirectory(string ZipFilePath, string destinationDirectoryName, IProgress<ZipProgress> progress)
         {
             await Task.Run(() =>
             {
-                ZipArchive zip = ZipFile.OpenRead(ZipFilePath);
+                Ionic.Zip.ZipFile zip = Ionic.Zip.ZipFile.Read(ZipFilePath);
                 DirectoryInfo di = Directory.CreateDirectory(destinationDirectoryName);
                 string destinationDirectoryFullPath = di.FullName;
                 int count = 0;
-                foreach (ZipArchiveEntry entry in zip.Entries)
+                foreach (Ionic.Zip.ZipEntry entry in zip.Entries)
                 {
                     count++;
-                    string fileDestinationPath = System.IO.Path.GetFullPath(System.IO.Path.Combine(destinationDirectoryFullPath, entry.FullName));
-                    if (!fileDestinationPath.StartsWith(destinationDirectoryFullPath, StringComparison.OrdinalIgnoreCase))
-                        throw new IOException("指定されたフォルダの外にファイルが抽出されています。");
-                    if (System.IO.Path.GetFileName(fileDestinationPath).Length == 0)
+                    string Combine = System.IO.Path.Combine(destinationDirectoryFullPath, entry.FileName);
+                    if (destinationDirectoryFullPath.Length > 247 || Combine.Length > 259)
+                        continue;
+                    try
                     {
-                        if (entry.Length != 0)
-                            throw new IOException("フォルダ内にデータが存在しませんでした。");
-                        Directory.CreateDirectory(fileDestinationPath);
+                        string fileDestinationPath = System.IO.Path.GetFullPath(Combine);
+                        if (!fileDestinationPath.StartsWith(destinationDirectoryFullPath, StringComparison.OrdinalIgnoreCase))
+                            throw new IOException("指定されたフォルダの外にファイルが抽出されています。");
+                        if (System.IO.Path.GetFileName(fileDestinationPath).Length == 0)
+                            Directory.CreateDirectory(fileDestinationPath);
+                        else
+                        {
+                            Directory.CreateDirectory(System.IO.Path.GetDirectoryName(fileDestinationPath));
+                            entry.Extract(destinationDirectoryFullPath, Ionic.Zip.ExtractExistingFileAction.DoNotOverwrite);
+                        }
+                        var zipProgress = new ZipProgress(zip.Entries.Count, count, entry.FileName);
+                        progress.Report(zipProgress);
                     }
-                    else
-                    {
-                        Directory.CreateDirectory(System.IO.Path.GetDirectoryName(fileDestinationPath));
-                        entry.ExtractToFile(fileDestinationPath, overwrite);
-                    }
-                    var zipProgress = new ZipProgress(zip.Entries.Count, count, entry.FullName);
-                    progress.Report(zipProgress);
+                    catch { }
                 }
                 zip.Dispose();
             });

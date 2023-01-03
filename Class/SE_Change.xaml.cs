@@ -12,8 +12,9 @@ namespace WoTB_Voice_Mod_Creater.Class
 {
     public partial class SE_Change : UserControl
     {
-        public List<List<string>> Preset_List = new List<List<string>>();
-        List<List<string>> SE_Files = new List<List<string>>();
+        public readonly List<List<string>> Preset_List = new List<List<string>>();
+        public readonly List<Dictionary<uint, string>> Default_SE = new List<Dictionary<uint, string>>();
+        readonly List<List<string>> SE_Files = new List<List<string>>();
         public int Preset_Index = 0;
         int Stream = 0;
         bool IsClosing = false;
@@ -29,7 +30,8 @@ namespace WoTB_Voice_Mod_Creater.Class
             SE_List.Items.Add("敵モジュール破損");
             SE_List.Items.Add("無線機破損");
             SE_List.Items.Add("燃料タンク破損");
-            SE_List.Items.Add("非貫通");
+            SE_List.Items.Add("非貫通-無効弾");
+            SE_List.Items.Add("非貫通-跳弾");
             SE_List.Items.Add("装填完了");
             SE_List.Items.Add("第六感");
             SE_List.Items.Add("敵発見");
@@ -37,6 +39,32 @@ namespace WoTB_Voice_Mod_Creater.Class
             SE_List.Items.Add("ロックオン");
             SE_List.Items.Add("アンロック");
             SE_List.Items.Add("ノイズ音");
+            SE_List.Items.Add("搭乗員負傷");
+            SE_List.Items.Add("モジュール破損");
+            SE_List.Items.Add("モジュール大破");
+            SE_List.Items.Add("モジュール復旧");
+            SE_List.Items.Add("戦闘開始");
+            SE_List.Items.Add("敵炎上");
+            for (int Number = 0; Number < SE_List.Items.Count; Number++)
+                Default_SE.Add(new Dictionary<uint, string>());
+            string SE = Voice_Set.Special_Path + "\\SE\\";
+            Default_SE[0].Add(206640353, SE + "Capture_Finish_SE.mp3");
+            Default_SE[1].Add(851389356, SE + "quick_commands_positive.mp3");
+            Default_SE[1].Add(747137713, SE + "quick_commands_negative.mp3");
+            Default_SE[1].Add(990119123, SE + "quick_commands_help_me.mp3");
+            Default_SE[1].Add(560124813, SE + "quick_commands_reloading.mp3");
+            Default_SE[1].Add(1039956691, SE + "quick_commands_attack.mp3");
+            Default_SE[1].Add(1041861596, SE + "quick_commands_attack_target.mp3");
+            Default_SE[1].Add(284419845, SE + "quick_commands_capture_base.mp3");
+            Default_SE[1].Add(93467631, SE + "quick_commands_defend_base.mp3");
+            Default_SE[10].Add(769579073, SE + "howitzer_load_01.wav|" + SE + "howitzer_load_02.wav|" + SE + "howitzer_load_03.wav|" + SE + "howitzer_load_04.wav");
+            Default_SE[11].Add(370075103, SE + "lamp_SE_01.mp3");
+            Default_SE[12].Add(370075103, SE + "tekihakken_SE_01.mp3");
+            Default_SE[13].Add(816581364, SE + "Timer_SE.mp3");
+            Default_SE[14].Add(391999685, SE + "target_on_SE_01.wav");
+            Default_SE[15].Add(166694669, SE + "target_off_SE_01.wav");
+            Default_SE[16].Add(921545948, SE + "Noise_01.mp3|" + SE + "Noise_02.mp3|" + SE + "Noise_03.mp3|" + SE + "Noise_04.mp3|" + SE + "Noise_05.mp3|" + SE + "Noise_06.mp3|" +
+                               SE + "Noise_07.mp3|" + SE + "Noise_08.mp3|" + SE + "Noise_09.mp3|" + SE + "Noise_10.mp3");
         }
         public async void Window_Show()
         {
@@ -107,6 +135,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "\\Configs\\SE_Change_Presets_Temp.dat");
                 stw.WriteLine(Preset_Index);
+                stw.WriteLine("1.2");
                 foreach (List<string> Preset_Now in Preset_List)
                 {
                     if (Preset_Now[0] == "標準")
@@ -133,22 +162,26 @@ namespace WoTB_Voice_Mod_Creater.Class
                 string SE = Voice_Set.Special_Path + "\\SE\\";
                 List<string> Default_Preset = new List<string>();
                 Default_Preset.Add("標準");
-                Default_Preset.Add(SE + "Capture_End_01.wav|" + SE + "Capture_End_02.wav");
+                Default_Preset.Add(SE + "Capture_End_01.mp3|" + SE + "Capture_End_02.mp3");
                 Default_Preset.Add(SE + "Command_01.wav");
                 Default_Preset.Add(SE + "Danyaku_SE_01.mp3");
-                Default_Preset.Add(SE + "Destroy_01.wav");
+                Default_Preset.Add(SE + "Destroy_01.mp3");
                 Default_Preset.Add(SE + "Enable_01.mp3|" + SE + "Enable_02.mp3|" + SE + "Enable_03.mp3");
                 Default_Preset.Add(SE + "Enable_Special_01.mp3");
-                Default_Preset.Add(SE + "Musenki_01.wav");
+                Default_Preset.Add(SE + "Musenki_01.mp3");
                 Default_Preset.Add(SE + "Nenryou_SE_01.mp3");
                 Default_Preset.Add(SE + "Not_Enable_01.mp3");
+                Default_Preset.Add(SE + "Not_Enable_01.mp3");
                 Default_Preset.Add(SE + "Reload_01.mp3|" + SE + "Reload_02.mp3|" + SE + "Reload_03.mp3|" + SE + "Reload_04.mp3|" + SE + "Reload_05.mp3|" + SE + "Reload_06.mp3");
-                Default_Preset.Add(SE + "Sixth_01.wav|" + SE + "Sixth_02.wav|" + SE + "Sixth_03.mp3");
-                Default_Preset.Add(SE + "Spot_01.wav");
+                Default_Preset.Add(SE + "Sixth_01.mp3|" + SE + "Sixth_02.mp3|" + SE + "Sixth_03.mp3");
+                Default_Preset.Add(SE + "Spot_01.mp3");
                 Default_Preset.Add(SE + "Timer_01.wav|" + SE + "Timer_02.wav");
-                Default_Preset.Add(SE + "Lock_01.wav");
-                Default_Preset.Add(SE + "Unlock_01.wav");
-                Default_Preset.Add(SE + "Noise_01.mp3|" + SE + "Noise_02.mp3|" + SE + "Noise_03.mp3|" + SE + "Noise_04.mp3|" + SE + "Noise_05.mp3|" + SE + "Noise_06.mp3|" + SE + "Noise_07.mp3|" + SE + "Noise_08.mp3|" + SE + "Noise_09.mp3|" + SE + "Noise_10.mp3");
+                Default_Preset.Add(SE + "Lock_01.mp3");
+                Default_Preset.Add(SE + "Unlock_01.mp3");
+                Default_Preset.Add(SE + "Noise_01.mp3|" + SE + "Noise_02.mp3|" + SE + "Noise_03.mp3|" + SE + "Noise_04.mp3|" + SE + "Noise_05.mp3|" + SE + "Noise_06.mp3|" + 
+                    SE + "Noise_07.mp3|" + SE + "Noise_08.mp3|" + SE + "Noise_09.mp3|" + SE + "Noise_10.mp3");
+                for (int Number = 0; Number < 6; Number++)
+                      Default_Preset.Add("");
                 Preset_List.Add(Default_Preset);
                 Load_Combo.Items.Add("標準");
                 int Index = 0;
@@ -156,7 +189,17 @@ namespace WoTB_Voice_Mod_Creater.Class
                 {
                     Sub_Code.File_Decrypt_To_File(Voice_Set.Special_Path + "\\Configs\\SE_Change_Presets.dat", Voice_Set.Special_Path + "\\Configs\\SE_Change_Presets_Temp.dat", "Period_Lost-Words", false);
                     string[] All_Lines = File.ReadAllLines(Voice_Set.Special_Path + "\\Configs\\SE_Change_Presets_Temp.dat");
+                    double Version = -1;
+                    double.TryParse(All_Lines[1], out Version);
                     File.Delete(Voice_Set.Special_Path + "\\Configs\\SE_Change_Presets_Temp.dat");
+                    if (Version < 1.2)
+                    {
+                        Message_Feed_Out("設定ファイルのバージョンが古いため、ロードできませんでした。");
+                        Load_Combo.SelectedIndex = 0;
+                        Preset_Index = 0;
+                        Load_Preset(0, false);
+                        return;
+                    }
                     for (int Number = 0; Number < All_Lines.Length; Number++)
                     {
                         if (Number == 0)
@@ -172,25 +215,22 @@ namespace WoTB_Voice_Mod_Creater.Class
                             New_Preset.Add(All_Lines[Number + 6]);
                             New_Preset.Add(All_Lines[Number + 7]);
                             New_Preset.Add(All_Lines[Number + 8]);
-                            New_Preset.Add(All_Lines[Number + 9]);
-                            New_Preset.Add(All_Lines[Number + 10]);
+                            New_Preset.Add(All_Lines[Number + 9]); //無効弾
+                            New_Preset.Add(All_Lines[Number + 10]); //跳弾
                             New_Preset.Add(All_Lines[Number + 11]);
                             New_Preset.Add(All_Lines[Number + 12]);
                             New_Preset.Add(All_Lines[Number + 13]);
                             New_Preset.Add(All_Lines[Number + 14]);
                             New_Preset.Add(All_Lines[Number + 15]);
                             New_Preset.Add(All_Lines[Number + 16]);
-                            Number += 16;
-                            if (All_Lines.Length > Number + 17)
-                            {
-                                if (All_Lines[Number + 17].Contains("!*---Preset_Start---*!"))
-                                    New_Preset.Add("");
-                                else
-                                    New_Preset.Add(All_Lines[Number + 17]);
-                                Number++;
-                            }
-                            else
-                                New_Preset.Add("");
+                            New_Preset.Add(All_Lines[Number + 17]);
+                            New_Preset.Add(All_Lines[Number + 18]);
+                            New_Preset.Add(All_Lines[Number + 19]);
+                            New_Preset.Add(All_Lines[Number + 20]);
+                            New_Preset.Add(All_Lines[Number + 21]);
+                            New_Preset.Add(All_Lines[Number + 22]);
+                            New_Preset.Add(All_Lines[Number + 23]);
+                            New_Preset.Add(All_Lines[Number + 24]);
                             Preset_List.Add(New_Preset);
                             Load_Combo.Items.Add(New_Preset[0]);
                         }
@@ -204,6 +244,9 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 Sub_Code.Error_Log_Write(e.Message);
                 Message_Feed_Out("エラーが発生しました。プリセットをロードできません。");
+                Load_Combo.SelectedIndex = 0;
+                Preset_Index = 0;
+                Load_Preset(0, false);
                 MessageBox.Show("エラー:プリセットをロードできませんでした。\n詳しくはError_Log.txtを参照してください。");
             }
         }
@@ -313,6 +356,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 }
                 Bass.BASS_ChannelStop(Stream);
                 Bass.BASS_StreamFree(Stream);
+                Preset_Load_File();
                 Visibility = Visibility.Hidden;
                 IsClosing = false;
             }

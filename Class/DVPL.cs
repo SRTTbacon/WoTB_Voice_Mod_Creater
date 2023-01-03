@@ -142,40 +142,24 @@ namespace WoTB_Voice_Mod_Creater
         static void WriteMessage(object sender, DataReceivedEventArgs e)
         {
             if (e.Data == null)
-            {
                 return;
-            }
             p.StandardInput.WriteLine("\r\n");
         }
         public static bool DVPL_Pack(string From_File, string To_File, bool IsFromFileDelete)
         {
             if (!File.Exists(From_File))
-            {
                 return false;
-            }
-            FileInfo file = new FileInfo(From_File);
-            long size = file.Length;
-            if (size >= 50000000)
+            try
             {
-                return DVPL_Pack_V2(From_File, To_File, IsFromFileDelete);
+                if (Path.GetExtension(From_File) == ".tex")
+                    CREATE_DVPL(LZ4Level.L00_FAST, From_File, To_File, IsFromFileDelete);
+                else
+                    CREATE_DVPL(LZ4Level.L03_HC, From_File, To_File, IsFromFileDelete);
             }
-            else
+            catch (Exception e)
             {
-                try
-                {
-                    if (Path.GetExtension(From_File) == ".tex")
-                    {
-                        CREATE_DVPL(LZ4Level.L00_FAST, From_File, To_File, IsFromFileDelete);
-                    }
-                    else
-                    {
-                        CREATE_DVPL(LZ4Level.L03_HC, From_File, To_File, IsFromFileDelete);
-                    }
-                }
-                catch
-                {
-                    return false;
-                }
+                Sub_Code.Error_Log_Write(e.Message);
+                return false;
             }
             return true;
         }
@@ -202,12 +186,10 @@ namespace WoTB_Voice_Mod_Creater
             p2.Close();
             p2.Dispose();
             File.Delete(Voice_Set.Special_Path + "/DVPL/DVPL_Pack_" + Random_Number + ".bat");
-            if (IsFromFileDelete)
-            {
-                File.Delete(From_File);
-            }
             if (File.Exists(To_File))
             {
+                if (IsFromFileDelete)
+                    File.Delete(From_File);
                 return true;
             }
             return false;
@@ -227,9 +209,7 @@ namespace WoTB_Voice_Mod_Creater
             byte[] DVPL_CONTENT = FORMAT_WG_DVPL(LZ4_CONTENT, LZ4_SIZE, ORIGINAL_SIZE, COMPRESSION_TYPE);
             File.WriteAllBytes(ToFile, DVPL_CONTENT);
             if (IsFromFileDelete)
-            {
                 File.Delete(From_File);
-            }
         }
         public static byte[] FORMAT_WG_DVPL(byte[] LZ4_CONTENT, int LZ4_SIZE, int ORIGINAL_SIZE, LZ4Level COMPRESSION_TYPE)
         {

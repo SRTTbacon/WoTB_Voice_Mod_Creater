@@ -1,0 +1,89 @@
+﻿<UserControl x:Class="WoTB_Voice_Mod_Creater.Class.WoWS_To_WoTB"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="1080" d:DesignWidth="1920">
+    <UserControl.Resources>
+        <Style x:Key="SliderThumbStyle" TargetType="{x:Type Thumb}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Thumb}">
+                        <Ellipse Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Slider}, Mode=FindAncestor}}" Width="25" Height="25"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="CustomSliderStyle" TargetType="{x:Type Slider}">
+            <Style.Triggers>
+                <Trigger Property="Orientation" Value="Horizontal">
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate>
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="25"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <TickBar Grid.Row="0" x:Name="TopTick" Placement="Top" Visibility="Collapsed" Fill="{TemplateBinding Foreground}" Height="8" Opacity="0.64" Margin="0,0,0,2"/>
+                                    <TickBar Grid.Row="2" x:Name="BottomTick" Placement="Bottom" Visibility="Collapsed" Fill="{TemplateBinding Foreground}" Height="8" Opacity="0.64" Margin="0,2,0,0"/>
+                                    <Track Grid.Row="1" x:Name="PART_Track">
+                                        <Track.DecreaseRepeatButton>
+                                            <RepeatButton Command="Slider.DecreaseLarge" Background="Aqua" Height="5" BorderBrush="{x:Null}" Opacity="0.9"/>
+                                        </Track.DecreaseRepeatButton>
+                                        <Track.IncreaseRepeatButton>
+                                            <RepeatButton Command="Slider.IncreaseLarge" Background="Gray" Height="5" BorderBrush="{x:Null}" Opacity="0.5"/>
+                                        </Track.IncreaseRepeatButton>
+                                        <Track.Thumb>
+                                            <Thumb Style="{StaticResource SliderThumbStyle}"/>
+                                        </Track.Thumb>
+                                    </Track>
+                                </Grid>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="Slider.TickPlacement" Value="TopLeft">
+                                        <Setter TargetName="TopTick" Property="Visibility" Value="Visible"/>
+                                    </Trigger>
+                                    <Trigger Property="Slider.TickPlacement" Value="BottomRight">
+                                        <Setter TargetName="BottomTick" Property="Visibility" Value="Visible"/>
+                                    </Trigger>
+                                    <Trigger Property="Slider.TickPlacement" Value="Both">
+                                        <Setter TargetName="TopTick" Property="Visibility" Value="Visible"/>
+                                        <Setter TargetName="BottomTick" Property="Visibility" Value="Visible"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Resources>
+    <Viewbox>
+        <DockPanel Width="1920" Height="1080">
+            <Border BorderBrush="Black" BorderThickness="1" Margin="0,0,0,0" Background="#0E0E1C" Height="1080" VerticalAlignment="Top" Width="1920"/>
+            <TextBlock x:Name="Message_T" Height="110" Width="1250" TextWrapping="Wrap" Text="" Foreground="Aqua" FontSize="37" Margin="-1920,942,0,0" VerticalAlignment="Top" TextAlignment="Center" Focusable="False"/>
+            <Button x:Name="Back_B" Content="戻る" Height="75" VerticalAlignment="Top" Width="275" Background="Transparent" Margin="-3565,1005,0,0" Foreground="Aqua" BorderBrush="Aqua" FontSize="38" Click="Back_B_Click" Focusable="False"/>
+            <Button x:Name="Clear_B" Content="クリア" Height="75" VerticalAlignment="Top" Width="275" Background="Transparent" Margin="-275,1005,0,0" Foreground="Aqua" BorderBrush="Aqua" FontSize="38" Focusable="False" Click="Clear_B_Click"/>
+            <TextBlock FontSize="40" Height="50" Width="375" TextWrapping="Wrap" Text="ーWoWSからWoTBへー" VerticalAlignment="Top" Margin="-1920,75,0,0" Foreground="Aqua" TextAlignment="Center" Focusable="False"/>
+            <TextBlock x:Name="Mod_Name_T" FontSize="30" Height="45" Width="570" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Margin="-1920,250,0,0" Foreground="Aqua" TextAlignment="Center" Focusable="False"/>
+            <TextBlock FontSize="40" Height="50" Width="375" TextWrapping="Wrap" Text="WoWSのイベント名" VerticalAlignment="Top" Margin="-3100,75,0,0" Foreground="Aqua" TextAlignment="Center" Focusable="False"/>
+            <TextBlock FontSize="40" Height="50" Width="375" TextWrapping="Wrap" Text="イベント内の音声" VerticalAlignment="Top" Margin="-740,75,0,0" Foreground="Aqua" TextAlignment="Center" Focusable="False"/>
+            <Button x:Name="Select_Mod_B" Content="Modフォルダを選択" Height="65" VerticalAlignment="Top" Width="325" Background="Transparent" Margin="-1920,175,0,0" Foreground="Aqua" BorderBrush="Aqua" FontSize="38" Focusable="False" Click="WoWS_To_WoTB_Select_B_Click"/>
+            <ListBox x:Name="Event_List" Height="700" VerticalAlignment="Top" Width="600" Background="Transparent" FontSize="35" Foreground="Aqua" BorderBrush="Aqua" Margin="-3100,150,0,0" Focusable="False" SelectionChanged="Event_List_SelectionChanged"/>
+            <ListBox x:Name="Voice_List" Height="700" VerticalAlignment="Top" Width="600" Background="Transparent" FontSize="35" Foreground="Aqua" BorderBrush="Aqua" Margin="-740,150,0,0" Focusable="False" SelectionChanged="Voice_List_SelectionChanged"/>
+            <Button x:Name="Event_Enable_B" Content="有効化" Height="75" VerticalAlignment="Top" Width="297" Background="Transparent" Margin="-2797,850,0,0" Foreground="Aqua" BorderBrush="Aqua" FontSize="38" Click="Event_Enable_B_Click"/>
+            <Button x:Name="Event_Disable_B" Content="無効化" Height="75" VerticalAlignment="Top" Width="297" Background="Transparent" Margin="-3403,850,0,0" Foreground="Aqua" BorderBrush="Aqua" FontSize="38" Click="Event_Disable_B_Click"/>
+            <Button x:Name="Voice_Enable_B" Content="有効化" Height="75" VerticalAlignment="Top" Width="297" Background="Transparent" Margin="-437,850,0,0" Foreground="Aqua" BorderBrush="Aqua" FontSize="38" Click="Voice_Enable_B_Click"/>
+            <Button x:Name="Voice_Disable_B" Content="無効化" Height="75" VerticalAlignment="Top" Width="297" Background="Transparent" Margin="-1043,850,0,0" Foreground="Aqua" BorderBrush="Aqua" FontSize="38" Click="Voice_Disable_B_Click"/>
+            <TextBlock x:Name="Volume_T" Height="50" Width="180" FontSize="37" Foreground="Aqua" TextWrapping="Wrap" Text="音量:75" Margin="-1920,300,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
+            <Slider x:Name="Volume_S" Height="27" VerticalAlignment="Top"  Width="410" Margin="-1920,365,0,0" Style="{StaticResource CustomSliderStyle}" Value="75" Maximum="100" SmallChange="1" LargeChange="1" ValueChanged="Volume_S_ValueChanged"/>
+            <TextBlock x:Name="Location_T" Height="50" Width="300" FontSize="37" Foreground="Aqua" TextWrapping="Wrap" Text="00:00" Margin="-1920,490,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
+            <Slider x:Name="Location_S" IsMoveToPointEnabled="True"  Height="27" VerticalAlignment="Top"  Width="410" Margin="-1920,555,0,0" Style="{StaticResource CustomSliderStyle}" SmallChange="0" LargeChange="0" Maximum="0" ValueChanged="Location_S_ValueChanged"/>
+            <Button x:Name="Play_B" Content="再生" Height="60" Margin="-1715,415,0,0" VerticalAlignment="Top" Width="200" Background="Transparent" Foreground="Aqua" FontSize="37" BorderBrush="Aqua" Click="Play_B_Click"/>
+            <Button x:Name="Pause_B" Content="停止" Height="60" Margin="-2125,415,0,0" VerticalAlignment="Top" Width="200" Background="Transparent" Foreground="Aqua" FontSize="37" BorderBrush="Aqua" Click="Pause_B_Click"/>
+            <Button x:Name="Convert_B" Content=".wvsに変換" Height="70" Margin="-1920,715,0,0" VerticalAlignment="Top" Width="325" Background="Transparent" Foreground="Aqua" FontSize="37" BorderBrush="Aqua" Click="Convert_B_Click"/>
+        </DockPanel>
+    </Viewbox>
+</UserControl>

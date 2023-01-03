@@ -33,7 +33,6 @@ namespace WoTB_Voice_Mod_Creater.Class
             Save_Ex_C.SelectedIndex = 0;
             Framerate_C.Items.Add("30FPS");
             Framerate_C.Items.Add("60FPS");
-            Framerate_C.Items.Add("120FPS");
             Framerate_C.SelectedIndex = 1;
             Volume_S.Value = 75;
             Save_Once_C.IsChecked = true;
@@ -234,7 +233,9 @@ namespace WoTB_Voice_Mod_Creater.Class
                     Save_Track_Delete_C.IsChecked = bool.Parse(str.ReadLine());
                     Save_Once_C.IsChecked = bool.Parse(str.ReadLine());
                     Cut_Pos_C.IsChecked = bool.Parse(str.ReadLine());
-                    Framerate_C.SelectedIndex = int.Parse(str.ReadLine());
+                    int Index = int.Parse(str.ReadLine());
+                    if (Index >= 2)
+                        Framerate_C.SelectedIndex = 1;
                     Volume_S.Value = double.Parse(str.ReadLine());
                     Cut_Volume_Sync_C.IsChecked = bool.Parse(str.ReadLine());
                     Set_Speed_Mode_C.IsChecked = bool.Parse(str.ReadLine());

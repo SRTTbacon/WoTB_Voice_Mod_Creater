@@ -3,6 +3,9 @@ using NAudio.Wave;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -26,24 +29,18 @@ namespace WoTB_Voice_Mod_Creater
     }
     public class Sub_Code
     {
+        public static readonly Dictionary<int, int> LPF_Values = new Dictionary<int, int>();
+        public static readonly Dictionary<int, int> HPF_Values = new Dictionary<int, int>();
+        public static readonly Dictionary<int, int> Pitch_Values = new Dictionary<int, int>();
+        public static List<uint> ShortIDs = new List<uint>();
         public const string Random_String = "0123456789abcdefghijklmnopqrstuvwxyz";
         public const double Window_Feed_Time = 0.04;
         static List<string> IsAutoListAdd = new List<string>();
         public static Random r = new Random();
         static string IsLanguage = "";
-        public static string IsWwise_Blitz_Actor_Update = "1.0";
-        public static string IsWwise_Blitz_Update = "1.0";
-        public static string IsWwise_Hits_Update = "1.0";
-        public static string IsWwise_Gun_Update = "1.0";
-        public static string IsWwise_WoT_Gun_Update = "1.0";
-        public static string IsWwise_WoT_Update = "1.0";
-        public static string IsWwise_Player_Update = "1.0";
-        public static string IsWwise_UI_Button_Sound = "1.0";
-        public static string SE_Version = "1.0";
         public static bool IsWindowBarShow = false;
-        public static bool IsForceWwise_Blitz_Actor_Update = false;
-        public static bool IsForceWwise_Gun_Update = false;
         public static bool IsForcusWindow = false;
+        public static bool IsForceMusicStop = false;
         public static readonly string[] Default_Name = { "ally_killed_by_player", "ammo_bay_damaged", "armor_not_pierced_by_player", "armor_pierced_by_player", "armor_pierced_crit_by_player", "armor_ricochet_by_player",
         "commander_killed","driver_killed","enemy_fire_started_by_player","enemy_killed_by_player","engine_damaged","engine_destroyed","engine_functional","fire_started","fire_stopped",
         "fuel_tank_damaged","gun_damaged","gun_destroyed","gun_functional","gunner_killed","loader_killed","radio_damaged","radioman_killed","start_battle","surveying_devices_damaged",
@@ -52,17 +49,12 @@ namespace WoTB_Voice_Mod_Creater
         public static BitmapFrame Check_02;
         public static BitmapFrame Check_03;
         public static BitmapFrame Check_04;
-        static bool IsServerCreating = false;
         static bool IsCreatingProject = false;
         static bool IsVolumeSet = false;
         static bool IsDVPLEncode = false;
         static bool IsModChange = false;
         static bool IsDefaultVoiceMode = false;
-        public static bool ServerCreate
-        {
-            get { return IsServerCreating; }
-            set { IsServerCreating = value; }
-        }
+        static bool IsOnly_Wwise_Project = false;
         public static bool CreatingProject
         {
             get { return IsCreatingProject; }
@@ -97,6 +89,53 @@ namespace WoTB_Voice_Mod_Creater
         {
             get { return IsDefaultVoiceMode; }
             set { IsDefaultVoiceMode = value; }
+        }
+        public static bool Only_Wwise_Project
+        {
+            get { return IsOnly_Wwise_Project; }
+            set { IsOnly_Wwise_Project = value; }
+        }
+        public static void Init()
+        {
+            LPF_Values.Add(12000, 1500);
+            LPF_Values.Add(10500, 2500);
+            LPF_Values.Add(8500, 2000);
+            LPF_Values.Add(6500, 3200);
+            LPF_Values.Add(3300, 2000);
+            LPF_Values.Add(1300, 700);
+            LPF_Values.Add(600, 400);
+            LPF_Values.Add(200, 0);
+            HPF_Values.Add(0, 45);
+            HPF_Values.Add(45, 25);
+            HPF_Values.Add(70, 45);
+            HPF_Values.Add(115, 25);
+            HPF_Values.Add(140, 60);
+            HPF_Values.Add(200, 130);
+            HPF_Values.Add(330, 70);
+            HPF_Values.Add(400, 150);
+            HPF_Values.Add(550, 350);
+            HPF_Values.Add(900, 400);
+            HPF_Values.Add(1300, 475);
+            HPF_Values.Add(1775, 1225);
+            HPF_Values.Add(3000, 1500);
+            HPF_Values.Add(4500, 1500);
+            HPF_Values.Add(6500, 0);
+            Pitch_Values.Add(1200, 100);
+            Pitch_Values.Add(1100, 90);
+            Pitch_Values.Add(1000, 80);
+            Pitch_Values.Add(900, 70);
+            Pitch_Values.Add(800, 60);
+            Pitch_Values.Add(700, 50);
+            Pitch_Values.Add(575, 40);
+            Pitch_Values.Add(450, 30);
+            Pitch_Values.Add(300, 20);
+            Pitch_Values.Add(175, 10);
+            Pitch_Values.Add(0, 0);
+            Pitch_Values.Add(-175, -10);
+            Pitch_Values.Add(-400, -20);
+            Pitch_Values.Add(-600, -30);
+            Pitch_Values.Add(-900, -40);
+            Pitch_Values.Add(-1200, -50);
         }
         //必要なdllがない場合そのdll名のリストを返す
         public static List<string> DLL_Exists()
@@ -408,6 +447,20 @@ namespace WoTB_Voice_Mod_Creater
                 }
             }
         }
+        public static List<string> Get_Files_By_Name(string Dir, string Name)
+        {
+            if (!Directory.Exists(Dir))
+                return new List<string>();
+            List<string> Return_List = new List<string>();
+            string[] Files = Directory.GetFiles(Dir, "*", SearchOption.TopDirectoryOnly);
+            foreach (string File_Now in Files)
+            {
+                string Name_Only = Path.GetFileName(File_Now);
+                if (File_Now.Contains(Name))
+                    Return_List.Add(File_Now);
+            }
+            return Return_List;
+        }
         //ファイル拡張子を指定しないでファイルを削除
         public static bool File_Delete(string File_Path)
         {
@@ -525,22 +578,22 @@ namespace WoTB_Voice_Mod_Creater
         }
         //音声タイプの名前に変換
         //例:Indexが2で既にそのタイプのファイル数が3個ある場合 -> danyaku_04.mp3
-        public static string Set_Voice_Type_Change_Name_By_Index(string Dir, List<List<string>> Lists)
+        public static string Set_Voice_Type_Change_Name_By_Index(string Dir, List<Voice_Event_Setting> Lists)
         {
             if (!Directory.Exists(Dir))
                 Directory.CreateDirectory(Dir);
             int Romaji_Number = 0;
-            foreach (List<string> Index in Lists)
+            foreach (Voice_Event_Setting Index in Lists)
             {
                 int File_Number = 1;
-                foreach (string File_Path in Index)
+                foreach (Voice_Sound_Setting File_Path in Index.Sounds)
                 {
                     try
                     {
                         if (File_Number < 10)
-                            File.Copy(File_Path, Dir + "/" + Voice_Set.Get_Voice_Type_Romaji_Name(Romaji_Number) + "_0" + File_Number + Path.GetExtension(File_Path), true);
+                            File.Copy(File_Path.File_Path, Dir + "/" + Voice_Set.Get_Voice_Type_Romaji_Name(Romaji_Number) + "_0" + File_Number + Path.GetExtension(File_Path.File_Path), true);
                         else
-                            File.Copy(File_Path, Dir + "/" + Voice_Set.Get_Voice_Type_Romaji_Name(Romaji_Number) + "_" + File_Number + Path.GetExtension(File_Path), true);
+                            File.Copy(File_Path.File_Path, Dir + "/" + Voice_Set.Get_Voice_Type_Romaji_Name(Romaji_Number) + "_" + File_Number + Path.GetExtension(File_Path.File_Path), true);
                         File_Number++;
                     }
                     catch (Exception e)
@@ -553,40 +606,30 @@ namespace WoTB_Voice_Mod_Creater
             }
             return "";
         }
-        public static string Set_Voice_Type_Change_Name_By_Index(string Dir, WVS_Load WVS_File, List<List<string>> Lists, int List_01_Count, int List_02_Count)
+        public static string Set_Voice_Type_Change_Name_By_Index(string Dir, WVS_Load WVS_File, List<Voice_Event_Setting> Lists)
         {
             if (!Directory.Exists(Dir))
                 Directory.CreateDirectory(Dir);
             for (int Number_01 = 0; Number_01 < Lists.Count; Number_01++)
             {
-                int List_Index = 0;
-                if (Number_01 >= List_01_Count + List_02_Count)
-                    List_Index = 2;
-                else if (Number_01 >= List_01_Count)
-                    List_Index = 1;
-                for (int Number_02 = 0; Number_02 < Lists[Number_01].Count; Number_02++)
+                for (int Number_02 = 0; Number_02 < Lists[Number_01].Sounds.Count; Number_02++)
                 {
                     try
                     {
-                        int Voice_Index = Number_01;
-                        if (Number_01 >= List_01_Count + List_02_Count)
-                            Voice_Index -= List_01_Count + List_02_Count;
-                        else if (Number_01 >= List_01_Count)
-                            Voice_Index -= List_01_Count;
                         string Name_Temp = Dir + "/" + Voice_Set.Get_Voice_Type_Romaji_Name(Number_01);
                         if (Number_02 < 10)
                         {
-                            if (!Lists[Number_01][Number_02].Contains("\\"))
-                                WVS_File.Sound_To_File(Name_Temp + "_0" + Number_02 + Path.GetExtension(Lists[Number_01][Number_02]), List_Index, Voice_Index, Number_02);
+                            if (!Lists[Number_01].Sounds[Number_02].File_Path.Contains("\\"))
+                                WVS_File.Sound_To_File(Lists[Number_01].Sounds[Number_02], Name_Temp + "_0" + Number_02 + Path.GetExtension(Lists[Number_01].Sounds[Number_02].File_Path));
                             else
-                                File.Copy(Lists[Number_01][Number_02], Name_Temp + "_0" + Number_02 + Path.GetExtension(Lists[Number_01][Number_02]), true);
+                                File.Copy(Lists[Number_01].Sounds[Number_02].File_Path, Name_Temp + "_0" + Number_02 + Path.GetExtension(Lists[Number_01].Sounds[Number_02].File_Path), true);
                         }
                         else
                         {
-                            if (!Lists[Number_01][Number_02].Contains("\\"))
-                                WVS_File.Sound_To_File(Name_Temp + "_" + Number_02 + Path.GetExtension(Lists[Number_01][Number_02]), List_Index, Voice_Index, Number_02);
+                            if (!Lists[Number_01].Sounds[Number_02].File_Path.Contains("\\"))
+                                WVS_File.Sound_To_File(Lists[Number_01].Sounds[Number_02], Name_Temp + "_" + Number_02 + Path.GetExtension(Lists[Number_01].Sounds[Number_02].File_Path));
                             else
-                                File.Copy(Lists[Number_01][Number_02], Name_Temp + "_" + Number_02 + Path.GetExtension(Lists[Number_01][Number_02]), true);
+                                File.Copy(Lists[Number_01].Sounds[Number_02].File_Path, Name_Temp + "_" + Number_02 + Path.GetExtension(Lists[Number_01].Sounds[Number_02].File_Path), true);
                         }
                     }
                     catch (Exception e)
@@ -752,11 +795,14 @@ namespace WoTB_Voice_Mod_Creater
             }
         }
         //MP3またはWAV形式のファイルの音量を調整
-        public static void Volume_Set(string To_Dir, Encode_Mode Mode, int Gain = 10)
+        public static void Volume_Set(string From_Dir, Encode_Mode Mode, int Gain = 10)
+        {
+            Volume_Set(Directory.GetFiles(From_Dir, "*." + Mode.ToString().ToLower(), SearchOption.TopDirectoryOnly), Mode, Gain);
+        }
+        public static void Volume_Set(string[] Files, Encode_Mode Mode, int Gain = 10)
         {
             string File_Import = "";
-            string[] Files_03 = Directory.GetFiles(To_Dir, "*." + Mode.ToString().ToLower(), SearchOption.TopDirectoryOnly);
-            foreach (string File_Now in Files_03)
+            foreach (string File_Now in Files)
             {
                 if (File_Import == "")
                     File_Import = "\"" + File_Now + "\"";
@@ -949,6 +995,8 @@ namespace WoTB_Voice_Mod_Creater
         //エラーをログに記録(改行コードはあってもなくてもよい)
         public static void Error_Log_Write(string Text)
         {
+            if (Text.Contains("Error_Log.txt' にアクセスできません。"))
+                return;
             DateTime dt = DateTime.Now;
             string Time = Get_Time_Now(dt, ".", 1, 6);
             if (Text.EndsWith("\n"))
@@ -970,7 +1018,6 @@ namespace WoTB_Voice_Mod_Creater
                 img.StreamSource = stream;
                 img.EndInit();
                 stream.Close();
-                stream.Dispose();
                 return img;
             }
             else
@@ -987,7 +1034,6 @@ namespace WoTB_Voice_Mod_Creater
             img.StreamSource = stream;
             img.EndInit();
             stream.Close();
-            stream.Dispose();
             return img;
         }
         public static System.Drawing.Bitmap BitmapImage_To_Bitmap(BitmapImage bitmapImage)
@@ -1197,19 +1243,27 @@ namespace WoTB_Voice_Mod_Creater
             {
             }
         }
-        public static bool WEM_To_OGG_WAV(string From_WEM_File, string To_OGG_WAV_File, bool IsFromFileDelete)
+        public static string WEM_To_OGG_WAV(string From_WEM_File, string To_OGG_WAV_File, bool IsFromFileDelete)
         {
             try
             {
                 if (!File.Exists(From_WEM_File))
-                    return false;
+                    return "";
                 Wwise_Class.WEM_To_OGG.Create_OGG(From_WEM_File, Voice_Set.Special_Path + "\\Wwise\\Temp.ogg");
                 if (File.Exists(Voice_Set.Special_Path + "\\Wwise\\Temp.ogg"))
                 {
-                    File_Move(Voice_Set.Special_Path + "\\Wwise\\Temp.ogg", To_OGG_WAV_File + ".ogg", true);
                     if (IsFromFileDelete)
                         File.Delete(From_WEM_File);
-                    return true;
+                    Process Reverb = new Process();
+                    Reverb.StartInfo.FileName = Voice_Set.Special_Path + "/Wwise/revorb.exe";
+                    Reverb.StartInfo.Arguments = "\"" + Voice_Set.Special_Path + "\\Wwise\\Temp.ogg\" \"" + To_OGG_WAV_File + ".ogg" + "\"";
+                    Reverb.StartInfo.CreateNoWindow = true;
+                    Reverb.StartInfo.UseShellExecute = false;
+                    Reverb.Start();
+                    Reverb.WaitForExit();
+                    Reverb.Dispose();
+                    File.Delete(Voice_Set.Special_Path + "\\Wwise\\Temp.ogg");
+                    return To_OGG_WAV_File + ".ogg";
                 }
                 else
                 {
@@ -1223,19 +1277,20 @@ namespace WoTB_Voice_Mod_Creater
                     WEMToWAV.StartInfo.RedirectStandardOutput = true;
                     WEMToWAV.Start();
                     WEMToWAV.WaitForExit();
+                    WEMToWAV.Dispose();
                     if (File.Exists(Voice_Set.Special_Path + "\\Wwise\\Temp.wav"))
                     {
                         File_Move(Voice_Set.Special_Path + "\\Wwise\\Temp.wav", To_OGG_WAV_File + ".wav", true);
                         if (IsFromFileDelete)
                             File.Delete(From_WEM_File);
-                        return true;
+                        return To_OGG_WAV_File + ".wav";
                     }
                 }
-                return false;
+                return "";
             }
             catch
             {
-                return false;
+                return "";
             }
         }
         //.wemファイルを指定した形式に変換
@@ -1258,6 +1313,14 @@ namespace WoTB_Voice_Mod_Creater
                 //Wwise_Class.WEM_To_OGG.Create_OGG(From_WEM_File, Voice_Set.Special_Path + "\\Wwise\\Temp.ogg");
                 if (File.Exists(Voice_Set.Special_Path + "\\Wwise\\Temp.ogg"))
                 {
+                    Process Reverb = new Process();
+                    Reverb.StartInfo.FileName = Voice_Set.Special_Path + "/Wwise/revorb.exe";
+                    Reverb.StartInfo.Arguments = "\"" + Voice_Set.Special_Path + "\\Wwise\\Temp.ogg\"";
+                    Reverb.StartInfo.CreateNoWindow = true;
+                    Reverb.StartInfo.UseShellExecute = false;
+                    Reverb.Start();
+                    Reverb.WaitForExit();
+                    Reverb.Dispose();
                     if (Encode_Mode == "ogg")
                         Sub_Code.File_Move(Voice_Set.Special_Path + "\\Wwise\\Temp.ogg", To_Audio_File, true);
                     else if (Encode_Mode == "wav")
@@ -1668,370 +1731,6 @@ namespace WoTB_Voice_Mod_Creater
             Project_Line.Clear();
             SoundBanks_Line.Clear();
         }
-        public static void Actor_Mixer_Update(string Version)
-        {
-            if (!Directory.Exists(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy") || !Directory.Exists(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Events"))
-                return;
-            File.Delete(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Default Work Unit.wwu");
-            Voice_Set.FTPClient.DownloadFile("/WoTB_Voice_Mod/Update/Wwise/Default Work Unit.wwu", Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Default Work Unit.wwu");
-            Voice_Set.FTPClient.DownloadFile("/WoTB_Voice_Mod/Update/Wwise/SoundBanks/Default Work Unit.wwu", Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/SoundBanks/Default Work Unit.wwu");
-            Voice_Set.FTPClient.DownloadFile("/WoTB_Voice_Mod/Update/Wwise/Events.zip", Voice_Set.Special_Path + "/Wwise/Download_Wwise_Events.dat");
-            StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Version.dat");
-            stw.Write(Version);
-            stw.Close();
-            System.IO.Compression.ZipFile.ExtractToDirectory(Voice_Set.Special_Path + "/Wwise/Download_Wwise_Events.dat", Voice_Set.Special_Path + "/Wwise/Download_Wwise_Events");
-            Sub_Code.Directory_Copy(Voice_Set.Special_Path + "/Wwise/Download_Wwise_Events", Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Events", false);
-            File.Delete(Voice_Set.Special_Path + "/Wwise/Download_Wwise_Events.dat");
-            File.Delete(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Backup.tmp");
-            Directory.Delete(Voice_Set.Special_Path + "/Wwise/Download_Wwise_Events", true);
-            IsForceWwise_Blitz_Actor_Update = false;
-        }
-        //Wwiseプロジェクトをサーバーからダウンロード
-        public static async Task<int> Wwise_Project_Update(TextBlock Message_T, ProgressBar Download_P, TextBlock Download_T, Border Download_Border)
-        {
-            try
-            {
-                if (File.Exists(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Version.dat"))
-                {
-                    if (Voice_Set.FTPClient.IsConnected)
-                    {
-                        StreamReader str2 = new StreamReader(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Version.dat");
-                        string Version = str2.ReadLine();
-                        str2.Close();
-                        if (File.Exists(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Version.dat"))
-                        {
-                            StreamReader str3 = new StreamReader(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Version.dat");
-                            string Actor_Version_Now = str3.ReadLine();
-                            str3.Close();
-                            if (IsWwise_Blitz_Actor_Update != Actor_Version_Now || IsForceWwise_Blitz_Actor_Update)
-                                Actor_Mixer_Update(IsWwise_Blitz_Actor_Update);
-                        }
-                        else
-                            Actor_Mixer_Update(IsWwise_Blitz_Actor_Update);
-                        if (IsWwise_Blitz_Update != Version)
-                        {
-                            MessageBoxResult result = MessageBox.Show("プロジェクトデータのアップデートがあります。アップデートしますか？", "確認", MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.Yes);
-                            if (result == MessageBoxResult.Yes)
-                            {
-                                if (Directory.Exists(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod"))
-                                    Directory.Delete(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod", true);
-                                File.Delete(Voice_Set.Special_Path + "/Wwise_Project.dat");
-                                string Path = Directory.GetCurrentDirectory();
-                                long Full_Size = Voice_Set.FTPClient.GetFileSize("/WoTB_Voice_Mod/Update/Wwise/Wwise_Project_01.zip"); ;
-                                double SizeMB = (double)(Full_Size / 1024.0 / 1024.0);
-                                SizeMB = (Math.Floor(SizeMB * 10)) / 10;
-                                Message_T.Text = "サーバーからプロジェクトデータをダウンロードしています...\nダウンロードサイズ:約" + SizeMB + "MB";
-                                await Task.Delay(50);
-                                Voice_Set.App_Busy = true;
-                                Download_P.Visibility = Visibility.Visible;
-                                Download_T.Visibility = Visibility.Visible;
-                                Download_Border.Visibility = Visibility.Visible;
-                                try
-                                {
-                                    Task task = Task.Run(() =>
-                                    {
-                                        Voice_Set.FTPClient.DownloadFile("/WoTB_Voice_Mod/Update/Wwise/Wwise_Project_01.zip", Voice_Set.Special_Path + "/Wwise_Project.dat");
-                                    });
-                                    while (true)
-                                    {
-                                        long File_Size_Now = 0;
-                                        if (File.Exists(Voice_Set.Special_Path + "/Wwise_Project.dat"))
-                                        {
-                                            FileInfo fi = new FileInfo(Voice_Set.Special_Path + "/Wwise_Project.dat");
-                                            File_Size_Now = fi.Length;
-                                        }
-                                        double Download_Percent = (double)File_Size_Now / Full_Size * 100;
-                                        int Percent_INT = (int)Math.Round(Download_Percent, MidpointRounding.AwayFromZero);
-                                        Download_P.Value = Percent_INT;
-                                        Download_T.Text = "進捗:" + Percent_INT + "%";
-                                        if (File_Size_Now >= Full_Size)
-                                        {
-                                            Download_P.Value = 0;
-                                            Download_T.Text = "進捗:0%";
-                                            break;
-                                        }
-                                        await Task.Delay(100);
-                                    }
-                                }
-                                catch (Exception e1)
-                                {
-                                    Sub_Code.Error_Log_Write(e1.Message);
-                                    Download_P.Visibility = Visibility.Hidden;
-                                    Download_T.Visibility = Visibility.Hidden;
-                                    Download_Border.Visibility = Visibility.Hidden;
-                                    Voice_Set.App_Busy = false;
-                                    Message_T.Text = "";
-                                    return 1;
-                                }
-                                System.IO.Compression.ZipFile.ExtractToDirectory(Voice_Set.Special_Path + "/Wwise_Project.dat", Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod");
-                                File.Delete(Voice_Set.Special_Path + "/Wwise_Project.dat");
-                                File.WriteAllText(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Version.dat", IsWwise_Blitz_Update);
-                                Download_P.Visibility = Visibility.Hidden;
-                                Download_T.Visibility = Visibility.Hidden;
-                                Download_Border.Visibility = Visibility.Hidden;
-                                Voice_Set.App_Busy = false;
-                                Message_T.Text = "";
-                                return 0;
-                            }
-                            else
-                            {
-                                Message_T.Text = "";
-                                return 2;
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    MessageBoxResult result = MessageBox.Show("サーバーからプロジェクトデータをダウンロードしますか？", "確認", MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.Yes);
-                    if (result == MessageBoxResult.Yes)
-                    {
-                        if (Directory.Exists(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod"))
-                        {
-                            Directory.Delete(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod", true);
-                        }
-                        File.Delete(Voice_Set.Special_Path + "/Wwise_Project.dat");
-                        string Line = Voice_Set.FTPClient.GetFileLine("/WoTB_Voice_Mod/Update/Wwise/Version_01.txt");
-                        long Full_Size = Voice_Set.FTPClient.GetFileSize("/WoTB_Voice_Mod/Update/Wwise/Wwise_Project_01.zip");
-                        double SizeMB = (double)(Full_Size / 1024.0 / 1024.0);
-                        SizeMB = (Math.Floor(SizeMB * 10)) / 10;
-                        Message_T.Text = "サーバーからプロジェクトデータをダウンロードしています...\nダウンロードサイズ:約" + SizeMB + "MB";
-                        await Task.Delay(50);
-                        Voice_Set.App_Busy = true;
-                        Download_P.Visibility = Visibility.Visible;
-                        Download_T.Visibility = Visibility.Visible;
-                        Download_Border.Visibility = Visibility.Visible;
-                        try
-                        {
-                            Task task = Task.Run(() =>
-                            {
-                                Voice_Set.FTPClient.DownloadFile("/WoTB_Voice_Mod/Update/Wwise/Wwise_Project_01.zip", Voice_Set.Special_Path + "/Wwise_Project.dat");
-                            });
-                            while (true)
-                            {
-                                long File_Size_Now = 0;
-                                if (File.Exists(Voice_Set.Special_Path + "/Wwise_Project.dat"))
-                                {
-                                    FileInfo fi = new FileInfo(Voice_Set.Special_Path + "/Wwise_Project.dat");
-                                    File_Size_Now = fi.Length;
-                                }
-                                double Download_Percent = (double)File_Size_Now / Full_Size * 100;
-                                int Percent_INT = (int)Math.Round(Download_Percent, MidpointRounding.AwayFromZero);
-                                Download_P.Value = Percent_INT;
-                                Download_T.Text = "進捗:" + Percent_INT + "%";
-                                if (File_Size_Now >= Full_Size)
-                                {
-                                    Download_P.Value = 0;
-                                    Download_T.Text = "進捗:0%";
-                                    break;
-                                }
-                                await Task.Delay(100);
-                            }
-                        }
-                        catch (Exception e1)
-                        {
-                            Sub_Code.Error_Log_Write(e1.Message);
-                            Download_P.Visibility = Visibility.Hidden;
-                            Download_T.Visibility = Visibility.Hidden;
-                            Download_Border.Visibility = Visibility.Hidden;
-                            Voice_Set.App_Busy = false;
-                            Message_T.Text = "";
-                            return 1;
-                        }
-                        Message_T.Text = "ファイルを展開しています...";
-                        await Task.Delay(50);
-                        System.IO.Compression.ZipFile.ExtractToDirectory(Voice_Set.Special_Path + "/Wwise_Project.dat", Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod");
-                        File.Delete(Voice_Set.Special_Path + "/Wwise_Project.dat");
-                        File.WriteAllText(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Version.dat", Line);
-                        Download_P.Visibility = Visibility.Hidden;
-                        Download_T.Visibility = Visibility.Hidden;
-                        Download_Border.Visibility = Visibility.Hidden;
-                        Message_T.Text = "";
-                        Voice_Set.App_Busy = false;
-                        return 0;
-                    }
-                    else
-                    {
-                        return 4;
-                    }
-                }
-            }
-            catch (Exception e1)
-            {
-                Sub_Code.Error_Log_Write(e1.Message);
-                Download_P.Visibility = Visibility.Hidden;
-                Download_T.Visibility = Visibility.Hidden;
-                Download_Border.Visibility = Visibility.Hidden;
-                Message_T.Text = "";
-                Voice_Set.App_Busy = false;
-                return 5;
-            }
-            return 0;
-        }
-        public static async Task<int> Wwise_WoT_Project_Update(TextBlock Message_T, ProgressBar Download_P, TextBlock Download_T, Border Download_Border)
-        {
-            try
-            {
-                if (File.Exists(Voice_Set.Special_Path + "/Wwise/WoT_Sound_Mod/Version.dat"))
-                {
-                    if (Voice_Set.FTPClient.IsConnected)
-                    {
-                        StreamReader str2 = new StreamReader(Voice_Set.Special_Path + "/Wwise/WoT_Sound_Mod/Version.dat");
-                        string Version = str2.ReadLine();
-                        str2.Close();
-                        if (Version != IsWwise_WoT_Update)
-                        {
-                            MessageBoxResult result = MessageBox.Show("プロジェクトデータのアップデートがあります。アップデートしますか？", "確認", MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.Yes);
-                            if (result == MessageBoxResult.Yes)
-                            {
-                                if (Directory.Exists(Voice_Set.Special_Path + "/Wwise/WoT_Sound_Mod"))
-                                    Directory.Delete(Voice_Set.Special_Path + "/Wwise/WoT_Sound_Mod", true);
-                                File.Delete(Voice_Set.Special_Path + "/WoT_Sound_Mod.dat");
-                                string Path = Directory.GetCurrentDirectory();
-                                long Full_Size = Voice_Set.FTPClient.GetFileSize("/WoTB_Voice_Mod/Update/Wwise/WoT_Sound_Mod.zip");
-                                double SizeMB = (double)(Full_Size / 1024.0 / 1024.0);
-                                SizeMB = (Math.Floor(SizeMB * 10)) / 10;
-                                Message_T.Text = "サーバーからプロジェクトデータをダウンロードしています...\nダウンロードサイズ:約" + SizeMB + "MB";
-                                await Task.Delay(50);
-                                Voice_Set.App_Busy = true;
-                                Download_P.Visibility = Visibility.Visible;
-                                Download_T.Visibility = Visibility.Visible;
-                                Download_Border.Visibility = Visibility.Visible;
-                                try
-                                {
-                                    Task task = Task.Run(() =>
-                                    {
-                                        Voice_Set.FTPClient.DownloadFile("/WoTB_Voice_Mod/Update/Wwise/WoT_Sound_Mod.zip", Voice_Set.Special_Path + "/WoT_Sound_Mod.dat");
-                                    });
-                                    while (true)
-                                    {
-                                        long File_Size_Now = 0;
-                                        if (File.Exists(Voice_Set.Special_Path + "/WoT_Sound_Mod.dat"))
-                                        {
-                                            FileInfo fi = new FileInfo(Voice_Set.Special_Path + "/WoT_Sound_Mod.dat");
-                                            File_Size_Now = fi.Length;
-                                        }
-                                        double Download_Percent = (double)File_Size_Now / Full_Size * 100;
-                                        int Percent_INT = (int)Math.Round(Download_Percent, MidpointRounding.AwayFromZero);
-                                        Download_P.Value = Percent_INT;
-                                        Download_T.Text = "進捗:" + Percent_INT + "%";
-                                        if (File_Size_Now >= Full_Size)
-                                        {
-                                            Download_P.Value = 0;
-                                            Download_T.Text = "進捗:0%";
-                                            break;
-                                        }
-                                        await Task.Delay(100);
-                                    }
-                                }
-                                catch (Exception e1)
-                                {
-                                    Sub_Code.Error_Log_Write(e1.Message);
-                                    Download_P.Visibility = Visibility.Hidden;
-                                    Download_T.Visibility = Visibility.Hidden;
-                                    Download_Border.Visibility = Visibility.Hidden;
-                                    Voice_Set.App_Busy = false;
-                                    Message_T.Text = "";
-                                    return 1;
-                                }
-                                System.IO.Compression.ZipFile.ExtractToDirectory(Voice_Set.Special_Path + "/WoT_Sound_Mod.dat", Voice_Set.Special_Path + "/Wwise/WoT_Sound_Mod");
-                                File.Delete(Voice_Set.Special_Path + "/WoT_Sound_Mod.dat");
-                                File.WriteAllText(Voice_Set.Special_Path + "/Wwise/WoT_Sound_Mod/Version.dat", IsWwise_WoT_Update);
-                                Download_P.Visibility = Visibility.Hidden;
-                                Download_T.Visibility = Visibility.Hidden;
-                                Download_Border.Visibility = Visibility.Hidden;
-                                Voice_Set.App_Busy = false;
-                                Message_T.Text = "";
-                                return 0;
-                            }
-                            else
-                                return 2;
-                        }
-                    }
-                }
-                else
-                {
-                    MessageBoxResult result = MessageBox.Show("サーバーからプロジェクトデータをダウンロードしますか？", "確認", MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.Yes);
-                    if (result == MessageBoxResult.Yes)
-                    {
-                        if (Directory.Exists(Voice_Set.Special_Path + "/Wwise/WoT_Sound_Mod"))
-                            Directory.Delete(Voice_Set.Special_Path + "/Wwise/WoT_Sound_Mod", true);
-                        File.Delete(Voice_Set.Special_Path + "/WoT_Sound_Mod.dat");
-                        string Line = Voice_Set.FTPClient.GetFileLine("/WoTB_Voice_Mod/Update/Wwise/Version_02.txt");
-                        long Full_Size = Voice_Set.FTPClient.GetFileSize("/WoTB_Voice_Mod/Update/Wwise/WoT_Sound_Mod.zip");
-                        double SizeMB = (double)(Full_Size / 1024.0 / 1024.0);
-                        SizeMB = (Math.Floor(SizeMB * 10)) / 10;
-                        Message_T.Text = "サーバーからプロジェクトデータをダウンロードしています...\nダウンロードサイズ:約" + SizeMB + "MB";
-                        await Task.Delay(50);
-                        Voice_Set.App_Busy = true;
-                        Download_P.Visibility = Visibility.Visible;
-                        Download_T.Visibility = Visibility.Visible;
-                        Download_Border.Visibility = Visibility.Visible;
-                        try
-                        {
-                            Task task = Task.Run(() =>
-                            {
-                                Voice_Set.FTPClient.DownloadFile("/WoTB_Voice_Mod/Update/Wwise/WoT_Sound_Mod.zip", Voice_Set.Special_Path + "/WoT_Sound_Mod.dat");
-                            });
-                            while (true)
-                            {
-                                long File_Size_Now = 0;
-                                if (File.Exists(Voice_Set.Special_Path + "/WoT_Sound_Mod.dat"))
-                                {
-                                    FileInfo fi = new FileInfo(Voice_Set.Special_Path + "/WoT_Sound_Mod.dat");
-                                    File_Size_Now = fi.Length;
-                                }
-                                double Download_Percent = (double)File_Size_Now / Full_Size * 100;
-                                int Percent_INT = (int)Math.Round(Download_Percent, MidpointRounding.AwayFromZero);
-                                Download_P.Value = Percent_INT;
-                                Download_T.Text = "進捗:" + Percent_INT + "%";
-                                if (File_Size_Now >= Full_Size)
-                                {
-                                    Download_P.Value = 0;
-                                    Download_T.Text = "進捗:0%";
-                                    break;
-                                }
-                                await Task.Delay(100);
-                            }
-                        }
-                        catch (Exception e1)
-                        {
-                            Sub_Code.Error_Log_Write(e1.Message);
-                            Download_P.Visibility = Visibility.Hidden;
-                            Download_T.Visibility = Visibility.Hidden;
-                            Download_Border.Visibility = Visibility.Hidden;
-                            Voice_Set.App_Busy = false;
-                            Message_T.Text = "";
-                            return 1;
-                        }
-                        Message_T.Text = "ファイルを展開しています...";
-                        await Task.Delay(50);
-                        System.IO.Compression.ZipFile.ExtractToDirectory(Voice_Set.Special_Path + "/WoT_Sound_Mod.dat", Voice_Set.Special_Path + "/Wwise/WoT_Sound_Mod");
-                        File.Delete(Voice_Set.Special_Path + "/WoT_Sound_Mod.dat");
-                        File.WriteAllText(Voice_Set.Special_Path + "/Wwise/WoT_Sound_Mod/Version.dat", Line);
-                        Download_P.Visibility = Visibility.Hidden;
-                        Download_T.Visibility = Visibility.Hidden;
-                        Download_Border.Visibility = Visibility.Hidden;
-                        Voice_Set.App_Busy = false;
-                        Message_T.Text = "";
-                        return 0;
-                    }
-                    else
-                        return 4;
-                }
-            }
-            catch (Exception e1)
-            {
-                Sub_Code.Error_Log_Write(e1.Message);
-                Download_P.Visibility = Visibility.Hidden;
-                Download_T.Visibility = Visibility.Hidden;
-                Download_Border.Visibility = Visibility.Hidden;
-                Voice_Set.App_Busy = false;
-                Message_T.Text = "";
-                return 5;
-            }
-            return 0;
-        }
         //指定した文字の後に数字があるか(含まれていたらtrue)
         public static bool IsIncludeInt_From_String(string All_String, string Where)
         {
@@ -2198,6 +1897,33 @@ namespace WoTB_Voice_Mod_Creater
                 }
             }
         }
+        public static byte[] Resize_From_Bytes(MemoryStream Stream, int Size)
+        {
+            try
+            {
+                Bitmap bmp = new Bitmap(Stream);
+                Bitmap res = new Bitmap(Size, Size);
+                Graphics g = Graphics.FromImage(res);
+                g.FillRectangle(new SolidBrush(Color.Black), 0, 0, Size, Size);
+                int t = 0, l = 0;
+                l = (bmp.Width - Size) / 2;
+                t = (bmp.Height - Size) / 2;
+                g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+                g.DrawImage(bmp, new Rectangle(0, 0, Size, Size), new Rectangle(l, t, Size, Size), GraphicsUnit.Pixel);
+                MemoryStream ms = new MemoryStream();
+                res.Save(ms, ImageFormat.Jpeg);
+                byte[] buffer = ms.GetBuffer();
+                g.Dispose();
+                res.Dispose();
+                bmp.Dispose();
+                ms.Close();
+                return buffer;
+            }
+            catch
+            {
+                return new byte[] { };
+            }
+        }
         public static bool IsSafeFileName(string File_Name)
         {
             if (string.IsNullOrEmpty(File_Name))
@@ -2356,6 +2082,423 @@ namespace WoTB_Voice_Mod_Creater
             }
             l.Stop();
             Un4seen.Bass.Bass.BASS_StreamFree(Stream);
+        }
+        public static double Get_Decimal(double Value)
+        {
+            string Text = Value.ToString();
+            if (!Text.Contains("."))
+                return 0;
+            string Decim = Text.Substring(Text.IndexOf('.') + 1);
+            return double.Parse("0." + Decim);
+        }
+        public static double Get_Random_Double(double Minimum, double Maximum)
+        {
+            return r.NextDouble() * (Maximum - Minimum) + Minimum;
+        }
+        public static string Get_Time_String(double Position)
+        {
+            TimeSpan Time = TimeSpan.FromSeconds(Position);
+            string Minutes = Time.Minutes.ToString();
+            string Seconds = Time.Seconds.ToString();
+            if (Time.Minutes < 10)
+                Minutes = "0" + Time.Minutes;
+            if (Time.Seconds < 10)
+                Seconds = "0" + Time.Seconds;
+            return Minutes + ":" + Seconds;
+        }
+        public static void Set_SE_Change_Name(string Project_SE_Dir, Wwise_Class.Wwise_Project_Create Wwise)
+        {
+            if (Voice_Set.SE_Enable_Disable[0])
+                Sub_Code.File_Move(Project_SE_Dir + "/Capture_Finish_SE.wav", Project_SE_Dir + "/Capture_Finish_SE_tmp.wav", true);
+            else
+                Sub_Code.File_Move(Project_SE_Dir + "/Capture_Finish_SE_tmp.wav", Project_SE_Dir + "/Capture_Finish_SE.wav", true);
+            if (Voice_Set.SE_Enable_Disable[1])
+            {
+                Sub_Code.File_Move(Project_SE_Dir + "/quick_commands_attack.wav", Project_SE_Dir + "/quick_commands_attack_tmp.wav", true);
+                Sub_Code.File_Move(Project_SE_Dir + "/quick_commands_attack_target.wav", Project_SE_Dir + "/quick_commands_attack_target_tmp.wav", true);
+                Sub_Code.File_Move(Project_SE_Dir + "/quick_commands_capture_base.wav", Project_SE_Dir + "/quick_commands_capture_base_tmp.wav", true);
+                Sub_Code.File_Move(Project_SE_Dir + "/quick_commands_positive.wav", Project_SE_Dir + "/quick_commands_positive_tmp.wav", true);
+                Sub_Code.File_Move(Project_SE_Dir + "/quick_commands_defend_base.wav", Project_SE_Dir + "/quick_commands_defend_base_tmp.wav", true);
+                Sub_Code.File_Move(Project_SE_Dir + "/quick_commands_help_me.wav", Project_SE_Dir + "/quick_commands_help_me_tmp.wav", true);
+                Sub_Code.File_Move(Project_SE_Dir + "/quick_commands_negative.wav", Project_SE_Dir + "/quick_commands_negative_tmp.wav", true);
+                Sub_Code.File_Move(Project_SE_Dir + "/quick_commands_reloading.wav", Project_SE_Dir + "/quick_commands_reloading_tmp.wav", true);
+            }
+            else
+            {
+                Sub_Code.File_Move(Project_SE_Dir + "/quick_commands_attack_tmp.wav", Project_SE_Dir + "/quick_commands_attack.wav", true);
+                Sub_Code.File_Move(Project_SE_Dir + "/quick_commands_attack_target_tmp.wav", Project_SE_Dir + "/quick_commands_attack_target.wav", true);
+                Sub_Code.File_Move(Project_SE_Dir + "/quick_commands_capture_base_tmp.wav", Project_SE_Dir + "/quick_commands_capture_base.wav", true);
+                Sub_Code.File_Move(Project_SE_Dir + "/quick_commands_positive_tmp.wav", Project_SE_Dir + "/quick_commands_positive.wav", true);
+                Sub_Code.File_Move(Project_SE_Dir + "/quick_commands_defend_base_tmp.wav", Project_SE_Dir + "/quick_commands_defend_base.wav", true);
+                Sub_Code.File_Move(Project_SE_Dir + "/quick_commands_help_me_tmp.wav", Project_SE_Dir + "/quick_commands_help_me.wav", true);
+                Sub_Code.File_Move(Project_SE_Dir + "/quick_commands_negative_tmp.wav", Project_SE_Dir + "/quick_commands_negative.wav", true);
+                Sub_Code.File_Move(Project_SE_Dir + "/quick_commands_reloading_tmp.wav", Project_SE_Dir + "/quick_commands_reloading.wav", true);
+            }
+            if (Voice_Set.SE_Enable_Disable[6])
+                Sub_Code.File_Move(Project_SE_Dir + "/Musenki_01.wav", Project_SE_Dir + "/Musenki_01_temp.wav", true);
+            else
+                Sub_Code.File_Move(Project_SE_Dir + "/Musenki_01_temp.wav", Project_SE_Dir + "/Musenki_01.wav", true);
+            if (Voice_Set.SE_Enable_Disable[9])
+            {
+                Sub_Code.File_Move(Project_SE_Dir + "/howitzer_load_01.wav", Project_SE_Dir + "/howitzer_load_01_tmp.wav", true);
+                Sub_Code.File_Move(Project_SE_Dir + "/howitzer_load_03.wav", Project_SE_Dir + "/howitzer_load_03_tmp.wav", true);
+                Sub_Code.File_Move(Project_SE_Dir + "/howitzer_load_04.wav", Project_SE_Dir + "/howitzer_load_04_tmp.wav", true);
+                Sub_Code.File_Move(Project_SE_Dir + "/howitzer_load_05.wav", Project_SE_Dir + "/howitzer_load_05_tmp.wav", true);
+            }
+            else
+            {
+                Sub_Code.File_Move(Project_SE_Dir + "/howitzer_load_01_tmp.wav", Project_SE_Dir + "/howitzer_load_01.wav", true);
+                Sub_Code.File_Move(Project_SE_Dir + "/howitzer_load_03_tmp.wav", Project_SE_Dir + "/howitzer_load_03.wav", true);
+                Sub_Code.File_Move(Project_SE_Dir + "/howitzer_load_04_tmp.wav", Project_SE_Dir + "/howitzer_load_04.wav", true);
+                Sub_Code.File_Move(Project_SE_Dir + "/howitzer_load_05_tmp.wav", Project_SE_Dir + "/howitzer_load_05.wav", true);
+            }
+            if (Voice_Set.SE_Enable_Disable[10])
+                Sub_Code.File_Move(Project_SE_Dir + "/lamp_SE_01.wav", Project_SE_Dir + "/lamp_SE_01_tmp.wav", true);
+            else
+                Sub_Code.File_Move(Project_SE_Dir + "/lamp_SE_01_tmp.wav", Project_SE_Dir + "/lamp_SE_01.wav", true);
+            if (Voice_Set.SE_Enable_Disable[11])
+                Sub_Code.File_Move(Project_SE_Dir + "/enemy_sight.wav", Project_SE_Dir + "/enemy_sight_tmp.wav", true);
+            else
+                Sub_Code.File_Move(Project_SE_Dir + "/enemy_sight_tmp.wav", Project_SE_Dir + "/enemy_sight.wav", true);
+            if (Voice_Set.SE_Enable_Disable[12])
+                Sub_Code.File_Move(Project_SE_Dir + "/Timer_SE.wav", Project_SE_Dir + "/Timer_SE_tmp.wav", true);
+            else
+                Sub_Code.File_Move(Project_SE_Dir + "/Timer_SE_tmp.wav", Project_SE_Dir + "/Timer_SE.wav", true);
+            if (Voice_Set.SE_Enable_Disable[13])
+                Sub_Code.File_Move(Project_SE_Dir + "/target_on_SE_01.wav", Project_SE_Dir + "/target_on_SE_01_tmp.wav", true);
+            else
+                Sub_Code.File_Move(Project_SE_Dir + "/target_on_SE_01_tmp.wav", Project_SE_Dir + "/target_on_SE_01.wav", true);
+            if (Voice_Set.SE_Enable_Disable[14])
+                Sub_Code.File_Move(Project_SE_Dir + "/target_off_SE_01.wav", Project_SE_Dir + "/target_off_SE_01_tmp.wav", true);
+            else
+                Sub_Code.File_Move(Project_SE_Dir + "/target_off_SE_01_tmp.wav", Project_SE_Dir + "/target_off_SE_01.wav", true);
+        }
+        public static void Set_Event_ShortID(List<List<Voice_Event_Setting>> Event_Settings, bool IsWoTMode = false)
+        {
+            //イベントID, 音声コンテナID, SEコンテナID, SE_Index, 音量
+            Event_Settings[0][0].Set_Param(341425709, 170029050, 366092539, 5, -6);
+            Event_Settings[0][1].Set_Param(908426860, 95559763, 370075103, 3, -2);
+            Event_Settings[0][2].Set_Param(280189980, 766083947, 298293840, 9, -1);
+            Event_Settings[0][3].Set_Param(815358870, 569784404, 862763776, 5, -6);
+            Event_Settings[0][4].Set_Param(49295125, 266422868, 876186554, 6, -1);
+            Event_Settings[0][5].Set_Param(733342682, 1052258113, 568110765, 10, -1);
+            Event_Settings[0][6].Set_Param(331196727, 242302464, 66753859, 18, -1);
+            Event_Settings[0][7].Set_Param(619058694, 334837201, 162440597, 18, -1);
+            Event_Settings[0][8].Set_Param(794420468, 381780774, 52837378, 23);
+            Event_Settings[0][9].Set_Param(109598189, 489572734, 582349497, 5, -1);
+            Event_Settings[0][10].Set_Param(244621664, 210078142, 750651777, 19, -2);
+            Event_Settings[0][11].Set_Param(73205091, 249535989, 1042937732, 20, -2);
+            Event_Settings[0][12].Set_Param(466111031, 908710042, 125367048, 21, -2);
+            Event_Settings[0][13].Set_Param(471196930, 1057023960);
+            Event_Settings[0][14].Set_Param(337626756, 953778289);
+            Event_Settings[0][15].Set_Param(930519512, 121897540, 602706971, 8, -1);
+            Event_Settings[0][16].Set_Param(1063632502, 127877647, 953241595, 19, -2);
+            Event_Settings[0][17].Set_Param(175994480, 462397017, 734855314, 20, -2);
+            Event_Settings[0][18].Set_Param(546476029, 651656679, 265156722, 21, -2);
+            Event_Settings[0][19].Set_Param(337748775, 739086111, 738480888, 18);
+            Event_Settings[0][20].Set_Param(302644322, 363753108, 97368200, 18);
+            Event_Settings[0][21].Set_Param(356562073, 91697210, 948692451, 7);
+            Event_Settings[0][22].Set_Param(156782042, 987172940, 87851485, 18);
+            Event_Settings[0][23].Set_Param(769815093, 518589126, 267487625, 22);
+            Event_Settings[0][24].Set_Param(236686366, 330491031, 904204732, 19, -2);
+            Event_Settings[0][25].Set_Param(559710262, 792301846, 42606663, 20, -2);
+            Event_Settings[0][26].Set_Param(47321344, 539730785, 308135346, 21, -2);
+            Event_Settings[0][27].Set_Param(978556760, 38261315, 792373436, 19, -2);
+            Event_Settings[0][28].Set_Param(878993268, 37535832);
+            Event_Settings[0][29].Set_Param(581830963, 558576963);
+            Event_Settings[0][30].Set_Param(984973529, 1014565012, 124621166, 19, -2);
+            Event_Settings[0][31].Set_Param(381112709, 135817430, 634991721, 20, -2);
+            Event_Settings[0][32].Set_Param(33436524, 985679417, 940515369, 21, -2);
+            Event_Settings[0][33].Set_Param(116097397, 164671745, 667880140, 4);
+            Event_Settings[1][0].Set_Param(308272618, 447063394, 479275647, 13);
+            Event_Settings[1][1].Set_Param(767278023, 154835998, 917399664, 12);
+            Event_Settings[1][2].Set_Param(230904672, 607694618, 904269149, 2);
+            Event_Settings[1][3].Set_Param(390478464, 391276124, 747137713, 2);
+            Event_Settings[1][4].Set_Param(17969037, 840378218, 990119123, 2);
+            Event_Settings[1][5].Set_Param(900922817, 549968154, 1039956691, 2);
+            Event_Settings[1][6].Set_Param(727518878, 1015337424, 1041861596, 2);
+            Event_Settings[1][7].Set_Param(101252368, 271044645, 284419845, 2);
+            Event_Settings[1][8].Set_Param(576711003, 496552975, 93467631, 2);
+            Event_Settings[1][9].Set_Param(470859110, 430377111, 236153639, 2);
+            Event_Settings[1][10].Set_Param(502585189, 839607605, 391999685, 15);
+            Event_Settings[1][11].Set_Param(769354725, 233444430, 166694669, 16);
+            Event_Settings[1][12].Set_Param(402727222, 299739777, 769579073, 11);
+            Event_Settings[1][13].Set_Param(670169971, 120795627, 120795627, 2);
+            Event_Settings[1][14].Set_Param(204685755, 924876614, 206640353, 1);
+            Event_Settings[1][15].Set_Param(1065169508, 891902653);
+            if (!Event_Settings[1][15].IsLoadMode)
+                Event_Settings[1][15].Volume = -11;
+            Event_Settings[2][0].Set_Param(420002792, 491691546);
+            Event_Settings[2][1].Set_Param(420002792, 417768496);
+            Event_Settings[2][2].Set_Param(420002792, 46472417);
+            Event_Settings[2][3].Set_Param(420002792, 681331945);
+            Event_Settings[2][4].Set_Param(420002792, 190711689);
+            Event_Settings[2][5].Set_Param(420002792, 918836720);
+        }
+        public static void Set_Event_ShortID(List<Dictionary<string, Voice_Event_Setting>> Event_Settings)
+        {
+            Event_Settings[0]["味方にダメージ"].Set_Param("vo_ally_killed_by_player", 647867654);
+            Event_Settings[0]["弾薬庫破損"].Set_Param("vo_ammo_bay_damaged", 956781602);
+            Event_Settings[0]["敵への非貫通"].Set_Param("vo_armor_not_pierced_by_player", 891351729);
+            Event_Settings[0]["敵への跳弾"].Set_Param("vo_armor_ricochet_by_player", 985747875);
+            Event_Settings[0]["敵への至近弾"].Set_Param("vo_damage_by_near_explosion_by_player", 401760710);
+            Event_Settings[0]["敵炎上"].Set_Param("vo_enemy_fire_started_by_player", 962073157);
+            Event_Settings[0]["敵への榴弾直撃"].Set_Param("vo_enemy_hp_damaged_by_explosion_at_direct_hit_by_player", 375524654);
+            Event_Settings[0]["敵への有効弾(+履帯ダメージ)"].Set_Param("vo_enemy_hp_damaged_by_projectile_and_chassis_damaged_by_player", 258641633);
+            Event_Settings[0]["敵への有効弾(+モジュールダメージ)"].Set_Param("vo_enemy_hp_damaged_by_projectile_and_gun_damaged_by_player", 406687788);
+            Event_Settings[0]["敵への有効弾"].Set_Param("vo_enemy_hp_damaged_by_projectile_by_player", 715908210);
+            Event_Settings[0]["自車両が敵を撃破"].Set_Param("vo_enemy_killed_by_player", 130818866);
+            Event_Settings[0]["味方が敵を撃破"].Set_Param("expl_enemy_NPC", 110599610);
+            Event_Settings[0]["敵の誤射による敵撃破"].Set_Param("vo_enemy_killed", 206068019);
+            Event_Settings[0]["敵が味方車両を撃破"].Set_Param("expl_ally_NPC", 24820636);
+            Event_Settings[0]["敵への非貫通(+履帯破壊)"].Set_Param("vo_enemy_no_hp_damage_at_attempt_and_chassis_damaged_by_player", 123484080);
+            Event_Settings[0]["敵への非貫通(+モジュール破壊)"].Set_Param("vo_enemy_no_hp_damage_at_attempt_and_gun_damaged_by_player", 606723544);
+            Event_Settings[0]["敵への非貫通(+履帯ダメージ)"].Set_Param("vo_enemy_no_hp_damage_at_no_attempt_and_chassis_damaged_by_player", 826504023);
+            Event_Settings[0]["敵への非貫通(+モジュールダメージ)"].Set_Param("vo_enemy_no_hp_damage_at_no_attempt_and_gun_damaged_by_player", 556370764);
+            Event_Settings[0]["敵への非貫通"].Set_Param("vo_enemy_no_hp_damage_at_no_attempt_by_player", 891351729);
+            Event_Settings[0]["搭乗員全滅"].Set_Param("vo_crew_deactivated", 156469938);
+            Event_Settings[0]["車長負傷"].Set_Param("vo_commander_killed", 803799062);
+            Event_Settings[0]["操縦手負傷"].Set_Param("vo_driver_killed", 509522089);
+            Event_Settings[0]["砲手負傷"].Set_Param("vo_gunner_killed", 93452340);
+            Event_Settings[0]["装填手負傷"].Set_Param("vo_loader_killed", 825298907);
+            Event_Settings[0]["通信手負傷"].Set_Param("vo_radioman_killed", 304672798);
+            Event_Settings[0]["自車両火災"].Set_Param("vo_fire_started", 630401544);
+            Event_Settings[0]["自車両消火"].Set_Param("vo_fire_stopped", 228596803);
+            Event_Settings[0]["燃料タンク破損"].Set_Param("vo_fuel_tank_damaged", 241888377);
+            Event_Settings[0]["無線機損傷"].Set_Param("vo_radio_damaged", 298484235);
+            Event_Settings[0]["戦闘開始"].Set_Param("vo_start_battle", 779140459);
+            Event_Settings[0]["自車両大破"].Set_Param("vo_vehicle_destroyed", 112179165);
+            Event_Settings[1]["エンジン破損"].Set_Param("vo_engine_damaged", 194063185);
+            Event_Settings[1]["エンジン大破"].Set_Param("vo_engine_destroyed", 606689164);
+            Event_Settings[1]["エンジン復旧"].Set_Param("vo_engine_functional", 841042183);
+            Event_Settings[1]["砲身破損"].Set_Param("vo_gun_damaged", 910164046);
+            Event_Settings[1]["砲身大破"].Set_Param("vo_gun_destroyed", 3474169);
+            Event_Settings[1]["砲身復旧"].Set_Param("vo_gun_functional", 52992479);
+            Event_Settings[1]["観測装置破損"].Set_Param("vo_surveying_devices_damaged", 260981670);
+            Event_Settings[1]["観測装置大破"].Set_Param("vo_surveying_devices_destroyed", 302485444);
+            Event_Settings[1]["観測装置復旧"].Set_Param("vo_surveying_devices_functional", 867900123);
+            Event_Settings[1]["履帯破損"].Set_Param("vo_track_damaged", 666482897);
+            Event_Settings[1]["履帯大破"].Set_Param("vo_track_destroyed", 604740571);
+            Event_Settings[1]["履帯復旧"].Set_Param("vo_track_functional", 55589824);
+            Event_Settings[1]["履帯復旧+移動可能"].Set_Param("vo_track_functional_can_move", 704248833);
+            Event_Settings[1]["砲塔破損"].Set_Param("vo_turret_rotator_damaged", 982380106);
+            Event_Settings[1]["砲塔大破"].Set_Param("vo_turret_rotator_destroyed", 68494932);
+            Event_Settings[1]["砲塔復旧"].Set_Param("vo_turret_rotator_functional", 354769968);
+            Event_Settings[2]["小隊へ勧誘"].Set_Param("vo_dp_assistance_been_requested", 147467011);
+            Event_Settings[2]["小隊へ参加(自身)"].Set_Param("vo_dp_platoon_joined", 480443644);
+            Event_Settings[2]["小隊へ参加(他人)"].Set_Param("vo_dp_player_joined_platoon", 745934433);
+            Event_Settings[2]["オートエイム開始"].Set_Param("vo_target_captured", 884977578);
+            Event_Settings[2]["オートエイムロスト"].Set_Param("vo_target_lost", 111545873);
+            Event_Settings[2]["オートエイム解除"].Set_Param("vo_target_unlocked", 798032659);
+            Event_Settings[2]["第六感"].Set_Param("lightbulb", 665693041);
+            Event_Settings[2]["自走砲の警報"].Set_Param("artillery_lightbulb", 249143697);
+        }
+        public static void Set_Event_ShortID(List<Voice_Event_Setting> Event_Settings)
+        {
+            Event_Settings[0].Set_Param(341425709, 170029050, 366092539, 5, -6);
+            Event_Settings[1].Set_Param(908426860, 95559763, 370075103, 3, -2);
+            Event_Settings[2].Set_Param(280189980, 766083947, 298293840, 9, -1);
+            Event_Settings[3].Set_Param(815358870, 569784404, 862763776, 5, -6);
+            Event_Settings[4].Set_Param(49295125, 266422868, 876186554, 6, -1);
+            Event_Settings[5].Set_Param(733342682, 1052258113, 568110765, 10, -1);
+            Event_Settings[6].Set_Param(331196727, 242302464, 66753859, 18, -1);
+            Event_Settings[7].Set_Param(619058694, 334837201, 162440597, 18, -1);
+            Event_Settings[8].Set_Param(794420468, 381780774, 52837378, 23);
+            Event_Settings[9].Set_Param(109598189, 489572734, 582349497, 5, -1);
+            Event_Settings[10].Set_Param(244621664, 210078142, 750651777, 19, -2);
+            Event_Settings[11].Set_Param(73205091, 249535989, 1042937732, 20, -2);
+            Event_Settings[12].Set_Param(466111031, 908710042, 125367048, 21, -2);
+            Event_Settings[13].Set_Param(471196930, 1057023960);
+            Event_Settings[14].Set_Param(337626756, 953778289);
+            Event_Settings[15].Set_Param(930519512, 121897540, 602706971, 8, -1);
+            Event_Settings[16].Set_Param(1063632502, 127877647, 953241595, 19, -2);
+            Event_Settings[17].Set_Param(175994480, 462397017, 734855314, 20, -2);
+            Event_Settings[18].Set_Param(546476029, 651656679, 265156722, 21, -2);
+            Event_Settings[19].Set_Param(337748775, 739086111, 738480888, 18);
+            Event_Settings[20].Set_Param(302644322, 363753108, 97368200, 18);
+            Event_Settings[21].Set_Param(356562073, 91697210, 948692451, 7);
+            Event_Settings[22].Set_Param(156782042, 987172940, 87851485, 18);
+            Event_Settings[23].Set_Param(769815093, 518589126, 267487625, 22);
+            Event_Settings[24].Set_Param(236686366, 330491031, 904204732, 19, -2);
+            Event_Settings[25].Set_Param(559710262, 792301846, 42606663, 20, -2);
+            Event_Settings[26].Set_Param(47321344, 539730785, 308135346, 21, -2);
+            Event_Settings[27].Set_Param(978556760, 38261315, 792373436, 19, -2);
+            Event_Settings[28].Set_Param(878993268, 37535832);
+            Event_Settings[29].Set_Param(581830963, 558576963);
+            Event_Settings[30].Set_Param(984973529, 1014565012, 124621166, 19, -2);
+            Event_Settings[31].Set_Param(381112709, 135817430, 634991721, 20, -2);
+            Event_Settings[32].Set_Param(33436524, 985679417, 940515369, 21, -2);
+            Event_Settings[33].Set_Param(116097397, 164671745, 667880140, 4);
+            Event_Settings[34].Set_Param(308272618, 447063394, 479275647, 13);
+            Event_Settings[35].Set_Param(767278023, 154835998, 917399664, 12);
+            Event_Settings[36].Set_Param(230904672, 607694618, 904269149, 2);
+            Event_Settings[37].Set_Param(390478464, 391276124, 747137713, 2);
+            Event_Settings[38].Set_Param(17969037, 840378218, 990119123, 2);
+            Event_Settings[39].Set_Param(900922817, 549968154, 1039956691, 2);
+            Event_Settings[40].Set_Param(727518878, 1015337424, 1041861596, 2);
+            Event_Settings[41].Set_Param(101252368, 271044645, 284419845, 2);
+            Event_Settings[42].Set_Param(576711003, 310153012, 93467631, 2);
+            Event_Settings[43].Set_Param(470859110, 379548034, 236153639, 2);
+            Event_Settings[44].Set_Param(502585189, 839607605, 391999685, 15);
+            Event_Settings[45].Set_Param(769354725, 233444430, 166694669, 16);
+            Event_Settings[46].Set_Param(402727222, 299739777, 769579073, 11);
+            Event_Settings[47].Set_Param(670169971, 120795627, 120795627, 2);
+            Event_Settings[48].Set_Param(204685755, 924876614, 206640353, 1);
+            Event_Settings[49].Set_Param(1065169508, 891902653);
+        }
+        public static uint Get_Container_By_WoT_Voice(int Type)
+        {
+            if (Type == 0)
+                return 170029050;
+            if (Type == 1)
+                return 95559763;
+            if (Type == 2)
+                return 766083947;
+            if (Type == 3)
+                return 569784404;
+            if (Type == 4)
+                return 266422868;
+            if (Type == 5)
+                return 1052258113;
+            if (Type == 6)
+                return 242302464;
+            if (Type == 7)
+                return 334837201;
+            if (Type == 8)
+                return 381780774;
+            if (Type == 9)
+                return 489572734;
+            if (Type == 10)
+                return 210078142;
+            if (Type == 11)
+                return 249535989;
+            if (Type == 12)
+                return 908710042;
+            if (Type == 13)
+                return 1057023960;
+            if (Type == 14)
+                return 953778289;
+            if (Type == 15)
+                return 121897540;
+            if (Type == 16)
+                return 127877647;
+            if (Type == 17)
+                return 462397017;
+            if (Type == 18)
+                return 651656679;
+            if (Type == 19)
+                return 739086111;
+            if (Type == 20)
+                return 363753108;
+            if (Type == 21)
+                return 91697210;
+            if (Type == 22)
+                return 987172940;
+            if (Type == 23)
+                return 518589126;
+            if (Type == 24)
+                return 330491031;
+            if (Type == 25)
+                return 792301846;
+            if (Type == 26)
+                return 539730785;
+            if (Type == 27)
+                return 38261315;
+            if (Type == 28)
+                return 37535832;
+            if (Type == 29)
+                return 558576963;
+            if (Type == 30)
+                return 1014565012;
+            if (Type == 31)
+                return 135817430;
+            if (Type == 32)
+                return 985679417;
+            if (Type == 33)
+                return 164671745;
+            if (Type == 34)
+                return 447063394;
+            if (Type == 35)
+                return 154835998;
+            if (Type == 36)
+                return 607694618;
+            if (Type == 37)
+                return 391276124;
+            if (Type == 38)
+                return 840378218;
+            if (Type == 39)
+                return 549968154;
+            if (Type == 40)
+                return 1015337424;
+            if (Type == 41)
+                return 271044645;
+            if (Type == 42)
+                return 310153012;
+            if (Type == 43)
+                return 379548034;
+            if (Type == 44)
+                return 839607605;
+            if (Type == 45)
+                return 233444430;
+            if (Type == 46)
+                return 299739777;
+            if (Type == 47)
+                return 120795627;
+            if (Type == 48)
+                return 924876614;
+            if (Type == 49)
+                return 891902653;
+            return 0;
+        }
+        public static uint Get_WoTB_New_Gun_Sound_ShortID(int Index)
+        {
+            if (Index == 0)
+                return 634610718;
+            else if (Index == 1)
+                return 142135010;
+            else if (Index == 2)
+                return 611442385;
+            else if (Index == 3)
+                return 752170755;
+            else if (Index == 4)
+                return 220137673;
+            else if (Index == 5)
+                return 983327549;
+            else if (Index == 6)
+                return 342549628;
+            else if (Index == 7)
+                return 76784519;
+            else if (Index == 8)
+                return 670420603;
+            else if (Index == 9)
+                return 488206709;
+            else if (Index == 10)
+                return 91221195;
+            else if (Index == 11)
+                return 1023399622;
+            else if (Index == 12)
+                return 547631281;
+            else if (Index == 13)
+                return 61886891;
+            else if (Index == 14)
+                return 619459354;
+            else if (Index == 15)
+                return 890327147;
+            else if (Index == 16)
+                return 697334890;
+            else if (Index == 17)
+                return 950138696;
+            else if (Index == 18)
+                return 361462963;
+            else if (Index == 19)
+                return 5188110;
+            else if (Index == 20)
+                return 349435285;
+            else if (Index == 21)
+                return 288197594;
+            else if (Index == 22)
+                return 499157722;
+            return 0;
         }
     }
     //ウィンドウにフォーカスがないとき、アイコンを光らせる

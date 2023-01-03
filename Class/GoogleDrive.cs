@@ -9,33 +9,44 @@ using System.Threading.Tasks;
 
 namespace WoTB_Voice_Mod_Creater.Class
 {
-    public class GoogleDrive
-    {
-		//引用元 : https://gist.github.com/yasirkula/d0ec0c07b138748e5feaecbd93b6223c#file-filedownloader-cs
-		//ありがとナス！
-		const string GOOGLE_DRIVE_DOMAIN = "drive.google.com";
-		const string GOOGLE_DRIVE_DOMAIN2 = "https://drive.google.com";
-		const int GOOGLE_DRIVE_MAX_DOWNLOAD_ATTEMPT = 3;
+	public class GoogleDrive : IDisposable
+	{
+		private const string GOOGLE_DRIVE_DOMAIN = "drive.google.com";
+		private const string GOOGLE_DRIVE_DOMAIN2 = "https://drive.google.com";
+
+		// In the worst case, it is necessary to send 3 download requests to the Drive address
+		//   1. an NID cookie is returned instead of a download_warning cookie
+		//   2. download_warning cookie returned
+		//   3. the actual file is downloaded
+		private const int GOOGLE_DRIVE_MAX_DOWNLOAD_ATTEMPT = 3;
+
 		public delegate void DownloadProgressChangedEventHandler(object sender, DownloadProgress progress);
+
+		// Custom download progress reporting (needed for Google Drive)
 		public class DownloadProgress
 		{
 			public long BytesReceived, TotalBytesToReceive;
 			public object UserState;
+
 			public int ProgressPercentage
 			{
 				get
 				{
 					if (TotalBytesToReceive > 0L)
 						return (int)(((double)BytesReceived / TotalBytesToReceive) * 100);
+
 					return 0;
 				}
 			}
 		}
-		class CookieAwareWebClient : WebClient
+
+		// Web client that preserves cookies (needed for Google Drive)
+		private class CookieAwareWebClient : WebClient
 		{
-			class CookieContainer
+			private class CookieContainer
 			{
-				readonly Dictionary<string, string> cookies = new Dictionary<string, string>();
+				private readonly Dictionary<string, string> cookies = new Dictionary<string, string>();
+
 				public string this[Uri address]
 				{
 					get
@@ -43,6 +54,7 @@ namespace WoTB_Voice_Mod_Creater.Class
 						string cookie;
 						if (cookies.TryGetValue(address.Host, out cookie))
 							return cookie;
+
 						return null;
 					}
 					set
@@ -51,8 +63,10 @@ namespace WoTB_Voice_Mod_Creater.Class
 					}
 				}
 			}
-			readonly CookieContainer cookies = new CookieContainer();
+
+			private readonly CookieContainer cookies = new CookieContainer();
 			public DownloadProgress ContentRangeTarget;
+
 			protected override WebRequest GetWebRequest(Uri address)
 			{
 				WebRequest request = base.GetWebRequest(address);
@@ -61,20 +75,25 @@ namespace WoTB_Voice_Mod_Creater.Class
 					string cookie = cookies[address];
 					if (cookie != null)
 						((HttpWebRequest)request).Headers.Set("cookie", cookie);
+
 					if (ContentRangeTarget != null)
 						((HttpWebRequest)request).AddRange(0);
 				}
+
 				return request;
 			}
+
 			protected override WebResponse GetWebResponse(WebRequest request, IAsyncResult result)
 			{
 				return ProcessResponse(base.GetWebResponse(request, result));
 			}
+
 			protected override WebResponse GetWebResponse(WebRequest request)
 			{
 				return ProcessResponse(base.GetWebResponse(request));
 			}
-			WebResponse ProcessResponse(WebResponse response)
+
+			private WebResponse ProcessResponse(WebResponse response)
 			{
 				string[] cookies = response.Headers.GetValues("Set-Cookie");
 				if (cookies != null && cookies.Length > 0)
@@ -82,12 +101,14 @@ namespace WoTB_Voice_Mod_Creater.Class
 					int length = 0;
 					for (int i = 0; i < cookies.Length; i++)
 						length += cookies[i].Length;
+
 					StringBuilder cookie = new StringBuilder(length);
 					for (int i = 0; i < cookies.Length; i++)
 						cookie.Append(cookies[i]);
 
 					this.cookies[response.ResponseUri] = cookie.ToString();
 				}
+
 				if (ContentRangeTarget != null)
 				{
 					string[] rangeLengthHeader = response.Headers.GetValues("Content-Range");
@@ -102,39 +123,49 @@ namespace WoTB_Voice_Mod_Creater.Class
 						}
 					}
 				}
+
 				return response;
 			}
 		}
-		readonly CookieAwareWebClient webClient;
-		readonly DownloadProgress downloadProgress;
-		Uri downloadAddress;
-		string downloadPath;
-		bool asyncDownload;
-		object userToken;
-		bool downloadingDriveFile;
-		int driveDownloadAttempt;
+
+		private readonly CookieAwareWebClient webClient;
+		private readonly DownloadProgress downloadProgress;
+
+		private Uri downloadAddress;
+		private string downloadPath;
+
+		private bool asyncDownload;
+		private object userToken;
+
+		private bool downloadingDriveFile;
+		private int driveDownloadAttempt;
+
 		public event DownloadProgressChangedEventHandler DownloadProgressChanged;
 		public event AsyncCompletedEventHandler DownloadFileCompleted;
+
 		public GoogleDrive()
 		{
 			webClient = new CookieAwareWebClient();
 			webClient.DownloadProgressChanged += DownloadProgressChangedCallback;
 			webClient.DownloadFileCompleted += DownloadFileCompletedCallback;
+
 			downloadProgress = new DownloadProgress();
 		}
 		public void StopDownloadAsync()
-        {
+		{
 			webClient.CancelAsync();
 		}
 		public void DownloadFile(string address, string fileName)
 		{
 			DownloadFile(address, fileName, false, null);
 		}
+
 		public void DownloadFileAsync(string address, string fileName, object userToken = null)
 		{
 			DownloadFile(address, fileName, true, userToken);
 		}
-		void DownloadFile(string address, string fileName, bool asyncDownload, object userToken)
+
+		private void DownloadFile(string address, string fileName, bool asyncDownload, object userToken)
 		{
 			downloadingDriveFile = address.StartsWith(GOOGLE_DRIVE_DOMAIN) || address.StartsWith(GOOGLE_DRIVE_DOMAIN2);
 			if (downloadingDriveFile)
@@ -146,19 +177,26 @@ namespace WoTB_Voice_Mod_Creater.Class
 			}
 			else
 				webClient.ContentRangeTarget = null;
+
 			downloadAddress = new Uri(address);
 			downloadPath = fileName;
+
 			downloadProgress.TotalBytesToReceive = -1L;
 			downloadProgress.UserState = userToken;
+
 			this.asyncDownload = asyncDownload;
 			this.userToken = userToken;
+
 			DownloadFileInternal();
 		}
-		void DownloadFileInternal()
+
+		private void DownloadFileInternal()
 		{
 			if (!asyncDownload)
 			{
 				webClient.DownloadFile(downloadAddress, downloadPath);
+
+				// This callback isn't triggered for synchronous downloads, manually trigger it
 				DownloadFileCompletedCallback(webClient, new AsyncCompletedEventArgs(null, false, null));
 			}
 			else if (userToken == null)
@@ -166,17 +204,20 @@ namespace WoTB_Voice_Mod_Creater.Class
 			else
 				webClient.DownloadFileAsync(downloadAddress, downloadPath, userToken);
 		}
-		void DownloadProgressChangedCallback(object sender, DownloadProgressChangedEventArgs e)
+
+		private void DownloadProgressChangedCallback(object sender, DownloadProgressChangedEventArgs e)
 		{
 			if (DownloadProgressChanged != null)
 			{
 				downloadProgress.BytesReceived = e.BytesReceived;
 				if (e.TotalBytesToReceive > 0L)
 					downloadProgress.TotalBytesToReceive = e.TotalBytesToReceive;
+
 				DownloadProgressChanged(this, downloadProgress);
 			}
 		}
-		void DownloadFileCompletedCallback(object sender, AsyncCompletedEventArgs e)
+
+		private void DownloadFileCompletedCallback(object sender, AsyncCompletedEventArgs e)
 		{
 			if (!downloadingDriveFile)
 			{
@@ -187,6 +228,7 @@ namespace WoTB_Voice_Mod_Creater.Class
 			{
 				if (driveDownloadAttempt < GOOGLE_DRIVE_MAX_DOWNLOAD_ATTEMPT && !ProcessDriveDownload())
 				{
+					// Try downloading the Drive file again
 					driveDownloadAttempt++;
 					DownloadFileInternal();
 				}
@@ -194,33 +236,53 @@ namespace WoTB_Voice_Mod_Creater.Class
 					DownloadFileCompleted(this, e);
 			}
 		}
-		bool ProcessDriveDownload()
+
+		// Downloading large files from Google Drive prompts a warning screen and requires manual confirmation
+		// Consider that case and try to confirm the download automatically if warning prompt occurs
+		// Returns true, if no more download requests are necessary
+		private bool ProcessDriveDownload()
 		{
 			FileInfo downloadedFile = new FileInfo(downloadPath);
 			if (downloadedFile == null)
 				return true;
+
+			// Confirmation page is around 50KB, shouldn't be larger than 60KB
 			if (downloadedFile.Length > 60000L)
 				return true;
+
+			// Downloaded file might be the confirmation page, check it
 			string content;
 			using (var reader = downloadedFile.OpenText())
 			{
+				// Confirmation page starts with <!DOCTYPE html>, which can be preceeded by a newline
 				char[] header = new char[20];
 				int readCount = reader.ReadBlock(header, 0, 20);
 				if (readCount < 20 || !(new string(header).Contains("<!DOCTYPE html>")))
 					return true;
+
 				content = reader.ReadToEnd();
 			}
+
 			int linkIndex = content.LastIndexOf("href=\"/uc?");
-			if (linkIndex < 0)
-				return true;
-			linkIndex += 6;
-			int linkEnd = content.IndexOf('"', linkIndex);
-			if (linkEnd < 0)
-				return true;
-			downloadAddress = new Uri("https://drive.google.com" + content.Substring(linkIndex, linkEnd - linkIndex).Replace("&amp;", "&"));
-			return false;
+			if (linkIndex >= 0)
+			{
+				linkIndex += 6;
+				int linkEnd = content.IndexOf('"', linkIndex);
+				if (linkEnd >= 0)
+				{
+					downloadAddress = new Uri("https://drive.google.com" + content.Substring(linkIndex, linkEnd - linkIndex).Replace("&amp;", "&"));
+					return false;
+				}
+			}
+
+			return true;
 		}
-		string GetGoogleDriveDownloadAddress(string address)
+
+		// Handles the following formats (links can be preceeded by https://):
+		// - drive.google.com/open?id=FILEID&resourcekey=RESOURCEKEY
+		// - drive.google.com/file/d/FILEID/view?usp=sharing&resourcekey=RESOURCEKEY
+		// - drive.google.com/uc?id=FILEID&export=download&resourcekey=RESOURCEKEY
+		private string GetGoogleDriveDownloadAddress(string address)
 		{
 			int index = address.IndexOf("id=");
 			int closingIndex;
@@ -234,9 +296,11 @@ namespace WoTB_Voice_Mod_Creater.Class
 			else
 			{
 				index = address.IndexOf("file/d/");
-				if (index < 0)
+				if (index < 0) // address is not in any of the supported forms
 					return string.Empty;
+
 				index += 7;
+
 				closingIndex = address.IndexOf('/', index);
 				if (closingIndex < 0)
 				{
@@ -245,8 +309,24 @@ namespace WoTB_Voice_Mod_Creater.Class
 						closingIndex = address.Length;
 				}
 			}
-			return string.Concat("https://drive.google.com/uc?id=", address.Substring(index, closingIndex - index), "&export=download");
+
+			string fileID = address.Substring(index, closingIndex - index);
+
+			index = address.IndexOf("resourcekey=");
+			if (index > 0)
+			{
+				index += 12;
+				closingIndex = address.IndexOf('&', index);
+				if (closingIndex < 0)
+					closingIndex = address.Length;
+
+				string resourceKey = address.Substring(index, closingIndex - index);
+				return string.Concat("https://drive.google.com/uc?id=", fileID, "&export=download&resourcekey=", resourceKey, "&confirm=t");
+			}
+			else
+				return string.Concat("https://drive.google.com/uc?id=", fileID, "&export=download&confirm=t");
 		}
+
 		public void Dispose()
 		{
 			webClient.Dispose();

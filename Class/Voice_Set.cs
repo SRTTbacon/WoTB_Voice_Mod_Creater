@@ -21,8 +21,6 @@ namespace WoTB_Voice_Mod_Creater
         static string WoT_Mod_Location = "";
         static int Voice_Number = 0;
         static bool IsBusy = false;
-        public static SFTP_Client FTPClient { get; set; }
-        static TCP_Client TCPClient = new TCP_Client();
         public static List<string> Voice_Files
         {
             get { return Voice_Lists; }
@@ -37,11 +35,6 @@ namespace WoTB_Voice_Mod_Creater
         {
             get { return Voice_Number; }
             set { Voice_Number = value; }
-        }
-        public static TCP_Client TCP_Server
-        {
-            get { return TCPClient; }
-            set { TCPClient = value; }
         }
         public static string UserName
         {
@@ -84,59 +77,6 @@ namespace WoTB_Voice_Mod_Creater
                 return true;
             }
             return false;
-        }
-        //サーバー内のファイルに追記
-        public static void AppendString(string To_Path, string Text)
-        {
-            if (!IsBusy)
-                FTPClient.File_Append(To_Path, Text);
-        }
-        //サーバー内に空のファイルを追加
-        //引数:ファイル場所,途中のフォルダがなければ作成するか
-        //戻り値:ファイルが存在せず、作成できればtrue(既にファイルが存在している場合もtrue)、それ以外はfalse
-        public static bool Create_File_Server(string ToFilePath, bool IsOverWrite = false, bool Directory_Create = false)
-        {
-            return FTPClient.File_Create(ToFilePath, IsOverWrite);
-        }
-        //音声の変更をサーバーに反映
-        public static void Voice_Set_Name(string To_File_Name)
-        {
-            if (!IsBusy)
-            {
-                int Number = 1;
-                string File_Name_Temp;
-                while (true)
-                {
-                    if (Number < 10)
-                    {
-                        if (!Sub_Code.File_Exists(Special_Path + "/Server/" + Server_Name + "/Voices/" + To_File_Name + "_0" + Number))
-                        {
-                            File_Name_Temp = To_File_Name + "_0" + Number + ".mp3";
-                            break;
-                        }
-                    }
-                    else
-                    {
-                        if (!Sub_Code.File_Exists(Special_Path + "/Server/" + Server_Name + "/Voices/" + To_File_Name + "_" + Number))
-                        {
-                            File_Name_Temp = To_File_Name + "_" + Number + ".mp3";
-                            break;
-                        }
-                    }
-                    Number++;
-                }
-                try
-                {
-                    AppendString("/WoTB_Voice_Mod/" + Server_Name + "/Change_Names.dat", Voice_Lists[Voice_Number] + "->" + File_Name_Temp + "\n");
-                    FTPClient.File_Move("/WoTB_Voice_Mod/" + Server_Name + "/Voices/" + Voice_Lists[Voice_Number], "/WoTB_Voice_Mod/" + Server_Name + "/Voices/" + File_Name_Temp, true);
-                    TCPClient.Send(Server_Name + "|Rename|" + Voice_Lists[Voice_Number] + "|" + File_Name_Temp);
-                }
-                catch (Exception e)
-                {
-                    Sub_Code.Error_Log_Write(e.Message);
-                    MessageBox.Show("エラー:" + e.Message);
-                }
-            }
         }
         //音声の日本語の種類を取得
         public static string Get_Voice_Type_Japanese_Name(string Voice_Name)
@@ -494,7 +434,6 @@ namespace WoTB_Voice_Mod_Creater
         }
         public static void Voice_BGM_Change_List_Init()
         {
-            FTPClient.DownloadFile("/WoTB_Voice_Mod/Update/Data/Change_To_Wwise.txt", Special_Path + "/Wwise/Change_To_Wwise.dat");
             if (!File.Exists(Special_Path + "/Wwise/Change_To_Wwise.dat"))
                 return;
             try
@@ -650,73 +589,6 @@ namespace WoTB_Voice_Mod_Creater
                 }
             }
             return Temp;
-        }
-        public static void Set_SE_Change_Name(string Project_SE_Dir)
-        {
-            if (SE_Enable_Disable[0])
-                Sub_Code.File_Move(Project_SE_Dir + "/Capture_Finish_SE.wav", Project_SE_Dir + "/Capture_Finish_SE_tmp.wav", true);
-            else
-                Sub_Code.File_Move(Project_SE_Dir + "/Capture_Finish_SE_tmp.wav", Project_SE_Dir + "/Capture_Finish_SE.wav", true);
-            if (SE_Enable_Disable[1])
-            {
-                Sub_Code.File_Move(Project_SE_Dir + "/quick_commands_attack.wav", Project_SE_Dir + "/quick_commands_attack_tmp.wav", true);
-                Sub_Code.File_Move(Project_SE_Dir + "/quick_commands_attack_target.wav", Project_SE_Dir + "/quick_commands_attack_target_tmp.wav", true);
-                Sub_Code.File_Move(Project_SE_Dir + "/quick_commands_capture_base.wav", Project_SE_Dir + "/quick_commands_capture_base_tmp.wav", true);
-                Sub_Code.File_Move(Project_SE_Dir + "/quick_commands_positive.wav", Project_SE_Dir + "/quick_commands_positive_tmp.wav", true);
-                Sub_Code.File_Move(Project_SE_Dir + "/quick_commands_defend_base.wav", Project_SE_Dir + "/quick_commands_defend_base_tmp.wav", true);
-                Sub_Code.File_Move(Project_SE_Dir + "/quick_commands_help_me.wav", Project_SE_Dir + "/quick_commands_help_me_tmp.wav", true);
-                Sub_Code.File_Move(Project_SE_Dir + "/quick_commands_negative.wav", Project_SE_Dir + "/quick_commands_negative_tmp.wav", true);
-                Sub_Code.File_Move(Project_SE_Dir + "/quick_commands_reloading.wav", Project_SE_Dir + "/quick_commands_reloading_tmp.wav", true);
-            }
-            else
-            {
-                Sub_Code.File_Move(Project_SE_Dir + "/quick_commands_attack_tmp.wav", Project_SE_Dir + "/quick_commands_attack.wav", true);
-                Sub_Code.File_Move(Project_SE_Dir + "/quick_commands_attack_target_tmp.wav", Project_SE_Dir + "/quick_commands_attack_target.wav", true);
-                Sub_Code.File_Move(Project_SE_Dir + "/quick_commands_capture_base_tmp.wav", Project_SE_Dir + "/quick_commands_capture_base.wav", true);
-                Sub_Code.File_Move(Project_SE_Dir + "/quick_commands_positive_tmp.wav", Project_SE_Dir + "/quick_commands_positive.wav", true);
-                Sub_Code.File_Move(Project_SE_Dir + "/quick_commands_defend_base_tmp.wav", Project_SE_Dir + "/quick_commands_defend_base.wav", true);
-                Sub_Code.File_Move(Project_SE_Dir + "/quick_commands_help_me_tmp.wav", Project_SE_Dir + "/quick_commands_help_me.wav", true);
-                Sub_Code.File_Move(Project_SE_Dir + "/quick_commands_negative_tmp.wav", Project_SE_Dir + "/quick_commands_negative.wav", true);
-                Sub_Code.File_Move(Project_SE_Dir + "/quick_commands_reloading_tmp.wav", Project_SE_Dir + "/quick_commands_reloading.wav", true);
-            }
-            if (SE_Enable_Disable[6])
-                Sub_Code.File_Move(Project_SE_Dir + "/Musenki_01.wav", Project_SE_Dir + "/Musenki_01_temp.wav", true);
-            else
-                Sub_Code.File_Move(Project_SE_Dir + "/Musenki_01_temp.wav", Project_SE_Dir + "/Musenki_01.wav", true);
-            if (SE_Enable_Disable[9])
-            {
-                Sub_Code.File_Move(Project_SE_Dir + "/howitzer_load_01.wav", Project_SE_Dir + "/howitzer_load_01_tmp.wav", true);
-                Sub_Code.File_Move(Project_SE_Dir + "/howitzer_load_03.wav", Project_SE_Dir + "/howitzer_load_03_tmp.wav", true);
-                Sub_Code.File_Move(Project_SE_Dir + "/howitzer_load_04.wav", Project_SE_Dir + "/howitzer_load_04_tmp.wav", true);
-                Sub_Code.File_Move(Project_SE_Dir + "/howitzer_load_05.wav", Project_SE_Dir + "/howitzer_load_05_tmp.wav", true);
-            }
-            else
-            {
-                Sub_Code.File_Move(Project_SE_Dir + "/howitzer_load_01_tmp.wav", Project_SE_Dir + "/howitzer_load_01.wav", true);
-                Sub_Code.File_Move(Project_SE_Dir + "/howitzer_load_03_tmp.wav", Project_SE_Dir + "/howitzer_load_03.wav", true);
-                Sub_Code.File_Move(Project_SE_Dir + "/howitzer_load_04_tmp.wav", Project_SE_Dir + "/howitzer_load_04.wav", true);
-                Sub_Code.File_Move(Project_SE_Dir + "/howitzer_load_05_tmp.wav", Project_SE_Dir + "/howitzer_load_05.wav", true);
-            }
-            if (SE_Enable_Disable[10])
-                Sub_Code.File_Move(Project_SE_Dir + "/lamp_SE_01.wav", Project_SE_Dir + "/lamp_SE_01_tmp.wav", true);
-            else
-                Sub_Code.File_Move(Project_SE_Dir + "/lamp_SE_01_tmp.wav", Project_SE_Dir + "/lamp_SE_01.wav", true);
-            if (SE_Enable_Disable[11])
-                Sub_Code.File_Move(Project_SE_Dir + "/enemy_sight.wav", Project_SE_Dir + "/enemy_sight_tmp.wav", true);
-            else
-                Sub_Code.File_Move(Project_SE_Dir + "/enemy_sight_tmp.wav", Project_SE_Dir + "/enemy_sight.wav", true);
-            if (SE_Enable_Disable[12])
-                Sub_Code.File_Move(Project_SE_Dir + "/Timer_SE.wav", Project_SE_Dir + "/Timer_SE_tmp.wav", true);
-            else
-                Sub_Code.File_Move(Project_SE_Dir + "/Timer_SE_tmp.wav", Project_SE_Dir + "/Timer_SE.wav", true);
-            if (SE_Enable_Disable[13])
-                Sub_Code.File_Move(Project_SE_Dir + "/target_on_SE_01.wav", Project_SE_Dir + "/target_on_SE_01_tmp.wav", true);
-            else
-                Sub_Code.File_Move(Project_SE_Dir + "/target_on_SE_01_tmp.wav", Project_SE_Dir + "/target_on_SE_01.wav", true);
-            if (SE_Enable_Disable[14])
-                Sub_Code.File_Move(Project_SE_Dir + "/target_off_SE_01.wav", Project_SE_Dir + "/target_off_SE_01_tmp.wav", true);
-            else
-                Sub_Code.File_Move(Project_SE_Dir + "/target_off_SE_01_tmp.wav", Project_SE_Dir + "/target_off_SE_01.wav", true);
         }
     }
 }

@@ -14,11 +14,13 @@ namespace WoTB_Voice_Mod_Creater.Class
 {
     public partial class Youtube_Link : UserControl
     {
+        BitmapImage image = new BitmapImage();
+        MemoryStream ms = new MemoryStream();
+        YoutubeClient youtube = new YoutubeClient();
         bool IsClosing = false;
         bool IsMessageShowing = false;
         bool IsSaveOK = false;
         bool IsOpenDialog = false;
-        YoutubeClient youtube = new YoutubeClient();
         public Youtube_Link()
         {
             InitializeComponent();
@@ -41,6 +43,11 @@ namespace WoTB_Voice_Mod_Creater.Class
                     Type_L.SelectedIndex = int.Parse(str.ReadLine());
                     List_Add_C.IsChecked = bool.Parse(str.ReadLine());
                     Close_C.IsChecked = bool.Parse(str.ReadLine());
+                    try
+                    {
+                        Thumbnail_C.IsChecked = bool.Parse(str.ReadLine());
+                    }
+                    catch { }
                     str.Close();
                 }
                 catch (Exception e)
@@ -52,9 +59,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 }
             }
             else
-            {
                 Type_L.SelectedIndex = 0;
-            }
             IsSaveOK = true;
             while (Opacity < 1 && !IsClosing)
             {
@@ -78,9 +83,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 Number++;
                 if (Number >= 120)
-                {
                     Message_T.Opacity -= 0.025;
-                }
                 await Task.Delay(1000 / 60);
             }
             IsMessageShowing = false;
@@ -116,16 +119,15 @@ namespace WoTB_Voice_Mod_Creater.Class
         void Configs_Save()
         {
             if (!IsSaveOK)
-            {
                 return;
-            }
             try
             {
                 StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Configs/Temp_Location.dat");
                 stw.WriteLine(Save_Destination_T.Text);
                 stw.WriteLine(Type_L.SelectedIndex);
                 stw.WriteLine(List_Add_C.IsChecked.Value);
-                stw.Write(Close_C.IsChecked.Value);
+                stw.WriteLine(Close_C.IsChecked.Value);
+                stw.Write(Thumbnail_C.IsChecked.Value);
                 stw.Close();
                 Sub_Code.File_Encrypt(Voice_Set.Special_Path + "/Configs/Temp_Location.dat", Voice_Set.Special_Path + "/Configs/Download_Location.conf", "Youtube_Download_Location_Save", true);
             }
@@ -157,21 +159,15 @@ namespace WoTB_Voice_Mod_Creater.Class
         private async void Download_B_Click(object sender, RoutedEventArgs e)
         {
             if (IsClosing || Opacity < 1)
-            {
                 return;
-            }
             IsClosing = true;
             try
             {
                 string ID = "aaa";
                 if (Link_T.Text.Contains("youtu.be/"))
-                {
                     ID = Link_T.Text.Substring(Link_T.Text.LastIndexOf('/') + 1, 11);
-                }
                 else if (Link_T.Text.Contains("youtube.com/watch"))
-                {
                     ID = Link_T.Text.Substring(Link_T.Text.IndexOf('=') + 1, 11);
-                }
                 if (ID == "aaa")
                 {
                     Message_Feed_Out("動画を取得できませんでした。");
@@ -179,12 +175,14 @@ namespace WoTB_Voice_Mod_Creater.Class
                     return;
                 }
                 if (!Directory.Exists(Save_Destination_T.Text))
-                {
                     Directory.CreateDirectory(Save_Destination_T.Text);
-                }
                 Message_T.Text = "動画を取得しています...";
                 await Task.Delay(50);
-                await Video_Download(Link_T.Text, ID, Save_Destination_T.Text, Message_T);
+                string MP3_File = await Video_Download(Link_T.Text, ID, Save_Destination_T.Text, Message_T);
+                Message_T.Text = "サムネイル画像を処理しています...";
+                await Task.Delay(50);
+                if (MP3_File != "" && Thumbnail_C.IsChecked.Value)
+                    MP3_Set_Thumbnail(MP3_File, ID);
                 Message_Feed_Out("保存しました。");
                 if (Close_C.IsChecked.Value)
                 {
@@ -193,14 +191,14 @@ namespace WoTB_Voice_Mod_Creater.Class
                     return;
                 }
             }
-            catch/* (Exception e1)*/
+            catch (Exception e1)
             {
                 Message_Feed_Out("保存できませんでした。Youtubeの仕様が変更された可能性があります。");
-                //Sub_Code.Error_Log_Write(e1.Message);
+                Sub_Code.Error_Log_Write(e1.Message);
             }
             IsClosing = false;
         }
-        async Task Video_Download(string Link, string Link_ID_Only, string OutDir, TextBlock Message_T)
+        private async Task<string> Video_Download(string Link, string Link_ID_Only, string OutDir, TextBlock Message_T)
         {
             //動画と音声を別々にダウンロード
             //動画の場合はダウンロード後ffmpegで合わせる
@@ -212,7 +210,6 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 Message_T.Text = "音声を取得しています...";
                 await Task.Delay(50);
-                var stream = await youtube.Videos.Streams.GetAsync(streamInfo);
                 await youtube.Videos.Streams.DownloadAsync(streamInfo, OutDir + "Temp.webm");
                 Sub_Code.Audio_Encode_To_Other(OutDir + "Temp.webm", OutDir + "Temp.mp3", "mp3", true);
             }
@@ -228,78 +225,69 @@ namespace WoTB_Voice_Mod_Creater.Class
                     await Task.Delay(50);
                     Sub_Code.Audio_Video_Convert(OutDir + "Temp.mp4", OutDir + "Temp.mp3", OutDir + title + ".mp4");
                     if (List_Add_C.IsChecked.Value)
-                    {
                         Sub_Code.AutoListAdd.Add(OutDir + title + ".mp4");
-                    }
                 }
                 else
                 {
                     Message_Feed_Out("動画を取得できなかったため音声のみ保存しました。");
                     Sub_Code.File_Move(OutDir + "Temp.mp3", OutDir + title + ".mp3", true);
                     if (List_Add_C.IsChecked.Value)
-                    {
                         Sub_Code.AutoListAdd.Add(OutDir + title + ".mp3");
-                    }
+                    return OutDir + title + ".mp3";
                 }
             }
             else
             {
                 Sub_Code.File_Move(OutDir + "Temp.mp3", OutDir + title + ".mp3", true);
                 if (List_Add_C.IsChecked.Value)
-                {
                     Sub_Code.AutoListAdd.Add(OutDir + title + ".mp3");
-                }
+                return OutDir + title + ".mp3";
             }
             File.Delete(OutDir + "Temp.mp3");
             File.Delete(OutDir + "Temp.mp4");
+            return "";
+        }
+        private void MP3_Set_Thumbnail(string MP3_File, string ID)
+        {
+            TagLib.File MP3_Tag = TagLib.File.Create(MP3_File);
+            TagLib.IPicture[] IPic = new TagLib.IPicture[4];
+            for (int Number = 0; Number < 4; Number++)
+            {
+                TagLib.PictureType Type = Number > 0 ? TagLib.PictureType.BackCover : TagLib.PictureType.FrontCover;
+                string Name = Number > 0 ? "hq" + Number : Number.ToString();
+                IPic[Number] = new TagLib.Picture(new TagLib.ByteVector(Sub_Code.Resize_From_Bytes(Get_Thumbnail("https://img.youtube.com/vi/" + ID + "/" + Name + ".jpg"), 270)))
+                {
+                    Type = Type,
+                    Description = "Coverd by Team-Astral",
+                    MimeType = System.Net.Mime.MediaTypeNames.Image.Jpeg
+                };
+            }
+            MP3_Tag.Tag.Pictures = IPic;
+            MP3_Tag.Save();
+            ms.Close();
         }
         //URLが変更されたらサムネイルを取得して表示
         private async void Link_T_TextChanged(object sender, TextChangedEventArgs e)
         {
             if (IsClosing)
-            {
                 return;
-            }
             try
             {
                 string ID = "aaa";
                 if (Link_T.Text.Contains("youtu.be/"))
-                {
                     ID = Link_T.Text.Substring(Link_T.Text.LastIndexOf('/') + 1, 11);
-                }
                 else if (Link_T.Text.Contains("youtube.com/watch"))
-                {
                     ID = Link_T.Text.Substring(Link_T.Text.IndexOf('=') + 1, 11);
-                }
                 //サムネイル画像を取得
                 if (ID.Length == 11)
                 {
                     var video = await youtube.Videos.GetAsync(ID);
-                    string ThumLink = "https://img.youtube.com/vi/" + ID + "/maxresdefault.jpg";
+                    string ThumLink = "https://img.youtube.com/vi/" + ID + "/hqdefault.jpg";
                     if (video.Thumbnails.Count > 0)
                         ThumLink = video.Thumbnails[video.Thumbnails.Count - 1].Url;
+                    Get_Thumbnail(ThumLink);
                     BitmapImage image = new BitmapImage();
-                    HttpWebRequest req = (HttpWebRequest)WebRequest.Create(ThumLink);
-                    req.UserAgent = "Mozilla/4.0 (compatible; MSIE 6.0; Windows 10)";
-                    req.Referer = "http://www.ipentec.com/index.html";
-                    WebResponse res = req.GetResponse();
-                    Stream st = res.GetResponseStream();
-                    byte[] buffer = new byte[65535];
-                    MemoryStream ms = new MemoryStream();
-                    while (true)
-                    {
-                        int rb = st.Read(buffer, 0, buffer.Length);
-                        if (rb > 0)
-                        {
-                            ms.Write(buffer, 0, rb);
-                        }
-                        else
-                        {
-                            break;
-                        }
-                    }
                     image.BeginInit();
-                    ms.Seek(0, SeekOrigin.Begin);
                     image.StreamSource = ms;
                     image.EndInit();
                     Thumbnail_Image.Source = image;
@@ -309,16 +297,32 @@ namespace WoTB_Voice_Mod_Creater.Class
             catch
             {
                 if (Thumbnail_Image != null)
-                {
                     Thumbnail_Image.Visibility = Visibility.Hidden;
-                }
             }
         }
-        private void List_Add_C_Click(object sender, RoutedEventArgs e)
+        private MemoryStream Get_Thumbnail(string Link)
         {
-            Configs_Save();
+            ms.Close();
+            ms = new MemoryStream();
+            HttpWebRequest req = (HttpWebRequest)WebRequest.Create(Link);
+            req.UserAgent = "Mozilla/4.0 (compatible; MSIE 6.0; Windows 10)";
+            req.Referer = "http://www.ipentec.com/index.html";
+            WebResponse res = req.GetResponse();
+            Stream st = res.GetResponseStream();
+            byte[] buffer = new byte[65535];
+            while (true)
+            {
+                int rb = st.Read(buffer, 0, buffer.Length);
+                if (rb > 0)
+                    ms.Write(buffer, 0, rb);
+                else
+                    break;
+            }
+            ms.Seek(0, SeekOrigin.Begin);
+            st.Close();
+            return ms;
         }
-        private void Close_C_Click(object sender, RoutedEventArgs e)
+        private void CheckBox_Clicked(object sender, RoutedEventArgs e)
         {
             Configs_Save();
         }

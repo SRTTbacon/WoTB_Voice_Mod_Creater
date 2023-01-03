@@ -108,6 +108,32 @@ namespace WoTB_Voice_Mod_Creater.Class
             }
             From_Files.Clear();
         }
+        public static async Task Convert_To_Wav(string[] Files, string[] To_Files, bool IsFromFileDelete, bool BassEncode)
+        {
+            try
+            {
+                From_Files.Clear();
+                From_Files.AddRange(Files);
+                var tasks = new List<Task>();
+                for (int i = 0; i < From_Files.Count; i++)
+                {
+                    if (!Sub_Code.Audio_IsWAV(Files[i]))
+                        tasks.Add(To_WAV(i, To_Files[i], IsFromFileDelete));
+                    else if (Files[i] != To_Files[i])
+                    {
+                        File.Copy(Files[i], To_Files[i], true);
+                        if (IsFromFileDelete)
+                            File.Delete(Files[i]);
+                    }
+                }
+                await Task.WhenAll(tasks);
+            }
+            catch (Exception ex)
+            {
+                Sub_Code.Error_Log_Write(ex.Message);
+            }
+            From_Files.Clear();
+        }
         public static async Task Convert_To_Wav(string FilePath, bool IsFromFileDelete, bool BassEncode)
         {
             try
@@ -413,6 +439,28 @@ namespace WoTB_Voice_Mod_Creater.Class
                 if (IsFromFileDelete)
                     File.Delete(From_Files[File_Number]);
                 File.Delete(Voice_Set.Special_Path + "/Encode_Mp3/Audio_WAV_Encode" + File_Number + ".bat");
+            });
+        }
+        static async Task To_WAV(int File_Number, string To_File, bool IsFromFileDelete)
+        {
+            string Encode_Style = "-y -vn -ac 2 -ar 44100 -acodec pcm_s24le -f wav";
+            StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Encode_Mp3/Audio_Encode" + File_Number + ".bat");
+            stw.WriteLine("chcp 65001");
+            stw.Write("\"" + Voice_Set.Special_Path + "/Encode_Mp3/ffmpeg.exe\" -i \"" + From_Files[File_Number] + "\" " + Encode_Style + " \"" + To_File + "\"");
+            stw.Close();
+            ProcessStartInfo processStartInfo = new ProcessStartInfo
+            {
+                FileName = Voice_Set.Special_Path + "/Encode_Mp3/Audio_Encode" + File_Number + ".bat",
+                CreateNoWindow = true,
+                UseShellExecute = false
+            };
+            Process p = Process.Start(processStartInfo);
+            await Task.Run(() =>
+            {
+                p.WaitForExit();
+                if (IsFromFileDelete)
+                    File.Delete(From_Files[File_Number]);
+                File.Delete(Voice_Set.Special_Path + "/Encode_Mp3/Audio_Encode" + File_Number + ".bat");
             });
         }
         static async Task<bool> To_WAV(int File_Number, string To_Dir, bool IsFromFileDelete, bool IsUseFFmpeg, bool IsUseBass)

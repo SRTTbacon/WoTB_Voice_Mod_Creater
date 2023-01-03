@@ -353,7 +353,8 @@ namespace WoTB_Voice_Mod_Creater
         {
             if (IsClosing)
                 return;
-            Voice_Mods_Window.Window_Show();
+            Message_Feed_Out("現在この機能は使用できません。");
+            //Voice_Mods_Window.Window_Show();
         }
         private void Tool_B_Click(object sender, RoutedEventArgs e)
         {

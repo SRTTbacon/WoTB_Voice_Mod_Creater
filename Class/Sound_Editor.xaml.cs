@@ -237,6 +237,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                     {
                         if (Sound_Images.Count - 1 >= Number)
                         {
+                            Bass.BASS_ChannelUpdate(Sound_Streams[Number], 400);
                             if (Time_Line.Margin.Left >= Sound_Images[Number].Margin.Left && Time_Line.Margin.Left < Sound_Images[Number].Margin.Left + Sound_Images[Number].Width)
                             {
                                 if (Bass.BASS_ChannelIsActive(Sound_Streams[Number]) != BASSActive.BASS_ACTIVE_PLAYING)
@@ -566,13 +567,14 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 Number++;
                 if (Number >= 120)
-                {
                     Message_T.Opacity -= 0.025;
-                }
                 await Task.Delay(1000 / 60);
             }
-            IsMessageShowing = false;
-            Message_T.Text = "";
+            if (IsMessageShowing)
+            {
+                IsMessageShowing = false;
+                Message_T.Text = "";
+            }
             Message_T.Opacity = 1;
         }
         //戻る
@@ -690,7 +692,9 @@ namespace WoTB_Voice_Mod_Creater.Class
                         MessageBox.Show("\"" + Path.GetFileName(File_Now) + "\"を変換できませんでした。そのまま読み込みます。");
                 }
             }
+            Bass.BASS_SetConfig(BASSConfig.BASS_CONFIG_BUFFER, 100);
             Sound_Streams.Add(BassFx.BASS_FX_TempoCreate(StreamHandle, BASSFlag.BASS_FX_FREESOURCE));
+            Bass.BASS_SetConfig(BASSConfig.BASS_CONFIG_BUFFER, 500);
             Sound_Max_Length.Add(Bass.BASS_ChannelBytes2Seconds(StreamHandle, Bass.BASS_ChannelGetLength(StreamHandle, BASSMode.BASS_POS_BYTES)));
             float Temp_Freq = 44100;
             Bass.BASS_ChannelSetDevice(Sound_Streams[Sound_Streams.Count - 1], Video_Mode.Sound_Device);
