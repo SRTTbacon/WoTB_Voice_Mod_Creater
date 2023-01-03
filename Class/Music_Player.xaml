@@ -1,0 +1,219 @@
+﻿<UserControl
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:local="clr-namespace:WoTB_Voice_Mod_Creater.Class"
+    x:Class="WoTB_Voice_Mod_Creater.Class.Music_Player"
+    mc:Ignorable="d"
+    KeyboardNavigation.TabNavigation="None"
+    KeyboardNavigation.ControlTabNavigation="None"
+    KeyboardNavigation.DirectionalNavigation="None"
+    d:DesignHeight="1080" d:DesignWidth="1920" Loaded="UserControl_Loaded">
+    <UserControl.Resources>
+        <SolidColorBrush x:Key="CyanBrush" Color="Gray"/>
+        <SolidColorBrush x:Key="PinkBrush" Color="Gray"/>
+        <SolidColorBrush x:Key="LimeBrush" Color="Gray"/>
+        <Style x:Key="SliderThumbStyle" TargetType="{x:Type Thumb}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Thumb}">
+                        <Ellipse Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Slider}, Mode=FindAncestor}}" Width="25" Height="25"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="CustomSliderStyle" TargetType="{x:Type Slider}">
+            <Style.Triggers>
+                <Trigger Property="Orientation" Value="Horizontal">
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate>
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="25"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <TickBar Grid.Row="0" x:Name="TopTick" Placement="Top" Visibility="Collapsed" Fill="{TemplateBinding Foreground}" Height="8" Opacity="0.64" Margin="0,0,0,2"/>
+                                    <TickBar Grid.Row="2" x:Name="BottomTick" Placement="Bottom" Visibility="Collapsed" Fill="{TemplateBinding Foreground}" Height="8" Opacity="0.64" Margin="0,2,0,0"/>
+                                    <Track Grid.Row="1" x:Name="PART_Track">
+                                        <Track.DecreaseRepeatButton>
+                                            <RepeatButton Command="Slider.DecreaseLarge" Background="Aqua" Height="5" BorderBrush="{x:Null}" Opacity="0.2"/>
+                                        </Track.DecreaseRepeatButton>
+                                        <Track.IncreaseRepeatButton>
+                                            <RepeatButton Command="Slider.IncreaseLarge" Background="Gray" Height="5" BorderBrush="{x:Null}" Opacity="0.5"/>
+                                        </Track.IncreaseRepeatButton>
+                                        <Track.Thumb>
+                                            <Thumb Style="{StaticResource SliderThumbStyle}"/>
+                                        </Track.Thumb>
+                                    </Track>
+                                </Grid>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="Slider.TickPlacement" Value="TopLeft">
+                                        <Setter TargetName="TopTick" Property="Visibility" Value="Visible"/>
+                                    </Trigger>
+                                    <Trigger Property="Slider.TickPlacement" Value="BottomRight">
+                                        <Setter TargetName="BottomTick" Property="Visibility" Value="Visible"/>
+                                    </Trigger>
+                                    <Trigger Property="Slider.TickPlacement" Value="Both">
+                                        <Setter TargetName="TopTick" Property="Visibility" Value="Visible"/>
+                                        <Setter TargetName="BottomTick" Property="Visibility" Value="Visible"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="CustomSliderStyle2" TargetType="{x:Type Slider}">
+            <Style.Triggers>
+                <Trigger Property="Orientation" Value="Horizontal">
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate>
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="25"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <TickBar Grid.Row="0" x:Name="TopTick" Placement="Top" Visibility="Collapsed" Fill="{TemplateBinding Foreground}" Height="8" Opacity="0.64" Margin="0,0,0,2"/>
+                                    <TickBar Grid.Row="2" x:Name="BottomTick" Placement="Bottom" Visibility="Collapsed" Fill="{TemplateBinding Foreground}" Height="8" Opacity="0.64" Margin="0,2,0,0"/>
+                                    <Track Grid.Row="1" x:Name="PART_Track">
+                                        <Track.DecreaseRepeatButton>
+                                            <RepeatButton Command="Slider.DecreaseLarge" Background="Purple" Height="5" BorderBrush="{x:Null}" Opacity="1"/>
+                                        </Track.DecreaseRepeatButton>
+                                        <Track.IncreaseRepeatButton>
+                                            <RepeatButton Command="Slider.IncreaseLarge" Background="Gray" Height="5" BorderBrush="{x:Null}" Opacity="0.5"/>
+                                        </Track.IncreaseRepeatButton>
+                                        <Track.Thumb>
+                                            <Thumb Style="{StaticResource SliderThumbStyle}"/>
+                                        </Track.Thumb>
+                                    </Track>
+                                </Grid>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="Slider.TickPlacement" Value="TopLeft">
+                                        <Setter TargetName="TopTick" Property="Visibility" Value="Visible"/>
+                                    </Trigger>
+                                    <Trigger Property="Slider.TickPlacement" Value="BottomRight">
+                                        <Setter TargetName="BottomTick" Property="Visibility" Value="Visible"/>
+                                    </Trigger>
+                                    <Trigger Property="Slider.TickPlacement" Value="Both">
+                                        <Setter TargetName="TopTick" Property="Visibility" Value="Visible"/>
+                                        <Setter TargetName="BottomTick" Property="Visibility" Value="Visible"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <Style TargetType="ListBoxItem">
+            <Setter Property="Focusable" Value="False"/>
+            <EventSetter Event="PreviewMouseLeftButtonDown" Handler="ListBoxItem_PreviewMouseLeftButtonDown"/>
+        </Style>
+        <Style x:Key="Button_MouseOver_Style" TargetType="{x:Type Button}">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#4E191970"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Resources>
+    <Viewbox>
+        <DockPanel Width="1920" Height="1080" MouseUp="DockPanel_MouseUp" MouseWheel="DockPanel_MouseWheel">
+            <Border BorderBrush="Black" BorderThickness="1" Background="#192131" Height="1080" VerticalAlignment="Top" Width="1920" MouseRightButtonDown="Border_MouseRightButtonDown"/>
+            <Canvas x:Name="Window_Bar_Canvas" Margin="0,0,0,0">
+                <MediaElement x:Name="Video_V" Height="810" VerticalAlignment="Top" HorizontalAlignment="Left"  Width="1440" Margin="-1920,0,0,0" Visibility="Visible" MouseLeftButtonDown="Video_V_MouseDown" MouseRightButtonDown="Video_V_MouseRightButtonDown" MouseMove="Video_V_MouseMove" MouseEnter="Video_V_MouseEnter" MouseLeave="Video_V_MouseLeave"/>
+                <Border x:Name="Video_Border_01" Background="#192131" Height="270" VerticalAlignment="Top" Width="1920" Margin="-1920,810,0,0"/>
+                <Border x:Name="Video_Border_02" Background="#192131" Height="811" VerticalAlignment="Top" Width="478" Margin="-478,0,0,0"/>
+                <Button x:Name="Music_Play_B" Style="{StaticResource Button_MouseOver_Style}" Content="再生" Height="70" VerticalAlignment="Top" Width="250" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Focusable="False" Margin="-2150,812,0,0" Click="Music_Play_B_Click"/>
+                <Button x:Name="Music_Pause_B" Style="{StaticResource Button_MouseOver_Style}" Content="一時停止" Height="70" VerticalAlignment="Top" Width="250" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Focusable="False" Margin="-1640,812,0,0" Click="Music_Pause_B_Click"/>
+                <Button x:Name="Music_Minus_B" Style="{StaticResource Button_MouseOver_Style}" Content="-5秒" Height="70" VerticalAlignment="Top" Width="250" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Focusable="False" Margin="-3220,812,0,0" Click="Music_Minus_B_Click"/>
+                <Button x:Name="Music_Plus_B" Style="{StaticResource Button_MouseOver_Style}" Content="+5秒" Height="70" VerticalAlignment="Top" Width="250" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Focusable="False" Margin="-2710,812,0,0" Click="Music_Plus_B_Click"/>
+            </Canvas>
+            <Border x:Name="Thumbnail_Border" BorderThickness="2" BorderBrush="LightGreen" Width="300" Height="300" VerticalAlignment="Top" Margin="-3525,650,0,0" CornerRadius="5" Opacity="0.75">
+                <Image x:Name="Thumbnail_Main" Focusable="False" Stretch="UniformToFill" VerticalAlignment="Center" HorizontalAlignment="Center">
+                    <Image.Effect>
+                        <BlurEffect Radius="7.5"/>
+                    </Image.Effect>
+                </Image>
+            </Border>
+            <Border Width="300" Height="300" VerticalAlignment="Top" Margin="-3525,650,0,0" Opacity="0.75">
+                <Image x:Name="Thumbnail_Sub" Focusable="False" Stretch="UniformToFill" VerticalAlignment="Center" HorizontalAlignment="Center">
+                    <Image.Effect>
+                        <BlurEffect Radius="7.5"/>
+                    </Image.Effect>
+                </Image>
+            </Border>
+            <TextBlock x:Name="No_Image_T" FontSize="35" Height="55" Width="250" TextWrapping="Wrap" Text="No Image" VerticalAlignment="Top" Margin="-3535,770,0,0" Foreground="#FFFFD9D9" TextAlignment="Center" FontFamily="Lemon"/>
+            <Image x:Name="WAVEForm_Gray_Image" Height="75" Stretch="None" VerticalAlignment="Top" HorizontalAlignment="Left" Width="1175" Margin="-1920,435,0,0" MouseDown="WAVEForm_Gray_Image_MouseDown"/>
+            <Image x:Name="WAVEForm_Color_Image" Height="75" Stretch="None" VerticalAlignment="Top" HorizontalAlignment="Left" Width="1175" Margin="-1920,435,0,0" MouseDown="WAVEForm_Gray_Image_MouseDown"/>
+            <ListBox x:Name="Music_List" Height="696" VerticalAlignment="Top" Width="676" Background="Transparent" Foreground="Aqua" FontSize="35" BorderBrush="Aqua" Focusable="False" Margin="-800,135,0,0" SelectionChanged="Music_List_SelectionChanged"/>
+            <Button x:Name="Music_Add_B" Content="音楽を追加" Height="80" VerticalAlignment="Top" Width="332" Style="{StaticResource Button_MouseOver_Style}" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Focusable="False" Margin="-457,830,0,0" Click="Music_Add_B_Click"/>
+            <Button x:Name="Music_Delete_B" Content="リストから除去" Height="80" VerticalAlignment="Top" Width="332" Style="{StaticResource Button_MouseOver_Style}" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Focusable="False" Margin="-1145,830,0,0" Click="Music_Delete_B_Click"/>
+            <TextBlock x:Name="Music_List_T" FontSize="45" Height="55" Width="196" TextWrapping="Wrap" Text="音楽リスト" VerticalAlignment="Top" Margin="-800,50,0,0" Foreground="Aqua"/>
+            <CheckBox x:Name="Video_Mode_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-1300,945,0,0" Focusable="False" Click="Video_Mode_C_Click"/>
+            <TextBlock x:Name="Video_Mode_T" FontSize="40" Height="55" Width="478" TextWrapping="Wrap" Text="動画ファイルは動画として再生" VerticalAlignment="Top" Margin="-770,925,0,0" Foreground="Aqua"/>
+            <TextBlock x:Name="Volume_T" FontSize="40" Height="55" Width="300" TextWrapping="Wrap" Text="音量:50" VerticalAlignment="Top" Margin="-475,100,0,0" Foreground="Aqua" TextAlignment="Center"/>
+            <Slider x:Name="Volume_S" Height="27" VerticalAlignment="Top" Width="400" Margin="-475,200,0,0" Style="{StaticResource CustomSliderStyle}" Focusable="False" Value="50" SmallChange="1" Maximum="100" ValueChanged="Volume_S_ValueChanged" PreviewKeyDown="Slider_S_PreviewKeyDown"/>
+            <TextBlock x:Name="Pitch_T" FontSize="40" Height="55" Width="300" TextWrapping="Wrap" Text="音程:0" VerticalAlignment="Top" Margin="-475,300,0,0" Foreground="Aqua" TextAlignment="Center"/>
+            <Slider x:Name="Pitch_S" Height="27" VerticalAlignment="Top" Width="400" Margin="-475,400,0,0" Style="{StaticResource CustomSliderStyle}" Maximum="20" Minimum="-30" LargeChange="0.1" Focusable="False" ValueChanged="Pitch_S_ValueChanged" MouseRightButtonDown="Pitch_S_MouseDoubleClick" SmallChange="0.1" PreviewKeyDown="Slider_S_PreviewKeyDown"/>
+            <TextBlock x:Name="Pitch_Speed_T" FontSize="40" Height="55" Width="366" TextWrapping="Wrap" Text="音程と速度:0" VerticalAlignment="Top" Margin="-475,300,0,0" Foreground="Aqua" TextAlignment="Center" Visibility="Hidden"/>
+            <Slider x:Name="Pitch_Speed_S" Height="27" VerticalAlignment="Top" Width="400" Margin="-475,400,0,0" Style="{StaticResource CustomSliderStyle}" Maximum="100" Minimum="0" Value="50" Focusable="False" Visibility="Hidden" SmallChange="1" LargeChange="1" ValueChanged="Pitch_Speed_S_ValueChanged" MouseRightButtonDown="Pitch_Speed_S_MouseRightButtonDown" PreviewKeyDown="Slider_S_PreviewKeyDown"/>
+            <TextBlock x:Name="Speed_T" FontSize="40" Height="55" Width="300" TextWrapping="Wrap" Text="速度:0" VerticalAlignment="Top" Margin="-475,500,0,0" Foreground="Aqua" TextAlignment="Center"/>
+            <Slider x:Name="Speed_S" Height="27" VerticalAlignment="Top" Focusable="False"  Width="400" Margin="-475,600,0,0" Style="{StaticResource CustomSliderStyle}" SmallChange="1" Maximum="100" Minimum="-80" ValueChanged="Speed_S_ValueChanged" MouseRightButtonDown="Speed_S_MouseDoubleClick" LargeChange="1" PreviewKeyDown="Slider_S_PreviewKeyDown"/>
+            <TextBlock x:Name="Location_T" FontSize="40" Height="55" Width="300" TextWrapping="Wrap" Text="00:00" VerticalAlignment="Top" Margin="-475,700,0,0" Foreground="Aqua" TextAlignment="Center"/>
+            <Slider x:Name="Location_S" IsMoveToPointEnabled="True" Height="27" VerticalAlignment="Top" Width="400" Margin="-475,800,0,0" Style="{StaticResource CustomSliderStyle2}" Focusable="False" ValueChanged="Location_S_ValueChanged" PreviewKeyDown="Slider_S_PreviewKeyDown"/>
+            <TextBlock x:Name="Zoom_T" FontSize="40" Height="55" Width="325" TextWrapping="Wrap" Text="拡大率:1" VerticalAlignment="Top" Margin="-475,900,0,0" Foreground="Aqua" TextAlignment="Center"/>
+            <Slider x:Name="Zoom_S" Height="27" VerticalAlignment="Top"  Width="400" Margin="-475,1000,0,0" Style="{StaticResource CustomSliderStyle}" Focusable="False" SmallChange="0" Maximum="4" Minimum="1"  LargeChange="0" ValueChanged="Zoom_S_ValueChanged" MouseRightButtonDown="Zoom_S_MouseRightButtonDown" PreviewKeyDown="Slider_S_PreviewKeyDown"/>
+            <TextBlock x:Name="Loop_T" FontSize="40" Height="55" Width="175" TextWrapping="Wrap" Text="ループ再生" VerticalAlignment="Top" Margin="-2750,925,0,0" Foreground="Aqua"/>
+            <CheckBox x:Name="Loop_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-2975,945,0,0" Focusable="False" Click="Loop_C_Click"/>
+            <TextBlock x:Name="Random_T" FontSize="40" Height="55" Width="200" TextWrapping="Wrap" Text="ランダム再生" VerticalAlignment="Top" Margin="-2725,1000,0,0" Foreground="Aqua"/>
+            <CheckBox x:Name="Random_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-2975,1020,0,0" Focusable="False" Click="Random_C_Click"/>
+            <TextBlock x:Name="Background_T" FontSize="37" Height="50" Width="300" TextWrapping="Wrap" Text="バックグラウンド再生" VerticalAlignment="Top" Margin="-2000,1005,0,0" Foreground="Aqua"/>
+            <CheckBox x:Name="Background_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-2350,1020,0,0" Focusable="False" Click="Background_C_Click"/>
+            <TextBlock x:Name="Mode_T" FontSize="37" Height="50" Width="280" TextWrapping="Wrap" Text="音程と速度を同期" VerticalAlignment="Top" Margin="-2025,925,0,0" Foreground="Aqua"/>
+            <CheckBox x:Name="Mode_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-2350,945,0,0" Focusable="False" Click="Mode_C_Click"/>
+            <TextBlock x:Name="Device_T" FontSize="33" Height="50" Width="180" TextWrapping="Wrap" Text="出力デバイス" VerticalAlignment="Top" Margin="-2050,640,0,0" Foreground="Aqua"/>
+            <ListBox x:Name="Device_L" Height="250" VerticalAlignment="Top" Width="300" Background="Transparent" Foreground="Aqua" Focusable="False" BorderBrush="Aqua" FontSize="35" Margin="-2050,700,0,0" SelectionChanged="Device_L_SelectionChanged"/>
+            <Button x:Name="Video_Change_B" Content="動画として再生" Height="75" VerticalAlignment="Top" Width="325" Style="{StaticResource Button_MouseOver_Style}" Focusable="False" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Margin="-2050,615,0,0" Click="Video_Change_B_Click"/>
+            <Button x:Name="Music_Fix_B" Content="音ズレを修正" Height="70" VerticalAlignment="Top" Width="325" Style="{StaticResource Button_MouseOver_Style}" Foreground="Aqua" Focusable="False" BorderBrush="Aqua" FontSize="40" Margin="-3513,915,0,0" Click="Music_Fix_B_Click"/>
+            <Button x:Name="Music_Full_Screen_B" Content="全画面モード" Height="70" VerticalAlignment="Top" Width="325" Style="{StaticResource Button_MouseOver_Style}" Foreground="Aqua" Focusable="False" BorderBrush="Aqua" FontSize="36" Margin="-1350,915,0,0" Click="Music_Full_Screen_B_Click"/>
+            <Button x:Name="Youtube_Link_B" Content="Youtubeから取得" Height="70" VerticalAlignment="Top" Width="300" Style="{StaticResource Button_MouseOver_Style}" Foreground="Aqua" BorderBrush="Aqua" Focusable="False" FontSize="37" Margin="-2850,1005,0,0" Click="Youtube_Link_B_Click"/>
+            <Button x:Name="Music_Vocal_Inst_Cut_B" Content="ボーカルと楽器に切り分け" Height="70" VerticalAlignment="Top" Width="313" Style="{StaticResource Button_MouseOver_Style}" Foreground="Aqua" Focusable="False" BorderBrush="Aqua" FontSize="30" Margin="-2225,1005,0,0" Click="Music_Vocal_Inst_Cut_B_Click"/>
+            <Button x:Name="Message_B" Content="注意事項" Height="70" VerticalAlignment="Top" Width="250" Style="{StaticResource Button_MouseOver_Style}" Foreground="Aqua" Focusable="False" BorderBrush="Aqua" FontSize="40" Margin="-250,0,0,0" Click="Message_B_Click" Visibility="Hidden"/>
+            <CheckBox x:Name="Ex_Sort_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-1425,90,0,0" Focusable="False" Click="Ex_Sort_C_Click"/>
+            <TextBlock x:Name="Ex_Sort_T" FontSize="37" Height="45" Width="152" TextWrapping="Wrap" Text="拡張子順" VerticalAlignment="Top" Margin="-1235,72,0,0" Foreground="Aqua"/>
+            <TextBlock x:Name="Loop_Time_T" FontSize="37" Height="50" Width="550" TextWrapping="Wrap" Text="再生時間:0～0" VerticalAlignment="Top" Margin="-1325,1025,0,0" Foreground="Aqua"/>
+            <TextBlock x:Name="List_Number_T" FontSize="30" Height="37" Width="175" TextWrapping="Wrap" Text="リスト番号:1" VerticalAlignment="Top" Margin="-300,80,0,0" Foreground="Aqua" TextAlignment="Right"/>
+            <Button x:Name="Exit_B" Content="戻る" Height="75" VerticalAlignment="Top" Width="325" Style="{StaticResource Button_MouseOver_Style}" Focusable="False" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Margin="-3513,1005,0,0" Click="Exit_B_Click"/>
+            <Button x:Name="Setting_B" Content="音響設定" Height="75" VerticalAlignment="Top" Width="325" Style="{StaticResource Button_MouseOver_Style}" Focusable="False" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Margin="-325,1005,0,0" Click="Setting_B_Click"/>
+            <Button x:Name="Page_Next_B" Content="→" Height="55" VerticalAlignment="Top" Width="63" Style="{StaticResource Button_MouseOver_Style}" Focusable="False" Foreground="Aqua" BorderBrush="Aqua" FontSize="37" Margin="-63,400,0,0" Click="Page_Next_B_Click"/>
+            <Button x:Name="Page_Back_B" Content="←" Height="55" VerticalAlignment="Top" Width="63" Style="{StaticResource Button_MouseOver_Style}" Focusable="False" Foreground="Aqua" BorderBrush="Aqua" FontSize="37" Margin="-63,500,0,0" Click="Page_Back_B_Click"/>
+            <Canvas x:Name="Rename_Canvas" Visibility="Hidden">
+                <Border Width="1920" Height="1080" Background="Black" Opacity="0.75" Margin="-1920,0,0,0"/>
+                <TextBlock FontSize="37" Height="45" Width="200" TextWrapping="Wrap" Text="曲名を変更" VerticalAlignment="Top" Margin="-1920,450,0,0" Foreground="Aqua" TextAlignment="Center"/>
+                <TextBox x:Name="Rename_T" Width="750" Height="50" FontSize="33" Margin="-1920, 540,0,0" Text="" TextAlignment="Center"/>
+                <Button x:Name="Rename_Cancel_B" Content="キャンセル" Height="60" VerticalAlignment="Top" Width="250" Style="{StaticResource Button_MouseOver_Style}" Focusable="False" Foreground="Aqua" BorderBrush="Aqua" FontSize="35" Margin="-2250,650,0,0" Click="Rename_Cancel_B_Click"/>
+                <Button x:Name="Rename_Apply_B" Content="変更" Height="60" VerticalAlignment="Top" Width="250" Style="{StaticResource Button_MouseOver_Style}" Focusable="False" Foreground="Aqua" BorderBrush="Aqua" FontSize="35" Margin="-1600,650,0,0" Click="Rename_Apply_B_Click"/>
+            </Canvas>
+            <local:Youtube_Link x:Name="Youtube_Link_Window" Height="1080" VerticalAlignment="Top" Width="1920" Margin="-1920,0,0,0" Visibility="Hidden"/>
+            <local:Vocal_Inst_Cut_User x:Name="Vocal_Inst_Cut_User_Window" Width="1920" Height="1080" VerticalAlignment="Top" Margin="-1920,0,0,0" Visibility="Hidden"/>
+            <local:Music_Player_Setting x:Name="Music_Player_Setting_Window" Width="1920" Height="1080" VerticalAlignment="Top" Margin="-1920,0,0,0" Visibility="Hidden"/>
+        </DockPanel>
+    </Viewbox>
+</UserControl>
