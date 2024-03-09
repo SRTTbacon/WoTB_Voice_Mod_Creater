@@ -8,7 +8,7 @@ V1.2.7から.NetFramework4.6.1に変更しましたので、Windows7などはマ
 ダウンロード:https://www.dropbox.com/scl/fi/s5oxuv226e3auhh77d5xb/WoTB_Mod_Creator.zip?rlkey=yshrfykfdbz5kgysoot8qxyvo&dl=1<br>
 ソース内のWwise_Class/V1とV2の違いは、V1では.pckファイルを扱い、V2では.bnkファイルを扱う感じです。<br>
 <br>
-# V1.5.7更新予定
+# V1.5.7<br>
 ・複数のセーブファイル(*.wvs)を合成する機能を追加()<br>
 ・'セーブファイルにサウンドも含める'にチェックが入ったプロジェクトを解凍できるように変更<br>
 ・その他サウンドMod内の被弾時の音声が再生されない問題を修正<br>
