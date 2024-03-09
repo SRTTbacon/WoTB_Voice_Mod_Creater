@@ -188,17 +188,16 @@
             <CheckBox x:Name="Background_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-2350,1020,0,0" Focusable="False" Click="Background_C_Click"/>
             <TextBlock x:Name="Mode_T" FontSize="37" Height="50" Width="280" TextWrapping="Wrap" Text="音程と速度を同期" VerticalAlignment="Top" Margin="-2025,925,0,0" Foreground="Aqua"/>
             <CheckBox x:Name="Mode_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-2350,945,0,0" Focusable="False" Click="Mode_C_Click"/>
-            <TextBlock x:Name="Device_T" FontSize="33" Height="50" Width="180" TextWrapping="Wrap" Text="出力デバイス" VerticalAlignment="Top" Margin="-2050,640,0,0" Foreground="Aqua"/>
-            <ListBox x:Name="Device_L" Height="250" VerticalAlignment="Top" Width="300" Background="Transparent" Foreground="Aqua" Focusable="False" BorderBrush="Aqua" FontSize="35" Margin="-2050,700,0,0" SelectionChanged="Device_L_SelectionChanged"/>
+            <TextBlock x:Name="Device_T" FontSize="33" Height="50" Width="180" TextWrapping="Wrap" Text="出力デバイス" VerticalAlignment="Top" Margin="-2000,640,0,0" Foreground="Aqua"/>
+            <ListBox x:Name="Device_L" Height="250" VerticalAlignment="Top" Width="400" Background="Transparent" Foreground="Aqua" Focusable="False" BorderBrush="Aqua" FontSize="35" Margin="-2000,700,0,0" SelectionChanged="Device_L_SelectionChanged"/>
             <Button x:Name="Video_Change_B" Content="動画として再生" Height="75" VerticalAlignment="Top" Width="325" Style="{StaticResource Button_MouseOver_Style}" Focusable="False" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Margin="-2050,615,0,0" Click="Video_Change_B_Click"/>
             <Button x:Name="Music_Fix_B" Content="音ズレを修正" Height="70" VerticalAlignment="Top" Width="325" Style="{StaticResource Button_MouseOver_Style}" Foreground="Aqua" Focusable="False" BorderBrush="Aqua" FontSize="40" Margin="-3513,915,0,0" Click="Music_Fix_B_Click"/>
             <Button x:Name="Music_Full_Screen_B" Content="全画面モード" Height="70" VerticalAlignment="Top" Width="325" Style="{StaticResource Button_MouseOver_Style}" Foreground="Aqua" Focusable="False" BorderBrush="Aqua" FontSize="36" Margin="-1350,915,0,0" Click="Music_Full_Screen_B_Click"/>
             <Button x:Name="Youtube_Link_B" Content="Youtubeから取得" Height="70" VerticalAlignment="Top" Width="300" Style="{StaticResource Button_MouseOver_Style}" Foreground="Aqua" BorderBrush="Aqua" Focusable="False" FontSize="37" Margin="-2850,1005,0,0" Click="Youtube_Link_B_Click"/>
-            <Button x:Name="Music_Vocal_Inst_Cut_B" Content="ボーカルと楽器に切り分け" Height="70" VerticalAlignment="Top" Width="313" Style="{StaticResource Button_MouseOver_Style}" Foreground="Aqua" Focusable="False" BorderBrush="Aqua" FontSize="30" Margin="-2225,1005,0,0" Click="Music_Vocal_Inst_Cut_B_Click"/>
             <Button x:Name="Message_B" Content="注意事項" Height="70" VerticalAlignment="Top" Width="250" Style="{StaticResource Button_MouseOver_Style}" Foreground="Aqua" Focusable="False" BorderBrush="Aqua" FontSize="40" Margin="-250,0,0,0" Click="Message_B_Click" Visibility="Hidden"/>
             <CheckBox x:Name="Ex_Sort_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-1425,90,0,0" Focusable="False" Click="Ex_Sort_C_Click"/>
             <TextBlock x:Name="Ex_Sort_T" FontSize="37" Height="45" Width="152" TextWrapping="Wrap" Text="拡張子順" VerticalAlignment="Top" Margin="-1235,72,0,0" Foreground="Aqua"/>
-            <TextBlock x:Name="Loop_Time_T" FontSize="37" Height="50" Width="550" TextWrapping="Wrap" Text="再生時間:0～0" VerticalAlignment="Top" Margin="-1325,1025,0,0" Foreground="Aqua"/>
+            <TextBlock x:Name="Loop_Time_T" FontSize="37" Height="50" Width="550" TextWrapping="Wrap" Text="再生時間:0～0" VerticalAlignment="Top" Margin="-1975,1015,0,0" Foreground="Aqua"/>
             <TextBlock x:Name="List_Number_T" FontSize="30" Height="37" Width="175" TextWrapping="Wrap" Text="リスト番号:1" VerticalAlignment="Top" Margin="-300,80,0,0" Foreground="Aqua" TextAlignment="Right"/>
             <Button x:Name="Exit_B" Content="戻る" Height="75" VerticalAlignment="Top" Width="325" Style="{StaticResource Button_MouseOver_Style}" Focusable="False" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Margin="-3513,1005,0,0" Click="Exit_B_Click"/>
             <Button x:Name="Setting_B" Content="音響設定" Height="75" VerticalAlignment="Top" Width="325" Style="{StaticResource Button_MouseOver_Style}" Focusable="False" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Margin="-325,1005,0,0" Click="Setting_B_Click"/>
@@ -212,7 +211,6 @@
                 <Button x:Name="Rename_Apply_B" Content="変更" Height="60" VerticalAlignment="Top" Width="250" Style="{StaticResource Button_MouseOver_Style}" Focusable="False" Foreground="Aqua" BorderBrush="Aqua" FontSize="35" Margin="-1600,650,0,0" Click="Rename_Apply_B_Click"/>
             </Canvas>
             <local:Youtube_Link x:Name="Youtube_Link_Window" Height="1080" VerticalAlignment="Top" Width="1920" Margin="-1920,0,0,0" Visibility="Hidden"/>
-            <local:Vocal_Inst_Cut_User x:Name="Vocal_Inst_Cut_User_Window" Width="1920" Height="1080" VerticalAlignment="Top" Margin="-1920,0,0,0" Visibility="Hidden"/>
             <local:Music_Player_Setting x:Name="Music_Player_Setting_Window" Width="1920" Height="1080" VerticalAlignment="Top" Margin="-1920,0,0,0" Visibility="Hidden"/>
         </DockPanel>
     </Viewbox>

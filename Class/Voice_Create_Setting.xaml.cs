@@ -210,9 +210,10 @@ namespace WoTB_Voice_Mod_Creater.Class
     {
         Voice_Event_Setting Settings = null;
         Voice_Event_Setting Settings_Source = null;
-        BASS_BFX_BQF LPF_Setting = new BASS_BFX_BQF(BASSBFXBQF.BASS_BFX_BQF_LOWPASS, 12000f, 0f, 0f, 1f, 0f, BASSFXChan.BASS_BFX_CHANALL);
-        BASS_BFX_BQF HPF_Setting = new BASS_BFX_BQF(BASSBFXBQF.BASS_BFX_BQF_HIGHPASS, 0f, 0f, 0f, 1f, 0f, BASSFXChan.BASS_BFX_CHANALL);
+        readonly BASS_BFX_BQF LPF_Setting = new BASS_BFX_BQF(BASSBFXBQF.BASS_BFX_BQF_LOWPASS, 12000f, 0f, 0f, 1f, 0f, BASSFXChan.BASS_BFX_CHANALL);
+        readonly BASS_BFX_BQF HPF_Setting = new BASS_BFX_BQF(BASSBFXBQF.BASS_BFX_BQF_HIGHPASS, 0f, 0f, 0f, 1f, 0f, BASSFXChan.BASS_BFX_CHANALL);
         WVS_Load WVS_File = null;
+        SE_Setting seSetting = null;
         DSP_Gain Gain = null;
         GCHandle Sound_IntPtr;
         SYNCPROC IsMusicEnd;
@@ -258,13 +259,14 @@ namespace WoTB_Voice_Mod_Creater.Class
             Fade_In_C.Source = Sub_Code.Check_01;
             Fade_Out_C.Source = Sub_Code.Check_01;
         }
-        public async void Window_Show(string Event_Name, Voice_Event_Setting Settings, WVS_Load WVS_File, int List_Index_Mode, int Index)
+        public async void Window_Show(string Event_Name, Voice_Event_Setting Settings, WVS_Load WVS_File, int List_Index_Mode, int Index, SE_Setting seSetting)
         {
             IsClosing = false;
             Settings_Source = Settings.Clone();
             this.Event_Name = Event_Name;
             this.Settings = Settings;
             this.WVS_File = WVS_File;
+            this.seSetting = seSetting;
             this.List_Index_Mode = List_Index_Mode;
             this.Index = Index;
             Sound_List.Items.Clear();
@@ -522,6 +524,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         async void Play_Volume_Animation(float Feed_Time = 30f)
         {
             IsPaused = false;
+            Change_Effect();
             Bass.BASS_ChannelPlay(Stream, false);
             float Volume_Now = 1f;
             Bass.BASS_ChannelGetAttribute(Stream, BASSAttribute.BASS_ATTRIB_VOL, ref Volume_Now);
@@ -1272,7 +1275,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 return;
             }
             _ = Pause_Volume_Animation(false, 15);
-            Voice_Create_Event_Setting_Window.Window_Show(Event_Name, Settings, WVS_File, List_Index_Mode, Index);
+            Voice_Create_Event_Setting_Window.Window_Show(Event_Name, Settings, WVS_File, List_Index_Mode, Index, seSetting);
             while (!Voice_Create_Event_Setting_Window.IsClosing)
             {
                 if (Layout_Parent.Opacity > 0)
@@ -1291,7 +1294,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         }
         private void Volume_Help_B_Click(object sender, RoutedEventArgs e)
         {
-            Message_Feed_Out("この値はMod Creater内で再生する際の音量で、値を変更してもWoTBには反映されません。\nWoTBに反映させる場合は\"ゲイン(db)\"の値を変更してください。");
+            Message_Feed_Out("この値はMod Creator内で再生する際の音量で、値を変更してもWoTBには反映されません。\nWoTBに反映させる場合は\"ゲイン(db)\"の値を変更してください。");
         }
         private void Delay_Help_B_Click(object sender, RoutedEventArgs e)
         {

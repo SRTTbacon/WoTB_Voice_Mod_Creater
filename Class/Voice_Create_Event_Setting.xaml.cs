@@ -24,6 +24,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         DSP_Gain Voice_Gain = null;
         DSP_Gain Event_Gain = null;
         WVS_Load WVS_File = null;
+        SE_Setting seSetting = null;
         SYNCPROC IsMusicEnd;
         GCHandle Sound_IntPtr;
         List<int> Streams = new List<int>();
@@ -76,7 +77,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             LPF_C.Source = Sub_Code.Check_01;
             HPF_C.Source = Sub_Code.Check_01;
         }
-        public async void Window_Show(string Event_Name, Voice_Event_Setting Settings, WVS_Load WVS_File, int List_Index_Mode, int Index)
+        public async void Window_Show(string Event_Name, Voice_Event_Setting Settings, WVS_Load WVS_File, int List_Index_Mode, int Index, SE_Setting seSetting)
         {
             IsClosing = false;
             this.Event_Name = Event_Name;
@@ -85,6 +86,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             Settings_Source = Settings.Clone();
             this.Settings = Settings;
             this.WVS_File = WVS_File;
+            this.seSetting = seSetting;
             Opacity = 0;
             Visibility = Visibility.Visible;
             Position_Change();
@@ -393,7 +395,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 Settings.Volume = e.NewValue;
                 if (Event_Gain != null)
-                Event_Gain.Gain_dBV = e.NewValue;
+                    Event_Gain.Gain_dBV = e.NewValue;
             }
             else
                 Settings.Volume_Range.Start = e.NewValue;
@@ -711,7 +713,8 @@ namespace WoTB_Voice_Mod_Creater.Class
                 }
                 else
                     Volume = Settings.Volume;
-                Event_Gain.Gain_dBV = Volume;
+                if (Event_Gain != null)
+                    Event_Gain.Gain_dBV = Volume;
             }
             if (Mode == -1 || Mode == 1)
             {
@@ -767,13 +770,10 @@ namespace WoTB_Voice_Mod_Creater.Class
             Sound_Time.Add(0);
             if (Settings.SE_Index != -1)
             {
-                string Temp = Voice_Create_Window.SE_Change_Window.Preset_List[Voice_Create_Window.SE_Change_Window.Preset_Index][Settings.SE_Index];
-                int SE_Count = Temp.CountOf("|") + 1;
-                if (Temp == "" && SE_Count > 0)
-                    SE_Count = 0;
-                if (SE_Count > 0)
+                SE_Type Temp = seSetting.sePreset.types[Settings.SE_Index - 1];
+                if (Temp.items.Count > 0)
                 {
-                    string Name = Temp.Split('|')[Sub_Code.r.Next(0, SE_Count)];
+                    string Name = Temp.GetRandomItems()[Sub_Code.r.Next(0, Temp.items.Count)];
                     Streams[0] = Bass.BASS_StreamCreateFile(Name, 0, 0, BASSFlag.BASS_SAMPLE_FLOAT | BASSFlag.BASS_STREAM_DECODE);
                     Sound_Time[0] = Bass.BASS_ChannelBytes2Seconds(Streams[0], Bass.BASS_ChannelGetLength(Streams[0], BASSMode.BASS_POS_BYTES));
                     Play_SE_Name = Path.GetFileName(Name);

@@ -9,7 +9,7 @@ using WoTB_Voice_Mod_Creater.Properties;
 
 namespace WoTB_Voice_Mod_Creater.Class
 {
-    //Mod Creater専用のセーブファイルをバイナリデータとして作成
+    //Mod Creator専用のセーブファイルをバイナリデータとして作成
     //このセーブファイルは、サウンドファイルも一緒に書き込まれるため、別のPCでロードしても正常に再生やModの作成が行えます。
     public class WVS_Save
     {
@@ -41,13 +41,13 @@ namespace WoTB_Voice_Mod_Creater.Class
         List<List<Voice_Event_Setting>> Blitz_Events;
         List<Dictionary<string, Voice_Event_Setting>> WoT_Events;
         Dictionary<string, List<SE_Info_Parent>> SE_Info;
-        List<WVS_WoT_Format_Parent> WoT_Infos = new List<WVS_WoT_Format_Parent>();
-        List<Voice_Sound_Setting> Sound_Files = new List<Voice_Sound_Setting>();
+        readonly List<WVS_WoT_Format_Parent> WoT_Infos = new List<WVS_WoT_Format_Parent>();
+        readonly List<Voice_Sound_Setting> Sound_Files = new List<Voice_Sound_Setting>();
         //4バイト
-        List<int> Sound_Indexes = new List<int>();
+        readonly List<int> Sound_Indexes = new List<int>();
         //2バイト
-        List<ushort> List_Indexes = new List<ushort>();
-        List<byte[]> Sound_Binary = new List<byte[]>();
+        readonly List<ushort> List_Indexes = new List<ushort>();
+        readonly List<byte[]> Sound_Binary = new List<byte[]>();
         public WVS_Save()
         {
         }
@@ -379,7 +379,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         public bool IsNotChangeNameMode { get; private set; }
         public bool IsIncludedSound = true;
         BinaryReader bin = null;
-        string WVS_File = "";
+        public string WVS_File { get; private set; } = "";
         public bool IsLoaded = false;
         private const byte Max_Version = 5;
         //サウンドが含まれている.wvsファイルか確認(そうであればtrue)

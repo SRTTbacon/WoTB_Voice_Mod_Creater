@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 using Un4seen.Bass;
 using Un4seen.Bass.AddOn.Fx;
 using WK.Libraries.BetterFolderBrowserNS;
@@ -46,8 +47,8 @@ namespace WoTB_Voice_Mod_Creater.Class
         bool IsEnded = false;
         bool IsOpenDialog = false;
         bool IsDownloading = false;
-        Random r = new Random();
         SYNCPROC IsMusicEnd;
+        readonly Brush Gray_Text = (Brush)new BrushConverter().ConvertFromString("#BFFF2C8C");
         public Create_Loading_BGM()
         {
             InitializeComponent();
@@ -268,6 +269,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                     //曲が再生中だったら
                     if (Bass.BASS_ChannelIsActive(Stream) == BASSActive.BASS_ACTIVE_PLAYING && !IsLocationChanging)
                     {
+                        Bass.BASS_ChannelUpdate(Stream, 400);
                         long position = Bass.BASS_ChannelGetPosition(Stream);
                         Position_S.Value = Bass.BASS_ChannelBytes2Seconds(Stream, position);
                         if (BGM_Type_L.SelectedIndex != -1 && BGM_Music_L.SelectedIndex != -1 && Mod_Page == 0)
@@ -396,9 +398,13 @@ namespace WoTB_Voice_Mod_Creater.Class
             int SelectedIndex = BGM_Type_L.SelectedIndex;
             for (int Number = 0; Number < BGM_Type_L.Items.Count; Number++)
             {
-                string Name = BGM_Type_L.Items[Number].ToString();
-                Name = Name.Substring(0, Name.IndexOf('|') + 2);
-                BGM_Type_L.Items[Number] = Name + Other_List[Mod_Page][Number].Files.Count + "個";
+                ListBoxItem item = BGM_Type_L.Items[Number] as ListBoxItem;
+                string Name = item.Content.ToString();
+                item.Content = Name.Substring(0, Name.IndexOf('|') + 2) + Other_List[Mod_Page][Number].Files.Count + "個";
+                if (Other_List[Mod_Page][Number].Files.Count == 0)
+                    item.Foreground = Gray_Text;
+                else
+                    item.Foreground = Brushes.Aqua;
             }
             BGM_Type_L.SelectedIndex = SelectedIndex;
         }
@@ -613,8 +619,10 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Message_Feed_Out("ファイルが存在しませんでした。");
                 return;
             }
+            Bass.BASS_SetConfig(BASSConfig.BASS_CONFIG_BUFFER, 100);
             int StreamHandle = Bass.BASS_StreamCreateFile(Path, 0, 0, BASSFlag.BASS_SAMPLE_FLOAT | BASSFlag.BASS_STREAM_DECODE | BASSFlag.BASS_SAMPLE_LOOP);
             Stream = BassFx.BASS_FX_TempoCreate(StreamHandle, BASSFlag.BASS_FX_FREESOURCE);
+            Bass.BASS_SetConfig(BASSConfig.BASS_CONFIG_BUFFER, 500);
             IsMusicEnd = new SYNCPROC(EndSync);
             Bass.BASS_ChannelGetAttribute(Stream, BASSAttribute.BASS_ATTRIB_TEMPO_FREQ, ref SetFirstFreq);
             Bass.BASS_ChannelSetSync(Stream, BASSSync.BASS_SYNC_END | BASSSync.BASS_SYNC_MIXTIME, 0, IsMusicEnd, IntPtr.Zero);
@@ -1168,9 +1176,9 @@ namespace WoTB_Voice_Mod_Creater.Class
                                 foreach (string File_Now in Other_List[Mod_Page][Number].Files.Select(h => h.Full_Path))
                                 {
                                     if (Number == 19)
-                                        Wwise_Hits.Add_Sound("618741068", File_Now, "SFX");
+                                        Wwise_Hits.Add_Sound("195846168", File_Now, "SFX");
                                     else if (Number == 20)
-                                        Wwise_Hits.Add_Sound("48041438", File_Now, "SFX");
+                                        Wwise_Hits.Add_Sound("508923673", File_Now, "SFX");
                                 }
                             }
                             await Wwise_Hits.Sound_To_WAV();
@@ -1309,7 +1317,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                     Music_Count += info.Files.Count;
             if (Music_Count == 0)
             {
-                if (r.Next(0, 10) == 5)
+                if (Sub_Code.r.Next(0, 10) == 5)
                     Message_Feed_Out("内容がないようです。");
                 else
                     Message_Feed_Out("既にクリアされています。");
@@ -1514,7 +1522,15 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Mod_Name_T.Text = "砲撃音(本家WoT用)";
             BGM_Type_L.Items.Clear();
             foreach (Other_Type_List Info in Other_List[Mod_Page])
-                BGM_Type_L.Items.Add(Info.Name_Text);
+            {
+                ListBoxItem item = new ListBoxItem();
+                item.Content = Info.Name_Text;
+                if (Info.Files.Count == 0)
+                    item.Foreground = Gray_Text;
+                else
+                    item.Foreground = Brushes.Aqua;
+                BGM_Type_L.Items.Add(item);
+            }
         }
         void Change_OverWrite_Visibility()
         {

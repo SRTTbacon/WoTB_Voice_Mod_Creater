@@ -98,8 +98,12 @@ namespace WoTB_Voice_Mod_Creater.Class
                 From_Files.AddRange(Files);
                 var tasks = new List<Task>();
                 for (int i = 0; i < From_Files.Count; i++)
+                {
                     if (!Sub_Code.Audio_IsWAV(Files[i]))
                         tasks.Add(To_WAV(i, To_Dir, IsFromFileDelete, false, BassEncode));
+                    else if (Path.GetExtension(Files[i]) != ".wav")
+                        Sub_Code.File_Move(Files[i], To_Dir + "\\" + Path.GetFileNameWithoutExtension(Files[i]) + ".wav", true);
+                }
                 await Task.WhenAll(tasks);
             }
             catch (Exception ex)
@@ -108,7 +112,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             }
             From_Files.Clear();
         }
-        public static async Task Convert_To_Wav(string[] Files, string[] To_Files, bool IsFromFileDelete, bool BassEncode)
+        public static async Task Convert_To_Wav(string[] Files, string[] To_Files, bool IsFromFileDelete)
         {
             try
             {
@@ -304,13 +308,13 @@ namespace WoTB_Voice_Mod_Creater.Class
             string GetFileNameOnly = Path.GetFileNameWithoutExtension(From_Files[File_Number]);
             StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Encode_Mp3/PSB_To_WAV_" + File_Number + ".bat");
             stw.WriteLine("chcp 65001");
-            stw.Write("\"D:/Downloads/SDA Downloads/XCI_NCA_NSP_v2/ncaDecrypted/FreeMoteToolkit/PsbDecompile.exe\" \"" + From_Files[File_Number] + "\"");
+            stw.Write("\"D:/Downloads/SDA Downloads/FreeMoteToolkit/PsbDecompile.exe\" \"" + From_Files[File_Number] + "\"");
             stw.Close();
             ProcessStartInfo processStartInfo = new ProcessStartInfo
             {
                 FileName = Voice_Set.Special_Path + "/Encode_Mp3/PSB_To_WAV_" + File_Number + ".bat",
                 CreateNoWindow = true,
-                WorkingDirectory = "D:/Downloads/SDA Downloads/XCI_NCA_NSP_v2/ncaDecrypted/FreeMoteToolkit",
+                WorkingDirectory = "D:/Downloads/SDA Downloads/FreeMoteToolkit",
                 UseShellExecute = false
             };
             Process p = Process.Start(processStartInfo);

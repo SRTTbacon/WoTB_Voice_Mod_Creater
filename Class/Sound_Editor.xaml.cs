@@ -9,6 +9,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Un4seen.Bass;
 using Un4seen.Bass.AddOn.Fx;
+using static Un4seen.Bass.Misc.EncoderLAME;
 
 namespace WoTB_Voice_Mod_Creater.Class
 {
@@ -40,6 +41,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         int FPS = 60;
         int Save_Serial_Number = 0;
         int Max_Sound_Index = 0;
+        int Rename_Index = -1;
         double Play_Time = 0;
         double Time_Line_Move_Width_Scrool = 0;
         double Pitch_Value = 0;
@@ -69,6 +71,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         bool IsFeedIn = false;
         bool IsFeedOut = false;
         bool IsVolume_Speed_Changed_By_Key = false;
+        bool IsRenameClosing = false;
         public bool IsFocusMode = true;
         //xamlに配置するコントロールを置く
         List<Image> Sound_Images = new List<Image>();
@@ -80,6 +83,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         List<Canvas> Setting_Canvases = new List<Canvas>();
         //サウンドの設定を保存
         List<string> Sound_Files = new List<string>();
+        List<string> Sound_File_Names = new List<string>();
         List<double> Sound_Positions = new List<double>();
         List<double> Sound_Plus_Play_Time = new List<double>();
         List<double> Sound_Minus_Play_Time = new List<double>();
@@ -287,7 +291,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                         Music_Plus_B.Content = "+5秒";
                     }
                     //ウィンドウにフォーカスがあれば実行
-                    if (Sub_Code.IsForcusWindow)
+                    if (Sub_Code.IsForcusWindow && Rename_Canvas.Visibility == Visibility.Hidden)
                     {
                         //数秒戻る
                         if ((Keyboard.GetKeyStates(Key.Left) & KeyStates.Down) > 0)
@@ -510,6 +514,8 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Window_Bar_Canvas.Margin = new Thickness(0, 25, 0, 0);
             else
                 Window_Bar_Canvas.Margin = new Thickness(0, 0, 0, 0);
+            foreach (int Handle in Sound_Streams)
+                Bass.BASS_ChannelSetDevice(Handle, Video_Mode.Sound_Device);
             while (Opacity < 1 && !IsClosing)
             {
                 Opacity += Sub_Code.Window_Feed_Time;
@@ -656,7 +662,11 @@ namespace WoTB_Voice_Mod_Creater.Class
             Message_Feed_Out("サウンドを読み込みました。");
         }
         //サウンドの追加(単体)
-        async Task Add_Sound(string File_Now, ImageSource Image_Wave, int Add_Index_Pos = -1, double Set_Volume = -1, int Image_Y_Pos = -1)
+        async Task Add_Sound(string File_Now, ImageSource Image_Wave, string Name)
+        {
+            await Add_Sound(File_Now, Image_Wave, -1, -1, -1, Name);
+        }
+        async Task Add_Sound(string File_Now, ImageSource Image_Wave, int Add_Index_Pos = -1, double Set_Volume = -1, int Image_Y_Pos = -1, string Name = "")
         {
             IsBusy = true;
             //Bassの設定
@@ -721,6 +731,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             Sound_Plus_Play_Time.Add(0);
             Sound_Minus_Play_Time.Add(1);
             Sound_Files.Add(File_Now);
+            Sound_File_Names.Add(Name == "" ? Path.GetFileName(File_Now) : Name);
             Sound_Images.Add(new Image());
             Border_Lines.Add(new Border());
             Sound_Select_Lines.Add(new Border());
@@ -745,8 +756,16 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 Sound_Move_Zero();
             };
+            MenuItem item3 = new MenuItem();
+            item3.Header = "名前を変更";
+            item3.Click += delegate
+            {
+                if (Sound_Selected_Index.Count > 0)
+                    Rename_Window_Show(Sound_Selected_Index[0]);
+            };
             pMenu.Items.Add(item1);
             pMenu.Items.Add(item2);
+            pMenu.Items.Add(item3);
             //Canvas
             Setting_Canvases[This_Image_Index].Name = "Setting_Canvas_" + Now_Sound_Index;
             Setting_Canvases[This_Image_Index].VerticalAlignment = VerticalAlignment.Top;
@@ -847,7 +866,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             };
             //曲名
             Sound_Names[This_Image_Index].Name = "Sound_Title_" + Now_Sound_Index;
-            Sound_Names[This_Image_Index].Text = Path.GetFileName(File_Now);
+            Sound_Names[This_Image_Index].Text = Name == "" ? Path.GetFileName(File_Now) : Name;
             Sound_Names[This_Image_Index].VerticalAlignment = VerticalAlignment.Top;
             Sound_Names[This_Image_Index].HorizontalAlignment = HorizontalAlignment.Left;
             Sound_Names[This_Image_Index].Width = 260;
@@ -1480,6 +1499,8 @@ namespace WoTB_Voice_Mod_Creater.Class
                     Error_Number++;
                     Sound_Files.RemoveAt(Index);
                     Error_Number++;
+                    Sound_File_Names.RemoveAt(Index);
+                    Error_Number++;
                     Sound_Plus_Play_Time.RemoveAt(Index);
                     Sound_Minus_Play_Time.RemoveAt(Index);
                     Sound_Max_Length.RemoveAt(Index);
@@ -1534,9 +1555,9 @@ namespace WoTB_Voice_Mod_Creater.Class
                     Sub_Code.Resize_From_BitmapImage((BitmapSource)Sound_Images[Index].Source, (int)(Sound_Images[Index].Source.Width * Size_Percent), (int)Sound_Images[Index].Source.Height, out From_Image, out To_Image);
                     Sound_Images[Index].Source = From_Image;
                     if (Setting_Window.Cut_Volume_Sync_C.IsChecked.Value)
-                        await Add_Sound(Sound_Files[Index], To_Image, Index + 1, Sound_Volumes[Sound_Selected_Index[0]].Value);
+                        await Add_Sound(Sound_Files[Index], To_Image, Index + 1, Sound_Volumes[Sound_Selected_Index[0]].Value, -1, Sound_File_Names[Index]);
                     else
-                        await Add_Sound(Sound_Files[Index], To_Image, Index + 1, Setting_Window.Volume_S.Value);
+                        await Add_Sound(Sound_Files[Index], To_Image, Index + 1, Setting_Window.Volume_S.Value, -1, Sound_File_Names[Index]);
                     double Max_Time_Seconds = Time_Info[(int)Time_Scrool.Value].Times[Time_Info[(int)Time_Scrool.Value].Times.Count - 1];
                     if (Time_Info[(int)Time_Scrool.Value].Unit == "分")
                         Max_Time_Seconds *= 60;
@@ -1905,12 +1926,14 @@ namespace WoTB_Voice_Mod_Creater.Class
                             double End_Time = Stream_Time_Seconds * Sound_Minus_Play_Time[Number];
                             if (Sound_Minus_Play_Time[Number] < 1)
                             {
-                                //ffmpegを使用して指定時間以外をカット(再生開始位置が0秒より小さかった場合処理を少し変更させています)
+                                //ffmpegを使用して指定時間以外をカット(再生開始位置が0秒より小さかった場合の処理を少し変更させています)
                                 if (Pos_Now < 0)
                                     ffmpeg.Sound_Cut_From_To(Out_File, Out_File, Sound_Plus_Play_Time[Number] - Pos_Now, Sound_Plus_Play_Time[Number] + End_Time);
                                 else
                                     ffmpeg.Sound_Cut_From_To(Out_File, Out_File, Sound_Plus_Play_Time[Number], Sound_Plus_Play_Time[Number] + End_Time);
                             }
+                            else if (Pos_Now < 0)
+                                ffmpeg.Sound_Cut_From_To(Out_File, Out_File, Sound_Plus_Play_Time[Number] - Pos_Now, Sound_Plus_Play_Time[Number] + End_Time);
                         }
                     }
                 }
@@ -1943,6 +1966,8 @@ namespace WoTB_Voice_Mod_Creater.Class
                                 else
                                     ffmpeg.Sound_Cut_From_To(Out_File, Out_File, Sound_Plus_Play_Time[Index], Sound_Plus_Play_Time[Index] + End_Time);
                             }
+                            else if (Pos_Now < 0)
+                                ffmpeg.Sound_Cut_From_To(Out_File, Out_File, Sound_Plus_Play_Time[Index] - Pos_Now, Sound_Plus_Play_Time[Index] + End_Time);
                         }
                     }
                 }
@@ -2083,7 +2108,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                     for (int Index = 0; Index < Sound_Images.Count; Index++)
                     {
                         stw.WriteLine(Sound_Files[Index] + "|" + Sound_Volumes[Index].Value + "|" + Sound_Images_Y_Pos[Index] + "|" + Sound_Positions[Index] + "|" + Sound_Plus_Play_Time[Index] + "|" +
-                            Sound_Minus_Play_Time[Index]);
+                            Sound_Minus_Play_Time[Index] + "|" + Sound_File_Names[Index]);
                     }
                     stw.Write("WoTB_Sound_Editor_Save_File_End");
                     stw.Close();
@@ -2221,6 +2246,11 @@ namespace WoTB_Voice_Mod_Creater.Class
                     Sound_Positions[Index] = double.Parse(Split[3]);
                     Sound_Plus_Play_Time[Index] = double.Parse(Split[4]);
                     Sound_Minus_Play_Time[Index] = double.Parse(Split[5]);
+                    if (Split.Length > 6)
+                    {
+                        Sound_File_Names[Index] = Split[6];
+                        Sound_Names[Index].Text = Split[6];
+                    }
                     //波形をカット
                     double Start_Pos = 1920 * Sound_Plus_Play_Time[Index] / Sound_Max_Length[Index];
                     double End_Pos = 1920 * Sound_Minus_Play_Time[Index] + Start_Pos;
@@ -2234,6 +2264,9 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Temp_Images.Clear();
                 Temp_Files.Clear();
                 Add_All.Clear();
+                All_Volume_Set = Setting_Window.All_Volume_S.Value / 100;
+                for (int Number = 0; Number < Sound_Streams.Count; Number++)
+                    Bass.BASS_ChannelSetAttribute(Sound_Streams[Number], BASSAttribute.BASS_ATTRIB_VOL, (float)(Sound_Volumes[Number].Value / 100 * All_Volume_Set));
                 Message_Feed_Out("ロードしました。");
             }
             catch (Exception e)
@@ -2248,6 +2281,58 @@ namespace WoTB_Voice_Mod_Creater.Class
             }
             IsBusy = false;
             IsLoading = false;
+        }
+        private async void Rename_Window_Show(int Index)
+        {
+            if (IsBusy || Index == -1 || IsClosing)
+                return;
+            Rename_Index = Index;
+            Rename_T.Text = Sound_File_Names[Rename_Index] == "" ? Path.GetFileName(Sound_Files[Rename_Index]) : Sound_File_Names[Rename_Index];
+            Rename_T.UndoLimit = 0;
+            Rename_T.UndoLimit = 15;
+            Rename_Canvas.Opacity = 0;
+            Rename_Canvas.Visibility = Visibility.Visible;
+            while (Rename_Canvas.Opacity < 1 && !IsRenameClosing)
+            {
+                Rename_Canvas.Opacity += Sub_Code.Window_Feed_Time * 2;
+                await Task.Delay(1000 / 60);
+            }
+        }
+        private async void Rename_Cancel_B_Click(object sender, RoutedEventArgs e)
+        {
+            if (!IsRenameClosing)
+            {
+                IsRenameClosing = true;
+                while (Rename_Canvas.Opacity > 0)
+                {
+                    Rename_Canvas.Opacity -= Sub_Code.Window_Feed_Time * 2;
+                    await Task.Delay(1000 / 60);
+                }
+                Rename_T.Text = "";
+                IsRenameClosing = false;
+                Rename_Canvas.Visibility = Visibility.Hidden;
+                Rename_Index = -1;
+            }
+        }
+        private async void Rename_Apply_B_Click(object sender, RoutedEventArgs e)
+        {
+            if (!IsRenameClosing)
+            {
+                if (string.IsNullOrWhiteSpace(Rename_T.Text))
+                    return;
+                IsRenameClosing = true;
+                Sound_File_Names[Rename_Index] = Rename_T.Text;
+                Sound_Names[Rename_Index].Text = Rename_T.Text;
+                while (Rename_Canvas.Opacity > 0)
+                {
+                    Rename_Canvas.Opacity -= Sub_Code.Window_Feed_Time * 2;
+                    await Task.Delay(1000 / 60);
+                }
+                Rename_T.Text = "";
+                IsRenameClosing = false;
+                Rename_Canvas.Visibility = Visibility.Hidden;
+                Rename_Index = -1;
+            }
         }
     }
 }

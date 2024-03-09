@@ -5,6 +5,7 @@ using System.Text;
 using System.Windows;
 using WoTB_Voice_Mod_Creater.Class;
 using WoTB_Voice_Mod_Creater.FMOD_Class;
+using WoTB_Voice_Mod_Creater.Wwise_Class;
 
 namespace WoTB_Voice_Mod_Creater
 {
@@ -12,7 +13,6 @@ namespace WoTB_Voice_Mod_Creater
     {
         static List<List<string>> Voice_BGM_Change_List = new List<List<string>>();
         static List<string> Voice_Lists = new List<string>();
-        public static List<bool> SE_Enable_Disable = new List<bool>();
         public static string Local_Path = Directory.GetCurrentDirectory();
         static string Special_Path_Dir = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\WoTB_Voice_Mod_Creater";
         static string Server_Name = "";
@@ -517,7 +517,8 @@ namespace WoTB_Voice_Mod_Creater
             List<List<string>> Temp = new List<List<string>>();
             for (int Number_01 = 0; Number_01 < 34; Number_01++)
                 Temp.Add(new List<string>());
-            List<string> To_File_Name = new List<string>();To_File_Name.AddRange(new string[]{ "mikata", "danyaku", "hikantuu", "kantuu", "tokusyu", "tyoudan", "syatyou", "souzyuusyu", "tekikasai", "gekiha", "enjinhason", "enjintaiha", "enjinhukkyuu"
+            List<string> To_File_Name = new List<string>();
+            To_File_Name.AddRange(new string[]{ "mikata", "danyaku", "hikantuu", "kantuu", "tokusyu", "tyoudan", "syatyou", "souzyuusyu", "tekikasai", "gekiha", "enjinhason", "enjintaiha", "enjinhukkyuu"
             ,"kasai","syouka","nenryou","housinhason","housintaiha","housinhukkyuu","housyu","soutensyu","musen","musensyu","battle","kansokuhason","kansokutaiha"
             ,"kansokuhukkyuu","ritaihason","ritaitaiha","ritaihukkyuu","houtouhason","houtoutaiha","houtouhukkyuu","taiha"});
             string[] Files = Directory.GetFiles(Dir_Path, "*.wav", SearchOption.TopDirectoryOnly);
@@ -557,7 +558,8 @@ namespace WoTB_Voice_Mod_Creater
                 Temp.Add(new List<string>());
             if (Voice_BGM_Change_List.Count == 0)
                 Voice_BGM_Change_List_Init();
-            List<string> To_File_Name = new List<string>(); To_File_Name.AddRange(new string[]{ "mikata", "danyaku", "hikantuu", "kantuu", "tokusyu", "tyoudan", "syatyou", "souzyuusyu", "tekikasai", "gekiha", "enjinhason", "enjintaiha", "enjinhukkyuu"
+            List<string> To_File_Name = new List<string>();
+            To_File_Name.AddRange(new string[]{ "mikata", "danyaku", "hikantuu", "kantuu", "tokusyu", "tyoudan", "syatyou", "souzyuusyu", "tekikasai", "gekiha", "enjinhason", "enjintaiha", "enjinhukkyuu"
             ,"kasai","syouka","nenryou","housinhason","housintaiha","housinhukkyuu","housyu","soutensyu","musen","musensyu","battle","kansokuhason","kansokutaiha"
             ,"kansokuhukkyuu","ritaihason","ritaitaiha","ritaihukkyuu","houtouhason","houtoutaiha","houtouhukkyuu","taiha"});
             List<string> Files = Fmod_Class.FSB_GetNames(FSB_File_Path);
@@ -589,6 +591,43 @@ namespace WoTB_Voice_Mod_Creater
                 }
             }
             return Temp;
+        }
+        public static void Voice_BGM_Name_Change_From_FSB_To_Index_FSBFile(BNK_FSB_Voice BNK_FSB_Voices, string FSB_File_Path)
+        {
+            if (Voice_BGM_Change_List.Count == 0)
+                Voice_BGM_Change_List_Init();
+            List<string> To_File_Name = new List<string>();
+            To_File_Name.AddRange(new string[]{ "mikata", "danyaku", "hikantuu", "kantuu", "tokusyu", "tyoudan", "syatyou", "souzyuusyu", "tekikasai", "gekiha", "enjinhason", "enjintaiha", "enjinhukkyuu"
+            ,"kasai","syouka","nenryou","housinhason","housintaiha","housinhukkyuu","housyu","soutensyu","musen","musensyu","battle","kansokuhason","kansokutaiha"
+            ,"kansokuhukkyuu","ritaihason","ritaitaiha","ritaihukkyuu","houtouhason","houtoutaiha","houtouhukkyuu","taiha"});
+            List<string> Files = Fmod_Class.FSB_GetNames(FSB_File_Path);
+            for (int Index = 0; Index < Files.Count; Index++)
+            {
+                string Name_Temp = Path.GetFileNameWithoutExtension(Files[Index]) + "_" + Index;
+                if (!Sub_Code.IsIncludeInt_From_String_V2(Name_Temp, "_"))
+                    continue;
+                if (Name_Temp.Contains("_"))
+                {
+                    string Name = Name_Temp.Substring(0, Name_Temp.LastIndexOf('_'));
+                    Name = Name.Trim();
+                    for (int Number = 0; Number < 34; Number++)
+                    {
+                        if (To_File_Name[Number] == Name)
+                        {
+                            BNK_FSB_Voices.Add_Voice(Index, Name_Temp, Number);
+                            break;
+                        }
+                        foreach (string Voice_Name in Voice_BGM_Change_List[Number])
+                        {
+                            if (Name.Contains(Voice_Name))
+                            {
+                                BNK_FSB_Voices.Add_Voice(Index, Name_Temp, Number);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }

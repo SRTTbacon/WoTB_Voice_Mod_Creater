@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -10,21 +11,165 @@ using Un4seen.Bass.AddOn.Fx;
 
 namespace WoTB_Voice_Mod_Creater.Class
 {
+    public class SE_Type
+    {
+        public Dictionary<uint, List<string>> items = new Dictionary<uint, List<string>>();
+        public bool bEnable = true;
+
+        public void Add(string files)
+        {
+            Add(0, files);
+        }
+        public void Add(uint shortID, string files)
+        {
+            if (!items.ContainsKey(shortID))
+                items.Add(shortID, new List<string>());
+            foreach (string file in files.Split('|'))
+                items[shortID].Add(file);
+        }
+        public SE_Type Clone()
+        {
+            SE_Type clone = (SE_Type)MemberwiseClone();
+            clone.items = new Dictionary<uint, List<string>>();
+            foreach (KeyValuePair<uint, List<string>> item in items)
+            {
+                clone.items.Add(item.Key, new List<string>(item.Value));
+            }
+            return clone;
+        }
+        public List<string> GetRandomItems()
+        {
+            if (items.Count == 0)
+            {
+                return null;
+            }
+            foreach (uint key in items.Keys)
+            {
+                return items[key];
+            }
+            return null;
+        }
+    }
+
+    public class SE_Preset
+    {
+        public List<SE_Type> types = new List<SE_Type>();
+        public string presetName = "";
+        public uint presetID = 0;
+        public SE_Preset(string presetName)
+        {
+            this.presetName = presetName;
+            presetID = WwiseHash.HashString(presetName);
+        }
+        public SE_Preset Clone()
+        {
+            SE_Preset clone = (SE_Preset)MemberwiseClone();
+            clone.types = new List<SE_Type>();
+            foreach(SE_Type type in types)
+            {
+                SE_Type newType = new SE_Type();
+                if (type.items.ContainsKey(0))
+                {
+                    List<string> newList = new List<string>();
+                    newType.items.Add(0, newList);
+                    foreach (string file in type.items[0])
+                        newList.Add(file);
+                }
+                clone.types.Add(newType);
+            }
+            return clone;
+        }
+    }
+    public class SE_Setting
+    {
+        public SE_Preset sePreset;
+        public SE_Preset seDefault;
+
+        public const int SE_COUNT = 25;
+
+        private readonly string SE = Voice_Set.Special_Path + "\\SE\\";
+
+        public SE_Setting()
+        {
+            sePreset = new SE_Preset("標準");
+            seDefault = new SE_Preset("標準");
+            for (int Number = 0; Number < SE_COUNT; Number++)
+                seDefault.types.Add(new SE_Type());
+            seDefault.types[0].Add(0, SE + "Capture_Finish_SE.mp3");
+            seDefault.types[1].Add(851389356, SE + "quick_commands_positive.mp3");
+            seDefault.types[1].Add(747137713, SE + "quick_commands_negative.mp3");
+            seDefault.types[1].Add(990119123, SE + "quick_commands_help_me.mp3");
+            seDefault.types[1].Add(560124813, SE + "quick_commands_reloading.mp3");
+            seDefault.types[1].Add(1039956691, SE + "quick_commands_attack.mp3");
+            seDefault.types[1].Add(1041861596, SE + "quick_commands_attack_target.mp3");
+            seDefault.types[1].Add(284419845, SE + "quick_commands_capture_base.mp3");
+            seDefault.types[1].Add(93467631, SE + "quick_commands_defend_base.mp3");
+            seDefault.types[10].Add(0, SE + "howitzer_load_01.wav|" + SE + "howitzer_load_02.wav|" + SE + "howitzer_load_03.wav|" + SE + "howitzer_load_04.wav");
+            seDefault.types[11].Add(0, SE + "lamp_SE_01.mp3");
+            seDefault.types[12].Add(0, SE + "tekihakken_SE_01.mp3");
+            seDefault.types[13].Add(0, SE + "Timer_SE.mp3");
+            seDefault.types[14].Add(0, SE + "target_on_SE_01.wav");
+            seDefault.types[15].Add(0, SE + "target_off_SE_01.wav");
+            seDefault.types[16].Add(0, SE + "Noise_01.mp3|" + SE + "Noise_02.mp3|" + SE + "Noise_03.mp3|" + SE + "Noise_04.mp3|" + SE + "Noise_05.mp3|" + SE + "Noise_06.mp3");
+            seDefault.types[16].Add(0, SE + "Noise_07.mp3|" + SE + "Noise_08.mp3|" + SE + "Noise_09.mp3|" + SE + "Noise_10.mp3");
+            seDefault.types[23].Add(0, SE + "Map_Click_01.wav");
+            seDefault.types[24].Add(0, SE + "Map_Move_01.wav");
+
+            SetDefault(sePreset);
+        }
+
+        public void SetDefault(SE_Preset sep)
+        {
+            sep.presetName = "標準";
+            sep.presetID = WwiseHash.HashString(sep.presetName);
+            sep.types.Clear();
+            for (int Number = 0; Number < SE_COUNT; Number++)
+            {
+                sep.types.Add(new SE_Type());
+            }
+            sep.types[0].Add(0, SE + "Capture_End_01.mp3|" + SE + "Capture_End_02.mp3");
+            sep.types[1].Add(0, SE + "Command_01.wav");
+            sep.types[2].Add(0, SE + "Danyaku_SE_01.mp3");
+            sep.types[3].Add(0, SE + "Destroy_01.mp3");
+            sep.types[4].Add(0, SE + "Enable_01.mp3|" + SE + "Enable_02.mp3|" + SE + "Enable_03.mp3");
+            sep.types[5].Add(0, SE + "Enable_Special_01.mp3");
+            sep.types[6].Add(0, SE + "Musenki_01.mp3");
+            sep.types[7].Add(0, SE + "Nenryou_SE_01.mp3");
+            sep.types[8].Add(0, SE + "Not_Enable_01.mp3");
+            sep.types[9].Add(0, SE + "Not_Enable_01.mp3");
+            sep.types[10].Add(0, SE + "Reload_01.mp3|" + SE + "Reload_02.mp3|" + SE + "Reload_03.mp3|" + SE + "Reload_04.mp3|" + SE + "Reload_05.mp3|" + SE + "Reload_06.mp3");
+            sep.types[11].Add(0, SE + "Sixth_01.mp3|" + SE + "Sixth_02.mp3|" + SE + "Sixth_03.mp3");
+            sep.types[12].Add(0, SE + "Spot_01.mp3");
+            sep.types[13].Add(0, SE + "Timer_01.wav|" + SE + "Timer_02.wav");
+            sep.types[14].Add(0, SE + "Lock_01.mp3");
+            sep.types[15].Add(0, SE + "Unlock_01.mp3");
+            sep.types[16].Add(0, SE + "Noise_01.mp3|" + SE + "Noise_02.mp3|" + SE + "Noise_03.mp3|" + SE + "Noise_04.mp3|" + SE + "Noise_05.mp3|" + SE + "Noise_06.mp3");
+            sep.types[16].Add(0, SE + "Noise_07.mp3|" + SE + "Noise_08.mp3|" + SE + "Noise_09.mp3|" + SE + "Noise_10.mp3");
+            sep.types[23].Add(0, SE + "Map_Click_01.wav");
+            sep.types[24].Add(0, SE + "Map_Move_01.wav");
+        }
+    }
     public partial class Save_Configs : UserControl
     {
+        private const byte VERSION_CONF = 0;
+        private const byte VERSION_PRESET = 0;
+
+        public SE_Setting seSetting = null;
+
+        readonly List<SE_Preset> loadedPresets = new List<SE_Preset>();
+
         readonly BrushConverter bc = new BrushConverter();
-        List<string> Voice_Type = new List<string>();
-        List<int> Voice_Type_Number = new List<int>();
-        string[] Languages = { "arb", "cn", "cs", "de", "en", "es", "fi", "fr", "gup", "it", "ja", "ko", "pbr", "pl", "ru", "th", "tr", "vi" };
-        string Select_SE_Name = "";
-        string SE_Dir = "";
-        int Select_SE_File_Count = 0;
-        int SE_Play_Index = 1;
-        int Select_Language = 10;
+
+        List<Voice_Event_Setting> settings;
+
+        readonly string[] Languages = { "arb", "cn", "cs", "de", "en", "es", "fi", "fr", "gup", "it", "ja", "ko", "pbr", "pl", "ru", "th", "tr", "vi" };
+        string seDir = "";
+        int selectedLanguageIndex = 10;
+        int nowPresetIndex = 0;
         int Stream;
-        double Wwise_Version = 1.0;
-        bool IsClosing = false;
-        bool IsMessageShowing = false;
+        bool bClosing = false;
+        bool bMessageShowing = false;
+        bool bLoaded = false;
         public Save_Configs()
         {
             InitializeComponent();
@@ -51,8 +196,10 @@ namespace WoTB_Voice_Mod_Creater.Class
             Add_SE_List("モジュール復旧", true);
             Add_SE_List("戦闘開始", true);
             Add_SE_List("敵炎上", true);
-            for (int Number = 0; Number < SE_Lists.Items.Count; Number++)
-                Voice_Set.SE_Enable_Disable.Add(true);
+            Add_SE_List("マップクリック", true);
+            Add_SE_List("移動中", true);
+            Load_Combo.Items.Add("標準");
+            Load_Combo.SelectedIndex = 0;
         }
         void Add_SE_List(string Text, bool IsEnable)
         {
@@ -69,40 +216,23 @@ namespace WoTB_Voice_Mod_Creater.Class
             }
             SE_Lists.Items.Add(Item);
         }
-        void Change_SE_List(int Index)
-        {
-            ListBoxItem Item = SE_Lists.Items[Index] as ListBoxItem;
-            string Text = Item.Content.ToString();
-            Text = Text.Substring(0, Text.IndexOf('|') + 2);
-            if (Voice_Set.SE_Enable_Disable[Index])
-            {
-                Text += "有効";
-                Item.Foreground = Brushes.Aqua;
-            }
-            else
-            {
-                Text += "無効";
-                Item.Foreground = (Brush)new BrushConverter().ConvertFromString("#BFFF2C8C");
-            }
-            Item.Content = Text;
-        }
         async void Message_Feed_Out(string Message)
         {
-            if (IsMessageShowing)
+            if (bMessageShowing)
             {
-                IsMessageShowing = false;
+                bMessageShowing = false;
                 await Task.Delay(1000 / 59);
             }
             Message_T.Text = Message;
-            IsMessageShowing = true;
+            bMessageShowing = true;
             Message_T.Opacity = 1;
             int Number = 0;
-            bool IsForce = false;
+            bool bForce = false;
             while (Message_T.Opacity > 0)
             {
-                if (!IsMessageShowing)
+                if (!bMessageShowing)
                 {
-                    IsForce = true;
+                    bForce = true;
                     break;
                 }
                 Number++;
@@ -110,31 +240,14 @@ namespace WoTB_Voice_Mod_Creater.Class
                     Message_T.Opacity -= 0.025;
                 await Task.Delay(1000 / 60);
             }
-            if (!IsForce)
+            if (!bForce)
             {
-                IsMessageShowing = false;
+                bMessageShowing = false;
                 Message_T.Text = "";
                 Message_T.Opacity = 1;
             }
         }
-        public void Window_Show()
-        {
-            //画面を表示(マルチで行った場合)
-            Volume_Set_C.Visibility = Visibility.Visible;
-            Volume_Set_T.Visibility = Visibility.Visible;
-            Exit_B.Visibility = Visibility.Visible;
-            Save_B.Content = "作成";
-            Android_T.Visibility = Visibility.Hidden;
-            Default_Voice_Mode_C.Visibility = Visibility.Visible;
-            Default_Voice_Mode_T.Visibility = Visibility.Visible;
-            Configs_Load();
-            SE_Dir = Voice_Set.Special_Path + "/Server/" + Voice_Set.SRTTbacon_Server_Name + "/Voices/SE";
-            Project_T.Text = "プロジェクト名:" + Voice_Set.SRTTbacon_Server_Name;
-            Sub_Code.Get_Voice_Type_And_Index(Voice_Set.Special_Path + "/Server/" + Voice_Set.SRTTbacon_Server_Name + "/Voices", ref Voice_Type, ref Voice_Type_Number);
-            for (int Number = 0; Number <= Voice_Type.Count - 1; Number++)
-                Voice_Lists.Items.Add(Voice_Type[Number] + ":" + Voice_Type_Number[Number] + "個");
-            Only_Wwise_C.IsChecked = false;
-        }
+
         public void Window_Show_V2(string Project_Name, List<Voice_Event_Setting> Lists)
         {
             //画面を表示(オフラインモードで行った場合)
@@ -146,18 +259,12 @@ namespace WoTB_Voice_Mod_Creater.Class
             Save_B.Content = "作成";
             Language_Left_B.Visibility = Visibility.Visible;
             Language_Right_B.Visibility = Visibility.Visible;
-            Android_T.Text = "言語:" + Languages[Select_Language];
-            Configs_Load();
-            SE_Dir = Voice_Set.Special_Path + "/SE";
+            Android_T.Text = "言語:" + Languages[selectedLanguageIndex];
+            if (!bLoaded)
+                Configs_Load();
+            seDir = Voice_Set.Special_Path + "/SE";
             Project_T.Text = "プロジェクト名:" + Project_Name;
-            for (int Number = 0; Number < Lists.Count; Number++)
-            {
-                string Name = Voice_Set.Get_Voice_Type_Japanese_Name_V2(Number);
-                int Number_01 = Lists[Number].Sounds.Count;
-                Voice_Type.Add(Name);
-                Voice_Type_Number.Add(Number_01);
-                Voice_Lists.Items.Add(Name + ":" + Number_01 + "個");
-            }
+            settings = Lists;
         }
         public async void Window_Show_V3(string BNK_Name, List<Voice_Event_Setting> Lists)
         {
@@ -174,78 +281,220 @@ namespace WoTB_Voice_Mod_Creater.Class
             Default_Voice_Mode_C.Visibility = Visibility.Hidden;
             Default_Voice_Mode_T.Visibility = Visibility.Hidden;
             Save_B.Content = "保存";
-            Configs_Load();
-            SE_Dir = Voice_Set.Special_Path + "/SE";
+            if (!bLoaded)
+                Configs_Load();
+            seDir = Voice_Set.Special_Path + "/SE";
             Project_T.Text = "プロジェクト名:" + BNK_Name;
-            for (int Number = 0; Number <= Lists.Count - 1; Number++)
-            {
-                string Name = Voice_Set.Get_Voice_Type_Japanese_Name_V2(Number);
-                int Number_01 = Lists[Number].Sounds.Count;
-                Voice_Type.Add(Name);
-                Voice_Type_Number.Add(Number_01);
-                Voice_Lists.Items.Add(Name + ":" + Number_01 + "個");
-            }
-            while (Opacity < 1 && !IsClosing)
+            while (Opacity < 1 && !bClosing)
             {
                 Opacity += Sub_Code.Window_Feed_Time;
                 await Task.Delay(1000 / 60);
             }
         }
+
+        void Change_SE_List(int Index)
+        {
+            ListBoxItem Item = SE_Lists.Items[Index] as ListBoxItem;
+            string Text = Item.Content.ToString();
+            Text = Text.Substring(0, Text.IndexOf('|') + 2);
+            if (seSetting.sePreset.types[Index].bEnable)
+            {
+                Text += "有効";
+                Item.Foreground = Brushes.Aqua;
+            }
+            else
+            {
+                Text += "無効";
+                Item.Foreground = (Brush)new BrushConverter().ConvertFromString("#BFFF2C8C");
+            }
+            Item.Content = Text;
+        }
+
+        void UpdateTypeColor()
+        {
+            int index = SE_Lists.SelectedIndex;
+            for (int i = 0; i < seSetting.sePreset.types.Count; i++)
+            {
+                Change_SE_List(i);
+                if (i == SE_Lists.SelectedIndex)
+                {
+                    if (seSetting.sePreset.types[i].bEnable)
+                    {
+                        SE_Disable_B.Background = Brushes.Transparent;
+                        SE_Disable_B.BorderBrush = Brushes.Aqua;
+                        SE_Enable_B.Background = (Brush)bc.ConvertFrom("#59999999");
+                        SE_Enable_B.BorderBrush = Brushes.Red;
+                    }
+                    else
+                    {
+                        SE_Disable_B.Background = (Brush)bc.ConvertFrom("#59999999");
+                        SE_Disable_B.BorderBrush = Brushes.Red;
+                        SE_Enable_B.Background = Brushes.Transparent;
+                        SE_Enable_B.BorderBrush = Brushes.Aqua;
+                    }
+                }
+            }
+            SE_Lists.SelectedIndex = index;
+        }
+
         void Configs_Load()
         {
-            if (File.Exists(Voice_Set.Special_Path + "/Configs/Save_Configs.conf"))
+            loadedPresets.Clear();
+            Load_Combo.Items.Clear();
+            Load_Combo.Items.Add(seSetting.seDefault.presetName);
+            if (File.Exists(Voice_Set.Special_Path + "\\Configs\\SE_Presets.dat"))
+            {
+                BinaryReader br = new BinaryReader(File.OpenRead(Voice_Set.Special_Path + "\\Configs\\SE_Presets.dat"));
+                br.ReadBytes(br.ReadByte());
+                br.ReadByte();
+                byte presetCount = br.ReadByte();
+                br.ReadByte();
+                for (int i = 0; i < presetCount; i++)
+                {
+                    string presetName = Encoding.UTF8.GetString(br.ReadBytes(br.ReadByte()));
+                    SE_Preset preset = new SE_Preset(presetName);
+                    loadedPresets.Add(preset);
+                    Load_Combo.Items.Add(preset.presetName);
+                    preset.presetID = br.ReadUInt32();
+                    byte typeCount = br.ReadByte();
+                    for (int j = 0; j < typeCount; j++)
+                    {
+                        SE_Type type = new SE_Type();
+                        preset.types.Add(type);
+                        type.bEnable = br.ReadBoolean();
+                        byte itemCount = br.ReadByte();
+                        for (int k = 0; k < itemCount; k++)
+                        {
+                            uint shortID = br.ReadUInt32();
+                            byte seCount = br.ReadByte();
+                            for (int m = 0; m < seCount; m++)
+                            {
+                                string filePath = Encoding.UTF8.GetString(br.ReadBytes(br.ReadByte()));
+                                type.Add(shortID, filePath);
+                            }
+                        }
+                    }
+                    br.ReadByte();
+                }
+                br.Close();
+            }
+            if (File.Exists(Voice_Set.Special_Path + "/Configs/Save_Configs.dat"))
             {
                 try
                 {
-                    StreamReader str = Sub_Code.File_Decrypt_To_Stream(Voice_Set.Special_Path + "/Configs/Save_Configs.conf", "Save_Configs_Configs_Save");
-                    bool IsNewVersionMode = false;
-                    string One_Line = str.ReadLine();
-                    if (One_Line.Contains("V1.4_Save_Mode"))
-                    {
-                        IsNewVersionMode = true;
-                        Volume_Set_C.IsChecked = bool.Parse(str.ReadLine());
-                    }
-                    else
-                        Volume_Set_C.IsChecked = bool.Parse(One_Line);
-                    DVPL_C.IsChecked = bool.Parse(str.ReadLine());
-                    if (IsNewVersionMode)
-                        Default_Voice_Mode_C.IsChecked = bool.Parse(str.ReadLine());
-                    for (int Number = 0; Number <= 14; Number++)
-                    {
-                        Voice_Set.SE_Enable_Disable[Number] = bool.Parse(str.ReadLine());
-                        Change_SE_List(Number);
-                    }
-                    str.Close();
+                    BinaryReader br = new BinaryReader(File.OpenRead(Voice_Set.Special_Path + "/Configs/Save_Configs.dat"));
+                    br.ReadBytes(br.ReadByte());
+                    byte version = br.ReadByte();
+                    Volume_Set_C.IsChecked = br.ReadBoolean();
+                    DVPL_C.IsChecked = br.ReadBoolean();
+                    Default_Voice_Mode_C.IsChecked = br.ReadBoolean();
+                    nowPresetIndex = br.ReadInt16();
+                    br.Close();
                 }
                 catch (Exception e)
                 {
                     System.Windows.MessageBox.Show("設定を読み込めませんでした。\nエラー回避のため設定は削除されます。");
-                    File.Delete(Voice_Set.Special_Path + "/Configs/Save_Configs.conf");
+                    if (File.Exists(Voice_Set.Special_Path + "/Configs/Save_Configs.conf"))
+                        File.Delete(Voice_Set.Special_Path + "/Configs/Save_Configs.conf");
                     Sub_Code.Error_Log_Write(e.Message);
                 }
             }
+
+            if (loadedPresets.Count <= nowPresetIndex)
+            {
+                nowPresetIndex = 0;
+                Load_Combo.SelectedIndex = 0;
+            }
+            else
+            {
+                Load_Combo.SelectedIndex = nowPresetIndex + 1;
+            }
+            if (loadedPresets.Count > 0)
+            {
+                seSetting.sePreset = loadedPresets[nowPresetIndex].Clone();
+                UpdateTypeColor();
+            }
+            bLoaded = true;
+        }
+        private void Save_Presets()
+        {
             try
             {
-                if (File.Exists(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Version.dat"))
+                string saveFile = Voice_Set.Special_Path + "\\Configs\\SE_Presets.dat";
+                File.Delete(saveFile);
+                BinaryWriter bw = new BinaryWriter(File.OpenWrite(saveFile));
+                byte[] headerBuf = Encoding.UTF8.GetBytes("WVS-CONF");
+                bw.Write((byte)headerBuf.Length);
+                bw.Write(headerBuf);
+                bw.Write(VERSION_PRESET);
+                bw.Write((byte)loadedPresets.Count);
+                bw.Write((byte)0x0a);
+                foreach (SE_Preset preset in loadedPresets)
                 {
-                    StreamReader str = new StreamReader(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Version.dat");
-                    Wwise_Version = double.Parse(str.ReadLine());
-                    str.Close();
+                    byte[] name = Encoding.UTF8.GetBytes(preset.presetName);
+                    bw.Write((byte)name.Length);
+                    bw.Write(name);
+                    bw.Write(preset.presetID);
+                    bw.Write((byte)preset.types.Count);
+                    foreach (SE_Type type in preset.types)
+                    {
+                        bw.Write(type.bEnable);
+                        bw.Write((byte)type.items.Count);
+                        foreach (KeyValuePair<uint, List<string>> items in type.items)
+                        {
+                            bw.Write(items.Key);
+                            bw.Write((byte)items.Value.Count);
+                            foreach (string item in items.Value)
+                            {
+                                byte[] nameBuf = Encoding.UTF8.GetBytes(item);
+                                bw.Write((byte)nameBuf.Length);
+                                bw.Write(nameBuf);
+                            }
+                        }
+                    }
+                    bw.Write((byte)0x0a);
+                }
+                bw.Close();
+                Load_Combo.Items.Clear();
+                Load_Combo.Items.Add(seSetting.seDefault.presetName);
+                for (int i = 0; i < loadedPresets.Count; i++)
+                {
+                    Load_Combo.Items.Add(loadedPresets[i].presetName);
+                    Load_Combo.SelectedIndex = i + 1;
+                    nowPresetIndex = i + 1;
                 }
             }
-            catch (Exception e)
+            catch
             {
-                Sub_Code.Error_Log_Write(e.Message);
-                Message_Feed_Out("Wwiseプロジェクトのバージョンを取得できませんでした。");
+                Message_Feed_Out("プリセット保存中にエラーが発生しました。");
             }
         }
+
+        private void Update_List()
+        {
+            int selectedIndex = SE_Files.SelectedIndex;
+            SE_Files.Items.Clear();
+            if (SE_Lists.SelectedIndex == -1)
+            {
+                return;
+            }
+            SE_Type type = seSetting.sePreset.types[SE_Lists.SelectedIndex];
+            foreach (string file in type.items[0])
+            {
+                SE_Files.Items.Add(Path.GetFileName(file));
+            }
+            if (SE_Files.Items.Count > selectedIndex)
+            {
+                SE_Files.SelectedIndex = selectedIndex;
+            }
+        }
+
         private void SE_Lists_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (IsClosing || SE_Lists.SelectedIndex == -1)
+            if (bClosing || SE_Lists.SelectedIndex == -1)
                 return;
-            SE_Play_Index = 1;
             //選択したSEの状態によって色を変更
-            if (Voice_Set.SE_Enable_Disable[SE_Lists.SelectedIndex])
+            if (seSetting.sePreset.types[SE_Lists.SelectedIndex].bEnable)
             {
                 SE_Disable_B.Background = Brushes.Transparent;
                 SE_Disable_B.BorderBrush = Brushes.Aqua;
@@ -259,68 +508,47 @@ namespace WoTB_Voice_Mod_Creater.Class
                 SE_Enable_B.Background = Brushes.Transparent;
                 SE_Enable_B.BorderBrush = Brushes.Aqua;
             }
-            //選択したSEのファイルが何個あるか取得して表示
-            string SE_Count = SE_Change_Window.Preset_List[SE_Change_Window.Preset_Index][SE_Lists.SelectedIndex + 1];
-            Select_SE_File_Count = SE_Count.Split('|').Length;
-            SE_Play_Number_T.Text = "1/" + Select_SE_File_Count;
+            SE_Files.Items.Clear();
+            if (seSetting.sePreset.types[SE_Lists.SelectedIndex].items.Count > 0)
+                foreach (string file in seSetting.sePreset.types[SE_Lists.SelectedIndex].items[0])
+                    SE_Files.Items.Add(Path.GetFileName(file));
         }
         private void SE_Play_B_Click(object sender, RoutedEventArgs e)
         {
-            if (SE_Lists.SelectedIndex != -1)
-                //選択しているSEを再生
-                SE_Play();
+            if (SE_Lists.SelectedIndex != -1 && SE_Files.SelectedIndex != -1)
+            {
+                if (bClosing)
+                    return;
+                string filePath = seSetting.sePreset.types[SE_Lists.SelectedIndex].items[0][SE_Files.SelectedIndex];
+                if (!File.Exists(filePath))
+                {
+                    Message_Feed_Out("サウンドファイルが見つかりませんでした。");
+                    return;
+                }
+                Bass.BASS_ChannelStop(Stream);
+                Bass.BASS_StreamFree(Stream);
+                int StreamHandle = Bass.BASS_StreamCreateFile(filePath, 0, 0, BASSFlag.BASS_STREAM_DECODE);
+                Stream = BassFx.BASS_FX_TempoCreate(StreamHandle, BASSFlag.BASS_FX_FREESOURCE);
+                Bass.BASS_ChannelSetAttribute(Stream, BASSAttribute.BASS_ATTRIB_VOL, 1f);
+                Bass.BASS_ChannelSetDevice(Stream, Video_Mode.Sound_Device);
+                Bass.BASS_ChannelPlay(Stream, false);
+            }
         }
-        void SE_Play()
+        private void SE_Stop_B_Click(object sender, RoutedEventArgs e)
         {
-            //選択しているSEを再生
-            if (IsClosing)
-                return;
             Bass.BASS_ChannelStop(Stream);
             Bass.BASS_StreamFree(Stream);
-            string SE_Count = SE_Change_Window.Preset_List[SE_Change_Window.Preset_Index][SE_Lists.SelectedIndex + 1];
-            int StreamHandle = Bass.BASS_StreamCreateFile(SE_Count.Split('|')[SE_Play_Index - 1], 0, 0, BASSFlag.BASS_STREAM_DECODE);
-            Stream = BassFx.BASS_FX_TempoCreate(StreamHandle, BASSFlag.BASS_FX_FREESOURCE);
-            Bass.BASS_ChannelSetAttribute(Stream, BASSAttribute.BASS_ATTRIB_VOL, 1f);
-            Bass.BASS_ChannelSetDevice(Stream, Video_Mode.Sound_Device);
-            Bass.BASS_ChannelPlay(Stream, true);
-            if (SE_Play_Index < Select_SE_File_Count)
-            {
-                SE_Play_Index++;
-                SE_Play_Number_T.Text = SE_Play_Index + "/" + Select_SE_File_Count;
-            }
-            else if (Select_SE_File_Count != 1 && SE_Play_Index == Select_SE_File_Count)
-            {
-                SE_Play_Index = 1;
-                SE_Play_Number_T.Text = SE_Play_Index + "/" + Select_SE_File_Count;
-            }
-        }
-        //指定したファイル名のSEの数を取得
-        //引数:パスではなく拡張子を含まないファイル名
-        //戻り値:ファイル数
-        int SE_Get_File_Count(string FileName)
-        {
-            int File_Count = 1;
-            Select_SE_Name = FileName;
-            while (true)
-            {
-                if (File_Count < 10)
-                    if (!Sub_Code.File_Exists(SE_Dir + "/" + FileName + "_0" + File_Count))
-                        break;
-                else
-                    if (!Sub_Code.File_Exists(SE_Dir + "/" + FileName + "_" + File_Count))
-                        break;
-                File_Count++;
-            }
-            return File_Count - 1;
         }
         private async void Exit_B_Click(object sender, RoutedEventArgs e)
         {
             //閉じる
             if (Opacity >= 1)
             {
-                IsClosing = true;
+                bClosing = true;
                 Sub_Code.CreatingProject = false;
                 Sub_Code.DVPL_Encode = false;
+                Bass.BASS_ChannelStop(Stream);
+                Bass.BASS_StreamFree(Stream);
                 Configs_Save();
                 while (Opacity > 0)
                 {
@@ -329,10 +557,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 }
                 SE_Lists.SelectedIndex = -1;
                 Visibility = Visibility.Hidden;
-                Voice_Lists.Items.Clear();
-                Voice_Type.Clear();
-                Voice_Type_Number.Clear();
-                IsClosing = false;
+                bClosing = false;
             }
         }
         private void SE_Disable_B_Click(object sender, RoutedEventArgs e)
@@ -340,21 +565,16 @@ namespace WoTB_Voice_Mod_Creater.Class
             //選択しているSEを無効化
             if (SE_Lists.SelectedIndex != -1)
             {
-                if (Voice_Set.SE_Enable_Disable[SE_Lists.SelectedIndex])
+                if (seSetting.sePreset.types[SE_Lists.SelectedIndex].bEnable)
                 {
-                    if (Wwise_Version < 1.1)
-                    {
-                        Message_Feed_Out("この機能を有効にするには、Wwiseプロジェクトをアップデートする必要があります。");
-                        return;
-                    }
                     int Number = SE_Lists.SelectedIndex;
-                    Voice_Set.SE_Enable_Disable[SE_Lists.SelectedIndex] = false;
+                    seSetting.sePreset.types[SE_Lists.SelectedIndex].bEnable = false;
                     SE_Disable_B.Background = (Brush)bc.ConvertFrom("#59999999");
                     SE_Disable_B.BorderBrush = Brushes.Red;
                     SE_Enable_B.Background = Brushes.Transparent;
                     SE_Enable_B.BorderBrush = Brushes.Aqua;
-                    Change_SE_List(SE_Lists.SelectedIndex);
                     SE_Lists.SelectedIndex = Number;
+                    Change_SE_List(Number);
                 }
             }
         }
@@ -363,41 +583,29 @@ namespace WoTB_Voice_Mod_Creater.Class
             //選択しているSEを有効化
             if (SE_Lists.SelectedIndex != -1)
             {
-                if (!Voice_Set.SE_Enable_Disable[SE_Lists.SelectedIndex])
+                if (!seSetting.sePreset.types[SE_Lists.SelectedIndex].bEnable)
                 {
                     int Number = SE_Lists.SelectedIndex;
-                    Voice_Set.SE_Enable_Disable[SE_Lists.SelectedIndex] = true;
+                    seSetting.sePreset.types[SE_Lists.SelectedIndex].bEnable = true;
                     SE_Disable_B.Background = Brushes.Transparent;
                     SE_Disable_B.BorderBrush = Brushes.Aqua;
                     SE_Enable_B.Background = (Brush)bc.ConvertFrom("#59999999");
                     SE_Enable_B.BorderBrush = Brushes.Red;
-                    Change_SE_List(SE_Lists.SelectedIndex);
                     SE_Lists.SelectedIndex = Number;
+                    Change_SE_List(Number);
                 }
             }
         }
-        private void Voice_Lists_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            //選択している音声の種類が変更されたら音声の名前とファイル数を表示
-            if (Voice_Lists.SelectedIndex != -1)
-                Voice_Select_T.Text = "音声名:" + Voice_Type[Voice_Lists.SelectedIndex] + "|ファイル数:" + Voice_Type_Number[Voice_Lists.SelectedIndex] + "個";
-        }
-        private void Voice_Lists_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
-        {
-            //音声の選択を解除
-            Voice_Lists.SelectedIndex = -1;
-            Voice_Select_T.Text = "";
-        }
         private async void Save_B_Click(object sender, RoutedEventArgs e)
         {
-            if (!IsClosing && Opacity >= 1)
+            if (!bClosing && Opacity >= 1)
             {
                 //作成ボタンが押されたら別クラスに情報を送り画面を閉じる
-                IsClosing = true;
+                bClosing = true;
                 Sub_Code.CreatingProject = true;
                 Sub_Code.VolumeSet = Volume_Set_C.IsChecked.Value;
                 Sub_Code.DVPL_Encode = DVPL_C.IsChecked.Value;
-                Sub_Code.SetLanguage = Languages[Select_Language];
+                Sub_Code.SetLanguage = Languages[selectedLanguageIndex];
                 Sub_Code.Default_Voice = Default_Voice_Mode_C.IsChecked.Value;
                 Sub_Code.Only_Wwise_Project = Only_Wwise_C.IsChecked.Value;
                 Configs_Save();
@@ -406,51 +614,53 @@ namespace WoTB_Voice_Mod_Creater.Class
                     Opacity -= Sub_Code.Window_Feed_Time;
                     await Task.Delay(1000 / 60);
                 }
-                Voice_Lists.Items.Clear();
-                Voice_Select_T.Text = "";
-                Voice_Type.Clear();
-                Voice_Type_Number.Clear();
-                IsClosing = false;
+                bClosing = false;
                 Visibility = Visibility.Hidden;
             }
         }
         private void SE_Lists_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             //SEの選択を解除
-            SE_Play_Number_T.Text = "0/0";
             SE_Disable_B.Background = Brushes.Transparent;
             SE_Disable_B.BorderBrush = Brushes.Aqua;
             SE_Enable_B.Background = Brushes.Transparent;
             SE_Enable_B.BorderBrush = Brushes.Aqua;
             SE_Lists.SelectedIndex = -1;
+            SE_Stop_B_Click(null, null);
+            SE_Files.Items.Clear();
         }
         private void Language_Left_B_Click(object sender, RoutedEventArgs e)
         {
-            if (IsClosing || Select_Language <= 0)
+            if (bClosing || selectedLanguageIndex <= 0)
                 return;
-            Select_Language--;
-            Android_T.Text = "言語:" + Languages[Select_Language];
+            selectedLanguageIndex--;
+            Android_T.Text = "言語:" + Languages[selectedLanguageIndex];
         }
         private void Language_Right_B_Click(object sender, RoutedEventArgs e)
         {
-            if (IsClosing || Select_Language >= 17)
+            if (bClosing || selectedLanguageIndex >= 17)
                 return;
-            Select_Language++;
-            Android_T.Text = "言語:" + Languages[Select_Language];
+            selectedLanguageIndex++;
+            Android_T.Text = "言語:" + Languages[selectedLanguageIndex];
         }
         void Configs_Save()
         {
             try
             {
-                StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Configs/Save_Configs.tmp");
-                stw.WriteLine("V1.4_Save_Mode");
-                stw.WriteLine(Volume_Set_C.IsChecked.Value);
-                stw.WriteLine(DVPL_C.IsChecked.Value);
-                stw.WriteLine(Default_Voice_Mode_C.IsChecked.Value);
-                foreach (bool Value in Voice_Set.SE_Enable_Disable)
-                    stw.WriteLine(Value);
-                stw.Close();
-                Sub_Code.File_Encrypt(Voice_Set.Special_Path + "/Configs/Save_Configs.tmp", Voice_Set.Special_Path + "/Configs/Save_Configs.conf", "Save_Configs_Configs_Save", true);
+                if (File.Exists(Voice_Set.Special_Path + "/Configs/Save_Configs.conf"))
+                    File.Delete(Voice_Set.Special_Path + "/Configs/Save_Configs.conf");
+                BinaryWriter bw = new BinaryWriter(File.OpenWrite(Voice_Set.Special_Path + "/Configs/Save_Configs.conf"));
+                string header = "WVS-CONF";
+                byte[] headerBuf = Encoding.UTF8.GetBytes(header);
+                bw.Write((byte)headerBuf.Length);
+                bw.Write(headerBuf);
+                bw.Write((byte)VERSION_CONF);
+                bw.Write(Volume_Set_C.IsChecked.Value);
+                bw.Write(DVPL_C.IsChecked.Value);
+                bw.Write(Default_Voice_Mode_C.IsChecked.Value);
+                bw.Write((short)nowPresetIndex);
+                bw.Write((byte)SE_Setting.SE_COUNT);
+                bw.Close();
             }
             catch (Exception e)
             {
@@ -462,49 +672,28 @@ namespace WoTB_Voice_Mod_Creater.Class
             int SelectedIndex = SE_Lists.SelectedIndex;
             for (int Number = 0; Number < SE_Lists.Items.Count; Number++)
             {
-                Voice_Set.SE_Enable_Disable[Number] = true;
+                seSetting.sePreset.types[SE_Lists.SelectedIndex].bEnable = true;
                 SE_Disable_B.Background = Brushes.Transparent;
                 SE_Disable_B.BorderBrush = Brushes.Aqua;
                 SE_Enable_B.Background = (Brush)bc.ConvertFrom("#59999999");
                 SE_Enable_B.BorderBrush = Brushes.Red;
-                Change_SE_List(Number);
             }
             SE_Lists.SelectedIndex = SelectedIndex;
+            Change_SE_List(SelectedIndex);
         }
         private void SE_All_Disable_B_Click(object sender, RoutedEventArgs e)
         {
-            if (Wwise_Version < 1.1)
-            {
-                Message_Feed_Out("この機能を有効にするには、Wwiseプロジェクトをアップデートする必要があります。");
-                return;
-            }
             int SelectedIndex = SE_Lists.SelectedIndex;
             for (int Number = 0; Number < SE_Lists.Items.Count; Number++)
             {
-                Voice_Set.SE_Enable_Disable[Number] = false;
+                seSetting.sePreset.types[SE_Lists.SelectedIndex].bEnable = false;
                 SE_Disable_B.Background = (Brush)bc.ConvertFrom("#59999999");
                 SE_Disable_B.BorderBrush = Brushes.Red;
                 SE_Enable_B.Background = Brushes.Transparent;
                 SE_Enable_B.BorderBrush = Brushes.Aqua;
-                Change_SE_List(Number);
             }
             SE_Lists.SelectedIndex = SelectedIndex;
-        }
-        private void Default_Voice_Mode_C_Click(object sender, RoutedEventArgs e)
-        {
-
-        }
-        private void SE_Change_B_Click(object sender, RoutedEventArgs e)
-        {
-            if (IsClosing)
-                return;
-            SE_Change_Window.Window_Show();
-            SE_Play_Number_T.Text = "0/0";
-            SE_Disable_B.Background = Brushes.Transparent;
-            SE_Disable_B.BorderBrush = Brushes.Aqua;
-            SE_Enable_B.Background = Brushes.Transparent;
-            SE_Enable_B.BorderBrush = Brushes.Aqua;
-            SE_Lists.SelectedIndex = -1;
+            Change_SE_List(SelectedIndex);
         }
         private void Only_Wwise_C_Click(object sender, RoutedEventArgs e)
         {
@@ -515,6 +704,219 @@ namespace WoTB_Voice_Mod_Creater.Class
                 if (result == MessageBoxResult.No)
                     Only_Wwise_C.IsChecked = false;
             }
+        }
+        private void UserControl_Loaded(object sender, RoutedEventArgs e)
+        {
+            seSetting = new SE_Setting();
+        }
+        private void Remove_Preset_B_Click(object sender, RoutedEventArgs e)
+        {
+            if (Load_Combo.SelectedIndex <= 0)
+            {
+                Message_Feed_Out("標準プリセットは削除できません。");
+                return;
+            }
+            string removePresetName = loadedPresets[Load_Combo.SelectedIndex - 1].presetName;
+            MessageBoxResult result = MessageBox.Show(removePresetName + "を削除しますか?\nこの操作は取り消せません。続行しますか?",
+                "確認", MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.No);
+            if (result == MessageBoxResult.Yes)
+            {
+                loadedPresets.RemoveAt(Load_Combo.SelectedIndex - 1);
+                seSetting.SetDefault(seSetting.sePreset);
+                Load_Combo.Items.RemoveAt(Load_Combo.SelectedIndex);
+                Update_List();
+                Save_Presets();
+                Configs_Save();
+                nowPresetIndex = 0;
+                Load_Combo.SelectedIndex = 0;
+                Message_Feed_Out("'" + removePresetName + "'を削除し、標準をロードしました。");
+            }
+        }
+        private void Load_Preset_B_Click(object sender, RoutedEventArgs e)
+        {
+            SE_Preset sePreset = Load_Combo.SelectedIndex == 0 ? seSetting.seDefault : loadedPresets[Load_Combo.SelectedIndex - 1];
+            MessageBoxResult result = MessageBox.Show(sePreset.presetName + "を読み込みますか?\n保存していないデータは破棄されます。",
+                "確認", MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.No);
+            if (result == MessageBoxResult.Yes)
+            {
+                if (sePreset.presetID == seSetting.seDefault.presetID)
+                    seSetting.SetDefault(seSetting.sePreset);
+                else
+                    seSetting.sePreset = sePreset.Clone();
+                Message_Feed_Out("'" + seSetting.sePreset.presetName + "'をロードしました。");
+                UpdateTypeColor();
+                Update_List();
+                Configs_Save();
+            }
+        }
+        private void Save_Preset_B_Click(object sender, RoutedEventArgs e)
+        {
+            if (String.IsNullOrEmpty(Preset_Name_T.Text))
+            {
+                Message_Feed_Out("プリセット名が入力されていません。");
+                return;
+            }
+            uint shortID = WwiseHash.HashString(Preset_Name_T.Text);
+            if (seSetting.seDefault.presetID == shortID)
+            {
+                Message_Feed_Out("標準プリセットは編集できません。");
+                return;
+            }
+
+            bool bExist = false;
+            foreach (SE_Preset loadedPreset in loadedPresets)
+            {
+                if (loadedPreset.presetName == Preset_Name_T.Text)
+                {
+                    MessageBoxResult result = MessageBox.Show("同名のプリセットが存在します。上書きしますか?", "確認", MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.Yes);
+                    if (result == MessageBoxResult.Yes)
+                    {
+                        loadedPreset.types.Clear();
+                        foreach (SE_Type type in seSetting.sePreset.types)
+                            loadedPreset.types.Add(type.Clone());
+                        bExist = true;
+                        break;
+                    }
+                    else
+                        return;
+                }
+            }
+            if (!bExist)
+            {
+                seSetting.sePreset.presetName = Preset_Name_T.Text;
+                seSetting.sePreset.presetID = WwiseHash.HashString(Preset_Name_T.Text);
+                SE_Preset preset = seSetting.sePreset.Clone();
+                loadedPresets.Add(preset);
+            }
+
+            Save_Presets();
+
+            MessageBox.Show("プリセットを保存しました。");
+        }
+        private void SE_Add_B_Click(object sender, RoutedEventArgs e)
+        {
+            if (SE_Lists.SelectedIndex == -1)
+            {
+                Message_Feed_Out("SEイベントが選択されていません。");
+                return;
+            }
+            System.Windows.Forms.OpenFileDialog ofd = new System.Windows.Forms.OpenFileDialog()
+            {
+                Title = "サウンドファイルを選択してください。",
+                Multiselect = true,
+                Filter = "サウンドファイル(*.aac;*.flac;*.m4a;*.mp3;*.mp4;*.ogg;*.wav;*.wma)|*.aac;*.flac;*.m4a;*.mp3;*.mp4;*.ogg;*.wav;*.wma"
+            };
+            if (ofd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                int count = 0;
+                foreach (string selectFile in ofd.FileNames)
+                {
+                    bool bEnable = true;
+                    foreach (KeyValuePair<uint, List<string>> already in seSetting.sePreset.types[SE_Lists.SelectedIndex].items)
+                    {
+                        foreach (string item in already.Value)
+                        {
+                            if (item == selectFile)
+                            {
+                                bEnable = false;
+                                break;
+                            }
+                        }
+                        if (!bEnable)
+                            break;
+                    }
+                    if (!bEnable)
+                        continue;
+                    seSetting.sePreset.types[SE_Lists.SelectedIndex].Add(0, selectFile);
+                    count++;
+                }
+                if (count == 0)
+                    Message_Feed_Out("選択したファイルは既に追加されています。");
+                else
+                    Message_Feed_Out(count + "個のファイルを追加しました。");
+                Update_List();
+            }
+        }
+        private void SE_Delete_B_Click(object sender, RoutedEventArgs e)
+        {
+            if (SE_Lists.SelectedIndex == -1 || SE_Files.SelectedIndex == -1)
+            {
+                Message_Feed_Out("削除するサウンドファイルを選択してください。");
+                return;
+            }
+            try
+            {
+                seSetting.sePreset.types[SE_Lists.SelectedIndex].items[0].RemoveAt(SE_Files.SelectedIndex);
+                Update_List();
+            }
+            catch (Exception e1)
+            {
+                Message_Feed_Out("エラーが発生しました。");
+                Sub_Code.Error_Log_Write(e1.Message);
+            }
+        }
+
+        private void SE_File_Help_B_Click(object sender, RoutedEventArgs e)
+        {
+            Message_Feed_Out("ここに追加したサウンドがランダムで再生されます。");
+        }
+
+        private async void Change_Volume_B_Click(object sender, RoutedEventArgs e)
+        {
+            if (bClosing)
+                return;
+
+            Message_T.Text = "音量を変更しています...";
+            Message_T.Opacity = 1.0;
+            await Task.Delay(50);
+
+            List<string> voiceFile = new List<string>();
+            foreach (Voice_Event_Setting setting in settings)
+                foreach (Voice_Sound_Setting soundSetting in setting.Sounds)
+                    voiceFile.Add(soundSetting.File_Path);
+            if (voiceFile.Count == 0)
+            {
+                Message_Feed_Out("1ページ目に音声ファイルが存在しないためテストできません。");
+                return;
+            }
+            string testFile = voiceFile[Sub_Code.r.Next(voiceFile.Count)];
+
+            if (!File.Exists(testFile))
+            {
+                Message_Feed_Out("ファイル:" + Path.GetFileName(testFile) + "が存在しません。");
+                return;
+            }
+
+            voiceFile.Clear();
+
+            string toFile = Path.GetTempPath() + "WVS_Temp_02.tmp";
+
+            Bass.BASS_ChannelStop(Stream);
+            Bass.BASS_StreamFree(Stream);
+
+            if (Sub_Code.Audio_IsWAV(testFile))
+                File.Copy(testFile, toFile, true);
+            else if (!Sub_Code.Audio_Encode_To_Other(testFile, toFile, "wav", false))
+            {
+                Message_Feed_Out(".wavへ変換できませんでした。");
+                return;
+            }
+
+            Sub_Code.Set_WAV_Gain(toFile, Change_Volume_S.Value - 89.0);
+
+            int StreamHandle = Bass.BASS_StreamCreateFile(toFile, 0, 0, BASSFlag.BASS_STREAM_DECODE);
+            Stream = BassFx.BASS_FX_TempoCreate(StreamHandle, BASSFlag.BASS_FX_FREESOURCE);
+            Bass.BASS_ChannelSetAttribute(Stream, BASSAttribute.BASS_ATTRIB_VOL, 1f);
+            Bass.BASS_ChannelSetDevice(Stream, Video_Mode.Sound_Device);
+            Bass.BASS_ChannelPlay(Stream, false);
+
+            Message_T.Text = "";
+        }
+
+        private void Change_Volume_S_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            double Value = Math.Round(Change_Volume_S.Value, 1, MidpointRounding.AwayFromZero);
+            Change_Volume_T.Text = "音量:" + Value + "db";
         }
     }
 }

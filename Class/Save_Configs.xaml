@@ -3,41 +3,106 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:local="clr-namespace:WoTB_Voice_Mod_Creater.Class"
              mc:Ignorable="d"
-             d:DesignHeight="1080" d:DesignWidth="1920">
+             d:DesignHeight="1080" d:DesignWidth="1920" Loaded="UserControl_Loaded">
+    <UserControl.Resources>
+        <Style x:Key="SliderThumbStyle" TargetType="{x:Type Thumb}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Thumb}">
+                        <Ellipse Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Slider}, Mode=FindAncestor}}" Width="25" Height="25"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="CustomSliderStyle" TargetType="{x:Type Slider}">
+            <Style.Triggers>
+                <Trigger Property="Orientation" Value="Horizontal">
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate>
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="25"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <TickBar Grid.Row="0" x:Name="TopTick" Placement="Top" Visibility="Collapsed" Fill="{TemplateBinding Foreground}" Height="8" Opacity="0.64" Margin="0,0,0,2"/>
+                                    <TickBar Grid.Row="2" x:Name="BottomTick" Placement="Bottom" Visibility="Collapsed" Fill="{TemplateBinding Foreground}" Height="8" Opacity="0.64" Margin="0,2,0,0"/>
+                                    <Track Grid.Row="1" x:Name="PART_Track">
+                                        <Track.DecreaseRepeatButton>
+                                            <RepeatButton Command="Slider.DecreaseLarge" Background="Aqua" Height="5" BorderBrush="{x:Null}" Opacity="0.8"/>
+                                        </Track.DecreaseRepeatButton>
+                                        <Track.IncreaseRepeatButton>
+                                            <RepeatButton Command="Slider.IncreaseLarge" Background="Gray" Height="5" BorderBrush="{x:Null}" Opacity="0.5"/>
+                                        </Track.IncreaseRepeatButton>
+                                        <Track.Thumb>
+                                            <Thumb Style="{StaticResource SliderThumbStyle}"/>
+                                        </Track.Thumb>
+                                    </Track>
+                                </Grid>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="Slider.TickPlacement" Value="TopLeft">
+                                        <Setter TargetName="TopTick" Property="Visibility" Value="Visible"/>
+                                    </Trigger>
+                                    <Trigger Property="Slider.TickPlacement" Value="BottomRight">
+                                        <Setter TargetName="BottomTick" Property="Visibility" Value="Visible"/>
+                                    </Trigger>
+                                    <Trigger Property="Slider.TickPlacement" Value="Both">
+                                        <Setter TargetName="TopTick" Property="Visibility" Value="Visible"/>
+                                        <Setter TargetName="BottomTick" Property="Visibility" Value="Visible"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Resources>
     <Viewbox>
         <DockPanel Width="1920" Height="1080">
             <Border BorderBrush="Black" Background="Black" BorderThickness="1" Height="1080" VerticalAlignment="Top" Width="1920" Opacity="0.9"/>
             <Border BorderBrush="Black" Background="Khaki" BorderThickness="1" Height="968" VerticalAlignment="Top" Width="1700" Margin="-1920,0,0,0" Opacity="0.6"/>
             <TextBlock x:Name="Project_T" Height="47" Width="900" FontSize="35" Foreground="Aqua" TextWrapping="Wrap" Text="プロジェクト名:" Margin="-1920,27,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
             <TextBlock Height="50" Width="125" FontSize="40" Foreground="Aqua" TextWrapping="Wrap" Text="SE設定" Margin="-2900,75,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
+            <TextBlock Height="50" Width="125" FontSize="40" Foreground="Aqua" TextWrapping="Wrap" Text="SE音源" Margin="-1500,75,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
+            <TextBlock Height="50" Width="125" FontSize="40" Foreground="Aqua" TextWrapping="Wrap" Text="→" Margin="-2200,350,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
+            <TextBlock Height="50" Width="250" FontSize="35" Foreground="Aqua" TextWrapping="Wrap" Text="プリセットを選択" Margin="-560,150,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
+            <TextBlock Height="50" Width="250" FontSize="35" Foreground="Aqua" TextWrapping="Wrap" Text="プリセットを保存" Margin="-560,380,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
             <ListBox x:Name="SE_Lists" Height="500" VerticalAlignment="Top" Width="600" BorderBrush="Aqua" Background="Transparent" Margin="-2900,150,0,0" Foreground="Aqua" FontSize="35" Focusable="False" SelectionChanged="SE_Lists_SelectionChanged" MouseDown="SE_Lists_MouseDown"/>
+            <ListBox x:Name="SE_Files" Height="440" VerticalAlignment="Top" Width="600" BorderBrush="Aqua" Background="Transparent" Margin="-1500,150,0,0" Foreground="Aqua" FontSize="35" Focusable="False"/>
+            <Button x:Name="SE_File_Help_B" Content="?" Height="60" VerticalAlignment="Top" Width="60" Margin="-1275,70,0,0" FontSize="30" BorderBrush="Aqua" Foreground="Aqua" Background="Transparent" Focusable="False" Click="SE_File_Help_B_Click"/>
             <Button x:Name="SE_Disable_B" Content="無効化" Height="65" VerticalAlignment="Top" Width="296" Margin="-3200,655,0,0" FontSize="40" BorderBrush="Aqua" Foreground="Aqua" Background="Transparent" Focusable="False" Click="SE_Disable_B_Click"/>
             <Button x:Name="SE_Enable_B" Content="有効化" Height="65" VerticalAlignment="Top" Width="296" Margin="-2600,655,0,0" FontSize="40" BorderBrush="Aqua" Foreground="Aqua" Background="Transparent" Focusable="False" Click="SE_Enable_B_Click"/>
             <Button x:Name="SE_All_Disable_B" Content="すべて無効化" Height="55" VerticalAlignment="Top" Width="200" Margin="-3300,75,0,0" FontSize="33" BorderBrush="Aqua" Foreground="Aqua" Background="Transparent" Focusable="False" Click="SE_All_Disable_B_Click"/>
             <Button x:Name="SE_All_Enable_B" Content="すべて有効化" Height="55" VerticalAlignment="Top" Width="200" Margin="-2500,75,0,0" FontSize="33" BorderBrush="Aqua" Foreground="Aqua" Background="Transparent" Focusable="False" Click="SE_All_Enable_B_Click"/>
-            <Button x:Name="SE_Play_B" Content="再生" Height="65" VerticalAlignment="Top" Width="296" Margin="-3200,725,0,0" FontSize="40" BorderBrush="Aqua" Foreground="Aqua" Background="Transparent" Focusable="False" Click="SE_Play_B_Click"/>
-            <TextBlock x:Name="SE_Play_Number_T" Height="58" Width="168" FontSize="40" Foreground="Aqua" TextWrapping="Wrap" Text="0/0" Margin="-2700,730,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
+            <Button x:Name="SE_Delete_B" Content="削除" Height="60" VerticalAlignment="Top" Width="200" Margin="-1710,600,0,0" FontSize="40" BorderBrush="Aqua" Foreground="Aqua" Background="Transparent" Focusable="False" Click="SE_Delete_B_Click"/>
+            <Button x:Name="SE_Add_B" Content="追加" Height="60" VerticalAlignment="Top" Width="200" Margin="-1290,600,0,0" FontSize="40" BorderBrush="Aqua" Foreground="Aqua" Background="Transparent" Focusable="False" Click="SE_Add_B_Click"/>
+            <Button x:Name="SE_Play_B" Content="再生" Height="60" VerticalAlignment="Top" Width="200" Margin="-1290,670,0,0" FontSize="40" BorderBrush="Aqua" Foreground="Aqua" Background="Transparent" Focusable="False" Click="SE_Play_B_Click"/>
+            <Button x:Name="SE_Stop_B" Content="停止" Height="60" VerticalAlignment="Top" Width="200" Margin="-1710,670,0,0" FontSize="40" BorderBrush="Aqua" Foreground="Aqua" Background="Transparent" Focusable="False" Click="SE_Stop_B_Click"/>
             <Button x:Name="Exit_B" Content="キャンセル" Height="77" VerticalAlignment="Top" Width="296" Margin="-3320,888,0,0" FontSize="40" BorderBrush="Aqua" Foreground="Aqua" Background="Transparent" Focusable="False" Click="Exit_B_Click"/>
-            <TextBlock Height="50" Width="175" FontSize="40" Foreground="Aqua" TextWrapping="Wrap" Text="音声リスト" Margin="-1100,75,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
-            <ListBox x:Name="Voice_Lists" Height="500" VerticalAlignment="Top" Width="600" BorderBrush="Aqua" Background="Transparent" Margin="-1100,150,0,0" Foreground="Aqua" FontSize="35" Focusable="False" SelectionChanged="Voice_Lists_SelectionChanged" MouseDown="Voice_Lists_MouseDown"/>
-            <TextBlock x:Name="Voice_Select_T" Height="58" Width="860" FontSize="40" Foreground="Aqua" TextWrapping="Wrap" Text="" Margin="-1100,675,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
             <Button x:Name="Save_B" Content="作成" Height="77" VerticalAlignment="Top" Width="296" Margin="-520,888,0,0" FontSize="40" BorderBrush="Aqua" Foreground="Aqua" Background="Transparent" Focusable="False" Click="Save_B_Click"/>
-            <CheckBox x:Name="Default_Voice_Mode_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-1250,775,0,0" Focusable="False" Click="Default_Voice_Mode_C_Click"/>
+            <Button x:Name="Remove_Preset_B" Content="プリセット削除" Height="60" VerticalAlignment="Top" Width="250" Margin="-560,50,0,0" FontSize="35" BorderBrush="Red" Foreground="Aqua" Background="Transparent" Focusable="False" Click="Remove_Preset_B_Click"/>
+            <Button x:Name="Load_Preset_B" Content="読み込み" Height="60" VerticalAlignment="Top" Width="250" Margin="-560,280,0,0" FontSize="40" BorderBrush="Aqua" Foreground="Aqua" Background="Transparent" Focusable="False" Click="Load_Preset_B_Click"/>
+            <Button x:Name="Save_Preset_B" Content="保存" Height="60" VerticalAlignment="Top" Width="250" Margin="-560,520,0,0" FontSize="40" BorderBrush="Aqua" Foreground="Aqua" Background="Transparent" Focusable="False" Click="Save_Preset_B_Click"/>
+            <CheckBox x:Name="Default_Voice_Mode_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-1250,775,0,0" Focusable="False"/>
             <TextBlock x:Name="Default_Voice_Mode_T" Height="45" Width="470" FontSize="27" Foreground="Aqua" TextWrapping="Wrap" Text="音声がない項目は標準の音声を再生させる" Margin="-745,760,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
             <CheckBox x:Name="Only_Wwise_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-1250,825,0,0" Focusable="False" Click="Only_Wwise_C_Click"/>
             <TextBlock Height="45" Width="340" FontSize="27" Foreground="Aqua" TextWrapping="Wrap" Text="Wwiseプロジェクトのみ生成する" Margin="-865,810,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
-            <CheckBox x:Name="Volume_Set_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Focusable="False" Margin="-2050,775,0,0"/>
-            <TextBlock x:Name="Volume_Set_T" Height="58" Width="285" FontSize="40" Foreground="Aqua" TextWrapping="Wrap" Text="音量を均一にする" Margin="-1700,755,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
-            <CheckBox x:Name="DVPL_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-2050,845,0,0" Focusable="False"/>
-            <TextBlock x:Name="DVPL_T" Height="58" Width="135" FontSize="40" Foreground="Aqua" TextWrapping="Wrap" Text="DVPL化" Margin="-1840,825,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
-            <TextBlock x:Name="Android_T" Height="58" Width="190" FontSize="40" Foreground="Aqua" TextWrapping="Wrap" Text="Android用" Margin="-1790,895,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
-            <Button x:Name="Language_Left_B" Content="←" Height="60" VerticalAlignment="Top" Width="60" Margin="-2050,892,0,0" FontSize="40" BorderBrush="Aqua" Foreground="Aqua" Background="Transparent" Focusable="False" Click="Language_Left_B_Click"/>
-            <Button x:Name="Language_Right_B" Content="→" Height="60" VerticalAlignment="Top" Width="60" Margin="-1525,892,0,0" FontSize="40" BorderBrush="Aqua" Foreground="Aqua" Background="Transparent" Focusable="False" Click="Language_Right_B_Click"/>
-            <TextBlock x:Name="Message_T" Height="92" Width="600" Foreground="Aqua" FontSize="35" Margin="-2920,788,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" TextAlignment="Center"/>
-            <Button x:Name="SE_Change_B" Content="プリセットを選択" Height="60" VerticalAlignment="Top" Width="250" Margin="-2000,375,0,0" FontSize="33" BorderBrush="Red" Foreground="Aqua" Background="Transparent" Focusable="False" Click="SE_Change_B_Click"/>
-            <local:SE_Change x:Name="SE_Change_Window" Width="1920" Height="1080" Margin="-1920,0,0,0" Visibility="Hidden"/>
+            <CheckBox x:Name="DVPL_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-2050,775,0,0" Focusable="False"/>
+            <TextBlock x:Name="DVPL_T" Height="58" Width="135" FontSize="40" Foreground="Aqua" TextWrapping="Wrap" Text="DVPL化" Margin="-1840,755,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
+            <TextBlock x:Name="Android_T" Height="58" Width="190" FontSize="40" Foreground="Aqua" TextWrapping="Wrap" Text="Android用" Margin="-1790,825,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
+            <Button x:Name="Language_Left_B" Content="←" Height="60" VerticalAlignment="Top" Width="60" Margin="-2050,822,0,0" FontSize="40" BorderBrush="Aqua" Foreground="Aqua" Background="Transparent" Focusable="False" Click="Language_Left_B_Click"/>
+            <Button x:Name="Language_Right_B" Content="→" Height="60" VerticalAlignment="Top" Width="60" Margin="-1525,822,0,0" FontSize="40" BorderBrush="Aqua" Foreground="Aqua" Background="Transparent" Focusable="False" Click="Language_Right_B_Click"/>
+            <CheckBox x:Name="Volume_Set_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Focusable="False" Margin="-2050,920,0,0"/>
+            <TextBlock x:Name="Volume_Set_T" Height="58" Width="285" FontSize="40" Foreground="Aqua" TextWrapping="Wrap" Text="音量を均一にする" Margin="-1700,900,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
+            <TextBlock x:Name="Change_Volume_T" FontSize="33" Height="45" Width="250" TextWrapping="Wrap" Text="音量:14" VerticalAlignment="Top" Margin="-2650,860,0,0" Foreground="Aqua" TextAlignment="Center"/>
+            <Slider x:Name="Change_Volume_S" Height="27" VerticalAlignment="Top" Width="250" Margin="-2650,920,0,0" Style="{StaticResource CustomSliderStyle}" Value="89" SmallChange="1" LargeChange="1" Minimum="69" Maximum="103" ValueChanged="Change_Volume_S_ValueChanged"/>
+            <Button x:Name="Change_Volume_B" Content="音量テスト" Height="50" VerticalAlignment="Top" Width="125" Margin="-2250,905,0,0" FontSize="25" BorderBrush="Aqua" Foreground="Aqua" Background="Transparent" Focusable="False" Click="Change_Volume_B_Click"/>
+            <TextBlock x:Name="Message_T" Height="92" Width="600" Foreground="Aqua" FontSize="35" Margin="-2920,730,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" TextAlignment="Center"/>
+            <ComboBox x:Name="Load_Combo" Height="50" VerticalAlignment="Top" Width="325" Margin="-560,215,0,0" FontSize="32"/>
+            <TextBox x:Name="Preset_Name_T" TextWrapping="Wrap" Text="" Width="300" Height="50" FontSize="35" VerticalAlignment="Top" Margin="-560,450,0,0"/>
         </DockPanel>
     </Viewbox>
 </UserControl>

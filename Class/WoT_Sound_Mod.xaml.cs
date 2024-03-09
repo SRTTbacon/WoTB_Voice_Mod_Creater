@@ -1199,7 +1199,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 Message_T.Text = "音量を調整しています...";
                 await Task.Delay(50);
-                Wwise.Set_Volume();
+                Wwise.Set_Volume(10);
             }
             Wwise.Save();
             if (Sub_Code.Only_Wwise_Project)

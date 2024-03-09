@@ -1,5 +1,4 @@
-﻿using FMOD_API;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -12,7 +11,7 @@ using System.Windows.Media.Imaging;
 using System.Linq;
 using Un4seen.Bass;
 using Un4seen.Bass.AddOn.Fx;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+using static Cauldron.Mathematics.CoordinateSystem;
 
 public class Video_Mode
 {
@@ -72,16 +71,16 @@ namespace WoTB_Voice_Mod_Creater.Class
         System.Windows.Media.Imaging.BitmapImage Wave_Color_Image_Source = null;
         Un4seen.Bass.Misc.WaveForm WF_Gray = null;
         Un4seen.Bass.Misc.WaveForm WF_Color = null;
-        BASS_BFX_BQF LPF_Setting = new BASS_BFX_BQF(BASSBFXBQF.BASS_BFX_BQF_LOWPASS, 500f, 0f, 0.707f, 0f, 0f, BASSFXChan.BASS_BFX_CHANALL);
-        BASS_BFX_BQF HPF_Setting = new BASS_BFX_BQF(BASSBFXBQF.BASS_BFX_BQF_HIGHPASS, 1000f, 0f, 0.707f, 0f, 0f, BASSFXChan.BASS_BFX_CHANALL);
-        BASS_BFX_ECHO4 ECHO_Setting = new BASS_BFX_ECHO4(0, 0, 0, 0, true, BASSFXChan.BASS_BFX_CHANALL);
+        readonly BASS_BFX_BQF LPF_Setting = new BASS_BFX_BQF(BASSBFXBQF.BASS_BFX_BQF_LOWPASS, 500f, 0f, 0.707f, 0f, 0f, BASSFXChan.BASS_BFX_CHANALL);
+        readonly BASS_BFX_BQF HPF_Setting = new BASS_BFX_BQF(BASSBFXBQF.BASS_BFX_BQF_HIGHPASS, 1000f, 0f, 0.707f, 0f, 0f, BASSFXChan.BASS_BFX_CHANALL);
+        readonly BASS_BFX_ECHO4 ECHO_Setting = new BASS_BFX_ECHO4(0, 0, 0, 0, true, BASSFXChan.BASS_BFX_CHANALL);
         int Stream;
         int Stream_LPF = 0;
         int Stream_HPF = 0;
         int Stream_ECHO = 0;
-        int SetFirstDevice = -1;
-        int WAVEForm_Image_Width = 0;
-        int WAVEForm_Image_Height = 0;
+        readonly int SetFirstDevice = -1;
+        readonly int WAVEForm_Image_Width = 0;
+        readonly int WAVEForm_Image_Height = 0;
         int Thumbnail_Index_Now = -1;
         int Fade_Count = 0;
         int Music_Rename_Index = -1;
@@ -93,7 +92,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         double Start_Time = -1;
         double End_Time = -1;
         SYNCPROC IsMusicEnd;
-        BASS_DEVICEINFO info = new BASS_DEVICEINFO();
+        readonly BASS_DEVICEINFO info = new BASS_DEVICEINFO();
         public Music_Player()
         {
             InitializeComponent();
@@ -180,7 +179,11 @@ namespace WoTB_Voice_Mod_Creater.Class
             System.Windows.Controls.MenuItem item1 = new System.Windows.Controls.MenuItem();
             item1.Header = "名前を変更";
             item1.Click += Music_Rename_Click;
+            System.Windows.Controls.MenuItem item2 = new System.Windows.Controls.MenuItem();
+            item2.Header = "保存先のフォルダを開く";
+            item2.Click += Music_Open_Click;
             pMenu.Items.Add(item1);
+            pMenu.Items.Add(item2);
         }
         private void UserControl_Loaded(object sender, RoutedEventArgs e)
         {
@@ -420,8 +423,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                             Music_Player_Setting_Window.IsECHOChanged = false;
                         }
                     }
-                    if (Sub_Code.IsForcusWindow && Youtube_Link_Window.Visibility == Visibility.Hidden && Vocal_Inst_Cut_User_Window.Visibility == Visibility.Hidden &&
-                        Rename_Canvas.Visibility == Visibility.Hidden)
+                    if (Sub_Code.IsForcusWindow && Youtube_Link_Window.Visibility == Visibility.Hidden && Rename_Canvas.Visibility == Visibility.Hidden)
                     {
                         bool IsLeft_or_RightPushed = false;
                         if ((Keyboard.GetKeyStates(Key.LeftCtrl) & KeyStates.Down) > 0)
@@ -937,7 +939,11 @@ namespace WoTB_Voice_Mod_Creater.Class
                     Thumbnail_Index_Now = 0;
                 }
                 Bass.BASS_SetConfig(BASSConfig.BASS_CONFIG_BUFFER, 100);
-                int StreamHandle = Bass.BASS_StreamCreateFile(Playing_Music_Name_Now, 0, 0, BASSFlag.BASS_SAMPLE_FLOAT | BASSFlag.BASS_STREAM_DECODE | BASSFlag.BASS_SAMPLE_LOOP);
+                int StreamHandle;
+                if (Path.GetExtension(Playing_Music_Name_Now) == ".flac")
+                    StreamHandle = Un4seen.Bass.AddOn.Flac.BassFlac.BASS_FLAC_StreamCreateFile(Playing_Music_Name_Now, 0, 0, BASSFlag.BASS_SAMPLE_FLOAT | BASSFlag.BASS_STREAM_DECODE | BASSFlag.BASS_SAMPLE_LOOP);
+                else
+                    StreamHandle = Bass.BASS_StreamCreateFile(Playing_Music_Name_Now, 0, 0, BASSFlag.BASS_SAMPLE_FLOAT | BASSFlag.BASS_STREAM_DECODE | BASSFlag.BASS_SAMPLE_LOOP);
                 Stream = BassFx.BASS_FX_TempoCreate(StreamHandle, BASSFlag.BASS_FX_FREESOURCE);
                 Bass.BASS_SetConfig(BASSConfig.BASS_CONFIG_BUFFER, 500);
                 IsMusicEnd = new SYNCPROC(EndSync);
@@ -1252,7 +1258,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         {
             if (IsBusy)
                 return;
-            Pause_Volume_Animation(false);
+            Pause_Volume_Animation(false, 10);
         }
         async void Play_Volume_Animation(float Feed_Time = 30f)
         {
@@ -1411,7 +1417,6 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Device_L.Visibility = Visibility.Hidden;
                 Youtube_Link_B.Visibility = Visibility.Hidden;
                 Setting_B.Visibility = Visibility.Hidden;
-                Music_Vocal_Inst_Cut_B.Visibility = Visibility.Hidden;
                 Loop_Time_T.Visibility = Visibility.Hidden;
                 Ex_Sort_C.Visibility = Visibility.Hidden;
                 Ex_Sort_T.Visibility = Visibility.Hidden;
@@ -1462,7 +1467,6 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Device_L.Visibility = Visibility.Visible;
                 Youtube_Link_B.Visibility = Visibility.Visible;
                 Setting_B.Visibility = Visibility.Visible;
-                Music_Vocal_Inst_Cut_B.Visibility = Visibility.Visible;
                 Loop_Time_T.Visibility = Visibility.Visible;
                 Ex_Sort_C.Visibility = Visibility.Visible;
                 Ex_Sort_T.Visibility = Visibility.Visible;
@@ -2044,46 +2048,49 @@ namespace WoTB_Voice_Mod_Creater.Class
                 }
             }
             //Shift+1～9でリストを変更できるように
-            if ((System.Windows.Forms.Control.ModifierKeys & Keys.Shift) == Keys.Shift && e.Key == Key.D1)
-                Music_List_Change(0);
-            else if ((System.Windows.Forms.Control.ModifierKeys & Keys.Shift) == Keys.Shift && e.Key == Key.D2)
-                Music_List_Change(1);
-            else if ((System.Windows.Forms.Control.ModifierKeys & Keys.Shift) == Keys.Shift && e.Key == Key.D3)
-                Music_List_Change(2);
-            else if ((System.Windows.Forms.Control.ModifierKeys & Keys.Shift) == Keys.Shift && e.Key == Key.D4)
-                Music_List_Change(3);
-            else if ((System.Windows.Forms.Control.ModifierKeys & Keys.Shift) == Keys.Shift && e.Key == Key.D5)
-                Music_List_Change(4);
-            else if ((System.Windows.Forms.Control.ModifierKeys & Keys.Shift) == Keys.Shift && e.Key == Key.D6)
-                Music_List_Change(5);
-            else if ((System.Windows.Forms.Control.ModifierKeys & Keys.Shift) == Keys.Shift && e.Key == Key.D7)
-                Music_List_Change(6);
-            else if ((System.Windows.Forms.Control.ModifierKeys & Keys.Shift) == Keys.Shift && e.Key == Key.D8)
-                Music_List_Change(7);
-            else if ((System.Windows.Forms.Control.ModifierKeys & Keys.Shift) == Keys.Shift && e.Key == Key.D9)
-                Music_List_Change(8);
-            //再生開始時間を保存
-            if ((System.Windows.Forms.Control.ModifierKeys & Keys.Shift) == Keys.Shift && e.Key == Key.S)
+            if (Sub_Code.IsForcusWindow && Youtube_Link_Window.Visibility == Visibility.Hidden && Rename_Canvas.Visibility == Visibility.Hidden)
             {
-                Start_Time = Location_S.Value;
-                if (Start_Time > End_Time)
-                    End_Time = Location_S.Maximum;
-                Loop_Time_T.Text = "再生時間:" + (int)Start_Time + "～" + (int)End_Time;
-            }
-            //再生終了時間を保存
-            if ((System.Windows.Forms.Control.ModifierKeys & Keys.Shift) == Keys.Shift && e.Key == Key.E)
-            {
-                End_Time = Location_S.Value;
-                if (End_Time < Start_Time)
+                if ((System.Windows.Forms.Control.ModifierKeys & Keys.Shift) == Keys.Shift && e.Key == Key.D1)
+                    Music_List_Change(0);
+                else if ((System.Windows.Forms.Control.ModifierKeys & Keys.Shift) == Keys.Shift && e.Key == Key.D2)
+                    Music_List_Change(1);
+                else if ((System.Windows.Forms.Control.ModifierKeys & Keys.Shift) == Keys.Shift && e.Key == Key.D3)
+                    Music_List_Change(2);
+                else if ((System.Windows.Forms.Control.ModifierKeys & Keys.Shift) == Keys.Shift && e.Key == Key.D4)
+                    Music_List_Change(3);
+                else if ((System.Windows.Forms.Control.ModifierKeys & Keys.Shift) == Keys.Shift && e.Key == Key.D5)
+                    Music_List_Change(4);
+                else if ((System.Windows.Forms.Control.ModifierKeys & Keys.Shift) == Keys.Shift && e.Key == Key.D6)
+                    Music_List_Change(5);
+                else if ((System.Windows.Forms.Control.ModifierKeys & Keys.Shift) == Keys.Shift && e.Key == Key.D7)
+                    Music_List_Change(6);
+                else if ((System.Windows.Forms.Control.ModifierKeys & Keys.Shift) == Keys.Shift && e.Key == Key.D8)
+                    Music_List_Change(7);
+                else if ((System.Windows.Forms.Control.ModifierKeys & Keys.Shift) == Keys.Shift && e.Key == Key.D9)
+                    Music_List_Change(8);
+                //再生開始時間を保存
+                if ((System.Windows.Forms.Control.ModifierKeys & Keys.Shift) == Keys.Shift && e.Key == Key.S)
+                {
+                    Start_Time = Location_S.Value;
+                    if (Start_Time > End_Time)
+                        End_Time = Location_S.Maximum;
+                    Loop_Time_T.Text = "再生時間:" + (int)Start_Time + "～" + (int)End_Time;
+                }
+                //再生終了時間を保存
+                if ((System.Windows.Forms.Control.ModifierKeys & Keys.Shift) == Keys.Shift && e.Key == Key.E)
+                {
+                    End_Time = Location_S.Value;
+                    if (End_Time < Start_Time)
+                        Start_Time = 0;
+                    Loop_Time_T.Text = "再生時間:" + (int)Start_Time + "～" + (int)End_Time;
+                }
+                //保存した時間を取り消す
+                if ((System.Windows.Forms.Control.ModifierKeys & Keys.Shift) == Keys.Shift && e.Key == Key.C)
+                {
                     Start_Time = 0;
-                Loop_Time_T.Text = "再生時間:" + (int)Start_Time + "～" + (int)End_Time;
-            }
-            //保存した時間を取り消す
-            if ((System.Windows.Forms.Control.ModifierKeys & Keys.Shift) == Keys.Shift && e.Key == Key.C)
-            {
-                Start_Time = 0;
-                End_Time = Location_S.Maximum;
-                Loop_Time_T.Text = "再生時間:" + (int)Start_Time + "～" + (int)End_Time;
+                    End_Time = Location_S.Maximum;
+                    Loop_Time_T.Text = "再生時間:" + (int)Start_Time + "～" + (int)End_Time;
+                }
             }
         }
         //曲のファイルをドラッグするとリストに追加できるように(ドラッグのコードはMainCode.csに記載)
@@ -2118,12 +2125,6 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 Sub_Code.Error_Log_Write(e1.Message);
             }
-        }
-        private void Music_Vocal_Inst_Cut_B_Click(object sender, RoutedEventArgs e)
-        {
-            if (IsBusy)
-                return;
-            Vocal_Inst_Cut_User_Window.Window_Show();
         }
         private void ListBoxItem_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
@@ -2281,6 +2282,16 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Rename_Canvas.Opacity += Sub_Code.Window_Feed_Time * 2;
                 await Task.Delay(1000 / 60);
             }
+        }
+        private void Music_Open_Click(object sender, RoutedEventArgs e)
+        {
+            if (IsBusy || Music_List.SelectedIndex == -1)
+                return;
+            ListBoxItem Item = Music_List.SelectedItem as ListBoxItem;
+            int Music_Open_Index = Music_Data[Music_Select_List].Select(h => h.ID).ToList().IndexOf((uint)Item.Tag);
+            if (Sub_Code.ShowExplorerFileAndSelect(Music_Data[Music_Select_List][Music_Open_Index].File_Full_Path))
+                return;
+            System.Diagnostics.Process.Start("Explorer.exe", "/select,\"" + Music_Data[Music_Select_List][Music_Open_Index].File_Full_Path + "\"");
         }
         private async void Rename_Cancel_B_Click(object sender, RoutedEventArgs e)
         {

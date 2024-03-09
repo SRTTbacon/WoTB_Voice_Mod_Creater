@@ -55,6 +55,13 @@ namespace WoTB_Voice_Mod_Creater
         static bool IsModChange = false;
         static bool IsDefaultVoiceMode = false;
         static bool IsOnly_Wwise_Project = false;
+
+        [DllImport("shell32.dll", SetLastError = true)]
+        public static extern int SHOpenFolderAndSelectItems(IntPtr pidlFolder, uint cidl, [In, MarshalAs(UnmanagedType.LPArray)] IntPtr[] apidl, uint dwFlags);
+
+        [DllImport("shell32.dll", SetLastError = true)]
+        public static extern void SHParseDisplayName([MarshalAs(UnmanagedType.LPWStr)] string name, IntPtr bindingContext, [Out] out IntPtr pidl, uint sfgaoIn, [Out] out uint psfgaoOut);
+
         public static bool CreatingProject
         {
             get { return IsCreatingProject; }
@@ -146,14 +153,18 @@ namespace WoTB_Voice_Mod_Creater
                 DLL_List.Add("bass.dll");
             if (!File.Exists(DLL_Path + "/bass_fx.dll"))
                 DLL_List.Add("bass_fx.dll");
+            if (!File.Exists(DLL_Path + "/bassenc.dll"))
+                DLL_List.Add("bassenc.dll");
+            if (!File.Exists(DLL_Path + "/bassflac.dll"))
+                DLL_List.Add("bassflac.dll");
+            if (!File.Exists(DLL_Path + "/bassmix.dll"))
+                DLL_List.Add("bassmix.dll");
             if (!File.Exists(DLL_Path + "/fmod_event64.dll"))
                 DLL_List.Add("fmod_event.dll");
             if (!File.Exists(DLL_Path + "/fmodex64.dll"))
                 DLL_List.Add("fmodex.dll");
-            if (!File.Exists(DLL_Path + "/bassenc.dll"))
-                DLL_List.Add("bassenc.dll");
-            if (!File.Exists(DLL_Path + "/bassmix.dll"))
-                DLL_List.Add("bassmix.dll");
+            if (!File.Exists(DLL_Path + "/Wwise_Player_x64.dll"))
+                DLL_List.Add("Wwise_Player_x64.dll");
             return DLL_List;
         }
         //.dvplを抜いたファイルパスからファイルが存在するか
@@ -795,11 +806,11 @@ namespace WoTB_Voice_Mod_Creater
             }
         }
         //MP3またはWAV形式のファイルの音量を調整
-        public static void Volume_Set(string From_Dir, Encode_Mode Mode, int Gain = 10)
+        public static void Volume_Set(string From_Dir, Encode_Mode Mode, double Gain = 10)
         {
             Volume_Set(Directory.GetFiles(From_Dir, "*." + Mode.ToString().ToLower(), SearchOption.TopDirectoryOnly), Mode, Gain);
         }
-        public static void Volume_Set(string[] Files, Encode_Mode Mode, int Gain = 10)
+        public static void Volume_Set(string[] Files, Encode_Mode Mode, double Gain = 10)
         {
             string File_Import = "";
             foreach (string File_Now in Files)
@@ -818,13 +829,17 @@ namespace WoTB_Voice_Mod_Creater
             if (File_Import != "")
                 Volume_Set_Start(File_Import, Mode, Gain);
         }
-        public static void Volume_Set_Start(string File_Import, Encode_Mode Mode, int Gain = 10)
+        public static void Volume_Set_Start(string File_Import, Encode_Mode Mode, double Gain = 10)
         {
             if (Mode == Encode_Mode.MP3)
             {
+                Gain = (int)Gain;
                 StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Encode_Mp3/Volume_Set.bat");
                 stw.WriteLine("chcp 65001");
-                stw.Write("\"" + Voice_Set.Special_Path + "/Encode_Mp3/mp3gain.exe\" -r -c -p -d " + Gain + " " + File_Import);
+                if (File_Import.StartsWith("\""))
+                    stw.Write("\"" + Voice_Set.Special_Path + "/Encode_Mp3/mp3gain.exe\" -r -c -p -d " + Gain + " " + File_Import);
+                else
+                    stw.Write("\"" + Voice_Set.Special_Path + "/Encode_Mp3/mp3gain.exe\" -r -c -p -d " + Gain + " \"" + File_Import + "\"");
                 stw.Close();
                 ProcessStartInfo processStartInfo1 = new ProcessStartInfo
                 {
@@ -1166,7 +1181,7 @@ namespace WoTB_Voice_Mod_Creater
                 return false;
             }
         }
-        public static StreamReader File_Decrypt_To_Stream(string From_File, string Password)
+        public static StreamReader File_Decrypt_To_Stream(string From_File, string Password, bool bIgnoreError = false)
         {
             try
             {
@@ -1177,7 +1192,8 @@ namespace WoTB_Voice_Mod_Creater
             }
             catch (Exception e)
             {
-                Error_Log_Write(e.Message);
+                if (!bIgnoreError)
+                    Error_Log_Write(e.Message);
                 return null;
             }
         }
@@ -1254,14 +1270,13 @@ namespace WoTB_Voice_Mod_Creater
                 {
                     if (IsFromFileDelete)
                         File.Delete(From_WEM_File);
-                    Process Reverb = new Process();
-                    Reverb.StartInfo.FileName = Voice_Set.Special_Path + "/Wwise/revorb.exe";
-                    Reverb.StartInfo.Arguments = "\"" + Voice_Set.Special_Path + "\\Wwise\\Temp.ogg\" \"" + To_OGG_WAV_File + ".ogg" + "\"";
-                    Reverb.StartInfo.CreateNoWindow = true;
-                    Reverb.StartInfo.UseShellExecute = false;
-                    Reverb.Start();
-                    Reverb.WaitForExit();
-                    Reverb.Dispose();
+                    string To_Audio_File = To_OGG_WAV_File + ".wav";
+                    Un4seen.Bass.Misc.EncoderWAV w = new Un4seen.Bass.Misc.EncoderWAV(0);
+                    w.InputFile = Voice_Set.Special_Path + "\\Wwise\\Temp.ogg";
+                    w.OutputFile = To_Audio_File;
+                    w.WAV_BitsPerSample = 24;
+                    w.Start(null, IntPtr.Zero, false);
+                    w.Stop();
                     File.Delete(Voice_Set.Special_Path + "\\Wwise\\Temp.ogg");
                     return To_OGG_WAV_File + ".ogg";
                 }
@@ -1754,10 +1769,12 @@ namespace WoTB_Voice_Mod_Creater
             return false;
         }
         //指定したフォルダにアクセスできるか
-        public static bool CanDirectoryAccess(string Dir_Path)
+        public static bool CanDirectoryAccess(string Dir_Path, bool IsNotExistToCreate = false)
         {
             try
             {
+                if (IsNotExistToCreate && !Directory.Exists(Dir_Path))
+                    Directory.CreateDirectory(Dir_Path);
                 WindowsPrincipal principal = new WindowsPrincipal(WindowsIdentity.GetCurrent());
                 DirectorySecurity security = Directory.GetAccessControl(Dir_Path);
                 AuthorizationRuleCollection authRules = security.GetAccessRules(true, true, typeof(SecurityIdentifier));
@@ -2106,7 +2123,7 @@ namespace WoTB_Voice_Mod_Creater
                 Seconds = "0" + Time.Seconds;
             return Minutes + ":" + Seconds;
         }
-        public static void Set_SE_Change_Name(string Project_SE_Dir, Wwise_Class.Wwise_Project_Create Wwise)
+        /*public static void Set_SE_Change_Name(string Project_SE_Dir, Wwise_Class.Wwise_Project_Create Wwise)
         {
             if (Voice_Set.SE_Enable_Disable[0])
                 Sub_Code.File_Move(Project_SE_Dir + "/Capture_Finish_SE.wav", Project_SE_Dir + "/Capture_Finish_SE_tmp.wav", true);
@@ -2172,7 +2189,7 @@ namespace WoTB_Voice_Mod_Creater
                 Sub_Code.File_Move(Project_SE_Dir + "/target_off_SE_01.wav", Project_SE_Dir + "/target_off_SE_01_tmp.wav", true);
             else
                 Sub_Code.File_Move(Project_SE_Dir + "/target_off_SE_01_tmp.wav", Project_SE_Dir + "/target_off_SE_01.wav", true);
-        }
+        }*/
         public static void Set_Event_ShortID(List<List<Voice_Event_Setting>> Event_Settings, bool IsWoTMode = false)
         {
             //イベントID, 音声コンテナID, SEコンテナID, SE_Index, 音量
@@ -2223,9 +2240,10 @@ namespace WoTB_Voice_Mod_Creater
             Event_Settings[1][10].Set_Param(502585189, 839607605, 391999685, 15);
             Event_Settings[1][11].Set_Param(769354725, 233444430, 166694669, 16);
             Event_Settings[1][12].Set_Param(402727222, 299739777, 769579073, 11);
-            Event_Settings[1][13].Set_Param(670169971, 120795627, 120795627, 2);
-            Event_Settings[1][14].Set_Param(204685755, 924876614, 206640353, 1);
+            Event_Settings[1][13].Set_Param(670169971, 120795627, 951031474, 24);
+            Event_Settings[1][14].Set_Param(204685755, 820440351, 206640353, 1);
             Event_Settings[1][15].Set_Param(1065169508, 891902653);
+            Event_Settings[1][16].Set_Param(198183306, 52813795, 394210856, 25);
             if (!Event_Settings[1][15].IsLoadMode)
                 Event_Settings[1][15].Volume = -11;
             Event_Settings[2][0].Set_Param(420002792, 491691546);
@@ -2499,6 +2517,80 @@ namespace WoTB_Voice_Mod_Creater
             else if (Index == 22)
                 return 499157722;
             return 0;
+        }
+
+        public static bool ShowExplorerFile(string filePath)
+        {
+            try
+            {
+                Type comShellType = Type.GetTypeFromProgID("Shell.Application");
+                dynamic shell = Activator.CreateInstance(comShellType);
+                dynamic windows = shell.Windows();
+                foreach (dynamic win in windows)
+                {
+                    string tmp = win.FullName;
+                    if (String.Compare(Path.GetFileName(tmp), "EXPLORER.EXE", true) == 0)
+                    {
+                        string webUri = win.LocationURL;
+                        if (webUri != "")
+                        {
+                            Uri u = new Uri(webUri);
+                            if (u.IsFile)
+                            {
+                                string path = u.LocalPath + Uri.UnescapeDataString(u.Fragment);
+                                if (Path.GetDirectoryName(filePath) == path)
+                                {
+                                    long hwndValue = win.HWND;
+                                    IntPtr hwnd = new IntPtr(hwndValue);
+                                    if (MainCode.IsIconic(hwnd))
+                                        MainCode.ShowWindow(hwnd, 9);
+                                    MainCode.SetForegroundWindow(hwnd);
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch { };
+            return false;
+        }
+
+        public static bool ShowExplorerFileAndSelect(string filePath)
+        {
+            IntPtr nativeFolder;
+            uint psfgaoOut;
+            SHParseDisplayName(Path.GetDirectoryName(filePath), IntPtr.Zero, out nativeFolder, 0, out psfgaoOut);
+
+            if (nativeFolder == IntPtr.Zero)
+            {
+                // Log error, can't find folder
+                return false;
+            }
+
+            IntPtr nativeFile;
+            SHParseDisplayName(filePath, IntPtr.Zero, out nativeFile, 0, out psfgaoOut);
+
+            IntPtr[] fileArray;
+            if (nativeFile == IntPtr.Zero)
+            {
+                // Open the folder without the file selected if we can't find the file
+                fileArray = new IntPtr[0];
+            }
+            else
+            {
+                fileArray = new IntPtr[] { nativeFile };
+            }
+
+            SHOpenFolderAndSelectItems(nativeFolder, (uint)fileArray.Length, fileArray, 0);
+
+            Marshal.FreeCoTaskMem(nativeFolder);
+            if (nativeFile != IntPtr.Zero)
+            {
+                Marshal.FreeCoTaskMem(nativeFile);
+                return true;
+            }
+            return false;
         }
     }
     //ウィンドウにフォーカスがないとき、アイコンを光らせる
