@@ -41,7 +41,6 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         //特殊な.bnkファイルの場合1または2にします
         public int SpecialBNKFileMode = 0;
         List<List<uint>> WoT_Event_ID = new List<List<uint>>();
-        List<uint> WoTB_Old_Gun_ID = new List<uint>();
         public BNK_Parse(string BNK_File)
         {
             if (!File.Exists(BNK_File))
@@ -283,6 +282,24 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             }
             return Voices_Temp;
         }
+        public void Get_Voices(BNK_FSB_Voice BNK_FSB_Voices)
+        {
+            if (!IsSelected)
+                return;
+            //イベントIDのみを抽出
+            List<uint> GetEventsID = new List<uint>();
+            foreach (Parse_ID_Line List_Now in ID_Line)
+                if (List_Now.Cntr == Container_Name.CAkEvent)
+                    GetEventsID.Add(List_Now.ID);
+            //イベントに入っている音声をすべて取得(Switchがある場合どちらも取得してしまうため注意)
+            for (int Number_01 = 0; Number_01 < GetEventsID.Count; Number_01++)
+            {
+                int Event_Number = Get_Voice_Type_Number(GetEventsID[Number_01], true);
+                if (Event_Number == -1)
+                    continue;
+                Get_Event_Voices(BNK_FSB_Voices, GetEventsID[Number_01], Event_Number);
+            }
+        }
         public void Get_Voices(List<Voice_Event_Setting> Settings)
         {
             if (!IsSelected)
@@ -347,6 +364,35 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                     Child_SourceIDs.Add(ID_Now.ToString());
             }
             return Child_SourceIDs;
+        }
+        void Get_Event_Voices(BNK_FSB_Voice BNK_FSB_Voices, uint Event_ID, int Type_Index)
+        {
+            int Number_01 = -1;
+            //指定されたイベントIDがID_Lineのどこに入っているか調べる
+            for (int Number = 0; Number < ID_Line.Count; Number++)
+                if (Event_ID == ID_Line[Number].ID)
+                    Number_01 = Number;
+            if (Number_01 == -1)
+                return;
+            //行を取得
+            int Number_02 = ID_Line[Number_01].Line;
+            //子コンテナが何個あるか確認
+            string Index = Read_All[Number_02 + 3].Remove(0, Read_All[Number_02 + 3].IndexOf("count=\"") + 7);
+            Index = Index.Remove(Index.IndexOf("\""));
+            int Action_Count = int.Parse(Index);
+            int Last_Index = -1;
+            //子コンテナがあるだけループ
+            for (int Number = 0; Number < Action_Count; Number++)
+            {
+                Last_Index += 3;
+                //子コンテナのIDを取得
+                string ActionID = Read_All[Number_02 + 3 + Last_Index].Remove(0, Read_All[Number_02 + 3 + Last_Index].IndexOf("value=\"") + 7);
+                string ActionID_String = ActionID.Remove(ActionID.IndexOf("\""));
+                uint Child_ID = uint.Parse(ActionID_String);
+                //子コンテナの内容をChild_SourceIDsに追加
+                foreach (uint ID_Now in Action_Children(Child_ID))
+                    BNK_FSB_Voices.Add_Voice(Child_ID, ID_Now, Type_Index);
+            }
         }
         //アクションに入っているイベントをすべて取得し、そのIDから音声を取得
         List<uint> Action_Children(uint Action_ID)

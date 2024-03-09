@@ -236,6 +236,46 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 return false;
             }
         }
+        public bool Wwise_Extract_To_OGG_OR_WAV_File(int Index, string To_File, bool IsOverWrite)
+        {
+            if (!IsPCKSelected)
+                return false;
+            string No_ExName = Path.GetDirectoryName(To_File) + "\\" + Path.GetFileNameWithoutExtension(To_File);
+            if (File.Exists(Sub_Code.File_Get_FileName_No_Extension(No_ExName)) && !IsOverWrite)
+                return false;
+            try
+            {
+                if (Wwise_Extract_To_WEM_File(Index, No_ExName + ".wem", true))
+                    Sub_Code.WEM_To_OGG_WAV(No_ExName + ".wem", No_ExName, true);
+                return true;
+            }
+            catch (Exception e)
+            {
+                Sub_Code.Error_Log_Write(e.Message);
+                return false;
+            }
+        }
+        public bool Wwise_Extract_To_OGG_OR_WAV_File(uint ShortID, string To_File, bool IsOverWrite)
+        {
+            if (!IsPCKSelected)
+                return false;
+            string No_ExName = Path.GetDirectoryName(To_File) + "\\" + Path.GetFileNameWithoutExtension(To_File);
+            try
+            {
+                int Index = -1;
+                for (int Number = 0; Number < Sounds.Count; Number++)
+                    if (Sounds[Number].id == ShortID)
+                        Index = Number;
+                if (Index == -1)
+                    return false;
+                return Wwise_Extract_To_OGG_OR_WAV_File(Index, No_ExName, IsOverWrite);
+            }
+            catch (Exception e)
+            {
+                Sub_Code.Error_Log_Write(e.Message);
+                return false;
+            }
+        }
         public bool Wwise_Extract_To_Wav_File(uint ShortID, string To_File, bool IsOverWrite)
         {
             int Index = -1;

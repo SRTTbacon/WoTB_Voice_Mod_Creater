@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.IO.Compression;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,11 +9,11 @@ using System.Windows;
 using System.Windows.Automation.Peers;
 using System.Windows.Automation.Provider;
 using System.Windows.Controls;
-using System.Windows.Documents;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using WK.Libraries.BetterFolderBrowserNS;
 using WoTB_Voice_Mod_Creater.Class;
+using WoTB_Voice_Mod_Creater.Wwise_Class;
 using WoTB_Voice_Mod_Creater.Wwise_Class.BNK_To_Wwise_Project;
 
 public static partial class StringExtensions
@@ -87,6 +85,15 @@ namespace WoTB_Voice_Mod_Creater
         readonly BrushConverter bc = new BrushConverter();
         [DllImport("user32.dll")]
         public static extern IntPtr GetForegroundWindow();
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool SetForegroundWindow(IntPtr hWnd);
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool IsIconic(IntPtr hWnd);
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
         [DllImport("user32.dll", EntryPoint = "GetWindowText", CharSet = CharSet.Auto)]
         public static extern int GetWindowText(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
         public MainCode()
@@ -132,6 +139,8 @@ namespace WoTB_Voice_Mod_Creater
                 FMOD_Class.Fmod_System.FModSystem = FModSys;
                 FMOD_Class.Fmod_System.FModSystem.init(16, FMOD_API.INITFLAGS.NORMAL, IntPtr.Zero);
                 Sub_Code.Init();
+                Sub_Code.IsWindowBarShow = true;
+                Button_Move();
                 Voice_Set.Special_Path = Path + "\\Resources";
                 try
                 {
@@ -204,7 +213,39 @@ namespace WoTB_Voice_Mod_Creater
                 catch { }
                 Flash.Handle = this;
                 Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.BelowNormal;
-                //Texture_Editor_Window.Window_Show();
+                /*int a = Un4seen.Bass.Bass.BASS_StreamCreateFile("D:\\Downloads\\SDA Downloads\\ASMR\\4.ごほうび対面座位パンスト素股編.mp3", 0, 0,
+                    Un4seen.Bass.BASSFlag.BASS_STREAM_DECODE | Un4seen.Bass.BASSFlag.BASS_SAMPLE_FLOAT);
+                double Max_Seconds = Un4seen.Bass.Bass.BASS_ChannelBytes2Seconds(a, Un4seen.Bass.Bass.BASS_ChannelGetLength(a, Un4seen.Bass.BASSMode.BASS_POS_BYTES));
+                double Now_Seconds = 0;
+                int Now_File_Count = 1;
+                while (true)
+                {
+                    long Buf = 0;
+                    double Buf_Seconds = Un4seen.Bass.Bass.BASS_ChannelBytes2Seconds(a, 50000);
+                    if (Now_Seconds + Buf_Seconds < Max_Seconds)
+                        Buf = 50000;
+                    int aaa = Un4seen.Bass.Bass.BASS_StreamCreateFile("D:\\Downloads\\SDA Downloads\\ASMR\\4.ごほうび対面座位パンスト素股編.mp3",
+                        Un4seen.Bass.Bass.BASS_ChannelSeconds2Bytes(a, Now_Seconds), Buf, Un4seen.Bass.BASSFlag.BASS_STREAM_DECODE | Un4seen.Bass.BASSFlag.BASS_SAMPLE_FLOAT);
+                    int b = Un4seen.Bass.AddOn.Mix.BassMix.BASS_Mixer_StreamCreate(44100, 2, Un4seen.Bass.BASSFlag.BASS_SAMPLE_FLOAT);
+                    Un4seen.Bass.Misc.EncoderWAV aa = new Un4seen.Bass.Misc.EncoderWAV(aaa);
+                    aa.InputFile = null;
+                    string name = Now_File_Count.ToString();
+                    if (Now_File_Count < 10)
+                        name = "000" + Now_File_Count;
+                    else if (Now_File_Count < 100)
+                        name = "00" + Now_File_Count;
+                    else if (Now_File_Count < 1000)
+                        name = "0" + Now_File_Count;
+                    aa.OutputFile = "D:\\Downloads\\SDA Downloads\\ASMR\\Output\\" + name + ".wav";
+                    aa.Start(null, IntPtr.Zero, false);
+                    Un4seen.Bass.Utils.DecodeAllData(aaa, true);
+                    aa.Stop();
+                    Un4seen.Bass.Bass.BASS_StreamFree(aaa);
+                    Now_Seconds += Buf_Seconds;
+                    Now_File_Count++;
+                    if (Now_Seconds >= Max_Seconds)
+                        break;
+                }*/
             }
             catch (Exception e)
             {
@@ -284,12 +325,10 @@ namespace WoTB_Voice_Mod_Creater
                 catch (Exception e1)
                 {
                     Sub_Code.Error_Log_Write(e1.Message);
+                    Message_Feed_Out("エラー:" + e1.Message);
                 }
             }
-            if (Sub_Code.IsWindowBarShow)
-                WindowBarMode_Image.Source = Sub_Code.Check_03;
-            else
-                WindowBarMode_Image.Source = Sub_Code.Check_01;
+            Sub_Code.IsWindowBarShow = true;
             Button_Move();
         }
         //ウィンドウが最大化していない場合ドラッグで移動
@@ -506,7 +545,7 @@ namespace WoTB_Voice_Mod_Creater
         }
         bool IsOtherWindowShowed()
         {
-            if (Save_Window.Visibility == Visibility.Visible || Voice_Mods_Window.Visibility == Visibility.Visible || Tools_Window.Visibility == Visibility ||
+            if (Save_Window.Visibility == Visibility.Visible || Voice_Mixer_Window.Visibility == Visibility.Visible || Tools_Window.Visibility == Visibility ||
                 Music_Player_Window.Visibility == Visibility.Visible || Voice_Create_Window.Visibility == Visibility.Visible ||
                 Tools_V2_Window.Visibility == Visibility.Visible || Change_To_Wwise_Window.Visibility == Visibility.Visible || WoT_To_Blitz_Window.Visibility == Visibility.Visible ||
                 Blitz_To_WoT_Window.Visibility == Visibility.Visible || Bank_Editor_Window.Visibility == Visibility.Visible || Create_Save_File_Window.Visibility == Visibility.Visible ||
@@ -525,13 +564,13 @@ namespace WoTB_Voice_Mod_Creater
             //ファイル名を入力中にShift+Fが働いてしまうと困るので設定
             if (Sound_Editor_Window.Setting_Window.Visibility == Visibility)
                 return;
+            if (IsOtherWindowShowed())
+                return;
             if ((System.Windows.Forms.Control.ModifierKeys & System.Windows.Forms.Keys.Shift) == System.Windows.Forms.Keys.Shift && e.Key == System.Windows.Input.Key.F)
             {
                 Window_Size_Change(true);
                 Main_Config_Save();
             }
-            if (IsOtherWindowShowed())
-                return;
             if ((System.Windows.Forms.Control.ModifierKeys & System.Windows.Forms.Keys.Shift) == System.Windows.Forms.Keys.Shift && e.Key == System.Windows.Input.Key.G)
             {
                 BetterFolderBrowser bfb = new BetterFolderBrowser()
@@ -655,6 +694,20 @@ namespace WoTB_Voice_Mod_Creater
             //超上級者向け
             if ((System.Windows.Forms.Control.ModifierKeys & System.Windows.Forms.Keys.Shift) == System.Windows.Forms.Keys.Shift && e.Key == System.Windows.Input.Key.E)
                 BNK_Event_Window.Window_Show();
+            //PSBToWAV
+            if ((System.Windows.Forms.Control.ModifierKeys & System.Windows.Forms.Keys.Shift) == System.Windows.Forms.Keys.Shift && e.Key == System.Windows.Input.Key.B)
+            {
+                System.Windows.Forms.OpenFileDialog ofd = new System.Windows.Forms.OpenFileDialog()
+                {
+                    Title = "psbファイルを選択してください。",
+                    Multiselect = true,
+                };
+                if (ofd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                {
+                    await Multithread.Convert_PSB_To_WAV(ofd.FileNames, true);
+                    Message_Feed_Out(".psbファイルを変換しました。");
+                }
+            }
             IsClosing = false;
         }
         int CountChar(string s, char c)
@@ -759,6 +812,13 @@ namespace WoTB_Voice_Mod_Creater
                 else
                     e.Effects = DragDropEffects.None;
             }
+            else if (Extension_Converter_Window.Visibility == Visibility.Visible)
+            {
+                if (Ex == ".mp3" || Ex == ".wav" || Ex == ".ogg" || Ex == ".flac" || Ex == ".m4a" || Ex == ".mp4")
+                    e.Effects = DragDropEffects.Copy;
+                else
+                    e.Effects = DragDropEffects.None;
+            }
             else
                 e.Effects = DragDropEffects.None;
             e.Handled = true;
@@ -804,6 +864,16 @@ namespace WoTB_Voice_Mod_Creater
                             Sound_Editor_Window.Add_Sound_File(Drop_Files);
                         else if (Ex == ".wse")
                             Sound_Editor_Window.Contents_Load(Drop_Files[0]);
+                        else
+                            Message_Feed_Out("対応したファイルをドラッグしてください。");
+                    }
+                    else if (Extension_Converter_Window.Visibility == Visibility.Visible)
+                    {
+                        if (Ex == ".mp3" || Ex == ".wav" || Ex == ".ogg" || Ex == ".aiff" || Ex == ".flac" || Ex == ".m4a" || Ex == ".mp4")
+                        {
+                            Extension_Converter_Window.Add_Files(Drop_Files);
+                            Extension_Converter_Window.Update_Sound_List();
+                        }
                         else
                             Message_Feed_Out("対応したファイルをドラッグしてください。");
                     }
@@ -894,35 +964,6 @@ namespace WoTB_Voice_Mod_Creater
             else
                 WindowBarCanvas.Visibility = Visibility.Hidden;
         }
-        private void WindowBarMode_Image_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
-        {
-            if (Sub_Code.IsWindowBarShow)
-            {
-                Sub_Code.IsWindowBarShow = false;
-                WindowBarMode_Image.Source = Sub_Code.Check_02;
-            }
-            else
-            {
-                Sub_Code.IsWindowBarShow = true;
-                WindowBarMode_Image.Source = Sub_Code.Check_04;
-            }
-            Button_Move();
-            Main_Config_Save();
-        }
-        private void WindowBarMode_Image_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
-        {
-            if (Sub_Code.IsWindowBarShow)
-                WindowBarMode_Image.Source = Sub_Code.Check_04;
-            else
-                WindowBarMode_Image.Source = Sub_Code.Check_02;
-        }
-        private void WindowBarMode_Image_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
-        {
-            if (Sub_Code.IsWindowBarShow)
-                WindowBarMode_Image.Source = Sub_Code.Check_03;
-            else
-                WindowBarMode_Image.Source = Sub_Code.Check_01;
-        }
         private void Window_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             //ウィンドウが画面外に行ったときサイズが変更されないように
@@ -949,6 +990,33 @@ namespace WoTB_Voice_Mod_Creater
             if (IsClosing)
                 return;
             WoT_Sound_Mod_Window.Window_Show();
+        }
+        private void Extension_Convert_B_Click(object sender, RoutedEventArgs e)
+        {
+            if (IsClosing)
+                return;
+            Extension_Converter_Window.Window_Show();
+        }
+        private void Test_B_Click(object sender, RoutedEventArgs e)
+        {
+            FNV_Hash_Class hashClass = new FNV_Hash_Class();
+            var sw = new System.Diagnostics.Stopwatch();
+            uint[] randomName = { 3157003241, 3861629834, 1646359356, 492888003, 1234515585 };
+            for (int i = 0; i < randomName.Length; i++)
+            {
+                sw.Restart();
+                //string hashName = hashClass.Bruteforce(8, randomName[i]);
+                string hashName = Wwise_Player.HashToString(8, randomName[i]);
+                sw.Stop();
+                double cppTime = sw.Elapsed.TotalSeconds;
+                MessageBox.Show(hashName + " -> C++タイム:" + cppTime + "秒\nToString -> " + WwiseHash.HashString(hashName));
+            }
+        }
+        private void Voice_Mod_Mixer_Click(object sender, RoutedEventArgs e)
+        {
+            if (IsClosing)
+                return;
+            Voice_Mixer_Window.Window_Show();
         }
     }
 }

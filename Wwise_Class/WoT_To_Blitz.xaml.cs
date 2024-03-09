@@ -741,7 +741,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             File.Copy(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Events/UI_Battle_Basic.tmp", Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Events/UI_Battle_Basic.wwu", true);
             Wwise_Class.Wwise_Project_Create Wwise = new Wwise_Class.Wwise_Project_Create(Voice_Set.Special_Path + "\\Wwise\\WoTB_Sound_Mod");
             Wwise.Clear_All_Sounds(BNK_Voices);
-            Wwise.Sound_Add_Wwise(BNK_Voices, Save_Configs_Window.SE_Change_Window.Preset_List[Save_Configs_Window.SE_Change_Window.Preset_Index], Save_Configs_Window.SE_Change_Window.Default_SE);
+            Wwise.Sound_Add_Wwise(BNK_Voices, Save_Configs_Window.seSetting);
             Message_T.Text = "SEのプリセットを読み込んでいます...";
             await Task.Delay(50);
             await Wwise.Encode_WAV();

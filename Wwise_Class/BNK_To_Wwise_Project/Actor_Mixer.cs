@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace WoTB_Voice_Mod_Creater.Wwise_Class.BNK_To_Wwise_Project
 {
@@ -107,7 +108,8 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class.BNK_To_Wwise_Project
         //ShortIDから文字列に変換(時間がかかります)
         public static string Get_Hash_Name_From_ShortID(uint ShortID)
         {
-            string Parse = hasher.Bruteforce(8, ShortID);
+            //string Parse = hasher.Bruteforce(8, ShortID);
+            string Parse = Wwise_Player.HashToString(8, ShortID);
             return Parse;
         }
     }
@@ -208,7 +210,9 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class.BNK_To_Wwise_Project
                     {
                         string Name = Get_Config.Get_Hash_Name_From_ShortID(ShortID_Now);
                         BNK_Info.RTPC_Info[RTPC_Info_Number].Name = Name;
+                        continue;
                     }
+                    System.Windows.MessageBox.Show(ShortID_Now + "を文字列へ変換できませんでした。\nプロジェクトに支障がない場合はこのまま続行します。");
                 }
                 for (int Number = 0; Number < BNK_Info.Actor_Mixer_Hierarchy_Project.Count; Number++)
                 {
@@ -246,9 +250,12 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class.BNK_To_Wwise_Project
                     await Task.Delay(50);
                     if (Master_Bus_Info_Number != -1)
                     {
-                        string Name = Get_Config.Get_Hash_Name_From_ShortID(ShortID_Now);
+                        FNV_Hash_Class hash = new FNV_Hash_Class();
+                        //string Name = Get_Config.Get_Hash_Name_From_ShortID(ShortID_Now);
+                        string Name = hash.Bruteforce2(8, ShortID_Now);
                         Master_Mixer.Master_Audio_Info[Master_Bus_Info_Number].Name = Name;
                     }
+                    System.Windows.MessageBox.Show(ShortID_Now + "を文字列へ変換できませんでした。\nプロジェクトに支障がない場合はこのまま続行します。");
                 }
                 for (int Number = 0; Number < BNK_Info.Actor_Mixer_Hierarchy_Project.Count; Number++)
                 {

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace WoTB_Voice_Mod_Creater
 {
@@ -37,8 +38,6 @@ namespace WoTB_Voice_Mod_Creater
         protected static extern bool Wwise_Init(string Init_BNK, int Listener_Index, double Init_Volume = 1.0);
         [DllImport(Wwise_Player_DLL)]
         protected static extern bool Wwise_Load_Bank(string Stream_BNK);
-        [DllImport(Wwise_Player_DLL)]
-        protected static extern void Wwise_Set_Path(string Base_Dir_Path);
         [DllImport(Wwise_Player_DLL)]
         protected static extern bool Wwise_Play_Name(string Name, int Container_ID, double Volume = -1);
         [DllImport(Wwise_Player_DLL)]
@@ -105,6 +104,12 @@ namespace WoTB_Voice_Mod_Creater
         protected static extern bool Wwise_IsInited();
         [DllImport(Wwise_Player_DLL)]
         protected static extern uint Wwise_Get_Result_Index();
+        [DllImport(Wwise_Player_DLL, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.StdCall)]
+        [return: MarshalAs(UnmanagedType.LPStr)]
+        protected static extern string HashToChar(int length, uint shortID);
+        [DllImport(Wwise_Player_DLL)]
+        protected static extern int GetHashLength();
+
 
         public static bool IsExecution { get; private set; } = false;
 
@@ -128,8 +133,7 @@ namespace WoTB_Voice_Mod_Creater
         ///</summary>
         public static bool Load_Bank(string Stream_BNK)
         {
-            Wwise_Set_Path(Path.GetDirectoryName(Stream_BNK));
-            return Wwise_Load_Bank(Path.GetFileName(Stream_BNK));
+            return Wwise_Load_Bank(Stream_BNK);
         }
         ///<summaty>
         ///終了したイベントID(Container_ID)をすべて取得します。
@@ -407,6 +411,14 @@ namespace WoTB_Voice_Mod_Creater
         public static uint Get_Result_Index()
         {
             return Wwise_Get_Result_Index();
+        }
+
+        public static string HashToString(int length, uint shortID)
+        {
+            string hashName = HashToChar(length, shortID);
+            hashName.Substring(0, GetHashLength());
+            return hashName;
+            //return Encoding.ASCII.GetString(bytes) + Convert.ToChar(lastByte);
         }
     }
 }

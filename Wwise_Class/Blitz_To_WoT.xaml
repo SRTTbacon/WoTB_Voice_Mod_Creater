@@ -64,27 +64,29 @@
         <DockPanel Width="1920" Height="1080">
             <Border BorderBrush="Aqua" BorderThickness="1" Background="#111216" Height="1080" VerticalAlignment="Top" Width="1920"/>
             <Button x:Name="Back_B" Content="戻る" Height="75" VerticalAlignment="Top" Width="275" Background="Transparent" Margin="-3565,1005,0,0" Foreground="Aqua" BorderBrush="Aqua" FontSize="38" Click="Back_B_Click"/>
-            <Button x:Name="Open_File_B" Content="FSBまたはBNKを開く" Height="75" VerticalAlignment="Top" Width="350" Background="Transparent" Margin="-1820,100,0,0" Foreground="Aqua" BorderBrush="Aqua" FontSize="38" Click="Open_File_B_Click"/>
+            <Button x:Name="Open_File_B" Content="FSBまたはBNKを開く" Height="75" VerticalAlignment="Top" Width="350" Background="Transparent" Margin="-1920,100,0,0" Foreground="Aqua" BorderBrush="Aqua" FontSize="38" Click="Open_File_B_Click"/>
             <TextBlock x:Name="Message_T" Height="105" Width="770" TextWrapping="Wrap" Text="" Foreground="Aqua" FontSize="37" Margin="-1920,905,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
-            <ListBox x:Name="Voices_L" Height="750" VerticalAlignment="Top" Width="550" Margin="-3200,150,0,0" Background="Transparent" BorderBrush="Aqua" Foreground="Aqua" FontSize="37" MouseDown="Voices_L_MouseDown" SelectionChanged="Voices_L_SelectionChanged"/>
-            <ListBox x:Name="Content_L" Height="750" VerticalAlignment="Top" Width="550" Margin="-600,150,0,0" Background="Transparent" BorderBrush="Aqua" Foreground="Aqua" FontSize="37" MouseDown="Voices_L_MouseDown" SelectionChanged="Content_L_SelectionChanged"/>
+            <TextBlock x:Name="File_Name_T" Height="50" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="800" Foreground="Aqua" FontSize="37" Margin="-1920,200,0,0" TextAlignment="Center"/>
+            <ListBox x:Name="Voices_L" Height="750" VerticalAlignment="Top" Width="550" Margin="-3240,150,0,0" Background="Transparent" BorderBrush="Aqua" Foreground="Aqua" FontSize="37" SelectionChanged="Voices_L_SelectionChanged"/>
+            <ListBox x:Name="Content_L" Height="750" VerticalAlignment="Top" Width="550" Margin="-600,150,0,0" Background="Transparent" BorderBrush="Aqua" Foreground="Aqua" FontSize="37" SelectionChanged="Content_L_SelectionChanged"/>
             <TextBlock Height="50" TextWrapping="Wrap" Text="音声の設定" VerticalAlignment="Top" Width="185" Foreground="Aqua" FontSize="37" Margin="-600,70,0,0"/>
-            <TextBlock Height="50" TextWrapping="Wrap" Text="音声の種類と数" VerticalAlignment="Top" Width="248" Foreground="Aqua" FontSize="37" Margin="-3200,70,0,0"/>
-            <Button x:Name="Details_B" Content="詳細" Height="65" Margin="-3550,900,0,0" VerticalAlignment="Top" Width="200" Background="Transparent" Foreground="Aqua" FontSize="37" BorderBrush="Aqua" Click="Details_B_Click"/>
-            <TextBlock x:Name="File_Name_T" Height="50" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="800" Foreground="Aqua" FontSize="37" Margin="-1820,200,0,0" TextAlignment="Center"/>
+            <TextBlock Height="50" TextWrapping="Wrap" Text="音声の種類と数" VerticalAlignment="Top" Width="248" Foreground="Aqua" FontSize="37" Margin="-3240,70,0,0"/>
+            <Button x:Name="Details_B" Content="詳細" Height="65" Margin="-3590,900,0,0" VerticalAlignment="Top" Width="200" Background="Transparent" Foreground="Aqua" FontSize="37" BorderBrush="Aqua" Click="Details_B_Click"/>
             <Button x:Name="Clear_B" Content="すべてクリア" Height="70" VerticalAlignment="Top" Width="275" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="35" Margin="-1920,1010,0,0" Click="Clear_B_Click"/>
-            <TextBlock x:Name="Volume_T" Height="50" Width="180" FontSize="40" Foreground="Aqua" TextWrapping="Wrap" Text="音量:50" Margin="-1820,250,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
-            <Slider x:Name="Volume_S" Height="27" VerticalAlignment="Top"  Width="410" Margin="-1820,325,0,0" Style="{StaticResource CustomSliderStyle}" Value="50" Maximum="100" SmallChange="1" LargeChange="1" ValueChanged="Volume_S_ValueChanged"/>
-            <Button x:Name="Play_B" Content="再生" Height="75" Margin="-1615,385,0,0" VerticalAlignment="Top" Width="200" Background="Transparent" Foreground="Aqua" FontSize="40" BorderBrush="Aqua" Click="Play_B_Click"/>
-            <Button x:Name="Pause_B" Content="停止" Height="75" Margin="-2025,385,0,0" VerticalAlignment="Top" Width="200" Background="Transparent" Foreground="Aqua" FontSize="40" BorderBrush="Aqua" Click="Pause_B_Click"/>
-            <TextBlock x:Name="Location_T" Height="50" Width="300" FontSize="40" Foreground="Aqua" TextWrapping="Wrap" Text="00:00" Margin="-1820,480,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
-            <Slider x:Name="Location_S" Height="27" VerticalAlignment="Top"  Width="410" Margin="-1820,550,0,0" Style="{StaticResource CustomSliderStyle}" SmallChange="0" LargeChange="0" Maximum="0" ValueChanged="Location_S_ValueChanged"/>
-            <Button x:Name="Start_B" Content="WoTへ変換" Height="75" VerticalAlignment="Top" Width="350" Background="Transparent" Margin="-1820,700,0,0" Foreground="Aqua" BorderBrush="Aqua" FontSize="38" Click="Start_B_Click"/>
+            <TextBlock x:Name="Volume_T" Height="50" Width="180" FontSize="40" Foreground="Aqua" TextWrapping="Wrap" Text="音量:50" Margin="-1920,250,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
+            <Slider x:Name="Volume_S" Height="27" VerticalAlignment="Top"  Width="410" Margin="-1920,325,0,0" Style="{StaticResource CustomSliderStyle}" Value="50" Maximum="100" SmallChange="1" LargeChange="1" ValueChanged="Volume_S_ValueChanged"/>
+            <Button x:Name="Play_B" Content="再生" Height="65" Margin="-1715,385,0,0" VerticalAlignment="Top" Width="200" Background="Transparent" Foreground="Aqua" FontSize="40" BorderBrush="Aqua" Click="Play_B_Click"/>
+            <Button x:Name="Pause_B" Content="停止" Height="65" Margin="-2125,385,0,0" VerticalAlignment="Top" Width="200" Background="Transparent" Foreground="Aqua" FontSize="40" BorderBrush="Aqua" Click="Pause_B_Click"/>
+            <Button x:Name="Minus_B" Content="-5秒" Height="60" Margin="-2125,575,0,0" VerticalAlignment="Top" Width="200" Background="Transparent" Foreground="Aqua" FontSize="40" BorderBrush="Aqua" Click="Minus_B_Click"/>
+            <Button x:Name="Plus_B" Content="+5秒" Height="60" Margin="-1715,575,0,0" VerticalAlignment="Top" Width="200" Background="Transparent" Foreground="Aqua" FontSize="40" BorderBrush="Aqua" Click="Plus_B_Click"/>
+            <TextBlock x:Name="Location_T" Height="50" Width="300" FontSize="40" Foreground="Aqua" TextWrapping="Wrap" Text="00:00" Margin="-1920,460,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
+            <Slider x:Name="Location_S" Height="27" VerticalAlignment="Top"  Width="410" Margin="-1920,530,0,0" Style="{StaticResource CustomSliderStyle}" SmallChange="0" LargeChange="0" Maximum="0" ValueChanged="Location_S_ValueChanged"/>
+            <Button x:Name="Start_B" Content="WoTへ変換" Height="75" VerticalAlignment="Top" Width="350" Background="Transparent" Margin="-1920,750,0,0" Foreground="Aqua" BorderBrush="Aqua" FontSize="38" Click="Start_B_Click"/>
             <Button x:Name="Voice_Enable_B" Content="有効化" Height="75" VerticalAlignment="Top" Width="270" Background="Transparent" Margin="-320,900,0,0" Foreground="Aqua" BorderBrush="Aqua" FontSize="38" Click="Voice_Enable_B_Click"/>
             <Button x:Name="Voice_Disable_B" Content="無効化" Height="75" VerticalAlignment="Top" Width="270" Background="Transparent" Margin="-880,900,0,0" Foreground="Aqua" BorderBrush="Aqua" FontSize="38" Click="Voice_Disable_B_Click"/>
-            <CheckBox x:Name="Volume_Set_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-2075,625,0,0" Click="Volume_Set_C_Click"/>
-            <TextBlock Height="50" TextWrapping="Wrap" Text="音量を調整" VerticalAlignment="Top" Width="200" Foreground="Aqua" FontSize="37" Margin="-1825,607,0,0"/>
-            <Button x:Name="Volume_Set_Help_B" Content="?" Height="50" VerticalAlignment="Top" Width="50" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="35" Margin="-1575,607,0,0" Click="Volume_Set_Help_B_Click"/>
+            <CheckBox x:Name="Volume_Set_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-2175,680,0,0" Click="Volume_Set_C_Click"/>
+            <TextBlock Height="50" TextWrapping="Wrap" Text="音量を調整" VerticalAlignment="Top" Width="200" Foreground="Aqua" FontSize="37" Margin="-1925,662,0,0"/>
+            <Button x:Name="Volume_Set_Help_B" Content="?" Height="50" VerticalAlignment="Top" Width="50" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="35" Margin="-1675,662,0,0" Click="Volume_Set_Help_B_Click"/>
             <Button x:Name="Help_B" Content="注意事項" Height="70" VerticalAlignment="Top" Width="275" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="35" Margin="-275,1010,0,0" Click="Help_B_Click"/>
         </DockPanel>
     </Viewbox>

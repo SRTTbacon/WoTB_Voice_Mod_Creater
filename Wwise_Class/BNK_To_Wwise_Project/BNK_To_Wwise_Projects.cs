@@ -109,10 +109,10 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class.BNK_To_Wwise_Project
     }
     public class BNK_To_Wwise_Projects
     {
-        Actor_Mixer Actor_Mixer_Project = new Actor_Mixer();
+        readonly Actor_Mixer Actor_Mixer_Project = new Actor_Mixer();
         int Now_Extract_File_Count = 0;
         bool IsSelected = false;
-        Random r = new Random();
+        readonly Random r = new Random();
         //解析するファイルが1つのみの場合
         public BNK_To_Wwise_Projects(string Init_File, string BNK_File, string PCK_File = null, string SoundbanksInfo = null, bool IsNoSoundInfo = false)
         {

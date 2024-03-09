@@ -8,12 +8,17 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using WoTB_Voice_Mod_Creater.Class;
+using WoTB_Voice_Mod_Creater.Properties;
 
 namespace WoTB_Voice_Mod_Creater.Wwise_Class
 {
     //Wwiseのプロジェクトデータを編集
     public class Wwise_Project_Create
     {
+        public enum Effect_Type
+        {
+            Minus_6dB_Limit
+        }
         const string Vorbis_Quality_High_ID = "53A9DE0F-3F4F-4B59-8614-3F9E3C7358FC";
         const string Vorbis_Quality_High_WorkID = "F6B2880C-85E5-47FA-A126-645B5DFD9ACC";
         const string Master_Audio_Bus_ID = "1514A4D8-1DA6-412A-A17E-75CA0C2149F3";
@@ -93,6 +98,8 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                         }
                         Add_WEM_Files.Add(FileName_Short_ID.ToString());
                     }
+                    else
+                        File.Copy(Voice_Set.Special_Path + "\\Wwise\\No_Sound.wav", Project_Dir + "/Originals/SFX/" + FileName_Short_ID + ".wav", true);
                 }
                 else if (Language != null)
                 {
@@ -114,6 +121,8 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                         }
                         Add_WEM_Files.Add(FileName_Short_ID.ToString());
                     }
+                    else
+                        File.Copy(Voice_Set.Special_Path + "\\Wwise\\No_Sound.wav", Project_Dir + "/Originals/Voices/" + Language + "/" + FileName_Short_ID + ".wav", true);
                 }
                 int ShortID_Line = 0;
                 for (int Number = 0; Number < Actor_Mixer_Hierarchy.Count; Number++)
@@ -304,6 +313,57 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             Add_Wav_Files.Add(Project_Dir + "\\Originals\\SFX\\" + Random_ID + ".wav");
             return List_Add_File(Start_Line, Random_ID + ".wav", "SFX", 0, "", Volume, IsLoop, 50);
         }
+        //コンテナにエフェクトを追加
+        public void Add_Effect(uint Container_ID, Effect_Type Effect)
+        {
+            int Voice_ShortID_Line = Get_Line_By_ShortID(Container_ID);
+            bool IsIncludeOverWrite = false;
+            bool IsIncludeEffect = false;
+            List<bool> IsIncludeEffect_Index = new List<bool>() { false, false, false, false };
+            if (Voice_ShortID_Line == -1)
+                return;
+            for (int Number = Voice_ShortID_Line; Number < Actor_Mixer_Hierarchy.Count; Number++)
+            {
+                if (Actor_Mixer_Hierarchy[Number].Contains("Name=\"OverrideEffect\""))
+                    IsIncludeOverWrite = true;
+                if (Actor_Mixer_Hierarchy[Number].Contains("</PropertyList>") && !IsIncludeOverWrite)
+                {
+                    Actor_Mixer_Hierarchy.Insert(Number, "<Property Name=\"OverrideEffect\" Type=\"bool\" Value=\"True\"/>");
+                    IsIncludeOverWrite = true;
+                }
+                else if (Actor_Mixer_Hierarchy[Number].Contains("<ObjectRef Name=\"" + Effect.ToString() + "\""))
+                    IsIncludeEffect = true;
+                for (int i = 0; i < 4; i++)
+                    if (Actor_Mixer_Hierarchy[Number].Contains("<Reference Name=\"Effect" + i + "\""))
+                        IsIncludeEffect_Index[i] = true;
+                if (Actor_Mixer_Hierarchy[Number].Contains("</ReferenceList>"))
+                {
+                    if (IsIncludeEffect)
+                        break;
+                    int Set_Index = -1;
+                    for (int i = 0; i < IsIncludeEffect_Index.Count; i++)
+                    {
+                        if (!IsIncludeEffect_Index[i])
+                        {
+                            Set_Index = i;
+                            break;
+                        }
+                    }
+                    if (Set_Index == -1)
+                    {
+                        if (Effect == Effect_Type.Minus_6dB_Limit)
+                        {
+                            Actor_Mixer_Hierarchy.Insert(Number, "<Reference Name=\"Effect" + Set_Index + "\" PluginName=\"iZotope Trash Dynamics Mono\" CompanyID=\"259\" PluginID=\"5\" PluginType=\"3\">");
+                            Actor_Mixer_Hierarchy.Insert(Number + 1, "<ObjectRef Name=\"Minus_6dB_Limit\" ID=\"{0981FCD6-5DEA-4586-9C62-E79CED4CEC71}\" WorkUnitID=\"{70F46671-A828-4029-A11A-36BB09D872B9}\"/>");
+                            Actor_Mixer_Hierarchy.Insert(Number + 2, "</Reference>");
+                        }
+                    }
+                    break;
+                }
+                if (Actor_Mixer_Hierarchy[Number].Contains("</RandomSequenceContainer>"))
+                    break;
+            }
+        }
         //ランダムな数字を生成(天文学的確率ですが、仮に数字が被った場合は再度生成)
         private string Get_Random_ShortID()
         {
@@ -397,7 +457,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             }
         }
         //保存されたデータをもとに.bnkファイルをビルド(内容によって時間がかかります)
-        public void Project_Build(string BankName, string OutputFilePath, string GeneratedSoundBanksPath = null, bool IsUseCache = false, string Language = "ja")
+        public void Project_Build(string BankName, string OutputFilePath, string GeneratedSoundBanksPath = null, bool IsUseCache = false, string Language = "ja", string Cache_Dir = "")
         {
             if (Project_Dir == "" || !Directory.Exists(Path.GetDirectoryName(OutputFilePath)))
                 return;
@@ -441,7 +501,22 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                         throw new Exception("エラー:プロジェクトをビルドできませんでした。プロジェクトファイルが破損している可能性があります。");
                     GeneratedFile = Files_BNK[0];
                 }
-                Sub_Code.File_Move(GeneratedFile, OutputFilePath, true);
+                if (IsUseCache && Cache_Dir != "")
+                {
+                    Wwise_File_Extract_V2 BNK_File = new Wwise_File_Extract_V2(GeneratedFile);
+                    string[] WEM_Files = Directory.GetFiles(Cache_Dir, "*.wem", SearchOption.TopDirectoryOnly);
+                    foreach (string WEM_File in WEM_Files)
+                    {
+                        if (!uint.TryParse(Path.GetFileNameWithoutExtension(WEM_File), out uint ShortID))
+                            continue;
+                        File.Move(WEM_File, Cache_Dir + "/" + (BNK_File.Wwise_Get_Index_By_Name(ShortID) + 1) + ".wem");
+                    }
+                    BNK_File.Wwise_BNK_Save(OutputFilePath, Cache_Dir, true);
+                    BNK_File.Bank_Clear();
+                    File.Delete(GeneratedFile);
+                }
+                else
+                    Sub_Code.File_Move(GeneratedFile, OutputFilePath, true);
             }
             catch (Exception e)
             {
@@ -987,7 +1062,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             }
         }
         //音声をプロジェクトに追加
-        public void Sound_Add_Wwise(string Dir_Name, bool IsWoT_Project = false, bool IsNotIncludeBGM = false)
+        public void Sound_Add_Wwise(string Dir_Name)
         {
             string[] Voice_Files_01 = Directory.GetFiles(Dir_Name, "*.wav", SearchOption.TopDirectoryOnly);
             foreach (string Voice_Now in Voice_Files_01)
@@ -997,251 +1072,263 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                     Name_Only = Voice_Mod_Create.Get_Voice_Type_V2(Voice_Now);
                 else
                     Name_Only = Voice_Mod_Create.Get_Voice_Type_V1(Voice_Now);
-                if (IsWoT_Project)
+                if (Name_Only == "mikata" || Name_Only == "ally_killed_by_player")
+                    Add_Sound("170029050", Voice_Now, "ja");
+                else if (Name_Only == "danyaku" || Name_Only == "ammo_bay_damaged")
+                    Add_Sound("95559763", Voice_Now, "ja");
+                else if (Name_Only == "hikantuu" || Name_Only == "armor_not_pierced_by_player")
+                    Add_Sound("766083947", Voice_Now, "ja");
+                else if (Name_Only == "kantuu" || Name_Only == "armor_pierced_by_player")
+                    Add_Sound("569784404", Voice_Now, "ja");
+                else if (Name_Only == "tokusyu" || Name_Only == "armor_pierced_crit_by_player")
+                    Add_Sound("266422868", Voice_Now, "ja");
+                else if (Name_Only == "tyoudan" || Name_Only == "armor_ricochet_by_player")
+                    Add_Sound("1052258113", Voice_Now, "ja");
+                else if (Name_Only == "syatyou" || Name_Only == "commander_killed")
+                    Add_Sound("242302464", Voice_Now, "ja");
+                else if (Name_Only == "souzyuusyu" || Name_Only == "driver_killed")
+                    Add_Sound("334837201", Voice_Now, "ja");
+                else if (Name_Only == "tekikasai" || Name_Only == "enemy_fire_started_by_player")
+                    Add_Sound("381780774", Voice_Now, "ja");
+                else if (Name_Only == "gekiha" || Name_Only == "enemy_killed_by_player")
+                    Add_Sound("489572734", Voice_Now, "ja");
+                else if (Name_Only == "enjinhason" || Name_Only == "engine_damaged")
+                    Add_Sound("210078142", Voice_Now, "ja");
+                else if (Name_Only == "enjintaiha" || Name_Only == "engine_destroyed")
+                    Add_Sound("249535989", Voice_Now, "ja");
+                else if (Name_Only == "enjinhukkyuu" || Name_Only == "engine_functional")
+                    Add_Sound("908710042", Voice_Now, "ja");
+                else if (Name_Only == "kasai" || Name_Only == "fire_started")
+                    Add_Sound("1057023960", Voice_Now, "ja");
+                else if (Name_Only == "syouka" || Name_Only == "fire_stopped")
+                    Add_Sound("953778289", Voice_Now, "ja");
+                else if (Name_Only == "nenryou" || Name_Only == "fuel_tank_damaged")
+                    Add_Sound("121897540", Voice_Now, "ja");
+                else if (Name_Only == "housinhason" || Name_Only == "gun_damaged")
+                    Add_Sound("127877647", Voice_Now, "ja");
+                else if (Name_Only == "housintaiha" || Name_Only == "gun_destroyed")
+                    Add_Sound("462397017", Voice_Now, "ja");
+                else if (Name_Only == "housinhukkyuu" || Name_Only == "gun_functional")
+                    Add_Sound("651656679", Voice_Now, "ja");
+                else if (Name_Only == "housyu" || Name_Only == "gunner_killed")
+                    Add_Sound("739086111", Voice_Now, "ja");
+                else if (Name_Only == "soutensyu" || Name_Only == "loader_killed")
+                    Add_Sound("363753108", Voice_Now, "ja");
+                else if (Name_Only == "musen" || Name_Only == "radio_damaged")
+                    Add_Sound("91697210", Voice_Now, "ja");
+                else if (Name_Only == "musensyu" || Name_Only == "radioman_killed")
+                    Add_Sound("987172940", Voice_Now, "ja");
+                else if (Name_Only == "battle" || Name_Only == "start_battle")
+                    Add_Sound("518589126", Voice_Now, "ja");
+                else if (Name_Only == "kansokuhason" || Name_Only == "surveying_devices_damaged")
+                    Add_Sound("330491031", Voice_Now, "ja");
+                else if (Name_Only == "kansokutaiha" || Name_Only == "surveying_devices_destroyed")
+                    Add_Sound("792301846", Voice_Now, "ja");
+                else if (Name_Only == "kansokuhukkyuu" || Name_Only == "surveying_devices_functional")
+                    Add_Sound("539730785", Voice_Now, "ja");
+                else if (Name_Only == "ritaihason" || Name_Only == "track_damaged")
+                    Add_Sound("38261315", Voice_Now, "ja");
+                else if (Name_Only == "ritaitaiha" || Name_Only == "track_destroyed")
+                    Add_Sound("37535832", Voice_Now, "ja");
+                else if (Name_Only == "ritaihukkyuu" || Name_Only == "track_functional")
                 {
-                    switch (Name_Only)
-                    {
-                        case "mikata":
-                            Add_Sound("496744290", Voice_Now, "Japanese");
-                            break;
-                        case "danyaku":
-                            Add_Sound("80768846", Voice_Now, "Japanese");
-                            break;
-                        case "hikantuu":
-                            Add_Sound("611225375", Voice_Now, "Japanese");
-                            Add_Sound("894898226", Voice_Now, "Japanese");
-                            Add_Sound("91710501", Voice_Now, "Japanese");
-                            Add_Sound("904946415", Voice_Now, "Japanese");
-                            break;
-                        case "kantuu":
-                            Add_Sound("569021006", Voice_Now, "Japanese");
-                            Add_Sound("586836082", Voice_Now, "Japanese");
-                            Add_Sound("198894981", Voice_Now, "Japanese");
-                            break;
-                        case "tokusyu":
-                            Add_Sound("114246473", Voice_Now, "Japanese");
-                            Add_Sound("758697169", Voice_Now, "Japanese");
-                            Add_Sound("544988916", Voice_Now, "Japanese");
-                            Add_Sound("315035946", Voice_Now, "Japanese");
-                            break;
-                        case "tyoudan":
-                            Add_Sound("976240215", Voice_Now, "Japanese");
-                            break;
-                        case "syatyou":
-                            Add_Sound("694419949", Voice_Now, "Japanese");
-                            break;
-                        case "souzyuusyu":
-                            Add_Sound("750503602", Voice_Now, "Japanese");
-                            break;
-                        case "tekikasai":
-                            Add_Sound("675832160", Voice_Now, "Japanese");
-                            break;
-                        case "gekiha":
-                            Add_Sound("961047801", Voice_Now, "Japanese");
-                            Add_Sound("921878250", Voice_Now, "Japanese");
-                            break;
-                        case "enjinhason":
-                            Add_Sound("156949684", Voice_Now, "Japanese");
-                            break;
-                        case "enjintaiha":
-                            Add_Sound("779775207", Voice_Now, "Japanese");
-                            break;
-                        case "enjinhukkyuu":
-                            Add_Sound("153685024", Voice_Now, "Japanese");
-                            break;
-                        case "kasai":
-                            Add_Sound("55455728", Voice_Now, "Japanese");
-                            break;
-                        case "syouka":
-                            Add_Sound("108269930", Voice_Now, "Japanese");
-                            break;
-                        case "nenryou":
-                            Add_Sound("518449764", Voice_Now, "Japanese");
-                            break;
-                        case "housinhason":
-                            Add_Sound("396042361", Voice_Now, "Japanese");
-                            break;
-                        case "housintaiha":
-                            Add_Sound("111157803", Voice_Now, "Japanese");
-                            break;
-                        case "housinhukkyuu":
-                            Add_Sound("468738015", Voice_Now, "Japanese");
-                            break;
-                        case "housyu":
-                            Add_Sound("290791237", Voice_Now, "Japanese");
-                            break;
-                        case "soutensyu":
-                            Add_Sound("574952129", Voice_Now, "Japanese");
-                            break;
-                        case "musen":
-                            Add_Sound("947428834", Voice_Now, "Japanese");
-                            break;
-                        case "musensyu":
-                            Add_Sound("557399837", Voice_Now, "Japanese");
-                            break;
-                        case "battle":
-                            Add_Sound("629260003", Voice_Now, "Japanese");
-                            break;
-                        case "kansokuhason":
-                            Add_Sound("223610709", Voice_Now, "Japanese");
-                            Add_Sound("60412176", Voice_Now, "Japanese");
-                            break;
-                        case "kansokutaiha":
-                            Add_Sound("693388069", Voice_Now, "Japanese");
-                            break;
-                        case "kansokuhukkyuu":
-                            Add_Sound("407686850", Voice_Now, "Japanese");
-                            break;
-                        case "ritaihason":
-                            Add_Sound("189198188", Voice_Now, "Japanese");
-                            break;
-                        case "ritaitaiha":
-                            Add_Sound("113684286", Voice_Now, "Japanese");
-                            break;
-                        case "ritaihukkyuu":
-                            Add_Sound("764683321", Voice_Now, "Japanese");
-                            Add_Sound("1035064657", Voice_Now, "Japanese");
-                            break;
-                        case "houtouhason":
-                            Add_Sound("755962743", Voice_Now, "Japanese");
-                            break;
-                        case "houtoutaiha":
-                            Add_Sound("464113292", Voice_Now, "Japanese");
-                            break;
-                        case "houtouhukkyuu":
-                            Add_Sound("230672484", Voice_Now, "Japanese");
-                            break;
-                        case "taiha":
-                            Add_Sound("1015146434", Voice_Now, "Japanese");
-                            break;
-                    }
+                    Add_Sound("558576963", Voice_Now, "ja");
+                    Add_Sound("403125077", Voice_Now, "ja");
                 }
-                else
+                else if (Name_Only == "houtouhason" || Name_Only == "turret_rotator_damaged")
+                    Add_Sound("1014565012", Voice_Now, "ja");
+                else if (Name_Only == "houtoutaiha" || Name_Only == "turret_rotator_destroyed")
+                    Add_Sound("135817430", Voice_Now, "ja");
+                else if (Name_Only == "houtouhukkyuu" || Name_Only == "turret_rotator_functional")
+                    Add_Sound("985679417", Voice_Now, "ja");
+                else if (Name_Only == "taiha" || Name_Only == "vehicle_destroyed")
+                    Add_Sound("164671745", Voice_Now, "ja");
+                else if (Name_Only == "hakken")
+                    Add_Sound("447063394", Voice_Now, "ja");
+                else if (Name_Only == "lamp")
+                    Add_Sound("154835998", Voice_Now, "ja");
+                else if (Name_Only == "ryoukai")
+                    Add_Sound("607694618", Voice_Now, "ja");
+                else if (Name_Only == "kyohi")
+                    Add_Sound("391276124", Voice_Now, "ja");
+                else if (Name_Only == "help")
+                    Add_Sound("840378218", Voice_Now, "ja");
+                else if (Name_Only == "attack")
+                    Add_Sound("549968154", Voice_Now, "ja");
+                else if (Name_Only == "attack_now")
+                    Add_Sound("1015337424", Voice_Now, "ja");
+                else if (Name_Only == "capture")
+                    Add_Sound("271044645", Voice_Now, "ja");
+                else if (Name_Only == "defence")
+                    Add_Sound("310153012", Voice_Now, "ja");
+                else if (Name_Only == "keep")
+                    Add_Sound("379548034", Voice_Now, "ja");
+                else if (Name_Only == "lock")
+                    Add_Sound("839607605", Voice_Now, "ja");
+                else if (Name_Only == "unlock")
+                    Add_Sound("233444430", Voice_Now, "ja");
+                else if (Name_Only == "reload")
+                    Add_Sound("299739777", Voice_Now, "ja");
+                else if (Name_Only == "map")
+                    Add_Sound("120795627", Voice_Now, "ja");
+                else if (Name_Only == "battle_end")
+                    Add_Sound("924876614", Voice_Now, "ja");
+                else if (Name_Only == "battle_bgm")
+                    Add_Sound("649358221", Voice_Now, "ja");
+                else if (Name_Only == "load_bgm")
+                    Add_Sound("915105627", Voice_Now, "ja");
+                else if (Name_Only == "chat_allies_send")
+                    Add_Sound("491691546", Voice_Now, "ja");
+                else if (Name_Only == "chat_allies_receive")
+                    Add_Sound("417768496", Voice_Now, "ja");
+                else if (Name_Only == "chat_enemy_send")
+                    Add_Sound("46472417", Voice_Now, "ja");
+                else if (Name_Only == "chat_enemy_receive")
+                    Add_Sound("681331945", Voice_Now, "ja");
+                else if (Name_Only == "chat_platoon_send")
+                    Add_Sound("190711689", Voice_Now, "ja");
+                else if (Name_Only == "chat_platoon_receive")
+                    Add_Sound("918836720", Voice_Now, "ja");
+            }
+        }
+        public void Sound_Add_Wwise(BNK_FSB_Voice BNK_FSB_Voices, bool IsSetVolume)
+        {
+            if (IsSetVolume)
+                Add_Effect(720232740, Effect_Type.Minus_6dB_Limit);
+            int Volume = 0;
+            if (IsSetVolume)
+                Volume = 8;
+            foreach (Type_Setting Types in BNK_FSB_Voices.Types.Values)
+            {
+                if (!Types.IsEnable)
+                    continue;
+                foreach (Voice_Setting Voices in Types.Voices)
                 {
-                    if (Name_Only == "mikata" || Name_Only == "ally_killed_by_player")
-                        Add_Sound("170029050", Voice_Now, "ja");
-                    else if (Name_Only == "danyaku" || Name_Only == "ammo_bay_damaged")
-                        Add_Sound("95559763", Voice_Now, "ja");
-                    else if (Name_Only == "hikantuu" || Name_Only == "armor_not_pierced_by_player")
-                        Add_Sound("766083947", Voice_Now, "ja");
-                    else if (Name_Only == "kantuu" || Name_Only == "armor_pierced_by_player")
-                        Add_Sound("569784404", Voice_Now, "ja");
-                    else if (Name_Only == "tokusyu" || Name_Only == "armor_pierced_crit_by_player")
-                        Add_Sound("266422868", Voice_Now, "ja");
-                    else if (Name_Only == "tyoudan" || Name_Only == "armor_ricochet_by_player")
-                        Add_Sound("1052258113", Voice_Now, "ja");
-                    else if (Name_Only == "syatyou" || Name_Only == "commander_killed")
-                        Add_Sound("242302464", Voice_Now, "ja");
-                    else if (Name_Only == "souzyuusyu" || Name_Only == "driver_killed")
-                        Add_Sound("334837201", Voice_Now, "ja");
-                    else if (Name_Only == "tekikasai" || Name_Only == "enemy_fire_started_by_player")
-                        Add_Sound("381780774", Voice_Now, "ja");
-                    else if (Name_Only == "gekiha" || Name_Only == "enemy_killed_by_player")
-                        Add_Sound("489572734", Voice_Now, "ja");
-                    else if (Name_Only == "enjinhason" || Name_Only == "engine_damaged")
-                        Add_Sound("210078142", Voice_Now, "ja");
-                    else if (Name_Only == "enjintaiha" || Name_Only == "engine_destroyed")
-                        Add_Sound("249535989", Voice_Now, "ja");
-                    else if (Name_Only == "enjinhukkyuu" || Name_Only == "engine_functional")
-                        Add_Sound("908710042", Voice_Now, "ja");
-                    else if (Name_Only == "kasai" || Name_Only == "fire_started")
-                        Add_Sound("1057023960", Voice_Now, "ja");
-                    else if (Name_Only == "syouka" || Name_Only == "fire_stopped")
-                        Add_Sound("953778289", Voice_Now, "ja");
-                    else if (Name_Only == "nenryou" || Name_Only == "fuel_tank_damaged")
-                        Add_Sound("121897540", Voice_Now, "ja");
-                    else if (Name_Only == "housinhason" || Name_Only == "gun_damaged")
-                        Add_Sound("127877647", Voice_Now, "ja");
-                    else if (Name_Only == "housintaiha" || Name_Only == "gun_destroyed")
-                        Add_Sound("462397017", Voice_Now, "ja");
-                    else if (Name_Only == "housinhukkyuu" || Name_Only == "gun_functional")
-                        Add_Sound("651656679", Voice_Now, "ja");
-                    else if (Name_Only == "housyu" || Name_Only == "gunner_killed")
-                        Add_Sound("739086111", Voice_Now, "ja");
-                    else if (Name_Only == "soutensyu" || Name_Only == "loader_killed")
-                        Add_Sound("363753108", Voice_Now, "ja");
-                    else if (Name_Only == "musen" || Name_Only == "radio_damaged")
-                        Add_Sound("91697210", Voice_Now, "ja");
-                    else if (Name_Only == "musensyu" || Name_Only == "radioman_killed")
-                        Add_Sound("987172940", Voice_Now, "ja");
-                    else if (Name_Only == "battle" || Name_Only == "start_battle")
-                        Add_Sound("518589126", Voice_Now, "ja");
-                    else if (Name_Only == "kansokuhason" || Name_Only == "surveying_devices_damaged")
-                        Add_Sound("330491031", Voice_Now, "ja");
-                    else if (Name_Only == "kansokutaiha" || Name_Only == "surveying_devices_destroyed")
-                        Add_Sound("792301846", Voice_Now, "ja");
-                    else if (Name_Only == "kansokuhukkyuu" || Name_Only == "surveying_devices_functional")
-                        Add_Sound("539730785", Voice_Now, "ja");
-                    else if (Name_Only == "ritaihason" || Name_Only == "track_damaged")
-                        Add_Sound("38261315", Voice_Now, "ja");
-                    else if (Name_Only == "ritaitaiha" || Name_Only == "track_destroyed")
-                        Add_Sound("37535832", Voice_Now, "ja");
-                    else if (Name_Only == "ritaihukkyuu" || Name_Only == "track_functional")
+                    if (!Voices.IsEnable)
+                        continue;
+                    switch (Types.Type_Index)
                     {
-                        Add_Sound("558576963", Voice_Now, "ja");
-                        Add_Sound("403125077", Voice_Now, "ja");
+                        case 0:
+                            Add_Sound("496744290", "", "Japanese", true, null, "", Volume, false, false, false, 50, Voices.File_ID);
+                            break;
+                        case 1:
+                            Add_Sound("80768846", "", "Japanese", true, null, "", Volume, false, false, false, 50, Voices.File_ID);
+                            break;
+                        case 2:
+                            Add_Sound("611225375", "", "Japanese", true, null, "", Volume, false, false, false, 50, Voices.File_ID);
+                            Add_Sound("894898226", "", "Japanese", true, null, "", Volume, false, false, false, 50, Voices.File_ID);
+                            Add_Sound("91710501", "", "Japanese", true, null, "", Volume, false, false, false, 50, Voices.File_ID);
+                            Add_Sound("904946415", "", "Japanese", true, null, "", Volume, false, false, false, 50, Voices.File_ID);
+                            break;
+                        case 3:
+                            Add_Sound("569021006", "", "Japanese", true, null, "", Volume, false, false, false, 50, Voices.File_ID);
+                            Add_Sound("586836082", "", "Japanese", true, null, "", Volume, false, false, false, 50, Voices.File_ID);
+                            Add_Sound("198894981", "", "Japanese", true, null, "", Volume, false, false, false, 50, Voices.File_ID);
+                            break;
+                        case 4:
+                            Add_Sound("114246473", "", "Japanese", true, null, "", Volume, false, false, false, 50, Voices.File_ID);
+                            Add_Sound("758697169", "", "Japanese", true, null, "", Volume, false, false, false, 50, Voices.File_ID);
+                            Add_Sound("544988916", "", "Japanese", true, null, "", Volume, false, false, false, 50, Voices.File_ID);
+                            Add_Sound("315035946", "", "Japanese", true, null, "", Volume, false, false, false, 50, Voices.File_ID);
+                            break;
+                        case 5:
+                            Add_Sound("976240215", "", "Japanese", true, null, "", Volume, false, false, false, 50, Voices.File_ID);
+                            break;
+                        case 6:
+                            Add_Sound("694419949", "", "Japanese", true, null, "", Volume, false, false, false, 50, Voices.File_ID);
+                            break;
+                        case 7:
+                            Add_Sound("750503602", "", "Japanese", true, null, "", Volume, false, false, false, 50, Voices.File_ID);
+                            break;
+                        case 8:
+                            Add_Sound("675832160", "", "Japanese", true, null, "", Volume, false, false, false, 50, Voices.File_ID);
+                            break;
+                        case 9:
+                            Add_Sound("961047801", "", "Japanese", true, null, "", Volume, false, false, false, 50, Voices.File_ID);
+                            Add_Sound("921878250", "", "Japanese", true, null, "", Volume, false, false, false, 50, Voices.File_ID);
+                            break;
+                        case 10:
+                            Add_Sound("156949684", "", "Japanese", true, null, "", Volume, false, false, false, 50, Voices.File_ID);
+                            break;
+                        case 11:
+                            Add_Sound("779775207", "", "Japanese", true, null, "", Volume, false, false, false, 50, Voices.File_ID);
+                            break;
+                        case 12:
+                            Add_Sound("153685024", "", "Japanese", true, null, "", Volume, false, false, false, 50, Voices.File_ID);
+                            break;
+                        case 13:
+                            Add_Sound("55455728", "", "Japanese", true, null, "", Volume, false, false, false, 50, Voices.File_ID);
+                            break;
+                        case 14:
+                            Add_Sound("108269930", "", "Japanese", true, null, "", Volume, false, false, false, 50, Voices.File_ID);
+                            break;
+                        case 15:
+                            Add_Sound("518449764", "", "Japanese", true, null, "", Volume, false, false, false, 50, Voices.File_ID);
+                            break;
+                        case 16:
+                            Add_Sound("396042361", "", "Japanese", true, null, "", Volume, false, false, false, 50, Voices.File_ID);
+                            break;
+                        case 17:
+                            Add_Sound("111157803", "", "Japanese", true, null, "", Volume, false, false, false, 50, Voices.File_ID);
+                            break;
+                        case 18:
+                            Add_Sound("468738015", "", "Japanese", true, null, "", Volume, false, false, false, 50, Voices.File_ID);
+                            break;
+                        case 19:
+                            Add_Sound("290791237", "", "Japanese", true, null, "", Volume, false, false, false, 50, Voices.File_ID);
+                            break;
+                        case 20:
+                            Add_Sound("574952129", "", "Japanese", true, null, "", Volume, false, false, false, 50, Voices.File_ID);
+                            break;
+                        case 21:
+                            Add_Sound("947428834", "", "Japanese", true, null, "", Volume, false, false, false, 50, Voices.File_ID);
+                            break;
+                        case 22:
+                            Add_Sound("557399837", "", "Japanese", true, null, "", Volume, false, false, false, 50, Voices.File_ID);
+                            break;
+                        case 23:
+                            Add_Sound("629260003", "", "Japanese", true, null, "", Volume, false, false, false, 50, Voices.File_ID);
+                            break;
+                        case 24:
+                            Add_Sound("223610709", "", "Japanese", true, null, "", Volume, false, false, false, 50, Voices.File_ID);
+                            Add_Sound("60412176", "", "Japanese", true, null, "", Volume, false, false, false, 50, Voices.File_ID);
+                            break;
+                        case 25:
+                            Add_Sound("693388069", "", "Japanese", true, null, "", Volume, false, false, false, 50, Voices.File_ID);
+                            break;
+                        case 26:
+                            Add_Sound("407686850", "", "Japanese", true, null, "", Volume, false, false, false, 50, Voices.File_ID);
+                            break;
+                        case 27:
+                            Add_Sound("189198188", "", "Japanese", true, null, "", Volume, false, false, false, 50, Voices.File_ID);
+                            break;
+                        case 28:
+                            Add_Sound("113684286", "", "Japanese", true, null, "", Volume, false, false, false, 50, Voices.File_ID);
+                            break;
+                        case 29:
+                            Add_Sound("764683321", "", "Japanese", true, null, "", Volume, false, false, false, 50, Voices.File_ID);
+                            Add_Sound("1035064657", "", "Japanese", true, null, "", Volume, false, false, false, 50, Voices.File_ID);
+                            break;
+                        case 30:
+                            Add_Sound("755962743", "", "Japanese", true, null, "", Volume, false, false, false, 50, Voices.File_ID);
+                            break;
+                        case 31:
+                            Add_Sound("464113292", "", "Japanese", true, null, "", Volume, false, false, false, 50, Voices.File_ID);
+                            break;
+                        case 32:
+                            Add_Sound("230672484", "", "Japanese", true, null, "", Volume, false, false, false, 50, Voices.File_ID);
+                            break;
+                        case 33:
+                            Add_Sound("1015146434", "", "Japanese", true, null, "", Volume, false, false, false, 50, Voices.File_ID);
+                            break;
+                        case 34:
+                            Add_Sound("863608586", "", "Japanese", true, null, "", Volume, false, false, false, 50, Voices.File_ID);
+                            break;
                     }
-                    else if (Name_Only == "houtouhason" || Name_Only == "turret_rotator_damaged")
-                        Add_Sound("1014565012", Voice_Now, "ja");
-                    else if (Name_Only == "houtoutaiha" || Name_Only == "turret_rotator_destroyed")
-                        Add_Sound("135817430", Voice_Now, "ja");
-                    else if (Name_Only == "houtouhukkyuu" || Name_Only == "turret_rotator_functional")
-                        Add_Sound("985679417", Voice_Now, "ja");
-                    else if (Name_Only == "taiha" || Name_Only == "vehicle_destroyed")
-                        Add_Sound("164671745", Voice_Now, "ja");
-                    else if (Name_Only == "hakken")
-                        Add_Sound("447063394", Voice_Now, "ja");
-                    else if (Name_Only == "lamp")
-                        Add_Sound("154835998", Voice_Now, "ja");
-                    else if (Name_Only == "ryoukai")
-                        Add_Sound("607694618", Voice_Now, "ja");
-                    else if (Name_Only == "kyohi")
-                        Add_Sound("391276124", Voice_Now, "ja");
-                    else if (Name_Only == "help")
-                        Add_Sound("840378218", Voice_Now, "ja");
-                    else if (Name_Only == "attack")
-                        Add_Sound("549968154", Voice_Now, "ja");
-                    else if (Name_Only == "attack_now")
-                        Add_Sound("1015337424", Voice_Now, "ja");
-                    else if (Name_Only == "capture")
-                        Add_Sound("271044645", Voice_Now, "ja");
-                    else if (Name_Only == "defence")
-                        Add_Sound("310153012", Voice_Now, "ja");
-                    else if (Name_Only == "keep")
-                        Add_Sound("379548034", Voice_Now, "ja");
-                    else if (Name_Only == "lock")
-                        Add_Sound("839607605", Voice_Now, "ja");
-                    else if (Name_Only == "unlock")
-                        Add_Sound("233444430", Voice_Now, "ja");
-                    else if (Name_Only == "reload")
-                        Add_Sound("299739777", Voice_Now, "ja");
-                    else if (Name_Only == "map")
-                        Add_Sound("120795627", Voice_Now, "ja");
-                    else if (Name_Only == "battle_end")
-                        Add_Sound("924876614", Voice_Now, "ja");
-                    else if (Name_Only == "battle_bgm")
-                    {
-                        if (!IsNotIncludeBGM)
-                            Add_Sound("649358221", Voice_Now, "ja");
-                    }
-                    else if (Name_Only == "load_bgm")
-                        Add_Sound("915105627", Voice_Now, "ja");
-                    else if (Name_Only == "chat_allies_send")
-                        Add_Sound("491691546", Voice_Now, "ja");
-                    else if (Name_Only == "chat_allies_receive")
-                        Add_Sound("417768496", Voice_Now, "ja");
-                    else if (Name_Only == "chat_enemy_send")
-                        Add_Sound("46472417", Voice_Now, "ja");
-                    else if (Name_Only == "chat_enemy_receive")
-                        Add_Sound("681331945", Voice_Now, "ja");
-                    else if (Name_Only == "chat_platoon_send")
-                        Add_Sound("190711689", Voice_Now, "ja");
-                    else if (Name_Only == "chat_platoon_receive")
-                        Add_Sound("918836720", Voice_Now, "ja");
                 }
             }
         }
-        public void Sound_Add_Wwise(List<List<Voice_Event_Setting>> Event_Settings, WVS_Load WVS_File, List<string> SE_Preset, List<Dictionary<uint, string>> Default_SE)
+        public void Sound_Add_Wwise(List<List<Voice_Event_Setting>> Event_Settings, WVS_Load WVS_File, SE_Setting seSetting)
         {
             foreach (List<Voice_Event_Setting> Settings in Event_Settings)
             {
@@ -1250,27 +1337,42 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                     Add_Sound(Setting, WVS_File);
                     if (Setting.SE_Index != -1)
                     {
-                        if (Voice_Set.SE_Enable_Disable[Setting.SE_Index - 1])
+                        Delete_CAkSounds(Setting.SE_ShortID);
+                        if (seSetting.sePreset.types[Setting.SE_Index - 1].bEnable && seSetting.sePreset.types[Setting.SE_Index - 1].items.ContainsKey(0))
                         {
-                            string Temp = SE_Preset[Setting.SE_Index];
-                            foreach (string File_Now in Temp.Split('|'))
-                                if (File.Exists(File_Now))
-                                    Add_Sound(Setting.SE_ShortID, File_Now, Setting.SE_Volume);
+                            foreach (string fileNow in seSetting.sePreset.types[Setting.SE_Index - 1].items[0])
+                                if (File.Exists(fileNow))
+                                    Add_Sound(Setting.SE_ShortID, fileNow, Setting.SE_Volume);
                         }
                         else
                         {
-                            foreach (uint ShortID in Default_SE[Setting.SE_Index - 1].Keys)
+                            foreach (KeyValuePair<uint, List<string>> keyValue in seSetting.seDefault.types[Setting.SE_Index - 1].items)
                             {
-                                string Temp = Default_SE[Setting.SE_Index - 1][ShortID];
-                                foreach (string File_Now in Temp.Split('|'))
-                                    if (File.Exists(File_Now))
-                                        Add_Sound(ShortID, File_Now);
+                                if (keyValue.Key != 0)
+                                    Delete_CAkSounds(keyValue.Key);
+                                foreach (string fileNow in keyValue.Value)
+                                {
+                                    if (File.Exists(fileNow))
+                                    {
+                                        if (keyValue.Key == 0)
+                                            Add_Sound(Setting.SE_ShortID, fileNow);
+                                        else
+                                            Add_Sound(keyValue.Key, fileNow);
+                                    }
+                                }
                             }
                         }
                     }
                 }
             }
-            SE_Add_Wwise(SE_Preset, Default_SE);
+            if (seSetting.sePreset.types[13].bEnable && seSetting.sePreset.types[13].items.ContainsKey(0))
+            {
+                //戦闘開始タイマー
+                Delete_CAkSounds(816581364);
+                foreach (string fileNow in seSetting.sePreset.types[13].items[0])
+                    if (File.Exists(fileNow))
+                        Add_Sound(816581364, fileNow, 0, true);
+            }
         }
         public void Sound_Add_Wwise(List<Dictionary<string, Voice_Event_Setting>> Event_Settings, Dictionary<string, List<SE_Info_Parent>> SE_Info, WVS_Load WVS_File)
         {
@@ -1281,65 +1383,35 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 foreach (SE_Info_Parent Parent in SE_Info[Key_Name])
                     Add_Sound(Parent, WVS_File);
         }
-        public void Sound_Add_Wwise(List<Voice_Event_Setting> Event_Settings, List<string> SE_Preset, List<Dictionary<uint, string>> Default_SE)
+        public void Sound_Add_Wwise(List<Voice_Event_Setting> Event_Settings, SE_Setting seSetting)
         {
             foreach (Voice_Event_Setting Settings in Event_Settings)
             {
                 Add_Sound(Settings, null, true);
                 if (Settings.SE_Index != -1)
                 {
-                    if (Voice_Set.SE_Enable_Disable[Settings.SE_Index - 1])
+                    Delete_CAkSounds(Settings.SE_ShortID);
+                    if (seSetting.sePreset.types[Settings.SE_Index - 1].bEnable)
                     {
-                        string Temp = SE_Preset[Settings.SE_Index];
-                        foreach (string File_Now in Temp.Split('|'))
-                            if (File.Exists(File_Now))
-                                Add_Sound(Settings.SE_ShortID, File_Now, Settings.SE_Volume);
+                        foreach (string fileNow in seSetting.sePreset.types[Settings.SE_Index - 1].items[0])
+                            if (File.Exists(fileNow))
+                                Add_Sound(Settings.SE_ShortID, fileNow, Settings.SE_Volume);
                     }
                     else
                     {
-                        foreach (uint ShortID in Default_SE[Settings.SE_Index - 1].Keys)
+                        foreach (KeyValuePair<uint, List<string>> keyValue in seSetting.seDefault.types[Settings.SE_Index - 1].items)
                         {
-                            string Temp = Default_SE[Settings.SE_Index - 1][ShortID];
-                            foreach (string File_Now in Temp.Split('|'))
-                                if (File.Exists(File_Now))
-                                    Add_Sound(ShortID, File_Now);
+                            foreach (string fileNow in keyValue.Value)
+                            {
+                                if (File.Exists(fileNow))
+                                {
+                                    if (keyValue.Key == 0 || keyValue.Key == Settings.SE_ShortID)
+                                        Add_Sound(Settings.SE_ShortID, fileNow);
+                                }
+                            }
                         }
                     }
                 }
-            }
-            SE_Add_Wwise(SE_Preset, Default_SE);
-        }
-        private void SE_Add_Wwise(List<string> SE_Preset, List<Dictionary<uint, string>> Default_SE)
-        {
-            Delete_CAkSounds("816581364");
-            Delete_CAkSounds("921545948");
-            if (Voice_Set.SE_Enable_Disable[13])
-            {
-                string Temp = SE_Preset[14];
-                foreach (string File_Now in Temp.Split('|'))
-                    if (File.Exists(File_Now))
-                        Add_Sound(816581364, File_Now, 0, true);
-            }
-            else
-            {
-                string Temp = Default_SE[13][816581364];
-                foreach (string File_Now in Temp.Split('|'))
-                    if (File.Exists(File_Now))
-                        Add_Sound(816581364, File_Now, 0, true);
-            }
-            if (Voice_Set.SE_Enable_Disable[16])
-            {
-                string Temp = SE_Preset[17];
-                foreach (string File_Now in Temp.Split('|'))
-                    if (File.Exists(File_Now))
-                        Add_Sound(921545948, File_Now, 0);
-            }
-            else
-            {
-                string Temp = Default_SE[16][921545948];
-                foreach (string File_Now in Temp.Split('|'))
-                    if (File.Exists(File_Now))
-                        Add_Sound(921545948, File_Now, 0);
             }
         }
         public async Task Encode_WAV()
@@ -1347,18 +1419,18 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             List<string> To_Files = new List<string>();
             for (int Number = 0; Number < Add_Voice_From.Count; Number++)
                 To_Files.Add(Project_Dir + "\\Originals\\" + Add_Voice_Type[Number] + "\\" + Add_Voice_To[Number] + ".wav");
-            await Multithread.Convert_To_Wav(Add_Voice_From.ToArray(), To_Files.ToArray(), false, true);
+            await Multithread.Convert_To_Wav(Add_Voice_From.ToArray(), To_Files.ToArray(), false);
             for (int Number = 0; Number < Add_Voice_From.Count; Number++)
                 if (Add_Voice_From[Number].Contains(Project_Dir + "\\Originals\\" + Add_Voice_Type[Number] + "\\"))
                     File.Delete(Add_Voice_From[Number]);
         }
-        public void Set_Volume()
+        public void Set_Volume(double gain)
         {
             List<string> To_Files = new List<string>();
             for (int Number = 0; Number < Add_Voice_From.Count; Number++)
                 if (Add_Voice_Type[Number] != "SFX")
                     To_Files.Add(Project_Dir + "\\Originals\\" + Add_Voice_Type[Number] + "\\" + Add_Voice_To[Number] + ".wav");
-            Sub_Code.Volume_Set(To_Files.ToArray(), Encode_Mode.WAV);
+            Sub_Code.Volume_Set(To_Files.ToArray(), Encode_Mode.WAV, gain);
         }
         //イベント内の指定したShortIDの項目を無効にする
         //階層が存在する場合はフォルダの指定もする必要あり
@@ -1366,8 +1438,8 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         {
             if (!File.Exists(Project_Dir + "/Events/" + Event_Name + ".wwu"))
                 return;
-            if (!File.Exists(Project_Dir + "/Events/" + Event_Name + ".wwu.bak"))
-                File.Copy(Project_Dir + "/Events/" + Event_Name + ".wwu", Project_Dir + "/Events/" + Event_Name + ".wwu.bak", true);
+            if (!File.Exists(Project_Dir + "/Events/" + Event_Name + ".wwu.noin"))
+                File.Copy(Project_Dir + "/Events/" + Event_Name + ".wwu", Project_Dir + "/Events/" + Event_Name + ".wwu.noin", true);
             List<string> Lines = new List<string>();
             Lines.AddRange(File.ReadAllLines(Project_Dir + "/Events/" + Event_Name + ".wwu"));
             int ShortID_Line = 0;
@@ -1402,7 +1474,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         //Event_Not_Include()を行った場合必ず実行
         public void Event_Reset()
         {
-            foreach (string Name_Now in Directory.GetFiles(Project_Dir + "/Events", "*.bak", SearchOption.TopDirectoryOnly))
+            foreach (string Name_Now in Directory.GetFiles(Project_Dir + "/Events", "*.noin", SearchOption.TopDirectoryOnly))
             {
                 string To_File = Path.GetDirectoryName(Name_Now) + "\\" + Path.GetFileNameWithoutExtension(Name_Now);
                 Sub_Code.File_Move(Name_Now, To_File, true);

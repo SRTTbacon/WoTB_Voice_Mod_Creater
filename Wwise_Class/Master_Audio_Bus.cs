@@ -114,8 +114,9 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 string ShortID = ID_Line[Number][0];
                 Message_T.Text = ShortID + "を復号化しています...";
                 await Task.Delay(50);
-                FNV_Hash_Class hasher = new FNV_Hash_Class();
-                string Parse = hasher.Bruteforce(8, uint.Parse(ShortID));
+                //FNV_Hash_Class hasher = new FNV_Hash_Class();
+                //string Parse = hasher.Bruteforce(8, uint.Parse(ShortID));
+                string Parse = Wwise_Player.HashToString(8, uint.Parse(ShortID));
                 StreamWriter stw = new StreamWriter(To_File, true);
                 stw.WriteLine(ShortID + " = " + Parse + " : 親 = " + ID_Line_Special[Number][0]);
                 stw.Close();
@@ -138,7 +139,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 _bytes[i] = 0x5f;
             }
         }
-        public string Bruteforce(int Length, uint match)
+        public string Bruteforce2(int Length, uint match)
         {
             Initialize(Length);
             while (true)
