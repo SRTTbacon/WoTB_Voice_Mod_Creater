@@ -1,9 +1,19 @@
 # WoTB_Voice_Mod_Creater
 Wwiseの使い方がわからなくても自動でプロジェクトを作成、ビルド、適応をしてくれるソフトです。<br>
-おまけとして戦闘BGMの作成と、謎の音楽プレイヤーを搭載しています。<br>
 操作方法はYoutubeの動画を参照してください<br>
 バグや不具合、わからないことがあればSRTTbacon#2395までご連絡を！<br>
 V1.2.7から.NetFramework4.6.1に変更しましたので、Windows7などはマイクロソフトからダウンロード&インストールする必要があります。<br>
+<br><主な機能><br>
+・音声Modを作成<br>
+・WoT用の音声ModをBlitz用に変換(逆も可)<br>
+・WoWS用の音声ModをBlitz用に変換(逆は不可)<br>
+・PC版WoT用の音声Modを作成<br>
+・戦闘開始前のロードBGM、リザルトBGM、ガレージSE、砲撃音Modを作成<br>
+・.fsbファイルからの音声Modの移植<br>
+・.bnkファイルをWwiseプロジェクトに変換<br>
+・Modの管理&導入<br>
+・音楽プレイヤー<br>
+・.bnkファイルの再生&抽出<br>
 <br>
 ダウンロード:https://www.dropbox.com/scl/fi/s5oxuv226e3auhh77d5xb/WoTB_Mod_Creator.zip?rlkey=yshrfykfdbz5kgysoot8qxyvo&dl=1<br>
 ソース内のWwise_Class/V1とV2の違いは、V1では.pckファイルを扱い、V2では.bnkファイルを扱う感じです。<br>
