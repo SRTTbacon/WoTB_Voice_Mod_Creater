@@ -98,7 +98,7 @@
             <CheckBox x:Name="Volume_Set_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Focusable="False" Margin="-2050,920,0,0"/>
             <TextBlock x:Name="Volume_Set_T" Height="58" Width="285" FontSize="40" Foreground="Aqua" TextWrapping="Wrap" Text="音量を均一にする" Margin="-1700,900,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
             <TextBlock x:Name="Change_Volume_T" FontSize="33" Height="45" Width="250" TextWrapping="Wrap" Text="音量:14" VerticalAlignment="Top" Margin="-2650,860,0,0" Foreground="Aqua" TextAlignment="Center"/>
-            <Slider x:Name="Change_Volume_S" Height="27" VerticalAlignment="Top" Width="250" Margin="-2650,920,0,0" Style="{StaticResource CustomSliderStyle}" Value="89" SmallChange="1" LargeChange="1" Minimum="69" Maximum="103" ValueChanged="Change_Volume_S_ValueChanged"/>
+            <Slider x:Name="Change_Volume_S" Height="27" VerticalAlignment="Top" Width="250" Margin="-2650,920,0,0" Style="{StaticResource CustomSliderStyle}" Value="99" SmallChange="1" LargeChange="1" Minimum="69" Maximum="103" ValueChanged="Change_Volume_S_ValueChanged"/>
             <Button x:Name="Change_Volume_B" Content="音量テスト" Height="50" VerticalAlignment="Top" Width="125" Margin="-2250,905,0,0" FontSize="25" BorderBrush="Aqua" Foreground="Aqua" Background="Transparent" Focusable="False" Click="Change_Volume_B_Click"/>
             <TextBlock x:Name="Message_T" Height="92" Width="600" Foreground="Aqua" FontSize="35" Margin="-2920,730,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" TextAlignment="Center"/>
             <ComboBox x:Name="Load_Combo" Height="50" VerticalAlignment="Top" Width="325" Margin="-560,215,0,0" FontSize="32"/>

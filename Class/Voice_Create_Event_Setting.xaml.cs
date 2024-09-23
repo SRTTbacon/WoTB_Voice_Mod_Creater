@@ -8,6 +8,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using Un4seen.Bass;
+using Un4seen.Bass.AddOn.Flac;
 using Un4seen.Bass.AddOn.Fx;
 using Un4seen.Bass.Misc;
 
@@ -235,19 +236,19 @@ namespace WoTB_Voice_Mod_Creater.Class
                         IsSpaceKeyDown = false;
                     if ((Keyboard.GetKeyStates(Key.V) & KeyStates.Down) > 0 && (Keyboard.GetKeyStates(Key.Up) & KeyStates.Down) > 0)
                     {
-                        double Increase = 1;
-                        if (All_Volume_S.Value + Increase > 10)
-                            All_Volume_S.Value = 10;
+                        double Increase = 0.4;
+                        if (Volume_Start_S.Value + Increase > 11)
+                            Volume_Start_S.Value = 11;
                         else
-                            All_Volume_S.Value += Increase;
+                            Volume_Start_S.Value += Increase;
                     }
                     else if ((Keyboard.GetKeyStates(Key.V) & KeyStates.Down) > 0 && (Keyboard.GetKeyStates(Key.Down) & KeyStates.Down) > 0)
                     {
-                        double Increase = 1;
-                        if (All_Volume_S.Value - Increase < -10)
-                            All_Volume_S.Value = -10;
+                        double Increase = 0.4;
+                        if (Volume_Start_S.Value - Increase < -11)
+                            Volume_Start_S.Value = -11;
                         else
-                            All_Volume_S.Value -= Increase;
+                            Volume_Start_S.Value -= Increase;
                     }
                     if ((Keyboard.GetKeyStates(Key.S) & KeyStates.Down) > 0 && (Keyboard.GetKeyStates(Key.Up) & KeyStates.Down) > 0)
                     {
@@ -773,8 +774,12 @@ namespace WoTB_Voice_Mod_Creater.Class
                 SE_Type Temp = seSetting.sePreset.types[Settings.SE_Index - 1];
                 if (Temp.items.Count > 0)
                 {
-                    string Name = Temp.GetRandomItems()[Sub_Code.r.Next(0, Temp.items.Count)];
-                    Streams[0] = Bass.BASS_StreamCreateFile(Name, 0, 0, BASSFlag.BASS_SAMPLE_FLOAT | BASSFlag.BASS_STREAM_DECODE);
+                    List<string> playRandomSE = Temp.GetRandomItems();
+                    string Name = playRandomSE[Sub_Code.r.Next(0, playRandomSE.Count)];
+                    if (Path.GetExtension(Name) == ".flac")
+                        Streams[0] = BassFlac.BASS_FLAC_StreamCreateFile(Name, 0, 0, BASSFlag.BASS_SAMPLE_FLOAT | BASSFlag.BASS_STREAM_DECODE);
+                    else
+                        Streams[0] = Bass.BASS_StreamCreateFile(Name, 0, 0, BASSFlag.BASS_SAMPLE_FLOAT | BASSFlag.BASS_STREAM_DECODE);
                     Sound_Time[0] = Bass.BASS_ChannelBytes2Seconds(Streams[0], Bass.BASS_ChannelGetLength(Streams[0], BASSMode.BASS_POS_BYTES));
                     Play_SE_Name = Path.GetFileName(Name);
                 }
@@ -799,17 +804,23 @@ namespace WoTB_Voice_Mod_Creater.Class
                         {
                             int Voice_Sound_Handle;
                             if (Settings.Sounds[Number].File_Path.Contains("\\"))
-                                Voice_Sound_Handle = Bass.BASS_StreamCreateFile(Settings.Sounds[Number].File_Path, 0, 0, BASSFlag.BASS_SAMPLE_FLOAT | BASSFlag.BASS_STREAM_DECODE);
+                            {
+                                if (Path.GetExtension(Settings.Sounds[Number].File_Path) == ".flac")
+                                    Voice_Sound_Handle = BassFlac.BASS_FLAC_StreamCreateFile(Settings.Sounds[Number].File_Path, 0, 0, BASSFlag.BASS_SAMPLE_FLOAT | BASSFlag.BASS_STREAM_DECODE);
+                                else
+                                    Voice_Sound_Handle = Bass.BASS_StreamCreateFile(Settings.Sounds[Number].File_Path, 0, 0, BASSFlag.BASS_SAMPLE_FLOAT | BASSFlag.BASS_STREAM_DECODE);
+                            }
                             else
                             {
-                                /*File.Delete(Voice_Set.Special_Path + "\\Wwise\\Temp_Voice_Create_03.mp3");
-                                File.WriteAllBytes(Voice_Set.Special_Path + "\\Wwise\\Temp_Voice_Create_03.mp3", WVS_File.Load_Sound(Settings.Sounds[Number].Stream_Position));
-                                Voice_Sound_Handle = Bass.BASS_StreamCreateFile(Voice_Set.Special_Path + "\\Wwise\\Temp_Voice_Create_03.mp3", 0, 0, BASSFlag.BASS_SAMPLE_FLOAT | BASSFlag.BASS_STREAM_DECODE);*/
                                 Sound_Bytes = WVS_File.Load_Sound(Settings.Sounds[Number].Stream_Position);
                                 if (Sound_IntPtr != null && Sound_IntPtr.IsAllocated)
                                     Sound_IntPtr.Free();
                                 Sound_IntPtr = GCHandle.Alloc(Sound_Bytes, GCHandleType.Pinned);
-                                Voice_Sound_Handle = Bass.BASS_StreamCreateFile(Sound_IntPtr.AddrOfPinnedObject(), 0L, Sound_Bytes.Length, BASSFlag.BASS_SAMPLE_FLOAT | BASSFlag.BASS_STREAM_DECODE);
+                                IntPtr pin = Sound_IntPtr.AddrOfPinnedObject();
+                                if (Path.GetExtension(Settings.Sounds[Number].File_Path) == ".flac")
+                                    Voice_Sound_Handle = BassFlac.BASS_FLAC_StreamCreateFile(pin, 0L, Sound_Bytes.Length, BASSFlag.BASS_SAMPLE_FLOAT | BASSFlag.BASS_STREAM_DECODE);
+                                else
+                                    Voice_Sound_Handle = Bass.BASS_StreamCreateFile(pin, 0L, Sound_Bytes.Length, BASSFlag.BASS_SAMPLE_FLOAT | BASSFlag.BASS_STREAM_DECODE);
                             }
                             Play_Voice_Name = Path.GetFileName(Settings.Sounds[Number].File_Path);
                             Streams[1] = BassFx.BASS_FX_TempoCreate(Voice_Sound_Handle, BASSFlag.BASS_FX_FREESOURCE | BASSFlag.BASS_STREAM_DECODE);

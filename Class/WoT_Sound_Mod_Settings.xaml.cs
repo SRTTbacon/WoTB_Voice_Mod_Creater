@@ -303,13 +303,6 @@ namespace WoTB_Voice_Mod_Creater.Class
             Pause_Volume_Animation(true, 15f);
             Change_SE_List(SE_Type_Lists.SelectedIndex);
         }
-        private void UserControl_Loaded(object sender, RoutedEventArgs e)
-        {
-            string SE_Path = Voice_Set.Special_Path + "\\WoT_SE";
-            Get_Sounds_By_Index(0).Add(new SE_Info_Parent(SE_Path + "\\Lightbulb_01.wav", SE_ShortIDs[0]));
-            Get_Sounds_By_Index(1).Add(new SE_Info_Parent(SE_Path + "\\SPG_Lightbulb.wav", SE_ShortIDs[1]));
-            All_Aplly_List();
-        }
         public void Add_XML_Change_Mod(WoT_Create_XML XML)
         {
             string SE_Path = Voice_Set.Special_Path + "\\WoT_SE";
@@ -319,6 +312,14 @@ namespace WoTB_Voice_Mod_Creater.Class
                 XML.Add_Change_Event(Get_EventName_By_Index(0), Get_EventName_By_Index(0) + "_Mod");
             if (Parent_02.Count == 1 && Parent_02[0].SE_Path == SE_Path + "\\SPG_Lightbulb.wav")
                 XML.Add_Change_Event(Get_EventName_By_Index(0), Get_EventName_By_Index(0) + "_Mod");
+        }
+
+        private void UserControl_Loaded(object sender, RoutedEventArgs e)
+        {
+            string SE_Path = Voice_Set.Special_Path + "\\WoT_SE";
+            Get_Sounds_By_Index(0).Add(new SE_Info_Parent(SE_Path + "\\Lightbulb_01.wav", SE_ShortIDs[0]));
+            Get_Sounds_By_Index(1).Add(new SE_Info_Parent(SE_Path + "\\SPG_Lightbulb.wav", SE_ShortIDs[1]));
+            All_Aplly_List();
         }
     }
 }

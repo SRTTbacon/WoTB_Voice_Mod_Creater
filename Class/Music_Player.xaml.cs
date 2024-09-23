@@ -12,6 +12,8 @@ using System.Linq;
 using Un4seen.Bass;
 using Un4seen.Bass.AddOn.Fx;
 using static Cauldron.Mathematics.CoordinateSystem;
+using WoTB_Voice_Mod_Creater.Properties;
+using WK.Libraries.BetterFolderBrowserNS;
 
 public class Video_Mode
 {
@@ -32,6 +34,11 @@ namespace WoTB_Voice_Mod_Creater.Class
             this.File_Full_Path = File_Full_Path;
             this.File_Name_Path = File_Name_Path;
             ID = (uint)Sub_Code.r.Next(10000, 100000);
+        }
+
+        public void ChangeFile(string toFilePath)
+        {
+            File_Full_Path = toFilePath;
         }
     }
     public partial class Music_Player : System.Windows.Controls.UserControl
@@ -65,14 +72,16 @@ namespace WoTB_Voice_Mod_Creater.Class
         bool IsFullScreen = false;
         bool IsVideoMode = false;
         bool IsRenameClosing = false;
+        bool bOpenedChangeDir = false;
+        bool bLoopTimeEndPushed = false;
         System.Windows.Point Mouse_Point = new System.Windows.Point(0, 0);
         System.Windows.Point Video_Point = new System.Windows.Point(0, 0);
         System.Windows.Media.Imaging.BitmapImage Wave_Gray_Image_Source = null;
         System.Windows.Media.Imaging.BitmapImage Wave_Color_Image_Source = null;
         Un4seen.Bass.Misc.WaveForm WF_Gray = null;
         Un4seen.Bass.Misc.WaveForm WF_Color = null;
-        readonly BASS_BFX_BQF LPF_Setting = new BASS_BFX_BQF(BASSBFXBQF.BASS_BFX_BQF_LOWPASS, 500f, 0f, 0.707f, 0f, 0f, BASSFXChan.BASS_BFX_CHANALL);
-        readonly BASS_BFX_BQF HPF_Setting = new BASS_BFX_BQF(BASSBFXBQF.BASS_BFX_BQF_HIGHPASS, 1000f, 0f, 0.707f, 0f, 0f, BASSFXChan.BASS_BFX_CHANALL);
+        readonly BASS_BFX_BQF LPF_Setting = new BASS_BFX_BQF(BASSBFXBQF.BASS_BFX_BQF_LOWPASS, 12000f, 0f, 0f, 1f, 0f, BASSFXChan.BASS_BFX_CHANALL);
+        readonly BASS_BFX_BQF HPF_Setting = new BASS_BFX_BQF(BASSBFXBQF.BASS_BFX_BQF_HIGHPASS, 0f, 0f, 0f, 1f, 0f, BASSFXChan.BASS_BFX_CHANALL);
         readonly BASS_BFX_ECHO4 ECHO_Setting = new BASS_BFX_ECHO4(0, 0, 0, 0, true, BASSFXChan.BASS_BFX_CHANALL);
         int Stream;
         int Stream_LPF = 0;
@@ -133,7 +142,8 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 if (IsEnable)
                 {
-                    LPF_Setting.fCenter = 500f + 4000f * (1 - (float)Music_Player_Setting_Window.LPF_S.Value / 100f);
+                    int value = (int)Music_Player_Setting_Window.LPF_S.Value == 0 ? 1 : (int)Music_Player_Setting_Window.LPF_S.Value;
+                    LPF_Setting.fCenter = (float)Get_LPF_Value(value);
                     Bass.BASS_FXSetParameters(Stream_LPF, LPF_Setting);
                 }
                 else
@@ -146,7 +156,8 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 if (IsEnable)
                 {
-                    HPF_Setting.fCenter = 100f + 4000f * (float)Music_Player_Setting_Window.HPF_S.Value / 100f;
+                    int value = (int)Music_Player_Setting_Window.HPF_S.Value == 0 ? 1 : (int)Music_Player_Setting_Window.HPF_S.Value;
+                    HPF_Setting.fCenter = (float)Get_HPF_Value(value);
                     Bass.BASS_FXSetParameters(Stream_HPF, HPF_Setting);
                 }
                 else
@@ -403,13 +414,15 @@ namespace WoTB_Voice_Mod_Creater.Class
                     {
                         if (Music_Player_Setting_Window.IsLPFChanged && Music_Player_Setting_Window.IsLPFEnable)
                         {
-                            LPF_Setting.fCenter = 500f + 4000f * (1 - (float)Music_Player_Setting_Window.LPF_S.Value / 100f);
+                            int value = (int)Music_Player_Setting_Window.LPF_S.Value == 0 ? 1 : (int)Music_Player_Setting_Window.LPF_S.Value;
+                            LPF_Setting.fCenter = (float)Get_LPF_Value(value);
                             Bass.BASS_FXSetParameters(Stream_LPF, LPF_Setting);
                             Music_Player_Setting_Window.IsLPFChanged = false;
                         }
                         if (Music_Player_Setting_Window.IsHPFChanged && Music_Player_Setting_Window.IsHPFEnable)
                         {
-                            HPF_Setting.fCenter = 100f + 4000f * (float)Music_Player_Setting_Window.HPF_S.Value / 100f;
+                            int value = (int)Music_Player_Setting_Window.HPF_S.Value == 0 ? 1 : (int)Music_Player_Setting_Window.HPF_S.Value;
+                            HPF_Setting.fCenter = (float)Get_HPF_Value(value);
                             Bass.BASS_FXSetParameters(Stream_HPF, HPF_Setting);
                             Music_Player_Setting_Window.IsHPFChanged = false;
                         }
@@ -577,6 +590,10 @@ namespace WoTB_Voice_Mod_Creater.Class
                         }
                         else
                             IsESCKeyDown = false;
+                        if (IsLControlKeyDown && (Keyboard.GetKeyStates(Key.D) & KeyStates.Down) > 0)
+                        {
+                            ReplaceMusicDir();
+                        }
                         if (IsPlaying)
                         {
                             if (IsVolume_Speed_Changed_By_Key && (Keyboard.GetKeyStates(Key.S) & KeyStates.Down) == 0 && (Keyboard.GetKeyStates(Key.Up) & KeyStates.Down) == 0 && (Keyboard.GetKeyStates(Key.Down) & KeyStates.Down) == 0)
@@ -890,8 +907,8 @@ namespace WoTB_Voice_Mod_Creater.Class
                 int Select_Index = Music_Data[Music_Select_List].Select(h => h.File_Name_Path).ToList().IndexOf(LBI.Content.ToString());
                 if (!File.Exists(Music_Data[Music_Select_List][Select_Index].File_Full_Path))
                 {
-                    System.Windows.MessageBox.Show("ファイルが存在しません。リストから削除されます。");
-                    List_Remove_Index();
+                    System.Windows.MessageBox.Show("ファイルが存在しません。\n場所:" + Music_Data[Music_Select_List][Select_Index].File_Full_Path);
+                    Music_List.SelectedIndex = -1;
                     return;
                 }
                 if (Playing_Music_Name_Now == Music_Data[Music_Select_List][Select_Index].File_Full_Path && Location_S.Maximum > 0)
@@ -957,12 +974,14 @@ namespace WoTB_Voice_Mod_Creater.Class
                 HPF_Setting.fCenter = 1000f;
                 if (Music_Player_Setting_Window.IsLPFEnable)
                 {
-                    LPF_Setting.fCenter = 500 + 4000f * (1 - (float)Music_Player_Setting_Window.LPF_S.Value / 100.0f);
+                    int value = (int)Music_Player_Setting_Window.LPF_S.Value == 0 ? 1 : (int)Music_Player_Setting_Window.LPF_S.Value;
+                    LPF_Setting.fCenter = (float)Get_LPF_Value(value);
                     Bass.BASS_FXSetParameters(Stream_LPF, LPF_Setting);
                 }
                 if (Music_Player_Setting_Window.IsHPFEnable)
                 {
-                    HPF_Setting.fCenter = 1000 + 4000f * (float)Music_Player_Setting_Window.HPF_S.Value / 100.0f;
+                    int value = (int)Music_Player_Setting_Window.HPF_S.Value == 0 ? 1 : (int)Music_Player_Setting_Window.HPF_S.Value;
+                    HPF_Setting.fCenter = (float)Get_HPF_Value(value);
                     Bass.BASS_FXSetParameters(Stream_HPF, HPF_Setting);
                 }
                 ECHO_Setting.fWetMix = 0f;
@@ -2079,11 +2098,17 @@ namespace WoTB_Voice_Mod_Creater.Class
                 //再生終了時間を保存
                 if ((System.Windows.Forms.Control.ModifierKeys & Keys.Shift) == Keys.Shift && e.Key == Key.E)
                 {
-                    End_Time = Location_S.Value;
-                    if (End_Time < Start_Time)
-                        Start_Time = 0;
-                    Loop_Time_T.Text = "再生時間:" + (int)Start_Time + "～" + (int)End_Time;
+                    if (!bLoopTimeEndPushed)
+                    {
+                        End_Time = Location_S.Value;
+                        if (End_Time < Start_Time)
+                            Start_Time = 0;
+                        Loop_Time_T.Text = "再生時間:" + (int)Start_Time + "～" + (int)End_Time;
+                        bLoopTimeEndPushed = true;
+                    }
                 }
+                else
+                    bLoopTimeEndPushed = false;
                 //保存した時間を取り消す
                 if ((System.Windows.Forms.Control.ModifierKeys & Keys.Shift) == Keys.Shift && e.Key == Key.C)
                 {
@@ -2343,6 +2368,64 @@ namespace WoTB_Voice_Mod_Creater.Class
                 if (IsSave)
                     Music_List_Save();
             }
+        }
+        int Get_LPF_Value(int Value)
+        {
+            int NewValue = Value == 0 ? 1 : Value;
+            int Index = (int)Math.Floor(NewValue / 10.0);
+            int Key = Sub_Code.LPF_Values.Keys.ElementAt(Index);
+            return Key - (int)((double)Sub_Code.LPF_Values[Key] * Sub_Code.Get_Decimal(NewValue / 10.0));
+        }
+        int Get_HPF_Value(int Value)
+        {
+            int NewValue = Value == 0 ? 1 : Value;
+            int Index = (int)Math.Floor(NewValue / 5.0);
+            int Key = Sub_Code.HPF_Values.Keys.ElementAt(Index);
+            return Key + (int)((double)Sub_Code.HPF_Values[Key] * Sub_Code.Get_Decimal(NewValue / 5.0));
+        }
+        void ReplaceMusicDir()
+        {
+            if (IsBusy || bOpenedChangeDir)
+                return;
+            bOpenedChangeDir = true;
+            BetterFolderBrowser bfb = new BetterFolderBrowser()
+            {
+                Title = "曲の移動先のフォルダを選択してください。",
+                Multiselect = false,
+                RootFolder = Sub_Code.Get_OpenDirectory_Path()
+            };
+            if (bfb.ShowDialog() == DialogResult.OK)
+            {
+                Sub_Code.Set_Directory_Path(bfb.SelectedFolder);
+                if (!Sub_Code.CanDirectoryAccess(bfb.SelectedFolder))
+                {
+                    bfb.Dispose();
+                    bOpenedChangeDir = false;
+                    return;
+                }
+                bool bSaveMode = false;
+                int replaceCount = 0;
+                foreach (List<Music_Child_Class> musicList in Music_Data)
+                {
+                    foreach (Music_Child_Class music in musicList)
+                    {
+                        string toFilePath = bfb.SelectedFolder + "\\" + Path.GetFileName(music.File_Full_Path);
+                        if (!File.Exists(music.File_Full_Path) && File.Exists(toFilePath))
+                        {
+                            music.ChangeFile(toFilePath);
+                            bSaveMode = true;
+                            replaceCount++;
+                        }
+                    }
+                }
+                if (bSaveMode)
+                {
+                    Music_List_Save();
+                    System.Windows.MessageBox.Show(replaceCount + "個のファイルパスを指定したフォルダに変換しました。");
+                }
+            }
+            bfb.Dispose();
+            bOpenedChangeDir = false;
         }
     }
 }

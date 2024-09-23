@@ -1,0 +1,61 @@
+﻿<UserControl x:Class="WoTB_Voice_Mod_Creater.Class.ModManager_Destination"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:WoTB_Voice_Mod_Creater.Class"
+             mc:Ignorable="d" 
+             d:DesignHeight="1080" d:DesignWidth="1920">
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolVisibilityConverter"/>
+        <Style x:Key="Button_MouseOver_Style" TargetType="{x:Type Button}">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#669625B1"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Resources>
+    <Viewbox>
+        <DockPanel Width="1920" Height="1080">
+            <Border BorderBrush="Black" BorderThickness="1" Background="#0F0F1D" Height="1080" VerticalAlignment="Top" Width="1920"/>
+            <TextBlock x:Name="Mod_Type_File_T" Height="55" Width="1920" TextWrapping="Wrap" Text="新規のMod1 -> asasasas.tex.dvpl" Foreground="Aqua" FontSize="40" Margin="-1900,35,0,0" VerticalAlignment="Top" TextAlignment="Left"/>
+            <TextBlock Height="55" Width="300" TextWrapping="Wrap" Text="導入先のフォルダ" Foreground="Aqua" FontSize="40" Margin="-2600,130,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
+            <ListBox x:Name="Dest_Dir_List" Height="650" VerticalAlignment="Top" Width="950" Background="Transparent" HorizontalContentAlignment="Stretch"  BorderBrush="Aqua" Margin="-2600,200,0,0" ScrollViewer.HorizontalScrollBarVisibility="Disabled"  Focusable="False" SelectionChanged="Dest_Dir_List_SelectionChanged">
+                <ListBox.ItemTemplate>
+                    <DataTemplate DataType="models:TextListItem">
+                        <Grid Margin="5">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition />
+                            </Grid.ColumnDefinitions>
+                            <Border Grid.Column="0" BorderThickness="0,0,0,1" BorderBrush="{Binding TextColor}"/>
+                            <TextBlock Grid.Column="0" FontSize="30" Foreground="{Binding TextColor}" Text="{Binding Text}" />
+                            <Grid.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Header="フォルダを開く" Command="{Binding ClickCommand}" CommandParameter="左クリックメニュー 1" />
+                                </ContextMenu>
+                            </Grid.ContextMenu>
+                        </Grid>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+            <Button x:Name="Add_Dir_B" Content="フォルダを追加" Height="80" VerticalAlignment="Top" Width="450" Foreground="Aqua" FontSize="40" Style="{StaticResource Button_MouseOver_Style}" BorderBrush="Aqua" Margin="-2100,850,0,0" Focusable="False" Click="Add_Dir_B_Click"/>
+            <Button x:Name="Delete_Dir_B" Content="リストから削除" Height="80" VerticalAlignment="Top" Width="450" Foreground="Aqua" FontSize="40" Style="{StaticResource Button_MouseOver_Style}" BorderBrush="Aqua" Margin="-3100,850,0,0" Focusable="False" Click="Delete_Dir_B_Click"/>
+            <TextBlock x:Name="Default_Index_T" Height="55" Width="650" TextWrapping="Wrap" Text="デフォルトのインデックス:0" Foreground="Aqua" FontSize="35" Margin="-650,230,0,0" VerticalAlignment="Top" TextAlignment="Left"/>
+            <TextBlock x:Name="Selected_Index_T" Height="55" Width="650" TextWrapping="Wrap" Text="選択しているインデックス:0" Foreground="Aqua" FontSize="35" Margin="-650,285,0,0" VerticalAlignment="Top" TextAlignment="Left"/>
+            <TextBlock x:Name="Dest_Dir_T" Height="150" Width="750" TextWrapping="Wrap" Text="導入先:未選択" Foreground="Aqua" FontSize="30" Margin="-850,430,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
+            <Button x:Name="Apply_B" Content="戻る" Height="80" VerticalAlignment="Top" Width="350" Foreground="Aqua" FontSize="40" Style="{StaticResource Button_MouseOver_Style}" BorderBrush="Aqua" Margin="-800,750,0,0" Focusable="False" Click="Apply_B_Click"/>
+            <TextBlock x:Name="Message_T" Height="110" Width="1265" TextWrapping="Wrap" Text="" Foreground="Aqua" FontSize="37" Margin="-1920,942,0,0" VerticalAlignment="Top" TextAlignment="Center" Focusable="False"/>
+        </DockPanel>
+    </Viewbox> 
+</UserControl>

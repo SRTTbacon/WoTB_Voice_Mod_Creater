@@ -5,9 +5,12 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using Un4seen.Bass;
+using Un4seen.Bass.AddOn.Flac;
 using Un4seen.Bass.AddOn.Fx;
+using WK.Libraries.BetterFolderBrowserNS;
 
 namespace WoTB_Voice_Mod_Creater.Class
 {
@@ -96,7 +99,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             for (int Number = 0; Number < SE_COUNT; Number++)
                 seDefault.types.Add(new SE_Type());
             seDefault.types[0].Add(0, SE + "Capture_Finish_SE.mp3");
-            seDefault.types[1].Add(851389356, SE + "quick_commands_positive.mp3");
+            seDefault.types[1].Add(904269149, SE + "quick_commands_positive.mp3");
             seDefault.types[1].Add(747137713, SE + "quick_commands_negative.mp3");
             seDefault.types[1].Add(990119123, SE + "quick_commands_help_me.mp3");
             seDefault.types[1].Add(560124813, SE + "quick_commands_reloading.mp3");
@@ -148,6 +151,15 @@ namespace WoTB_Voice_Mod_Creater.Class
             sep.types[23].Add(0, SE + "Map_Click_01.wav");
             sep.types[24].Add(0, SE + "Map_Move_01.wav");
         }
+
+        public void SetZeroSounds(SE_Preset sep)
+        {
+            for (int i = 0; i < sep.types.Count; i++)
+            {
+                if (sep.types[i].items.Count == 0 && ((i >= 0 && i <= 16) || (i >= 23 && i <= 24)))
+                    sep.types[i].items.Add(0, new List<string>());
+            }
+        }
     }
     public partial class Save_Configs : UserControl
     {
@@ -170,6 +182,9 @@ namespace WoTB_Voice_Mod_Creater.Class
         bool bClosing = false;
         bool bMessageShowing = false;
         bool bLoaded = false;
+        bool bPushedLeftControl = false;
+        bool bOpenedChangeDir = false;
+
         public Save_Configs()
         {
             InitializeComponent();
@@ -248,6 +263,12 @@ namespace WoTB_Voice_Mod_Creater.Class
             }
         }
 
+        public void InitializeLoadData()
+        {
+            if (!bLoaded)
+                Configs_Load();
+        }
+
         public void Window_Show_V2(string Project_Name, List<Voice_Event_Setting> Lists)
         {
             //画面を表示(オフラインモードで行った場合)
@@ -285,6 +306,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Configs_Load();
             seDir = Voice_Set.Special_Path + "/SE";
             Project_T.Text = "プロジェクト名:" + BNK_Name;
+            settings = Lists;
             while (Opacity < 1 && !bClosing)
             {
                 Opacity += Sub_Code.Window_Feed_Time;
@@ -292,22 +314,37 @@ namespace WoTB_Voice_Mod_Creater.Class
             }
         }
 
-        void Change_SE_List(int Index)
+        void Loop()
         {
-            ListBoxItem Item = SE_Lists.Items[Index] as ListBoxItem;
-            string Text = Item.Content.ToString();
-            Text = Text.Substring(0, Text.IndexOf('|') + 2);
-            if (seSetting.sePreset.types[Index].bEnable)
+            bPushedLeftControl = (Keyboard.GetKeyStates(Key.LeftCtrl) & KeyStates.Down) > 0;
+            if (bPushedLeftControl && (Keyboard.GetKeyStates(Key.D) & KeyStates.Down) > 0)
+                ReplaceSEDir();
+        }
+
+        void Change_SE_List(int Index = -1)
+        {
+            if (Index == -1)
             {
-                Text += "有効";
-                Item.Foreground = Brushes.Aqua;
+                for (int i = 0; i < SE_Lists.Items.Count; i++)
+                    Change_SE_List(i);
             }
             else
             {
-                Text += "無効";
-                Item.Foreground = (Brush)new BrushConverter().ConvertFromString("#BFFF2C8C");
+                ListBoxItem Item = SE_Lists.Items[Index] as ListBoxItem;
+                string Text = Item.Content.ToString();
+                Text = Text.Substring(0, Text.IndexOf('|') + 2);
+                if (seSetting.sePreset.types[Index].bEnable)
+                {
+                    Text += "有効";
+                    Item.Foreground = Brushes.Aqua;
+                }
+                else
+                {
+                    Text += "無効";
+                    Item.Foreground = (Brush)new BrushConverter().ConvertFromString("#BFFF2C8C");
+                }
+                Item.Content = Text;
             }
-            Item.Content = Text;
         }
 
         void UpdateTypeColor()
@@ -374,29 +411,29 @@ namespace WoTB_Voice_Mod_Creater.Class
                             }
                         }
                     }
+                    seSetting.SetZeroSounds(preset);
                     br.ReadByte();
                 }
                 br.Close();
             }
-            if (File.Exists(Voice_Set.Special_Path + "/Configs/Save_Configs.dat"))
+            if (File.Exists(Voice_Set.Special_Path + "/Configs/Save_Configs.conf"))
             {
+                BinaryReader br = new BinaryReader(File.OpenRead(Voice_Set.Special_Path + "/Configs/Save_Configs.conf"));
                 try
                 {
-                    BinaryReader br = new BinaryReader(File.OpenRead(Voice_Set.Special_Path + "/Configs/Save_Configs.dat"));
                     br.ReadBytes(br.ReadByte());
                     byte version = br.ReadByte();
                     Volume_Set_C.IsChecked = br.ReadBoolean();
                     DVPL_C.IsChecked = br.ReadBoolean();
                     Default_Voice_Mode_C.IsChecked = br.ReadBoolean();
                     nowPresetIndex = br.ReadInt16();
-                    br.Close();
+                    _ = br.ReadByte();
+                    Change_Volume_S.Value = br.ReadDouble();
                 }
-                catch (Exception e)
+                catch { }
+                finally
                 {
-                    System.Windows.MessageBox.Show("設定を読み込めませんでした。\nエラー回避のため設定は削除されます。");
-                    if (File.Exists(Voice_Set.Special_Path + "/Configs/Save_Configs.conf"))
-                        File.Delete(Voice_Set.Special_Path + "/Configs/Save_Configs.conf");
-                    Sub_Code.Error_Log_Write(e.Message);
+                    br.Close();
                 }
             }
 
@@ -408,6 +445,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             else
             {
                 Load_Combo.SelectedIndex = nowPresetIndex + 1;
+                Preset_Name_T.Text = Load_Combo.Items[Load_Combo.SelectedIndex].ToString();
             }
             if (loadedPresets.Count > 0)
             {
@@ -522,12 +560,17 @@ namespace WoTB_Voice_Mod_Creater.Class
                 string filePath = seSetting.sePreset.types[SE_Lists.SelectedIndex].items[0][SE_Files.SelectedIndex];
                 if (!File.Exists(filePath))
                 {
-                    Message_Feed_Out("サウンドファイルが見つかりませんでした。");
+                    Message_Feed_Out("サウンドファイルが見つかりませんでした。\n場所:" + filePath);
+                    SE_Files.SelectedIndex = -1;
                     return;
                 }
                 Bass.BASS_ChannelStop(Stream);
                 Bass.BASS_StreamFree(Stream);
-                int StreamHandle = Bass.BASS_StreamCreateFile(filePath, 0, 0, BASSFlag.BASS_STREAM_DECODE);
+                int StreamHandle;
+                if (Path.GetExtension(filePath) == ".flac")
+                    StreamHandle = BassFlac.BASS_FLAC_StreamCreateFile(filePath, 0, 0, BASSFlag.BASS_STREAM_DECODE);
+                else
+                    StreamHandle = Bass.BASS_StreamCreateFile(filePath, 0, 0, BASSFlag.BASS_STREAM_DECODE);
                 Stream = BassFx.BASS_FX_TempoCreate(StreamHandle, BASSFlag.BASS_FX_FREESOURCE);
                 Bass.BASS_ChannelSetAttribute(Stream, BASSAttribute.BASS_ATTRIB_VOL, 1f);
                 Bass.BASS_ChannelSetDevice(Stream, Video_Mode.Sound_Device);
@@ -660,6 +703,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 bw.Write(Default_Voice_Mode_C.IsChecked.Value);
                 bw.Write((short)nowPresetIndex);
                 bw.Write((byte)SE_Setting.SE_COUNT);
+                bw.Write(Change_Volume_S.Value);
                 bw.Close();
             }
             catch (Exception e)
@@ -672,28 +716,28 @@ namespace WoTB_Voice_Mod_Creater.Class
             int SelectedIndex = SE_Lists.SelectedIndex;
             for (int Number = 0; Number < SE_Lists.Items.Count; Number++)
             {
-                seSetting.sePreset.types[SE_Lists.SelectedIndex].bEnable = true;
+                seSetting.sePreset.types[Number].bEnable = true;
                 SE_Disable_B.Background = Brushes.Transparent;
                 SE_Disable_B.BorderBrush = Brushes.Aqua;
                 SE_Enable_B.Background = (Brush)bc.ConvertFrom("#59999999");
                 SE_Enable_B.BorderBrush = Brushes.Red;
             }
             SE_Lists.SelectedIndex = SelectedIndex;
-            Change_SE_List(SelectedIndex);
+            Change_SE_List();
         }
         private void SE_All_Disable_B_Click(object sender, RoutedEventArgs e)
         {
             int SelectedIndex = SE_Lists.SelectedIndex;
             for (int Number = 0; Number < SE_Lists.Items.Count; Number++)
             {
-                seSetting.sePreset.types[SE_Lists.SelectedIndex].bEnable = false;
+                seSetting.sePreset.types[Number].bEnable = false;
                 SE_Disable_B.Background = (Brush)bc.ConvertFrom("#59999999");
                 SE_Disable_B.BorderBrush = Brushes.Red;
                 SE_Enable_B.Background = Brushes.Transparent;
                 SE_Enable_B.BorderBrush = Brushes.Aqua;
             }
             SE_Lists.SelectedIndex = SelectedIndex;
-            Change_SE_List(SelectedIndex);
+            Change_SE_List();
         }
         private void Only_Wwise_C_Click(object sender, RoutedEventArgs e)
         {
@@ -743,6 +787,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                     seSetting.SetDefault(seSetting.sePreset);
                 else
                     seSetting.sePreset = sePreset.Clone();
+                Preset_Name_T.Text = Load_Combo.Items[Load_Combo.SelectedIndex].ToString();
                 Message_Feed_Out("'" + seSetting.sePreset.presetName + "'をロードしました。");
                 UpdateTypeColor();
                 Update_List();
@@ -904,7 +949,11 @@ namespace WoTB_Voice_Mod_Creater.Class
 
             Sub_Code.Set_WAV_Gain(toFile, Change_Volume_S.Value - 89.0);
 
-            int StreamHandle = Bass.BASS_StreamCreateFile(toFile, 0, 0, BASSFlag.BASS_STREAM_DECODE);
+            int StreamHandle;
+            if (Path.GetExtension(toFile) == ".flac")
+                StreamHandle = BassFlac.BASS_FLAC_StreamCreateFile(toFile, 0, 0, BASSFlag.BASS_STREAM_DECODE);
+            else
+                StreamHandle = Bass.BASS_StreamCreateFile(toFile, 0, 0, BASSFlag.BASS_STREAM_DECODE);
             Stream = BassFx.BASS_FX_TempoCreate(StreamHandle, BASSFlag.BASS_FX_FREESOURCE);
             Bass.BASS_ChannelSetAttribute(Stream, BASSAttribute.BASS_ATTRIB_VOL, 1f);
             Bass.BASS_ChannelSetDevice(Stream, Video_Mode.Sound_Device);
@@ -917,6 +966,54 @@ namespace WoTB_Voice_Mod_Creater.Class
         {
             double Value = Math.Round(Change_Volume_S.Value, 1, MidpointRounding.AwayFromZero);
             Change_Volume_T.Text = "音量:" + Value + "db";
+        }
+
+        void ReplaceSEDir()
+        {
+            if (bClosing || bOpenedChangeDir)
+                return;
+            bOpenedChangeDir = true;
+            BetterFolderBrowser bfb = new BetterFolderBrowser()
+            {
+                Title = "SEの移動先のフォルダを選択してください。",
+                Multiselect = false,
+                RootFolder = Sub_Code.Get_OpenDirectory_Path()
+            };
+            if (bfb.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                Sub_Code.Set_Directory_Path(bfb.SelectedFolder);
+                if (!Sub_Code.CanDirectoryAccess(bfb.SelectedFolder))
+                {
+                    bfb.Dispose();
+                    bOpenedChangeDir = false;
+                    return;
+                }
+                bool bSaveMode = false;
+                int replaceCount = 0;
+                foreach (SE_Type seList in seSetting.sePreset.types)
+                {
+                    if (seList.items.ContainsKey(0))
+                    {
+                        for (int i = 0; i < seList.items[0].Count; i++)
+                        {
+                            string fromFilePath = seList.items[0][i];
+                            string toFilePath = bfb.SelectedFolder + "\\" + Path.GetFileName(fromFilePath);
+                            if (!File.Exists(fromFilePath) && File.Exists(toFilePath))
+                            {
+                                seList.items[0][i] = toFilePath;
+                                bSaveMode = true;
+                                replaceCount++;
+                            }
+                        }
+                    }
+                }
+                if (bSaveMode)
+                {
+                    Message_Feed_Out(replaceCount + "個のファイルパスを指定したフォルダに変換しました。\n変更を保存してください。");
+                }
+            }
+            bfb.Dispose();
+            bOpenedChangeDir = false;
         }
     }
 }

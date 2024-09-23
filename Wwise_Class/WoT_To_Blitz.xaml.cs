@@ -731,14 +731,14 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             }
             Message_T.Text = "プロジェクトファイルを作成しています...";
             await Task.Delay(75);
-            File.Copy(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Default Work Unit.tmp", Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Default Work Unit.wwu", true);
-            File.Copy(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Events/base_capture.tmp", Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Events/base_capture.wwu", true);
-            File.Copy(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Events/Chat.tmp", Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Events/Chat.wwu", true);
-            File.Copy(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Events/Crew.tmp", Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Events/Crew.wwu", true);
-            File.Copy(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Events/Quick_Commands.tmp", Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Events/Quick_Commands.wwu", true);
-            File.Copy(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Events/Reload.tmp", Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Events/Reload.wwu", true);
-            File.Copy(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Events/UI_Battle.tmp", Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Events/UI_Battle.wwu", true);
-            File.Copy(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Events/UI_Battle_Basic.tmp", Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Events/UI_Battle_Basic.wwu", true);
+            File.Copy(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Default Work Unit.bak", Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Default Work Unit.wwu", true);
+            File.Copy(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Events/base_capture.bak", Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Events/base_capture.wwu", true);
+            File.Copy(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Events/Chat.bak", Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Events/Chat.wwu", true);
+            File.Copy(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Events/Crew.bak", Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Events/Crew.wwu", true);
+            File.Copy(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Events/Quick_Commands.bak", Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Events/Quick_Commands.wwu", true);
+            File.Copy(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Events/Reload.bak", Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Events/Reload.wwu", true);
+            File.Copy(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Events/UI_Battle.bak", Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Events/UI_Battle.wwu", true);
+            File.Copy(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Events/UI_Battle_Basic.bak", Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Events/UI_Battle_Basic.wwu", true);
             Wwise_Class.Wwise_Project_Create Wwise = new Wwise_Class.Wwise_Project_Create(Voice_Set.Special_Path + "\\Wwise\\WoTB_Sound_Mod");
             Wwise.Clear_All_Sounds(BNK_Voices);
             Wwise.Sound_Add_Wwise(BNK_Voices, Save_Configs_Window.seSetting);

@@ -39,6 +39,8 @@ namespace WoTB_Voice_Mod_Creater
         [DllImport(Wwise_Player_DLL)]
         protected static extern bool Wwise_Load_Bank(string Stream_BNK);
         [DllImport(Wwise_Player_DLL)]
+        protected static extern bool Wwise_Load_PCK(string streamPCK);
+        [DllImport(Wwise_Player_DLL)]
         protected static extern bool Wwise_Play_Name(string Name, int Container_ID, double Volume = -1);
         [DllImport(Wwise_Player_DLL)]
         protected static extern bool Wwise_Play_ID(uint Event_ID, int Container_ID, double Volume = -1);
@@ -134,6 +136,14 @@ namespace WoTB_Voice_Mod_Creater
         public static bool Load_Bank(string Stream_BNK)
         {
             return Wwise_Load_Bank(Stream_BNK);
+        }
+        ///<summary>
+        ///.bnkファイルをロードします。
+        ///元となる.bnkがロードされていない状態の.pckファイルはロードできません。
+        ///</summary>
+        public static bool Load_PCK(string streamPCK)
+        {
+            return Wwise_Load_PCK(streamPCK);
         }
         ///<summaty>
         ///終了したイベントID(Container_ID)をすべて取得します。

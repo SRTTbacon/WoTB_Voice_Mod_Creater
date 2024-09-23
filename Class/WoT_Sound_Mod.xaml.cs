@@ -1136,6 +1136,34 @@ namespace WoTB_Voice_Mod_Creater.Class
                     string File_Name = Project_Name_T.Text.Replace(" ", "_");
                     await BNK_Create_V2(Dir_Name);
                     Flash.Flash_Start();
+                    if (Sub_Code.WoT_Get_ModDirectory())
+                    {
+                        Message_T.Text = "ダイアログを表示しています...";
+                        await Task.Delay(50);
+                        string message = "作成した音声ModをWoTに導入しますか？\naudio_mods.xmlを変更するため他のサウンドModが導入されている場合は干渉する可能性があります。\n配置場所:";
+                        MessageBoxResult result = System.Windows.MessageBox.Show("WoTのインストールフォルダの取得に成功しました。\n" + message + Voice_Set.WoT_Mod_Path, "確認",
+                            MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.Yes);
+                        if (result == MessageBoxResult.Yes)
+                        {
+                            try
+                            {
+                                if (!Directory.Exists(Voice_Set.WoT_Mod_Path + "/audioww"))
+                                    Directory.CreateDirectory(Voice_Set.WoT_Mod_Path + "/audioww");
+                                if (File.Exists(Voice_Set.WoT_Mod_Path + "/audioww/audio_mods.xml") && !File.Exists(Voice_Set.WoT_Mod_Path + "/audioww/audio_mods_bak.xml"))
+                                    File.Move(Voice_Set.WoT_Mod_Path + "/audioww/audio_mods.xml", Voice_Set.WoT_Mod_Path + "/audioww/audio_mods_bak.xml");
+                                if (File.Exists(Voice_Set.WoT_Mod_Path + "/audioww/Custom_Mod.bnk") && !File.Exists(Voice_Set.WoT_Mod_Path + "/audioww/Custom_Mod.bnk"))
+                                    File.Move(Voice_Set.WoT_Mod_Path + "/audioww/Custom_Mod.bnk", Voice_Set.WoT_Mod_Path + "/audioww/Custom_Mod.bnk");
+                                File.Copy(Dir_Name + "/Custom_Mod.bnk", Voice_Set.WoT_Mod_Path + "/audioww/Custom_Mod.bnk", true);
+                                File.Copy(Dir_Name + "/audio_mods.xml", Voice_Set.WoT_Mod_Path + "/audioww/audio_mods.xml", true);
+                            }
+                            catch (Exception e1)
+                            {
+                                Sub_Code.Error_Log_Write(e1.Message);
+                                Message_Feed_Out("WoTにインストールできませんでした。Error_Log.txtを確認してください。");
+                                return;
+                            }
+                        }
+                    }
                     Message_Feed_Out("完了しました。\n保存先:\\Projects\\" + Project_Name_T.Text);
                     Border_All.Visibility = Visibility.Hidden;
                     IsCreating = false;
@@ -1185,7 +1213,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 if (Ex != ".bnk" && Ex != ".xml")
                     File.Delete(file);
             }
-            File.Copy(Voice_Set.Special_Path + "/Wwise/WoT_Custom_Mod/Actor-Mixer Hierarchy/Default Work Unit.tmp", Voice_Set.Special_Path + "/Wwise/WoT_Custom_Mod/Actor-Mixer Hierarchy/Default Work Unit.wwu", true);
+            File.Copy(Voice_Set.Special_Path + "/Wwise/WoT_Custom_Mod/Actor-Mixer Hierarchy/Default Work Unit.dat", Voice_Set.Special_Path + "/Wwise/WoT_Custom_Mod/Actor-Mixer Hierarchy/Default Work Unit.wwu", true);
             Wwise_Class.Wwise_Project_Create Wwise = new Wwise_Class.Wwise_Project_Create(Voice_Set.Special_Path + "/Wwise/WoT_Custom_Mod");
             await Task.Delay(50);
             Message_T.Text = "設定をプロジェクトに反映しています...";
@@ -1211,15 +1239,13 @@ namespace WoTB_Voice_Mod_Creater.Class
             else
             {
                 Message_T.Text = ".bnkファイルを作成しています...";
-                //await Task.Delay(50);
-                //Wwise.Project_Build("voiceover", Dir_Name + "/voiceover.bnk", "WinHighRes/Japanese", false, "Japanese");
                 await Task.Delay(50);
-                Wwise.Project_Build("Custom_Mod", Dir_Name + "/Custom_Mod.bnk", "WinHighRes/Japanese", false, "Japanese");
+                Wwise.Project_Build("Custom_Mod", Dir_Name + "/Custom_Mod.bnk", "Windows/Japanese", false, "Japanese");
                 Wwise.Event_Reset();
             }
             await Task.Delay(50);
             Wwise.Clear();
-            File.Copy(Voice_Set.Special_Path + "/Wwise/WoT_Custom_Mod/Actor-Mixer Hierarchy/Default Work Unit.tmp", Voice_Set.Special_Path + "/Wwise/WoT_Custom_Mod/Actor-Mixer Hierarchy/Default Work Unit.wwu", true);
+            File.Copy(Voice_Set.Special_Path + "/Wwise/WoT_Custom_Mod/Actor-Mixer Hierarchy/Default Work Unit.dat", Voice_Set.Special_Path + "/Wwise/WoT_Custom_Mod/Actor-Mixer Hierarchy/Default Work Unit.wwu", true);
             WoT_Create_XML XML = new WoT_Create_XML();
             XML.Add_BNK("Custom_Mod.bnk");
             for (int Number = 0; Number < 3; Number++)

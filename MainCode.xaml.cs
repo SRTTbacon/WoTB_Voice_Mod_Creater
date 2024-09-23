@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
@@ -75,13 +76,28 @@ namespace WoTB_Voice_Mod_Creater
 {
     public partial class MainCode : Window
     {
+        enum UpdateMode
+        {
+            None,
+            Downloading,
+            Downloaded,
+            Done
+        }
+
         readonly string Path = Directory.GetCurrentDirectory();
+        UpdateMode update = UpdateMode.None;
         string Primary_Display_Name = "";
+        string updateExeUrl = "";
+        string updateResourceUrl = "";
+        double downloadExeSize = 0.0;
+        double downloadResourceSize = 0.0;
         bool IsClosing = false;
         bool IsMessageShowing = false;
         bool IsFullScreen = true;
         bool IsChange_To_Wwise_Checked = false;
         bool IsDragMoveMode = false;
+        bool bCanUpdate = false;
+        bool bUpdateNeedResource = false;
         readonly BrushConverter bc = new BrushConverter();
         [DllImport("user32.dll")]
         public static extern IntPtr GetForegroundWindow();
@@ -212,40 +228,16 @@ namespace WoTB_Voice_Mod_Creater
                 }
                 catch { }
                 Flash.Handle = this;
+
+                if (File.Exists(Path + "\\Update.bat"))
+                    File.Delete(Path + "\\Update.bat");
+
+                Update_T.Visibility = Visibility.Hidden;
+                Update_B.Visibility = Visibility.Hidden;
+                if (System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable())
+                    CheckUpdate();
+
                 Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.BelowNormal;
-                /*int a = Un4seen.Bass.Bass.BASS_StreamCreateFile("D:\\Downloads\\SDA Downloads\\ASMR\\4.ごほうび対面座位パンスト素股編.mp3", 0, 0,
-                    Un4seen.Bass.BASSFlag.BASS_STREAM_DECODE | Un4seen.Bass.BASSFlag.BASS_SAMPLE_FLOAT);
-                double Max_Seconds = Un4seen.Bass.Bass.BASS_ChannelBytes2Seconds(a, Un4seen.Bass.Bass.BASS_ChannelGetLength(a, Un4seen.Bass.BASSMode.BASS_POS_BYTES));
-                double Now_Seconds = 0;
-                int Now_File_Count = 1;
-                while (true)
-                {
-                    long Buf = 0;
-                    double Buf_Seconds = Un4seen.Bass.Bass.BASS_ChannelBytes2Seconds(a, 50000);
-                    if (Now_Seconds + Buf_Seconds < Max_Seconds)
-                        Buf = 50000;
-                    int aaa = Un4seen.Bass.Bass.BASS_StreamCreateFile("D:\\Downloads\\SDA Downloads\\ASMR\\4.ごほうび対面座位パンスト素股編.mp3",
-                        Un4seen.Bass.Bass.BASS_ChannelSeconds2Bytes(a, Now_Seconds), Buf, Un4seen.Bass.BASSFlag.BASS_STREAM_DECODE | Un4seen.Bass.BASSFlag.BASS_SAMPLE_FLOAT);
-                    int b = Un4seen.Bass.AddOn.Mix.BassMix.BASS_Mixer_StreamCreate(44100, 2, Un4seen.Bass.BASSFlag.BASS_SAMPLE_FLOAT);
-                    Un4seen.Bass.Misc.EncoderWAV aa = new Un4seen.Bass.Misc.EncoderWAV(aaa);
-                    aa.InputFile = null;
-                    string name = Now_File_Count.ToString();
-                    if (Now_File_Count < 10)
-                        name = "000" + Now_File_Count;
-                    else if (Now_File_Count < 100)
-                        name = "00" + Now_File_Count;
-                    else if (Now_File_Count < 1000)
-                        name = "0" + Now_File_Count;
-                    aa.OutputFile = "D:\\Downloads\\SDA Downloads\\ASMR\\Output\\" + name + ".wav";
-                    aa.Start(null, IntPtr.Zero, false);
-                    Un4seen.Bass.Utils.DecodeAllData(aaa, true);
-                    aa.Stop();
-                    Un4seen.Bass.Bass.BASS_StreamFree(aaa);
-                    Now_Seconds += Buf_Seconds;
-                    Now_File_Count++;
-                    if (Now_Seconds >= Max_Seconds)
-                        break;
-                }*/
             }
             catch (Exception e)
             {
@@ -256,14 +248,14 @@ namespace WoTB_Voice_Mod_Creater
         }
         private async void Exit_B_Click(object sender, RoutedEventArgs e)
         {
-            if (IsClosing)
+            if (IsClosing || update != UpdateMode.None)
                 return;
             MessageBoxResult result = MessageBox.Show("終了しますか？", "確認", MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.No);
             if (result == MessageBoxResult.Yes)
             {
                 IsClosing = true;
                 Voice_Set.App_Busy = true;
-                Music_Player_Window.Pause_Volume_Animation(true, 25);
+                Music_Player_Window.Pause_Volume_Animation(true, 20);
                 while (Opacity > 0)
                 {
                     Opacity -= 0.05;
@@ -353,7 +345,7 @@ namespace WoTB_Voice_Mod_Creater
         //キャッシュを削除
         private void Cache_Delete_B_Click(object sender, RoutedEventArgs e)
         {
-            if (IsClosing)
+            if (IsClosing || update != UpdateMode.None)
                 return;
             string Message_01 = "現在の設定を削除します。この操作は取り消せません。よろしいですか？";
             MessageBoxResult result = MessageBox.Show(Message_01, "確認", MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.No);
@@ -390,26 +382,26 @@ namespace WoTB_Voice_Mod_Creater
         }
         private void Voice_Mod_Free_B_Click(object sender, RoutedEventArgs e)
         {
-            if (IsClosing)
+            if (IsClosing || update != UpdateMode.None)
                 return;
             Message_Feed_Out("現在この機能は使用できません。");
             //Voice_Mods_Window.Window_Show();
         }
         private void Tool_B_Click(object sender, RoutedEventArgs e)
         {
-            if (IsClosing)
+            if (IsClosing || update != UpdateMode.None)
                 return;
             Tools_Window.Window_Show();
         }
         private void Other_B_Click(object sender, RoutedEventArgs e)
         {
-            if (IsClosing)
+            if (IsClosing || update != UpdateMode.None)
                 return;
             Music_Player_Window.Window_Show();
         }
         private void WoTB_Select_B_Click(object sender, RoutedEventArgs e)
         {
-            if (IsClosing)
+            if (IsClosing || update != UpdateMode.None)
                 return;
             BetterFolderBrowser ofd = new BetterFolderBrowser()
             {
@@ -557,7 +549,7 @@ namespace WoTB_Voice_Mod_Creater
         //キーが押されたときの処理
         private async void DockPanel_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
-            if (IsClosing)
+            if (IsClosing || update != UpdateMode.None)
                 return;
             if (Music_Player_Window.Visibility == Visibility.Visible)
                 Music_Player_Window.RootWindow_KeyDown(e);
@@ -716,26 +708,26 @@ namespace WoTB_Voice_Mod_Creater
         }
         private void Voice_Create_V2_B_Click(object sender, RoutedEventArgs e)
         {
-            if (IsClosing)
+            if (IsClosing || update != UpdateMode.None)
                 return;
             IsMessageShowing = false;
             Voice_Create_Window.Window_Show();
         }
         private void Tool_V2_B_Click(object sender, RoutedEventArgs e)
         {
-            if (IsClosing)
+            if (IsClosing || update != UpdateMode.None)
                 return;
             Tools_V2_Window.Window_Show();
         }
         private void Advanced_Mode_B_Click(object sender, RoutedEventArgs e)
         {
-            if (IsClosing)
+            if (IsClosing || update != UpdateMode.None)
                 return;
             Bank_Editor_Window.Window_Show();
         }
         private void Change_Wwise_B_Click(object sender, RoutedEventArgs e)
         {
-            if (IsClosing)
+            if (IsClosing || update != UpdateMode.None)
                 return;
             if (!IsChange_To_Wwise_Checked)
             {
@@ -746,37 +738,37 @@ namespace WoTB_Voice_Mod_Creater
         }
         private void WoT_To_Blitz_B_Click(object sender, RoutedEventArgs e)
         {
-            if (IsClosing)
+            if (IsClosing || update != UpdateMode.None)
                 return;
             WoT_To_Blitz_Window.Window_Show();
         }
         private void WoWS_WoTB_B_Click(object sender, RoutedEventArgs e)
         {
-            if (IsClosing)
+            if (IsClosing || update != UpdateMode.None)
                 return;
             WoWS_To_WoTB_Window.Window_Show();
         }
         private void Blitz_To_WoT_B_Click(object sender, RoutedEventArgs e)
         {
-            if (IsClosing)
+            if (IsClosing || update != UpdateMode.None)
                 return;
             Blitz_To_WoT_Window.Window_Show();
         }
         private void Create_Save_B_Click(object sender, RoutedEventArgs e)
         {
-            if (IsClosing)
+            if (IsClosing || update != UpdateMode.None)
                 return;
             Create_Save_File_Window.Window_Show();
         }
         private void Loading_BGM_B_Click(object sender, RoutedEventArgs e)
         {
-            if (IsClosing)
+            if (IsClosing || update != UpdateMode.None)
                 return;
             Create_Loading_BGM_Window.Window_Show();
         }
         private void BNK_To_Project_B_Click(object sender, RoutedEventArgs e)
         {
-            if (IsClosing)
+            if (IsClosing || update != UpdateMode.None)
                 return;
             if (!IsChange_To_Wwise_Checked)
             {
@@ -905,7 +897,7 @@ namespace WoTB_Voice_Mod_Creater
         }
         private void Change_Log_B_Click(object sender, RoutedEventArgs e)
         {
-            if (IsClosing)
+            if (IsClosing || update != UpdateMode.None)
                 return;
             ChangeLog_Window.Window_Show();
         }
@@ -924,7 +916,7 @@ namespace WoTB_Voice_Mod_Creater
         }
         private void Sound_Editor_B_Click(object sender, RoutedEventArgs e)
         {
-            if (IsClosing)
+            if (IsClosing || update != UpdateMode.None)
                 return;
             Sound_Editor_Window.Window_Show();
         }
@@ -977,23 +969,24 @@ namespace WoTB_Voice_Mod_Creater
         }
         private void Wwise_Player_B_Click(object sender, RoutedEventArgs e)
         {
-            if (IsClosing)
+            if (IsClosing || update != UpdateMode.None)
                 return;
             Wwise_Event_Player_Window.Window_Show();
         }
         private void Gun_To_Gun_B_Click(object sender, RoutedEventArgs e)
         {
+            //もうなんの機能か忘れたから放置w
             Message_Feed_Out("この機能はV1.5.4で有効化されます。");
         }
         private void WoT_Create_B_Click(object sender, RoutedEventArgs e)
         {
-            if (IsClosing)
+            if (IsClosing || update != UpdateMode.None)
                 return;
             WoT_Sound_Mod_Window.Window_Show();
         }
         private void Extension_Convert_B_Click(object sender, RoutedEventArgs e)
         {
-            if (IsClosing)
+            if (IsClosing || update != UpdateMode.None)
                 return;
             Extension_Converter_Window.Window_Show();
         }
@@ -1005,8 +998,8 @@ namespace WoTB_Voice_Mod_Creater
             for (int i = 0; i < randomName.Length; i++)
             {
                 sw.Restart();
-                //string hashName = hashClass.Bruteforce(8, randomName[i]);
-                string hashName = Wwise_Player.HashToString(8, randomName[i]);
+                string hashName = hashClass.Bruteforce(8, randomName[i]);
+                //string hashName = Wwise_Player.HashToString(8, randomName[i]);
                 sw.Stop();
                 double cppTime = sw.Elapsed.TotalSeconds;
                 MessageBox.Show(hashName + " -> C++タイム:" + cppTime + "秒\nToString -> " + WwiseHash.HashString(hashName));
@@ -1014,9 +1007,212 @@ namespace WoTB_Voice_Mod_Creater
         }
         private void Voice_Mod_Mixer_Click(object sender, RoutedEventArgs e)
         {
-            if (IsClosing)
+            if (IsClosing || update != UpdateMode.None)
                 return;
             Voice_Mixer_Window.Window_Show();
+        }
+
+        private void Mod_Manager_B_Click(object sender, RoutedEventArgs e)
+        {
+            if (IsClosing || update != UpdateMode.None)
+                return;
+            if (Voice_Set.WoTB_Path == "")
+            {
+                Message_Feed_Out("WoTBのインストール先を取得できていません。手動で指定してください。");
+                return;
+            }
+            ModManager_Window.Window_Show();
+        }
+
+        async void CheckUpdate()
+        {
+            try
+            {
+                //GithubのAPKを通して最新のリリースバージョンと現在のバージョンを比較する
+                Octokit.GitHubClient client = new Octokit.GitHubClient(new Octokit.ProductHeaderValue("WoTB_Voice_Mod_Creater"));
+                Octokit.Release releases = await client.Repository.Release.GetLatest("SRTTbacon", "WoTB_Voice_Mod_Creater");
+                string lastVersion = releases.Name;
+                //現在より上のバージョンが存在していればフラグを立てる
+                if (Sub_Code.Get_Version_To_Double(lastVersion) > Sub_Code.Get_Version_To_Double(SRTTbacon.Version.Version_Name))
+                {
+                    foreach (Octokit.ReleaseAsset release in releases.Assets)
+                    {
+                        if (System.IO.Path.GetExtension(release.BrowserDownloadUrl) == ".exe")
+                        {
+                            IReadOnlyList<Octokit.Release> releaseList = await client.Repository.Release.GetAll("SRTTbacon", "WoTB_Voice_Mod_Creater");
+                            double maxUpdateVersion = 0.0;
+                            foreach (Octokit.Release nowRelease in releaseList)
+                            {
+                                string[] contextSplits = nowRelease.Body.Split('\n');
+                                double version = Sub_Code.Get_Version_To_Double(nowRelease.Name);
+                                if (version > Sub_Code.Get_Version_To_Double(SRTTbacon.Version.Version_Name) && maxUpdateVersion < version)
+                                {
+                                    if (contextSplits[0].Contains("リソースのアップデートが必要です"))
+                                    {
+                                        maxUpdateVersion = version;
+                                        updateResourceUrl = contextSplits[1];
+                                        bUpdateNeedResource = true;
+                                        break;
+                                    }
+                                }
+                            }
+                            bCanUpdate = true;
+                            updateExeUrl = release.BrowserDownloadUrl;
+                            downloadExeSize = release.Size / 1024.0;
+                            downloadExeSize = Math.Round(downloadExeSize, 1);
+                            break;
+                        }
+                    }
+                }
+
+                if (bCanUpdate)
+                {
+                    Update_T.Text = "ソフトのアップデートがあります。V" + lastVersion;
+                    Update_T.Visibility = Visibility.Visible;
+                    Update_B.Visibility = Visibility.Visible;
+                }
+            }
+            catch (Exception e)
+            {
+                Message_Feed_Out("アップデート確認中にエラーが発生しました。\n" + e.Message);
+                Sub_Code.Error_Log_Write(e.Message);
+                bCanUpdate = false;
+            }
+        }
+
+        private async void Update_B_Click(object sender, RoutedEventArgs e)
+        {
+            if (!bCanUpdate || update != UpdateMode.None)
+                return;
+
+            if (Sub_Code.GetDriveFreeSize() < 1.0)
+            {
+                Message_Feed_Out("アップデートにはディスクの空き容量が最低1GB必要です。\n使い切ると怖いからね。");
+                return;
+            }
+
+            if (bUpdateNeedResource)
+            {
+                try
+                {
+                    //リソースフォルダが使用中かどうか調べる
+                    Directory.Move(Path + "\\Resources", Path + "\\ResourcesTemp");
+                    Directory.Move(Path + "\\ResourcesTemp", Path + "\\Resources");
+                }
+                catch (Exception e1)
+                {
+                    Message_Feed_Out("リソースファイルのアップデートがあるため、ソフトを再起動させる必要があります。");
+                    MessageBox.Show(e1.Message);
+                    return;
+                }
+            }
+
+            string message = "アップデート中は他の操作ができなくなり、セーブしていないデータは失われます。\nアップデートを開始しますか?";
+            MessageBoxResult result = MessageBox.Show(message, "確認", MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.No);
+            if (result != MessageBoxResult.Yes)
+                return;
+
+            update = UpdateMode.Downloading;
+            IsMessageShowing = true;
+            Message_T.Opacity = 1.0;
+
+            Message_T.Text = "ダウンロードサイズを計算しています...";
+
+            if (bUpdateNeedResource)
+            {
+                downloadResourceSize = await DownloadManager.GetDownloadSize(updateResourceUrl) / 1024.0 / 1024.0;
+                downloadResourceSize = Math.Round(downloadResourceSize, 1);
+                _ = DownloadManager.DownloadAsync(Path + "\\UpdateResource.dat", updateResourceUrl);
+                DownloadResource_Loop();
+            }
+            else
+            {
+                _ = DownloadManager.DownloadAsync(Path + "\\Update.dat", updateExeUrl);
+                DownloadingExe_Loop();
+            }
+            Downloading_Loop();
+        }
+
+        async void DownloadResource_Loop()
+        {
+            while (true)
+            {
+                double nowDownloadSize = DownloadManager.TotalRead / 1024.0 / 1024.0;
+                nowDownloadSize = Math.Round(nowDownloadSize, 1);
+                Message_T.Text = "リソースファイルをダウンロードしています...\n" + nowDownloadSize + "MB/" + downloadResourceSize + "MB";
+                await Task.Delay(100);
+                if (nowDownloadSize >= downloadResourceSize)
+                    break;
+            }
+            _ = DownloadManager.DownloadAsync(Path + "\\Update.dat", updateExeUrl);
+            DownloadingExe_Loop();
+        }
+        async void DownloadingExe_Loop()
+        {
+            while (true)
+            {
+                double nowDownloadSize = DownloadManager.TotalRead / 1024.0;
+                nowDownloadSize = Math.Round(nowDownloadSize, 1);
+                Message_T.Text = "WoTB_Voice_Mod_Creater.exeをダウンロードしています...\n" + nowDownloadSize + "KB/" + downloadExeSize + "KB";
+                await Task.Delay(100);
+                if (nowDownloadSize >= downloadExeSize)
+                    break;
+            }
+            update = UpdateMode.Downloaded;
+        }
+
+        async void Downloading_Loop()
+        {
+            while (true)
+            {
+                if (update == UpdateMode.Downloaded)
+                    break;
+                await Task.Delay(100);
+            }
+            if (bUpdateNeedResource)
+            {
+                Message_T.Text = "リソースファイルを展開しています...";
+                await Task.Delay(100);
+                using (ZipArchive source = ZipFile.Open(Path + "\\UpdateResource.dat", ZipArchiveMode.Read))
+                    ExtractToDirectory(source, Path + "\\Resources");
+                File.Delete(Path + "\\UpdateResource.dat");
+            }
+            await Task.Delay(1000);
+            Message_T.Text = "準備が完了しました。ソフトは自動で再起動されます。";
+            await Task.Delay(2000);
+            StreamWriter sw = new StreamWriter(Path + "\\Update.bat");
+            sw.WriteLine("timeout 1");
+            sw.WriteLine("move /y Update.dat WoTB_Voice_Mod_Creater.exe");
+            sw.WriteLine("WoTB_Voice_Mod_Creater.exe");
+            sw.WriteLine("Exit");
+            sw.Close();
+            ProcessStartInfo info = new ProcessStartInfo()
+            {
+                FileName = Path + "\\Update.bat",
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+            Process.Start(info);
+            await Task.Delay(10);
+            Application.Current.Shutdown();
+        }
+        void ExtractToDirectory(ZipArchive source, string destinationDirectoryName)
+        {
+            foreach (ZipArchiveEntry entry in source.Entries)
+            {
+                string fullPath = System.IO.Path.Combine(destinationDirectoryName, entry.FullName);
+                if (entry.FullName.EndsWith("/"))
+                {
+                    if (!Directory.Exists(fullPath))
+                        Directory.CreateDirectory(fullPath);
+                }
+                else
+                {
+                    if (File.Exists(fullPath))
+                        File.Delete(fullPath);
+                    entry.ExtractToFile(fullPath, true);
+                }
+            }
         }
     }
 }

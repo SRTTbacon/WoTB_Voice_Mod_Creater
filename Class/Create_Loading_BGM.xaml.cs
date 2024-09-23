@@ -8,6 +8,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using Un4seen.Bass;
+using Un4seen.Bass.AddOn.Flac;
 using Un4seen.Bass.AddOn.Fx;
 using WK.Libraries.BetterFolderBrowserNS;
 using WoTB_Voice_Mod_Creater.Wwise_Class;
@@ -620,7 +621,11 @@ namespace WoTB_Voice_Mod_Creater.Class
                 return;
             }
             Bass.BASS_SetConfig(BASSConfig.BASS_CONFIG_BUFFER, 100);
-            int StreamHandle = Bass.BASS_StreamCreateFile(Path, 0, 0, BASSFlag.BASS_SAMPLE_FLOAT | BASSFlag.BASS_STREAM_DECODE | BASSFlag.BASS_SAMPLE_LOOP);
+            int StreamHandle;
+            if (System.IO.Path.GetExtension(Path) == ".flac")
+                StreamHandle = BassFlac.BASS_FLAC_StreamCreateFile(Path, 0, 0, BASSFlag.BASS_SAMPLE_FLOAT | BASSFlag.BASS_STREAM_DECODE | BASSFlag.BASS_SAMPLE_LOOP);
+            else
+                StreamHandle = Bass.BASS_StreamCreateFile(Path, 0, 0, BASSFlag.BASS_SAMPLE_FLOAT | BASSFlag.BASS_STREAM_DECODE | BASSFlag.BASS_SAMPLE_LOOP);
             Stream = BassFx.BASS_FX_TempoCreate(StreamHandle, BASSFlag.BASS_FX_FREESOURCE);
             Bass.BASS_SetConfig(BASSConfig.BASS_CONFIG_BUFFER, 500);
             IsMusicEnd = new SYNCPROC(EndSync);
@@ -966,7 +971,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 IList<int> Select_Indexs = BGM_Type_L.SelectedIndexes();
                 if (Select_Indexs.Contains(13) || Select_Indexs.Contains(14) || Select_Indexs.Contains(15) || Select_Indexs.Contains(16))
                 {
-                    if (Other_List[Mod_Page][13].Files.Count == 0 || Other_List[Mod_Page][15].Files.Count == 0)
+                    if ((Other_List[Mod_Page][13].Files.Count == 0 && Other_List[Mod_Page][14].Files.Count == 0) || (Other_List[Mod_Page][15].Files.Count == 0 && Other_List[Mod_Page][16].Files.Count == 0))
                     {
                         Message_Feed_Out("引き分け、または敗北はどちらともに1つ以上BGMを入れる必要があります。");
                         return;
@@ -974,9 +979,9 @@ namespace WoTB_Voice_Mod_Creater.Class
                 }
                 else if (Select_Indexs.Contains(16) || Select_Indexs.Contains(17))
                 {
-                    if (Other_List[Mod_Page][16].Files.Count == 0 || Other_List[Mod_Page][17].Files.Count == 0)
+                    if (Other_List[Mod_Page][17].Files.Count == 0 || Other_List[Mod_Page][18].Files.Count == 0)
                     {
-                        Message_Feed_Out("優勢はどちらともに1つ以上BGMを入れる必要があります。");
+                        Message_Feed_Out("優勢はどちらともに1つ以上BGMまたは音声を入れる必要があります。");
                         return;
                     }
                 }
@@ -1170,6 +1175,9 @@ namespace WoTB_Voice_Mod_Creater.Class
                         Wwise.Clear();
                         if (!IsSelectedOnly || Selection_Index.Contains(19) || Selection_Index.Contains(20))
                         {
+                            Message_T.Text = "被弾音声のサポートは終了したためスキップされます。";
+                            await Task.Delay(2000);
+                            /*
                             Wwise_Project_Create Wwise_Hits = new Wwise_Project_Create(Voice_Set.Special_Path + "/Wwise/WoTB_Hits_Sound");
                             for (int Number = 19; Number < Other_List[Mod_Page].Count; Number++)
                             {
@@ -1190,6 +1198,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                             Wwise_Hits.Clear(true, null, true);
                             if (File.Exists(Voice_Set.Special_Path + "/Wwise/WoTB_Hits_Sound/Actor-Mixer Hierarchy/Backup.tmp"))
                                 File.Copy(Voice_Set.Special_Path + "/Wwise/WoTB_Hits_Sound/Actor-Mixer Hierarchy/Backup.tmp", Voice_Set.Special_Path + "/Wwise/WoTB_Hits_Sound/Actor-Mixer Hierarchy/Default Work Unit.wwu", true);
+                            */
                         }
                     }
                     else if (Mod_Page == 1)

@@ -92,6 +92,8 @@
                 <Button x:Name="WoT_To_Blitz_B" Content="WoTからBlitz" HorizontalAlignment="Left" Margin="-1770,175,0,0" VerticalAlignment="Top" Width="300" Height="70" Style="{StaticResource Button_MouseOver_Style}" Foreground="Aqua" BorderBrush="Aqua" FontSize="37" Focusable="False" Click="WoT_To_Blitz_B_Click"/>
                 <Button x:Name="Blitz_To_WoT_B" Content="BlitzからWoT" HorizontalAlignment="Left" Margin="-1915,60,0,0" VerticalAlignment="Top" Width="270" Height="65" Style="{StaticResource Button_MouseOver_Style}" Foreground="Aqua" BorderBrush="Aqua" FontSize="37" Focusable="False" Click="Blitz_To_WoT_B_Click"/>
                 <Button x:Name="Create_Save_B" Content="セーブデータとして変換" HorizontalAlignment="Left" Margin="-1775,685,0,0" VerticalAlignment="Top" Width="300" Height="70" Style="{StaticResource Button_MouseOver_Style}" Foreground="Aqua" BorderBrush="Aqua" FontSize="33" Focusable="False" Click="Create_Save_B_Click"/>
+                <Button x:Name="BNK_To_Project_B" Content="プロジェクトを復元" HorizontalAlignment="Left" Margin="-1775,800,0,0" VerticalAlignment="Top" Width="300" Height="70" Style="{StaticResource Button_MouseOver_Style}" Foreground="Aqua" BorderBrush="Aqua" Focusable="False" FontSize="35" Click="BNK_To_Project_B_Click"/>
+                <Button x:Name="Mod_Manager_B" Content="Mod管理＆導入" HorizontalAlignment="Left" Margin="-1425,800,0,0" VerticalAlignment="Top" Width="300" Height="70" Style="{StaticResource Button_MouseOver_Style}" Foreground="Aqua" BorderBrush="Aqua" Focusable="False" FontSize="35" Click="Mod_Manager_B_Click"/>
                 <Button x:Name="Loading_BGM_B" Content="その他サウンドMod" HorizontalAlignment="Left" Margin="-1110,175,0,0" VerticalAlignment="Top" Width="300" Height="70" Style="{StaticResource Button_MouseOver_Style}" Foreground="Aqua" BorderBrush="Aqua" FontSize="35" Focusable="False" Click="Loading_BGM_B_Click"/>
                 <Button x:Name="Other_B" Content="音楽プレイヤー" HorizontalAlignment="Left" Margin="-423,570,0,0" VerticalAlignment="Top" Width="300" Height="70" Style="{StaticResource Button_MouseOver_Style}" Foreground="Aqua" BorderBrush="Aqua" FontSize="37" Focusable="False" Click="Other_B_Click"/>
                 <Button x:Name="Voice_Mod_Mixer" Content="セーブデータを合成" HorizontalAlignment="Left" Margin="-450,175,0,0" VerticalAlignment="Top" Width="300" Height="70" Style="{StaticResource Button_MouseOver_Style}" Foreground="Aqua" BorderBrush="Aqua" FontSize="37" Focusable="False" Click="Voice_Mod_Mixer_Click"/>
@@ -99,7 +101,6 @@
                 <Button x:Name="WoT_Create_B" Content="本家WoT用音声" HorizontalAlignment="Left" Margin="-1440,175,0,0" VerticalAlignment="Top" Width="300" Height="70" Style="{StaticResource Button_MouseOver_Style}" Foreground="Aqua" BorderBrush="Aqua" FontSize="37" Focusable="False" Click="WoT_Create_B_Click"/>
                 <Button x:Name="Change_Log_B" Content="変更履歴" HorizontalAlignment="Left" Margin="-423,685,0,0" VerticalAlignment="Top" Width="300" Height="70" Style="{StaticResource Button_MouseOver_Style}" Foreground="Aqua" BorderBrush="Aqua" FontSize="37" Focusable="False" Click="Change_Log_B_Click"/>
                 <Button x:Name="Sound_Editor_B" Content="サウンド編集" HorizontalAlignment="Left" Margin="-780,570,0,0" VerticalAlignment="Top" Width="300" Height="70" Style="{StaticResource Button_MouseOver_Style}" Foreground="Aqua" BorderBrush="Aqua" FontSize="37" Focusable="False" Click="Sound_Editor_B_Click"/>
-                <Button x:Name="BNK_To_Project_B" Content="BNKからプロジェクトを復元" HorizontalAlignment="Left" Margin="-1665,800,0,0" VerticalAlignment="Top" Width="425" Height="70" Style="{StaticResource Button_MouseOver_Style}" Foreground="Aqua" BorderBrush="Aqua" Focusable="False" FontSize="35" Click="BNK_To_Project_B_Click"/>
                 <Button x:Name="Wwise_Player_B" Content="Wwise Player" HorizontalAlignment="Left" VerticalAlignment="Top" Width="300" Height="70" Style="{StaticResource Button_MouseOver_Style}" Foreground="Aqua" BorderBrush="Aqua" Focusable="False" FontSize="35" Margin="-780,685,0,0" Click="Wwise_Player_B_Click"/>
                 <Button x:Name="Extension_Convert_B" Content="サウンド形式を変更" HorizontalAlignment="Left" Margin="-665,800,0,0" VerticalAlignment="Top" Width="425" Height="70" Style="{StaticResource Button_MouseOver_Style}" Foreground="Aqua" BorderBrush="Aqua" Focusable="False" FontSize="35" Click="Extension_Convert_B_Click"/>
             </Canvas>
@@ -127,6 +128,8 @@
             <Line X1="-815" X2="-815" Y1="493.5" Y2="900" StrokeThickness="3" Stroke="Aqua"/>
             <Line X1="-85" X2="-85" Y1="493.5" Y2="900" StrokeThickness="3" Stroke="Aqua"/>
             <Line X1="-816.5" X2="-83.5" Y1="900" Y2="900" StrokeThickness="3" Stroke="Aqua"/>
+            <TextBlock x:Name="Update_T" Height="35" Width="550" TextWrapping="Wrap" Text="ソフトのアップデートがあります。" Foreground="Aqua" FontSize="30" Margin="-3050,325,0,0" VerticalAlignment="Top" FontFamily="HGPSoeiKakugothicUB" TextAlignment="Center"/>
+            <Button x:Name="Update_B" Content="アップデート"  Margin="-3050,375,0,0" VerticalAlignment="Top" Width="275" Height="60" Focusable="False" Style="{StaticResource Button_MouseOver_Style}" Foreground="Aqua" BorderBrush="Aqua" FontSize="30" Click="Update_B_Click"/>
             <Class1:Save_Configs x:Name="Save_Window" Width="1920" Height="1080" Margin="-1920,0,0,0" Visibility="Hidden"/>
             <Class1:Voice_Mod_Mixer x:Name="Voice_Mixer_Window" Width="1920" Height="1080" Margin="-1920,0,0,0" Visibility="Hidden"/>
             <Class1:Tools x:Name="Tools_Window" Width="1920" Height="1080" Margin="-1920,0,0,0" Visibility="Hidden"/>
@@ -147,6 +150,7 @@
             <Class1:WoWS_To_WoTB x:Name="WoWS_To_WoTB_Window" Width="1920" Height="1080" Margin="-1920,0,0,0" Visibility="Hidden"/>
             <Class1:WoT_Sound_Mod x:Name="WoT_Sound_Mod_Window" Width="1920" Height="1080" Margin="-1920,0,0,0" Visibility="Hidden"/>
             <Class1:Extension_Converter x:Name="Extension_Converter_Window" Width="1920" Height="1080" Margin="-1920,0,0,0" Visibility="Hidden"/>
+            <Class1:ModManager x:Name="ModManager_Window" Width="1920" Height="1080" Margin="-1920,0,0,0" Visibility="Hidden"/>
             <Canvas  x:Name="WindowBarCanvas" Width="1920" Height="25" Background="White" VerticalAlignment="Top" Margin="-1920,0,0,0" MouseLeftButtonDown="Canvas_MouseLeftButtonDown">
                 <Image x:Name="Icon_Small_Image" Stretch="Fill" Width="22" Height="22" Focusable="False" Margin="2,1,0,0"/>
                 <TextBlock Width="500" Height="20" Text="WoTB_Mod_Creator" FontSize="15" TextDecorations="{x:Null}" Margin="33,2,0,0" Focusable="False"/>

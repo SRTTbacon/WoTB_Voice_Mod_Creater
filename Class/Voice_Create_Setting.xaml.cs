@@ -10,6 +10,7 @@ using Un4seen.Bass.AddOn.Fx;
 using Un4seen.Bass.Misc;
 using System.Linq;
 using System.Runtime.InteropServices;
+using Un4seen.Bass.AddOn.Flac;
 
 namespace WoTB_Voice_Mod_Creater.Class
 {
@@ -227,7 +228,8 @@ namespace WoTB_Voice_Mod_Creater.Class
         int LPF_Before_Value = 0;
         float Freq = 44100f;
         string Event_Name = "";
-        string Max_Time = "00:00";
+        string maxTime = "00:00";
+        string maxTimeMil = "00:00.0";
         bool IsClosing = false;
         bool IsMessageShowing = false;
         bool IsLocationChanging = false;
@@ -241,6 +243,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         bool IsHPFMoving = false;
         bool IsLPFMoving = false;
         bool IsNoSelectMode = false;
+        bool bPlayTimeEndPushed = false;
         public Voice_Create_Setting()
         {
             InitializeComponent();
@@ -324,7 +327,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                         }
                         long position = Bass.BASS_ChannelGetPosition(Stream);
                         Position_S.Value = Bass.BASS_ChannelBytes2Seconds(Stream, position);
-                        Position_T.Text = Sub_Code.Get_Time_String(Position_S.Value) + " / " + Max_Time;
+                        Position_T.Text = Sub_Code.Get_Time_String(Position_S.Value) + " / " + maxTime;
                     }
                 }
                 if (Sub_Code.IsForcusWindow && !IsClosing && Voice_Create_Event_Setting_Window.Visibility == Visibility.Hidden)
@@ -375,19 +378,19 @@ namespace WoTB_Voice_Mod_Creater.Class
                         IsSpaceKeyDown = false;
                     if ((Keyboard.GetKeyStates(Key.V) & KeyStates.Down) > 0 && (Keyboard.GetKeyStates(Key.Up) & KeyStates.Down) > 0)
                     {
-                        double Increase = 1;
-                        if (All_Volume_S.Value + Increase > 10)
-                            All_Volume_S.Value = 10;
+                        double Increase = 0.4;
+                        if (Volume_Start_S.Value + Increase > 10)
+                            Volume_Start_S.Value = 10;
                         else
-                            All_Volume_S.Value += Increase;
+                            Volume_Start_S.Value += Increase;
                     }
                     else if ((Keyboard.GetKeyStates(Key.V) & KeyStates.Down) > 0 && (Keyboard.GetKeyStates(Key.Down) & KeyStates.Down) > 0)
                     {
-                        double Increase = 1;
-                        if (All_Volume_S.Value - Increase < -10)
-                            All_Volume_S.Value = -10;
+                        double Increase = 0.4;
+                        if (Volume_Start_S.Value - Increase < -10)
+                            Volume_Start_S.Value = -10;
                         else
-                            All_Volume_S.Value -= Increase;
+                            Volume_Start_S.Value -= Increase;
                     }
                     if ((Keyboard.GetKeyStates(Key.S) & KeyStates.Down) > 0 && (Keyboard.GetKeyStates(Key.Up) & KeyStates.Down) > 0)
                     {
@@ -439,12 +442,30 @@ namespace WoTB_Voice_Mod_Creater.Class
                         else
                             LPF_Start_S.Value -= Decrease;
                     }
+                    if ((Keyboard.GetKeyStates(Key.LeftShift) & KeyStates.Down) > 0 && (Keyboard.GetKeyStates(Key.S) & KeyStates.Down) > 0)
+                    {
+                        SetTimeStart();
+                    }
+                    if ((Keyboard.GetKeyStates(Key.LeftShift) & KeyStates.Down) > 0 && (Keyboard.GetKeyStates(Key.E) & KeyStates.Down) > 0)
+                    {
+                        if (!bPlayTimeEndPushed)
+                        {
+                            bPlayTimeEndPushed = true;
+                            SetTimeEnd();
+                        }
+                    }
+                    else
+                        bPlayTimeEndPushed = false;
+                    if ((Keyboard.GetKeyStates(Key.LeftShift) & KeyStates.Down) > 0 && (Keyboard.GetKeyStates(Key.C) & KeyStates.Down) > 0)
+                    {
+                        ClearTime();
+                    }
                 }
                 if (IsEnded)
                 {
                     Bass.BASS_ChannelStop(Stream);
                     Position_S.Value = 0;
-                    Position_T.Text = "00:00 / " + Max_Time;
+                    Position_T.Text = "00:00 / " + maxTime;
                     IsEnded = false;
                 }
                 if ((double)System.Environment.TickCount >= nextFrame + (double)period)
@@ -512,7 +533,9 @@ namespace WoTB_Voice_Mod_Creater.Class
                     Position_S.Value = 0;
                     Position_S.Maximum = 0;
                     Position_T.Text = "00:00 / 00:00";
-                    Max_Time = "00:00";
+                    Play_Time_T.Text = "再生時間:00:00.0～00:00.0";
+                    maxTime = "00:00";
+                    maxTimeMil = "00:00.0";
                     if (Sound_IntPtr != null && Sound_IntPtr.IsAllocated)
                         Sound_IntPtr.Free();
                     Sound_Bytes = null;
@@ -542,7 +565,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         {
             if (IsBassPosChange)
                 Bass.BASS_ChannelSetPosition(Stream, Pos);
-            Position_T.Text = Sub_Code.Get_Time_String(Pos) + " / " + Max_Time;
+            Position_T.Text = Sub_Code.Get_Time_String(Pos) + " / " + maxTime;
         }
         private void Position_S_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
@@ -633,14 +656,22 @@ namespace WoTB_Voice_Mod_Creater.Class
             Bass.BASS_SetConfig(BASSConfig.BASS_CONFIG_BUFFER, 100);
             int StreamHandle;
             if (Settings.Sounds[Sound_List.SelectedIndex].File_Path.Contains("\\"))
-                StreamHandle = Bass.BASS_StreamCreateFile(Settings.Sounds[Sound_List.SelectedIndex].File_Path, 0, 0, BASSFlag.BASS_SAMPLE_FLOAT | BASSFlag.BASS_STREAM_DECODE);
+            {
+                if (Path.GetExtension(Settings.Sounds[Sound_List.SelectedIndex].File_Path) == ".flac")
+                    StreamHandle = BassFlac.BASS_FLAC_StreamCreateFile(Settings.Sounds[Sound_List.SelectedIndex].File_Path, 0, 0, BASSFlag.BASS_SAMPLE_FLOAT | BASSFlag.BASS_STREAM_DECODE);
+                else
+                    StreamHandle = Bass.BASS_StreamCreateFile(Settings.Sounds[Sound_List.SelectedIndex].File_Path, 0, 0, BASSFlag.BASS_SAMPLE_FLOAT | BASSFlag.BASS_STREAM_DECODE);
+            }
             else
             {
                 Sound_Bytes = WVS_File.Load_Sound(Settings.Sounds[Sound_List.SelectedIndex].Stream_Position);
                 if (Sound_IntPtr != null && Sound_IntPtr.IsAllocated)
                     Sound_IntPtr.Free();
                 Sound_IntPtr = GCHandle.Alloc(Sound_Bytes, GCHandleType.Pinned);
-                StreamHandle = Bass.BASS_StreamCreateFile(Sound_IntPtr.AddrOfPinnedObject(), 0L, Sound_Bytes.Length, BASSFlag.BASS_SAMPLE_FLOAT | BASSFlag.BASS_STREAM_DECODE);
+                if (Path.GetExtension(Settings.Sounds[Sound_List.SelectedIndex].File_Path) == ".flac")
+                    StreamHandle = BassFlac.BASS_FLAC_StreamCreateFile(Sound_IntPtr.AddrOfPinnedObject(), 0L, Sound_Bytes.Length, BASSFlag.BASS_SAMPLE_FLOAT | BASSFlag.BASS_STREAM_DECODE);
+                else
+                    StreamHandle = Bass.BASS_StreamCreateFile(Sound_IntPtr.AddrOfPinnedObject(), 0L, Sound_Bytes.Length, BASSFlag.BASS_SAMPLE_FLOAT | BASSFlag.BASS_STREAM_DECODE);
             }
             Stream = BassFx.BASS_FX_TempoCreate(StreamHandle, BASSFlag.BASS_FX_FREESOURCE);
             Bass.BASS_SetConfig(BASSConfig.BASS_CONFIG_BUFFER, 500);
@@ -713,15 +744,16 @@ namespace WoTB_Voice_Mod_Creater.Class
             Gain = new DSP_Gain(Stream, 0);
             Change_Effect();
             IsPaused = true;
-            Max_Time = Sub_Code.Get_Time_String(Position_S.Maximum);
-            string Start_Time = "00:00";
-            string End_Time = Max_Time;
+            maxTime = Sub_Code.Get_Time_String(Position_S.Maximum);
+            maxTimeMil = Sub_Code.Get_TimeMil_String(Position_S.Maximum);
+            string Start_Time = "00:00.0";
+            string End_Time = maxTimeMil;
             if (Settings.Sounds[Sound_List.SelectedIndex].Play_Time.Start_Time > 0)
-                Start_Time = Sub_Code.Get_Time_String(Settings.Sounds[Sound_List.SelectedIndex].Play_Time.Start_Time);
+                Start_Time = Sub_Code.Get_TimeMil_String(Settings.Sounds[Sound_List.SelectedIndex].Play_Time.Start_Time);
             if (Settings.Sounds[Sound_List.SelectedIndex].Play_Time.End_Time > 0)
-                End_Time = Sub_Code.Get_Time_String(Settings.Sounds[Sound_List.SelectedIndex].Play_Time.End_Time);
+                End_Time = Sub_Code.Get_TimeMil_String(Settings.Sounds[Sound_List.SelectedIndex].Play_Time.End_Time);
             Play_Time_T.Text = "再生時間:" + Start_Time + "～" + End_Time;
-            Position_T.Text = "00:00 / " + Max_Time;
+            Position_T.Text = "00:00 / " + maxTime;
             Change_Range_Mode();
         }
         void Set_Pitch(int Pitch)
@@ -771,7 +803,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 return;
             string Message_01 = "選択している音声の優先度を設定します。";
             string Message_02 = "値が大きいほど再生される確率が上がります。\n";
-            string Message_03 = "'イベントを再生'で確率を確認しながら値を決めてください。";
+            string Message_03 = "'イベント設定'で確率を確認しながら値を決めてください。";
             Message_Feed_Out(Message_01 + Message_02 + Message_03);
         }
         private bool IsProbabilityZero()
@@ -1048,7 +1080,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         {
             e.Handled = true;
         }
-        private void Time_Start_B_Click(object sender, RoutedEventArgs e)
+        void SetTimeStart()
         {
             if (IsClosing || Sound_List.SelectedIndex == -1)
                 return;
@@ -1057,15 +1089,15 @@ namespace WoTB_Voice_Mod_Creater.Class
             if (End_Time != 0 && Settings.Sounds[Sound_List.SelectedIndex].Play_Time.Start_Time > End_Time)
             {
                 Settings.Sounds[Sound_List.SelectedIndex].Play_Time.End_Time = 0;
-                Play_Time_T.Text = "再生時間:" + Sub_Code.Get_Time_String(Settings.Sounds[Sound_List.SelectedIndex].Play_Time.Start_Time) + " ～ " + Max_Time;
+                Play_Time_T.Text = "再生時間:" + Sub_Code.Get_TimeMil_String(Settings.Sounds[Sound_List.SelectedIndex].Play_Time.Start_Time) + " ～ " + maxTimeMil;
                 Message_Feed_Out("開始時間が終了時間より大きかったため、終了時間を最大にします。");
             }
             else if (End_Time != 0)
-                Play_Time_T.Text = "再生時間:" + Sub_Code.Get_Time_String(Settings.Sounds[Sound_List.SelectedIndex].Play_Time.Start_Time) + " ～ " + Sub_Code.Get_Time_String(End_Time);
+                Play_Time_T.Text = "再生時間:" + Sub_Code.Get_TimeMil_String(Settings.Sounds[Sound_List.SelectedIndex].Play_Time.Start_Time) + " ～ " + Sub_Code.Get_TimeMil_String(End_Time);
             else
-                Play_Time_T.Text = "再生時間:" + Sub_Code.Get_Time_String(Settings.Sounds[Sound_List.SelectedIndex].Play_Time.Start_Time) + "～" + Max_Time;
+                Play_Time_T.Text = "再生時間:" + Sub_Code.Get_TimeMil_String(Settings.Sounds[Sound_List.SelectedIndex].Play_Time.Start_Time) + "～" + maxTimeMil;
         }
-        private void Time_End_B_Click(object sender, RoutedEventArgs e)
+        void SetTimeEnd()
         {
             if (IsClosing || Sound_List.SelectedIndex == -1)
                 return;
@@ -1076,15 +1108,33 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Message_Feed_Out("終了時間が開始時間より小さかったため、開始時間を0秒にします。");
             }
             double End_Time = Settings.Sounds[Sound_List.SelectedIndex].Play_Time.End_Time;
-            Play_Time_T.Text = "再生時間:" + Sub_Code.Get_Time_String(Settings.Sounds[Sound_List.SelectedIndex].Play_Time.Start_Time) + " ～ " + Sub_Code.Get_Time_String(End_Time);
+            Play_Time_T.Text = "再生時間:" + Sub_Code.Get_TimeMil_String(Settings.Sounds[Sound_List.SelectedIndex].Play_Time.Start_Time) + " ～ " + Sub_Code.Get_TimeMil_String(End_Time);
         }
-        private void Time_Clear_B_Click(object sender, RoutedEventArgs e)
+        void ClearTime()
         {
             if (IsClosing || Sound_List.SelectedIndex == -1)
                 return;
             Settings.Sounds[Sound_List.SelectedIndex].Play_Time.Start_Time = 0;
             Settings.Sounds[Sound_List.SelectedIndex].Play_Time.End_Time = 0;
-            Play_Time_T.Text = "再生時間:00:00～" + Max_Time;
+            Play_Time_T.Text = "再生時間:00:00.0～" + maxTimeMil;
+        }
+        private void Time_Start_B_Click(object sender, RoutedEventArgs e)
+        {
+            if (IsClosing || Sound_List.SelectedIndex == -1)
+                return;
+            SetTimeStart();
+        }
+        private void Time_End_B_Click(object sender, RoutedEventArgs e)
+        {
+            if (IsClosing || Sound_List.SelectedIndex == -1)
+                return;
+            SetTimeEnd();
+        }
+        private void Time_Clear_B_Click(object sender, RoutedEventArgs e)
+        {
+            if (IsClosing || Sound_List.SelectedIndex == -1)
+                return;
+            ClearTime();
         }
         private void Range_C_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {

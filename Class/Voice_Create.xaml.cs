@@ -11,8 +11,10 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using Un4seen.Bass;
+using Un4seen.Bass.AddOn.Flac;
 using Un4seen.Bass.AddOn.Fx;
 using WK.Libraries.BetterFolderBrowserNS;
+using WoTB_Voice_Mod_Creater.Properties;
 using static WoTB_Voice_Mod_Creater.Class.Voice_Mod_Mixer;
 
 namespace WoTB_Voice_Mod_Creater.Class
@@ -39,23 +41,25 @@ namespace WoTB_Voice_Mod_Creater.Class
         int Selected_Voice_Index = -1;
         int Back_Pos_Now = 0;
         uint autoSaveCount = 0;
-        bool IsBusy = false;
-        bool IsMessageShowing = false;
-        bool IsCreating = false;
-        bool IsExecuteWoTB = false;
-        bool IsPaused = false;
-        bool IsPlayingMouseDown = false;
-        bool IsLocationChanging = false;
-        bool IsEnded = false;
-        bool IsLoadedWVS = false;
-        bool IsWVSIncludeSound = false;
-        bool IsIncludeSound = false;
-        bool IsPushedZkey = false;
-        bool IsPushedYkey = false;
-        bool IsPushedCkey = false;
-        bool IsPushedVkey = false;
+        bool bBusy = false;
+        bool bMessageShowing = false;
+        bool bCreating = false;
+        bool bExecuteWoTB = false;
+        bool bPaused = false;
+        bool bPlayingMouseDown = false;
+        bool bLocationChanging = false;
+        bool bEnded = false;
+        bool bLoadedWVS = false;
+        bool bWVSIncludeSound = false;
+        bool bIncludeSound = false;
+        bool bPushedZkey = false;
+        bool bPushedYkey = false;
+        bool bPushedCkey = false;
+        bool bPushedVkey = false;
+        bool bOpenedChangeDir = false;
         WVS_Load WVS_File = new WVS_Load();
         SYNCPROC IsMusicEnd;
+        GCHandle Sound_IntPtr;
         readonly Timer timer = null;
         public List<object> Back_To_The_Future = new List<object>();
         readonly List<List<Voice_Event_Setting>> Sound_Setting = new List<List<Voice_Event_Setting>>();
@@ -123,7 +127,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 }
                 if (Visibility == Visibility.Visible)
                 {
-                    if (Bass.BASS_ChannelIsActive(Stream) == BASSActive.BASS_ACTIVE_PLAYING && !IsLocationChanging)
+                    if (Bass.BASS_ChannelIsActive(Stream) == BASSActive.BASS_ACTIVE_PLAYING && !bLocationChanging)
                     {
                         long position = Bass.BASS_ChannelGetPosition(Stream);
                         Position_S.Value = Bass.BASS_ChannelBytes2Seconds(Stream, position);
@@ -144,56 +148,57 @@ namespace WoTB_Voice_Mod_Creater.Class
                             if (text.Name == "Project_Name_T")
                                 IsFocused = true;
                         }
-                        if (!IsBusy && !IsCreating && !IsFocused)
+                        if (!bBusy && !bCreating && !IsFocused)
                         {
                             bool IsCtrlPushed = (Keyboard.GetKeyStates(Key.LeftCtrl) & KeyStates.Down) > 0;
                             if (IsCtrlPushed && (Keyboard.GetKeyStates(Key.Z) & KeyStates.Down) > 0)
                             {
-                                if (!IsPushedZkey)
+                                if (!bPushedZkey)
                                     History_Back();
-                                IsPushedZkey = true;
+                                bPushedZkey = true;
                             }
                             else
-                                IsPushedZkey = false;
+                                bPushedZkey = false;
                             if (IsCtrlPushed && (Keyboard.GetKeyStates(Key.Y) & KeyStates.Down) > 0)
                             {
-                                if (!IsPushedYkey)
+                                if (!bPushedYkey)
                                     History_Next();
-                                IsPushedYkey = true;
+                                bPushedYkey = true;
                             }
                             else
-                                IsPushedYkey = false;
+                                bPushedYkey = false;
                         }
                     }
                     if ((Keyboard.GetKeyStates(Key.LeftCtrl) & KeyStates.Down) > 0 && (Keyboard.GetKeyStates(Key.C) & KeyStates.Down) > 0)
                     {
-                        if (!IsPushedCkey)
+                        if (!bPushedCkey)
                             Voice_List_Copy_Click(null, null);
-                        IsPushedCkey = true;
+                        bPushedCkey = true;
                     }
                     else
-                        IsPushedCkey = false;
+                        bPushedCkey = false;
                     if ((Keyboard.GetKeyStates(Key.LeftCtrl) & KeyStates.Down) > 0 && (Keyboard.GetKeyStates(Key.V) & KeyStates.Down) > 0)
                     {
-                        if (!IsPushedVkey)
+                        if (!bPushedVkey)
                             Voice_List_Paste_Click(null, null);
-                        IsPushedVkey = true;
+                        bPushedVkey = true;
                     }
                     else
-                        IsPushedVkey = false;
-
-                    if (!IsBusy && !IsCreating)
+                        bPushedVkey = false;
+                    if ((Keyboard.GetKeyStates(Key.LeftCtrl) & KeyStates.Down) > 0 && (Keyboard.GetKeyStates(Key.D) & KeyStates.Down) > 0)
+                        ReplaceVoiceDir();
+                    if (!bBusy && !bCreating)
                     {
                         projectName = Project_Name_T.Text;
                     }
                 }
-                if (IsEnded)
+                if (bEnded)
                 {
                     Bass.BASS_ChannelStop(Stream);
                     Position_S.Value = 0;
                     Position_T.Text = "00:00 / " + Max_Time;
                     Selected_Voice_Index = -1;
-                    IsEnded = false;
+                    bEnded = false;
                 }
                 if ((double)System.Environment.TickCount >= nextFrame + (double)period)
                 {
@@ -205,10 +210,10 @@ namespace WoTB_Voice_Mod_Creater.Class
         }
         async void EndSync(int handle, int channel, int data, IntPtr user)
         {
-            if (!IsEnded)
+            if (!bEnded)
             {
                 await Task.Delay(500);
-                IsEnded = true;
+                bEnded = true;
             }
         }
         void List_Text_Reset()
@@ -290,7 +295,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             {
                 Voice_Sub_List.Items.Add(Sub_Voice_List[Number]);
                 if (Number == 15)
-                    Sound_Setting[1][Sound_Setting[1].Count - 1].Volume = -11;
+                    Sound_Setting[1][Sound_Setting[1].Count - 1].Volume = 0;
                 Sound_Setting[1].Add(new Voice_Event_Setting());
             }
             for (int Number = 0; Number < Three_Voice_List.Count; Number++)
@@ -306,6 +311,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         {
             //画面を表示
             ColorMode_Change();
+            Voice_Create_Window.InitializeLoadData();
             if (Sub_Code.IsWindowBarShow)
             {
                 Voice_Clear_B.Margin = new Thickness(Voice_Clear_B.Margin.Left, 25, 0, 0);
@@ -320,7 +326,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             }
             Opacity = 0;
             Visibility = Visibility.Visible;
-            while (Opacity < 1 && !IsBusy)
+            while (Opacity < 1 && !bBusy)
             {
                 Opacity += Sub_Code.Window_Feed_Time;
                 await Task.Delay(1000 / 60);
@@ -330,9 +336,9 @@ namespace WoTB_Voice_Mod_Creater.Class
         private async void Exit_B_Click(object sender, RoutedEventArgs e)
         {
             //閉じる
-            if (!IsBusy && !IsCreating)
+            if (!bBusy && !bCreating)
             {
-                IsBusy = true;
+                bBusy = true;
                 Configs_Save();
                 timer.Stop();
                 Pause_Volume_Animation(true, 10f);
@@ -342,38 +348,38 @@ namespace WoTB_Voice_Mod_Creater.Class
                     await Task.Delay(1000 / 60);
                 }
                 Visibility = Visibility.Hidden;
-                IsBusy = false;
+                bBusy = false;
             }
         }
         async void Message_Feed_Out(string Message)
         {
             //テキストが一定期間経ったらフェードアウト
-            if (IsMessageShowing)
+            if (bMessageShowing)
             {
-                IsMessageShowing = false;
+                bMessageShowing = false;
                 await Task.Delay(1000 / 59);
             }
             Message_T.Text = Message;
-            IsMessageShowing = true;
+            bMessageShowing = true;
             Message_T.Opacity = 1;
             int Number = 0;
-            while (Message_T.Opacity > 0 && IsMessageShowing)
+            while (Message_T.Opacity > 0 && bMessageShowing)
             {
                 Number++;
                 if (Number >= 120)
                     Message_T.Opacity -= 0.025;
                 await Task.Delay(1000 / 60);
             }
-            if (IsMessageShowing)
+            if (bMessageShowing)
             {
-                IsMessageShowing = false;
+                bMessageShowing = false;
                 Message_T.Text = "";
             }
             Message_T.Opacity = 1;
         }
         private void Voice_Back_B_Click(object sender, RoutedEventArgs e)
         {
-            if (IsBusy || IsCreating)
+            if (bBusy || bCreating)
                 return;
             Page_Back(true);
         }
@@ -408,7 +414,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         }
         private void Voice_Next_B_Click(object sender, RoutedEventArgs e)
         {
-            if (IsBusy || IsCreating)
+            if (bBusy || bCreating)
                 return;
             Page_Next(true);
         }
@@ -443,7 +449,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         }
         private void Voice_List_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (IsBusy || IsCreating)
+            if (bBusy || bCreating)
                 return;
             Pause_Volume_Animation(true, 5);
             if (Voice_List.SelectedIndex != -1)
@@ -451,7 +457,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         }
         private void Voice_Sub_List_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (IsBusy || IsCreating)
+            if (bBusy || bCreating)
                 return;
             Pause_Volume_Animation(true, 5);
             if (Voice_Sub_List.SelectedIndex != -1)
@@ -459,7 +465,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         }
         private void Voice_Three_List_SeletionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (IsBusy || IsCreating)
+            if (bBusy || bCreating)
                 return;
             Pause_Volume_Animation(true, 5);
             if (Voice_Three_List.SelectedIndex != -1)
@@ -520,7 +526,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         }
         private void Voice_Select_B_Click(object sender, RoutedEventArgs e)
         {
-            if (IsBusy || IsCreating)
+            if (bBusy || bCreating)
                 return;
             if (Voice_List.SelectedIndex == -1 && List_Index_Mode == 0)
             {
@@ -548,7 +554,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         }
         private void Add_Voice(List<Add_Voice_Param> Add_Files)
         {
-            if (IsBusy || IsCreating)
+            if (bBusy || bCreating)
                 return;
             List<Voice_Sound_Setting> Voice_Settings = new List<Voice_Sound_Setting>();
             List<int> Change_Colors_Main = new List<int>();
@@ -593,7 +599,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         }
         public void Add_Voice(string[] Voice_Files, bool IsDragDropMode, Voice_Sound_Setting Settings = null, int List_Type_Index = -1, int Voice_Index = -1, int File_Index = -1)
         {
-            if (IsBusy || IsCreating)
+            if (bBusy || bCreating)
                 return;
             if (List_Type_Index == -1)
                 List_Type_Index = List_Index_Mode;
@@ -691,7 +697,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         }
         private void Voice_Delete_B_Click(object sender, RoutedEventArgs e)
         {
-            if (IsBusy || IsCreating)
+            if (bBusy || bCreating)
                 return;
             if (Voice_File_List.SelectedIndex == -1)
             {
@@ -703,33 +709,24 @@ namespace WoTB_Voice_Mod_Creater.Class
             //音声が1つしかなかった場合選択済みから未選択に変える
             int Number = Voice_File_List.SelectedIndex;
             Voice_File_List.SelectedIndex = -1;
+            int Voice_Index = -1;
             if (List_Index_Mode == 0)
             {
-                int Voice_Index = Voice_List.SelectedIndex;
-                Sound_Setting[List_Index_Mode][Voice_Index].Sounds[Number].Type_Index = List_Index_Mode;
-                Sound_Setting[List_Index_Mode][Voice_Index].Sounds[Number].Voice_Index = Voice_Index;
-                Sound_Setting[List_Index_Mode][Voice_Index].Sounds[Number].File_Index = Number;
-                Add_Back(Sound_Setting[List_Index_Mode][Voice_Index].Sounds[Number].Clone());
-                Voice_Delete(List_Index_Mode, Voice_Index, Number);
+                Voice_Index = Voice_List.SelectedIndex;
             }
             else if (List_Index_Mode == 1)
             {
-                int Voice_Index = Voice_Sub_List.SelectedIndex;
-                Sound_Setting[List_Index_Mode][Voice_Index].Sounds[Number].Type_Index = List_Index_Mode;
-                Sound_Setting[List_Index_Mode][Voice_Index].Sounds[Number].Voice_Index = Voice_Index;
-                Sound_Setting[List_Index_Mode][Voice_Index].Sounds[Number].File_Index = Number;
-                Add_Back(Sound_Setting[List_Index_Mode][Voice_Index].Sounds[Number].Clone());
-                Voice_Delete(List_Index_Mode, Voice_Index, Number);
+                Voice_Index = Voice_Sub_List.SelectedIndex;
             }
             else if (List_Index_Mode == 2)
             {
-                int Voice_Index = Voice_Three_List.SelectedIndex;
-                Sound_Setting[List_Index_Mode][Voice_Index].Sounds[Number].Type_Index = List_Index_Mode;
-                Sound_Setting[List_Index_Mode][Voice_Index].Sounds[Number].Voice_Index = Voice_Index;
-                Sound_Setting[List_Index_Mode][Voice_Index].Sounds[Number].File_Index = Number;
-                Add_Back(Sound_Setting[List_Index_Mode][Voice_Index].Sounds[Number].Clone());
-                Voice_Delete(List_Index_Mode, Voice_Index, Number);
+                Voice_Index = Voice_Three_List.SelectedIndex;
             }
+            Sound_Setting[List_Index_Mode][Voice_Index].Sounds[Number].Type_Index = List_Index_Mode;
+            Sound_Setting[List_Index_Mode][Voice_Index].Sounds[Number].Voice_Index = Voice_Index;
+            Sound_Setting[List_Index_Mode][Voice_Index].Sounds[Number].File_Index = Number;
+            Add_Back(Sound_Setting[List_Index_Mode][Voice_Index].Sounds[Number].Clone());
+            Voice_Delete(List_Index_Mode, Voice_Index, Number);
             if (Voice_File_List.Items.Count > Number)
                 Voice_File_List.SelectedIndex = Number;
         }
@@ -771,7 +768,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 {
                     Three_Voice_List[Voice_Index] = Three_Voice_List[Voice_Index].Replace("選択済み", "未選択");
                     Voice_Three_List.Items[Voice_Index] = Three_Voice_List[Voice_Index];
-                    LBI.Content = Sub_Voice_List[Voice_Index].Replace("System.Windows.Controls.ListBoxItem: ", "");
+                    LBI.Content = Three_Voice_List[Voice_Index].Replace("System.Windows.Controls.ListBoxItem: ", "");
                     LBI.Foreground = (Brush)new BrushConverter().ConvertFromString("#BFFF2C8C");
                     Voice_Three_List.Items[Voice_Index] = LBI;
                 }
@@ -792,7 +789,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         }
         private void Voice_Play_B_Click(object sender, RoutedEventArgs e)
         {
-            if (IsBusy || IsCreating)
+            if (bBusy || bCreating)
                 return;
             if (Voice_File_List.SelectedIndex == -1)
             {
@@ -814,7 +811,8 @@ namespace WoTB_Voice_Mod_Creater.Class
                     Select_File = Sound_Setting[List_Index_Mode][Voice_List_Index].Sounds[Voice_File_List.SelectedIndex].File_Path;
                     if (!File.Exists(Select_File))
                     {
-                        Message_Feed_Out("音声ファイルが存在しません。削除された可能性があります。");
+                        Message_Feed_Out("音声ファイルが存在しません。削除された可能性があります。\n場所:" + Select_File);
+                        Voice_File_List.SelectedIndex = -1;
                         return;
                     }
                 }
@@ -823,12 +821,23 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Position_S.Value = 0;
                 int StreamHandle;
                 if (Select_File != "")
-                    StreamHandle = Bass.BASS_StreamCreateFile(Select_File, 0, 0, BASSFlag.BASS_SAMPLE_FLOAT | BASSFlag.BASS_STREAM_DECODE | BASSFlag.BASS_SAMPLE_LOOP);
+                {
+                    if (Path.GetExtension(Select_File) == ".flac")
+                        StreamHandle = BassFlac.BASS_FLAC_StreamCreateFile(Select_File, 0, 0, BASSFlag.BASS_SAMPLE_FLOAT | BASSFlag.BASS_STREAM_DECODE | BASSFlag.BASS_SAMPLE_LOOP);
+                    else
+                        StreamHandle = Bass.BASS_StreamCreateFile(Select_File, 0, 0, BASSFlag.BASS_SAMPLE_FLOAT | BASSFlag.BASS_STREAM_DECODE | BASSFlag.BASS_SAMPLE_LOOP);
+                }
                 else
                 {
-                    File.Delete(Voice_Set.Special_Path + "\\Wwise\\Temp_Voice_Create_01.mp3");
-                    File.WriteAllBytes(Voice_Set.Special_Path + "\\Wwise\\Temp_Voice_Create_01.mp3", WVS_File.Load_Sound(Sound_Setting[List_Index_Mode][Voice_List_Index].Sounds[Voice_File_List.SelectedIndex].Stream_Position));
-                    StreamHandle = Bass.BASS_StreamCreateFile(Voice_Set.Special_Path + "\\Wwise\\Temp_Voice_Create_01.mp3", 0, 0, BASSFlag.BASS_SAMPLE_FLOAT | BASSFlag.BASS_STREAM_DECODE | BASSFlag.BASS_SAMPLE_LOOP);
+                    byte[] Sound_Bytes = WVS_File.Load_Sound(Sound_Setting[List_Index_Mode][Voice_List_Index].Sounds[Voice_File_List.SelectedIndex].Stream_Position);
+                    if (Sound_IntPtr != null && Sound_IntPtr.IsAllocated)
+                        Sound_IntPtr.Free();
+                    Sound_IntPtr = GCHandle.Alloc(Sound_Bytes, GCHandleType.Pinned);
+                    IntPtr pin = Sound_IntPtr.AddrOfPinnedObject();
+                    if (Path.GetExtension(Sound_Setting[List_Index_Mode][Voice_List_Index].Sounds[Voice_File_List.SelectedIndex].File_Path) == ".flac")
+                        StreamHandle = BassFlac.BASS_FLAC_StreamCreateFile(pin, 0L, Sound_Bytes.Length, BASSFlag.BASS_SAMPLE_FLOAT | BASSFlag.BASS_STREAM_DECODE | BASSFlag.BASS_SAMPLE_LOOP);
+                    else
+                        StreamHandle = Bass.BASS_StreamCreateFile(pin, 0L, Sound_Bytes.Length, BASSFlag.BASS_SAMPLE_FLOAT | BASSFlag.BASS_STREAM_DECODE | BASSFlag.BASS_SAMPLE_LOOP);
                 }
                 Stream = BassFx.BASS_FX_TempoCreate(StreamHandle, BASSFlag.BASS_FX_FREESOURCE);
                 Position_S.Maximum = Bass.BASS_ChannelBytes2Seconds(Stream, Bass.BASS_ChannelGetLength(Stream, BASSMode.BASS_POS_BYTES));
@@ -844,7 +853,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                     Minutes = "0" + Time.Minutes;
                 if (Time.Seconds < 10)
                     Seconds = "0" + Time.Seconds;
-                IsPaused = false;
+                bPaused = false;
                 Max_Time = Minutes + ":" + Seconds;
                 Selected_Voice_Index = Voice_File_List.SelectedIndex;
             }
@@ -853,14 +862,14 @@ namespace WoTB_Voice_Mod_Creater.Class
         }
         private void Voice_Pause_B_Click(object sender, RoutedEventArgs e)
         {
-            if (IsBusy)
+            if (bBusy)
                 return;
             //再生している音声を停止
             Pause_Volume_Animation(false, 5);
         }
         private async void Voice_Save_B_Click(object sender, RoutedEventArgs e)
         {
-            if (IsBusy || IsCreating)
+            if (bBusy || bCreating)
                 return;
             bool IsOK = false;
             foreach (List<Voice_Event_Setting> Settings in Sound_Setting)
@@ -898,8 +907,40 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Configs_Save();
                 try
                 {
-                    if (IsIncludeSound)
+                    if (bIncludeSound)
+                    {
                         Message_T.Text = "サウンドファイルを含めたセーブデータを作成しています...";
+                        if (WVS_File == null || !WVS_File.IsIncludedSound)
+                        {
+                            for (int bnkIndex = 0; bnkIndex < Sound_Setting.Count; bnkIndex++)
+                            {
+                                for (int typeIndex = 0; typeIndex < Sound_Setting[bnkIndex].Count; typeIndex++)
+                                {
+                                    for (int voiceIndex = 0; voiceIndex < Sound_Setting[bnkIndex][typeIndex].Sounds.Count; voiceIndex++)
+                                    {
+                                        if (!File.Exists(Sound_Setting[bnkIndex][typeIndex].Sounds[voiceIndex].File_Path))
+                                        {
+                                            string eventName = null;
+                                            if (bnkIndex == 0)
+                                                eventName = Main_Voice_List[typeIndex];
+                                            else if (bnkIndex == 1)
+                                                eventName = Sub_Voice_List[typeIndex];
+                                            else if (bnkIndex == 2)
+                                                eventName = Three_Voice_List[typeIndex];
+                                            if (eventName == null)
+                                                eventName = "不明";
+                                            else
+                                                eventName = eventName.Substring(0, eventName.IndexOf("|") - 1);
+                                            string fileName = Path.GetFileName(Sound_Setting[bnkIndex][typeIndex].Sounds[voiceIndex].File_Path);
+                                            string message = "イベント:'" + eventName + "/" + fileName + "'のファイルが存在しないためデータを保存できませんでした。";
+                                            Message_Feed_Out(message);
+                                            return;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                     else
                         Message_T.Text = "セーブしています...";
                     await Task.Delay(50);
@@ -907,7 +948,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                     Save.Add_Sound(Sound_Setting, WVS_File);
                     if (WVS_File != null)
                         WVS_File.Dispose();
-                    Save.Create(sfd.FileName, Project_Name_T.Text, !Project_Name_T.IsEnabled, IsIncludeSound);
+                    Save.Create(sfd.FileName, Project_Name_T.Text, !Project_Name_T.IsEnabled, bIncludeSound);
                     Save.Dispose();
                     Voice_Load_From_File(sfd.FileName);
                     Message_Feed_Out("セーブしました。");
@@ -921,7 +962,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         }
         private void Voice_Load_B_Click(object sender, RoutedEventArgs e)
         {
-            if (IsBusy || IsCreating)
+            if (bBusy || bCreating)
                 return;
             //保存したファイルから状態を復元
             System.Windows.Forms.OpenFileDialog ofd = new System.Windows.Forms.OpenFileDialog()
@@ -990,10 +1031,10 @@ namespace WoTB_Voice_Mod_Creater.Class
                             Voice_Three_List.Items[Number] = Three_Voice_List[Number];
                         }
                     }
-                    IsLoadedWVS = true;
-                    IsWVSIncludeSound = this.WVS_File.IsIncludedSound;
-                    IsIncludeSound = this.WVS_File.IsIncludedSound;
-                    if (IsWVSIncludeSound)
+                    bLoadedWVS = true;
+                    bWVSIncludeSound = this.WVS_File.IsIncludedSound;
+                    bIncludeSound = this.WVS_File.IsIncludedSound;
+                    if (bWVSIncludeSound)
                         Voice_Save_WVS_C.Source = Sub_Code.Check_03;
                     else
                         Voice_Save_WVS_C.Source = Sub_Code.Check_01;
@@ -1014,8 +1055,8 @@ namespace WoTB_Voice_Mod_Creater.Class
                     Project_Name_T.Text = "";
                     Project_Name_Text.Text = "プロジェクト名";
                     Project_Name_T.IsEnabled = true;
-                    IsLoadedWVS = false;
-                    IsWVSIncludeSound = false;
+                    bLoadedWVS = false;
+                    bWVSIncludeSound = false;
                     if (Voice_List.SelectedIndex != -1)
                         Voice_File_Reset(Sound_Setting[0], Voice_List.SelectedIndex);
                     else
@@ -1024,8 +1065,8 @@ namespace WoTB_Voice_Mod_Creater.Class
                 }
                 else
                 {
-                    IsLoadedWVS = false;
-                    IsWVSIncludeSound = false;
+                    bLoadedWVS = false;
+                    bWVSIncludeSound = false;
                     string line;
                     StreamReader file = Sub_Code.File_Decrypt_To_Stream(WVS_File, "SRTTbacon_Create_Voice_Save");
                     string Name_All = file.ReadLine();
@@ -1121,8 +1162,8 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Project_Name_T.Text = "";
                 Project_Name_Text.Text = "プロジェクト名";
                 Project_Name_T.IsEnabled = true;
-                IsLoadedWVS = false;
-                IsWVSIncludeSound = false;
+                bLoadedWVS = false;
+                bWVSIncludeSound = false;
                 if (Voice_List.SelectedIndex != -1)
                     Voice_File_Reset(Sound_Setting[0], Voice_List.SelectedIndex);
                 else
@@ -1133,7 +1174,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         }
         private async void Voice_Create_B_Click(object sender, RoutedEventArgs e)
         {
-            if (IsBusy || IsCreating)
+            if (bBusy || bCreating)
                 return;
             bool IsOK = false;
             foreach (string Name_Now in Main_Voice_List)
@@ -1190,9 +1231,9 @@ namespace WoTB_Voice_Mod_Creater.Class
             if (Sub_Code.CreatingProject)
             {
                 Sub_Code.CreatingProject = false;
-                IsCreating = true;
+                bCreating = true;
                 Message_T.Opacity = 1;
-                IsMessageShowing = false;
+                bMessageShowing = false;
                 try
                 {
                     string Dir_Path = Directory.GetCurrentDirectory();
@@ -1236,7 +1277,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                             {
                                 Message_Feed_Out("WoTBに適応できませんでした。");
                                 Sub_Code.Error_Log_Write(e1.Message);
-                                IsCreating = false;
+                                bCreating = false;
                                 return;
                             }
                         }
@@ -1245,7 +1286,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                     Sub_Code.SetLanguage = "";
                     Message_Feed_Out("完了しました。\n保存先:\\Projects\\" + Project_Name_T.Text);
                     Border_All.Visibility = Visibility.Hidden;
-                    IsCreating = false;
+                    bCreating = false;
                 }
                 catch (Exception e1)
                 {
@@ -1260,16 +1301,16 @@ namespace WoTB_Voice_Mod_Creater.Class
                     Sub_Code.Error_Log_Write(e1.StackTrace);
 #endif
                     Border_All.Visibility = Visibility.Hidden;
-                    IsCreating = false;
+                    bCreating = false;
                 }
-                if (IsExecuteWoTB)
+                if (bExecuteWoTB)
                 {
                     Message_Feed_Out("WoTBを起動しています...");
                     System.Diagnostics.Process.Start(Voice_Set.WoTB_Path + "\\wotblitz.exe");
                 }
             }
             else
-                IsCreating = false;
+                bCreating = false;
         }
         void Volume_MouseUp(object sender, System.Windows.Input.MouseEventArgs e)
         {
@@ -1306,12 +1347,16 @@ namespace WoTB_Voice_Mod_Creater.Class
             foreach (string dir in Directory.GetDirectories(Dir_Name))
                 if (Path.GetFileName(dir) != "All_Voices")
                     Directory.Delete(dir, true);
-            foreach (string file in Directory.GetFiles(Dir_Name))
+            try
             {
-                string Ex = Path.GetExtension(file);
-                if (Ex != ".bnk" && Ex != ".dvpl")
-                    File.Delete(file);
+                foreach (string file in Directory.GetFiles(Dir_Name))
+                {
+                    string Ex = Path.GetExtension(file);
+                    if (Ex != ".bnk" && Ex != ".dvpl" && Ex != ".wvs")
+                        File.Delete(file);
+                }
             }
+            catch { }
             File.Copy(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Default Work Unit.bak", Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Default Work Unit.wwu", true);
             File.Copy(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Events/base_capture.bak", Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Events/base_capture.wwu", true);
             File.Copy(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Events/Chat.bak", Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Events/Chat.wwu", true);
@@ -1373,7 +1418,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         }
         private void Voice_Clear_B_Click(object sender, RoutedEventArgs e)
         {
-            if (IsBusy || IsCreating)
+            if (bBusy || bCreating)
                 return;
             MessageBoxResult result = System.Windows.MessageBox.Show("追加された音声をクリアしますか？", "確認", MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.No);
             if (result == MessageBoxResult.Yes)
@@ -1392,8 +1437,8 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Project_Name_T.Text = "";
                 Project_Name_Text.Text = "プロジェクト名";
                 Project_Name_T.IsEnabled = true;
-                IsLoadedWVS = false;
-                IsWVSIncludeSound = false;
+                bLoadedWVS = false;
+                bWVSIncludeSound = false;
                 if (WVS_File != null && WVS_File.IsLoaded)
                     WVS_File.Dispose();
                 if (Voice_List.SelectedIndex != -1)
@@ -1461,7 +1506,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         }
         private void Execute_WoTB_C_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
-            if (IsExecuteWoTB)
+            if (bExecuteWoTB)
                 Execute_WoTB_C.Source = Sub_Code.Check_02;
             else
             {
@@ -1472,18 +1517,18 @@ namespace WoTB_Voice_Mod_Creater.Class
                 }
                 Execute_WoTB_C.Source = Sub_Code.Check_04;
             }
-            IsExecuteWoTB = !IsExecuteWoTB;
+            bExecuteWoTB = !bExecuteWoTB;
         }
         private void Execute_WoTB_C_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
         {
-            if (IsExecuteWoTB)
+            if (bExecuteWoTB)
                 Execute_WoTB_C.Source = Sub_Code.Check_04;
             else
                 Execute_WoTB_C.Source = Sub_Code.Check_02;
         }
         private void Execute_WoTB_C_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
         {
-            if (IsExecuteWoTB)
+            if (bExecuteWoTB)
                 Execute_WoTB_C.Source = Sub_Code.Check_03;
             else
                 Execute_WoTB_C.Source = Sub_Code.Check_01;
@@ -1515,12 +1560,12 @@ namespace WoTB_Voice_Mod_Creater.Class
         }
         async void Play_Volume_Animation(float Feed_Time = 30f)
         {
-            IsPaused = false;
+            bPaused = false;
             Bass.BASS_ChannelPlay(Stream, false);
             float Volume_Now = 1f;
             Bass.BASS_ChannelGetAttribute(Stream, BASSAttribute.BASS_ATTRIB_VOL, ref Volume_Now);
             float Volume_Plus = (float)(Volume_S.Value / 100) / Feed_Time;
-            while (Volume_Now < (float)(Volume_S.Value / 100) && !IsPaused)
+            while (Volume_Now < (float)(Volume_S.Value / 100) && !bPaused)
             {
                 Volume_Now += Volume_Plus;
                 if (Volume_Now > 1f)
@@ -1531,11 +1576,11 @@ namespace WoTB_Voice_Mod_Creater.Class
         }
         async void Pause_Volume_Animation(bool IsStop, float Feed_Time = 30f)
         {
-            IsPaused = true;
+            bPaused = true;
             float Volume_Now = 1f;
             Bass.BASS_ChannelGetAttribute(Stream, BASSAttribute.BASS_ATTRIB_VOL, ref Volume_Now);
             float Volume_Minus = Volume_Now / Feed_Time;
-            while (Volume_Now > 0f && IsPaused)
+            while (Volume_Now > 0f && bPaused)
             {
                 Volume_Now -= Volume_Minus;
                 if (Volume_Now < 0f)
@@ -1555,40 +1600,40 @@ namespace WoTB_Voice_Mod_Creater.Class
                     Selected_Voice_Index = -1;
                     Max_Time = "00:00";
                 }
-                else if (IsPaused)
+                else if (bPaused)
                     Bass.BASS_ChannelPause(Stream);
             }
         }
         void Position_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            if (IsBusy)
+            if (bBusy)
                 return;
-            IsLocationChanging = true;
+            bLocationChanging = true;
             if (Bass.BASS_ChannelIsActive(Stream) == BASSActive.BASS_ACTIVE_PLAYING)
             {
-                IsPlayingMouseDown = true;
+                bPlayingMouseDown = true;
                 Pause_Volume_Animation(false, 10);
             }
         }
         void Position_MouseUp(object sender, MouseButtonEventArgs e)
         {
-            IsLocationChanging = false;
+            bLocationChanging = false;
             Bass.BASS_ChannelSetPosition(Stream, Position_S.Value);
-            if (IsPlayingMouseDown)
+            if (bPlayingMouseDown)
             {
-                IsPaused = false;
+                bPaused = false;
                 Play_Volume_Animation(10);
-                IsPlayingMouseDown = false;
+                bPlayingMouseDown = false;
             }
         }
         private void Position_S_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            if (IsLocationChanging)
+            if (bLocationChanging)
                 Music_Pos_Change(Position_S.Value, false);
         }
         void Music_Pos_Change(double Pos, bool IsBassPosChange)
         {
-            if (IsBusy)
+            if (bBusy)
                 return;
             if (IsBassPosChange)
                 Bass.BASS_ChannelSetPosition(Stream, Pos);
@@ -1603,39 +1648,39 @@ namespace WoTB_Voice_Mod_Creater.Class
         }
         private void Voice_Save_WVS_C_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
-            if (IsIncludeSound)
+            if (bIncludeSound)
             {
-                if (IsLoadedWVS && IsWVSIncludeSound)
+                if (bLoadedWVS && bWVSIncludeSound)
                 {
                     Message_Feed_Out("既にサウンドファイルを含めた.wvsファイルとして保存しているため、チェックを外すことはできません。");
                     return;
                 }
-                IsIncludeSound = false;
+                bIncludeSound = false;
                 Voice_Save_WVS_C.Source = Sub_Code.Check_02;
             }
             else
             {
-                IsIncludeSound = true;
+                bIncludeSound = true;
                 Voice_Save_WVS_C.Source = Sub_Code.Check_04;
             }
         }
         private void Voice_Save_WVS_C_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
         {
-            if (IsIncludeSound)
+            if (bIncludeSound)
                 Voice_Save_WVS_C.Source = Sub_Code.Check_04;
             else
                 Voice_Save_WVS_C.Source = Sub_Code.Check_02;
         }
         private void Voice_Save_WVS_C_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
         {
-            if (IsIncludeSound)
+            if (bIncludeSound)
                 Voice_Save_WVS_C.Source = Sub_Code.Check_03;
             else
                 Voice_Save_WVS_C.Source = Sub_Code.Check_01;
         }
         private void Voice_Setting_B_Click(object sender, RoutedEventArgs e)
         {
-            if (IsBusy || IsCreating)
+            if (bBusy || bCreating)
                 return;
             if (List_Index_Mode == 2)
                 Message_Feed_Out("音声リスト3ではイベントの編集を行うことができません。");
@@ -1787,20 +1832,20 @@ namespace WoTB_Voice_Mod_Creater.Class
         }
         private void Voice_Add_Dir_Help_B_Click(object sender, RoutedEventArgs e)
         {
-            if (IsBusy || IsCreating)
+            if (bBusy || bCreating)
                 return;
             Message_Feed_Out("リソースフォルダ内のAdd_Voice_Setting.txtファイルをご覧ください。見ても分からなかった場合、この機能はスルーしてください。");
         }
         private void Voice_Add_Dir_B_Click(object sender, RoutedEventArgs e)
         {
-            if (IsBusy || IsCreating)
+            if (bBusy || bCreating)
                 return;
             if (!File.Exists(Voice_Set.Special_Path + "\\Add_Voice_Setting.txt"))
             {
                 Message_Feed_Out("Add_Voice_Setting.txtが存在しません。");
                 return;
             }
-            IsCreating = true;
+            bCreating = true;
             BetterFolderBrowser bfb = new BetterFolderBrowser()
             {
                 Title = "音声フォルダを選択してください。",
@@ -1852,18 +1897,17 @@ namespace WoTB_Voice_Mod_Creater.Class
                     {
                         int Voice_Index = Sub.IndexOf(Name);
                         if (!Sound_Setting[1][Voice_Index].Sounds.Select(h => h.File_Path).Contains(File_Now))
-                            Params.Add(new Add_Voice_Param(File_Now, 1, Sub.IndexOf(Name)));
+                            Params.Add(new Add_Voice_Param(File_Now, 1, Voice_Index));
                     }
                 }
-                Files = null;
                 Main.Clear();
                 Sub.Clear();
-                IsCreating = false;
+                bCreating = false;
                 Add_Voice(Params);
                 Params.Clear();
                 Message_Feed_Out("フォルダ内の音声ファイルを追加しました。");
             }
-            IsCreating = false;
+            bCreating = false;
         }
         private void UserControl_PreviewMouseDown(object sender, MouseButtonEventArgs e)
         {
@@ -2011,6 +2055,8 @@ namespace WoTB_Voice_Mod_Creater.Class
         private void Voice_File_List_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
             ContextMenu pMenu = Voice_File_List.ContextMenu;
+            if (pMenu.Items.Count < 4)
+                return;
             MenuItem item1 = pMenu.Items[0] as MenuItem;
             MenuItem item4 = pMenu.Items[3] as MenuItem;
             int Event_Index = -1;
@@ -2042,7 +2088,7 @@ namespace WoTB_Voice_Mod_Creater.Class
         }
         private async void Voice_Extract_B_Click(object sender, RoutedEventArgs e)
         {
-            if (IsCreating || IsBusy || !IsWVSIncludeSound)
+            if (bCreating || bBusy || !bWVSIncludeSound)
                 return;
             bool bExistIncludeSound = false;
             foreach (List<Voice_Event_Setting> eventSettings in Sound_Setting)
@@ -2138,7 +2184,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 bool bCanRename = true;
                 if (WVS_File != null)
                     bCanRename = !WVS_File.IsNotChangeNameMode;
-                Save.Create(GetAutoSaveFile(), projectName, !bCanRename, IsIncludeSound);
+                Save.Create(GetAutoSaveFile(), projectName, !bCanRename, bIncludeSound);
                 Save.Dispose();
             }
             catch (Exception e)
@@ -2153,6 +2199,56 @@ namespace WoTB_Voice_Mod_Creater.Class
             if (WVS_File != null && WVS_File.WVS_File == file)
                 return GetAutoSaveFile();
             return file;
+        }
+
+        void ReplaceVoiceDir()
+        {
+            if (bBusy || bCreating || bOpenedChangeDir)
+                return;
+            bOpenedChangeDir = true;
+            BetterFolderBrowser bfb = new BetterFolderBrowser()
+            {
+                Title = "SEの移動先のフォルダを選択してください。",
+                Multiselect = false,
+                RootFolder = Sub_Code.Get_OpenDirectory_Path()
+            };
+            if (bfb.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                Sub_Code.Set_Directory_Path(bfb.SelectedFolder);
+                if (!Sub_Code.CanDirectoryAccess(bfb.SelectedFolder))
+                {
+                    bfb.Dispose();
+                    bOpenedChangeDir = false;
+                    return;
+                }
+                bool bSaveMode = false;
+                int replaceCount = 0;
+                foreach (List<Voice_Event_Setting> soundEvents in Sound_Setting)
+                {
+                    foreach (Voice_Event_Setting soundEvent in soundEvents)
+                    {
+                        foreach (Voice_Sound_Setting sound in soundEvent.Sounds)
+                        {
+                            if (sound.Stream_Position == 0)
+                            {
+                                string toFilePath = bfb.SelectedFolder + "\\" + Path.GetFileName(sound.File_Path);
+                                if (!File.Exists(sound.File_Path) && File.Exists(toFilePath))
+                                {
+                                    sound.File_Path = toFilePath;
+                                    bSaveMode = true;
+                                    replaceCount++;
+                                }
+                            }
+                        }
+                    }
+                }
+                if (bSaveMode)
+                {
+                    Message_Feed_Out(replaceCount + "個のファイルパスを指定したフォルダに変換しました。\n変更を保存してください。");
+                }
+            }
+            bfb.Dispose();
+            bOpenedChangeDir = false;
         }
     }
 } 

@@ -471,11 +471,18 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 Sub_Code.Wwise_Repair_Project(Project_Dir);
                 StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Wwise/Project_Build.bat");
                 stw.WriteLine("chcp 65001");
-                stw.Write("\"" + Voice_Set.Special_Path + "/Wwise/x64/Release/bin/WwiseCLI.exe\" \"" + Project_File + "\" -GenerateSoundBanks -Language " + Language + " -Platform Windows ");
-                if (IsUseCache)
-                    stw.Write("-Bank " + BankName + " --no-wwise-dat");
+                if (Path.GetFileNameWithoutExtension(Project_File).Contains("WoT_"))
+                {
+                    stw.Write("\"" + Voice_Set.Special_Path + "/Wwise/Wwise2023/x64/Release/bin/WwiseConsole.exe\" generate-soundbank \"" + Project_File + "\" --language " + Language + " --platform Windows");
+                }
                 else
-                    stw.Write("-Bank " + BankName + " -ClearAudioFileCache");
+                {
+                    stw.Write("\"" + Voice_Set.Special_Path + "/Wwise/x64/Release/bin/WwiseCLI.exe\" \"" + Project_File + "\" -GenerateSoundBanks -Language " + Language + " -Platform Windows ");
+                    if (IsUseCache)
+                        stw.Write("-Bank " + BankName + " --no-wwise-dat");
+                    else
+                        stw.Write("-Bank " + BankName + " -ClearAudioFileCache");
+                }
                 stw.Close();
                 ProcessStartInfo processStartInfo = new ProcessStartInfo
                 {
@@ -486,24 +493,43 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 Process p = Process.Start(processStartInfo);
                 p.WaitForExit();
                 File.Delete(Voice_Set.Special_Path + "/Wwise/Project_Build.bat");
-                string GeneratedFile;
+                if (Directory.Exists(Project_Dir + "/GeneratedSoundBanks/Windows/English(US)"))
+                    Directory.Delete(Project_Dir + "/GeneratedSoundBanks/Windows/English(US)", true);
+                long size = 0;
+                string generatedFile = "";
                 if (GeneratedSoundBanksPath == null)
                 {
                     string[] Files_BNK = Directory.GetFiles(Project_Dir + "/GeneratedSoundBanks/Windows", BankName + ".bnk", SearchOption.AllDirectories);
                     if (Files_BNK.Length == 0)
                         throw new Exception("エラー:プロジェクトをビルドできませんでした。プロジェクトファイルが破損している可能性があります。");
-                    GeneratedFile = Files_BNK[0];
+                    foreach (string file in Files_BNK)
+                    {
+                        FileInfo info = new FileInfo(file);
+                        if (size < info.Length)
+                        {
+                            generatedFile = file;
+                            size = info.Length;
+                        }
+                    }
                 }
                 else
                 {
                     string[] Files_BNK = Directory.GetFiles(Project_Dir + "/GeneratedSoundBanks/" + GeneratedSoundBanksPath, BankName + ".bnk", SearchOption.AllDirectories);
                     if (Files_BNK.Length == 0)
                         throw new Exception("エラー:プロジェクトをビルドできませんでした。プロジェクトファイルが破損している可能性があります。");
-                    GeneratedFile = Files_BNK[0];
+                    foreach (string file in Files_BNK)
+                    {
+                        FileInfo info = new FileInfo(file);
+                        if (size < info.Length)
+                        {
+                            generatedFile = file;
+                            size = info.Length;
+                        }
+                    }
                 }
                 if (IsUseCache && Cache_Dir != "")
                 {
-                    Wwise_File_Extract_V2 BNK_File = new Wwise_File_Extract_V2(GeneratedFile);
+                    Wwise_File_Extract_V2 BNK_File = new Wwise_File_Extract_V2(generatedFile);
                     string[] WEM_Files = Directory.GetFiles(Cache_Dir, "*.wem", SearchOption.TopDirectoryOnly);
                     foreach (string WEM_File in WEM_Files)
                     {
@@ -513,10 +539,14 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                     }
                     BNK_File.Wwise_BNK_Save(OutputFilePath, Cache_Dir, true);
                     BNK_File.Bank_Clear();
-                    File.Delete(GeneratedFile);
+                    File.Delete(generatedFile);
                 }
                 else
-                    Sub_Code.File_Move(GeneratedFile, OutputFilePath, true);
+                    Sub_Code.File_Move(generatedFile, OutputFilePath, true);
+
+                string[] files = Directory.GetFiles(Project_Dir + "/GeneratedSoundBanks/", "*.bnk", SearchOption.AllDirectories);
+                foreach (string file in files)
+                    File.Delete(file);
             }
             catch (Exception e)
             {
@@ -1370,6 +1400,14 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 //戦闘開始タイマー
                 Delete_CAkSounds(816581364);
                 foreach (string fileNow in seSetting.sePreset.types[13].items[0])
+                    if (File.Exists(fileNow))
+                        Add_Sound(816581364, fileNow, 0, true);
+            }
+            else
+            {
+                //戦闘開始タイマー(バニラ)
+                Delete_CAkSounds(816581364);
+                foreach (string fileNow in seSetting.seDefault.types[13].items[0])
                     if (File.Exists(fileNow))
                         Add_Sound(816581364, fileNow, 0, true);
             }

@@ -2,13 +2,3 @@ D:\Projects\WoTB_Voice_Mod_Creater\Check_Update\bin\x64\Debug\Check_Update.exe.c
 D:\Projects\WoTB_Voice_Mod_Creater\Check_Update\bin\x64\Debug\Check_Update.exe
 D:\Projects\WoTB_Voice_Mod_Creater\Check_Update\bin\x64\Debug\Check_Update.pdb
 D:\Projects\WoTB_Voice_Mod_Creater\Check_Update\bin\x64\Debug\System.Diagnostics.DiagnosticSource.xml
-D:\Projects\WoTB_Voice_Mod_Creater\bin\x64\Debug\Check_Update.exe.config
-D:\Projects\WoTB_Voice_Mod_Creater\bin\x64\Debug\Check_Update.exe
-D:\Projects\WoTB_Voice_Mod_Creater\bin\x64\Debug\Check_Update.pdb
-D:\Projects\WoTB_Voice_Mod_Creater\Check_Update\obj\x64\Debug\Check_Update.csproj.AssemblyReference.cache
-D:\Projects\WoTB_Voice_Mod_Creater\Check_Update\obj\x64\Debug\Check_Update.csproj.SuggestedBindingRedirects.cache
-D:\Projects\WoTB_Voice_Mod_Creater\Check_Update\obj\x64\Debug\Check_Update.csproj.CoreCompileInputs.cache
-D:\Projects\WoTB_Voice_Mod_Creater\Check_Update\obj\x64\Debug\Check_Update.csproj.Fody.CopyLocal.cache
-D:\Projects\WoTB_Voice_Mod_Creater\Check_Update\obj\x64\Debug\Check_Update.csproj.CopyComplete
-D:\Projects\WoTB_Voice_Mod_Creater\Check_Update\obj\x64\Debug\Check_Update.exe
-D:\Projects\WoTB_Voice_Mod_Creater\Check_Update\obj\x64\Debug\Check_Update.pdb

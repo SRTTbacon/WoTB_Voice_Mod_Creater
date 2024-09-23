@@ -26,7 +26,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class.BNK_To_Wwise_Project
     public class Get_Config
     {
         //FNV_Hash_Classを初期化(ShortIDから文字列を作成します)
-        static FNV_Hash_Class hasher = new FNV_Hash_Class();
+        static readonly FNV_Hash_Class hasher = new FNV_Hash_Class();
         //value=の後の数字を取得
         public static string Get_Property_Value(string Read_Line)
         {
@@ -108,8 +108,8 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class.BNK_To_Wwise_Project
         //ShortIDから文字列に変換(時間がかかります)
         public static string Get_Hash_Name_From_ShortID(uint ShortID)
         {
-            //string Parse = hasher.Bruteforce(8, ShortID);
-            string Parse = Wwise_Player.HashToString(8, ShortID);
+            string Parse = hasher.Bruteforce(8, ShortID);
+            //string Parse = Wwise_Player.HashToString(8, ShortID);
             return Parse;
         }
     }
@@ -118,10 +118,10 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class.BNK_To_Wwise_Project
         //親のGUIDを設定(これは固定なのでconstを指定)
         public const string Actor_Mixer_Unit = "DF3DA361-09F8-430D-814F-4080F28088DD";
         int Property_End_Line = -1;
-        List<uint> RTPC_ShortID = new List<uint>();
-        List<uint> Master_ShortID = new List<uint>();
-        List<uint> Switch_Child_ShortID = new List<uint>();
-        List<uint> Switch_Parent_ShortID = new List<uint>();
+        readonly List<uint> RTPC_ShortID = new List<uint>();
+        readonly List<uint> Master_ShortID = new List<uint>();
+        readonly List<uint> Switch_Child_ShortID = new List<uint>();
+        readonly List<uint> Switch_Parent_ShortID = new List<uint>();
         System.Windows.Controls.TextBlock Message_T;
         public Actor_Mixer()
         {
@@ -252,7 +252,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class.BNK_To_Wwise_Project
                     {
                         FNV_Hash_Class hash = new FNV_Hash_Class();
                         //string Name = Get_Config.Get_Hash_Name_From_ShortID(ShortID_Now);
-                        string Name = hash.Bruteforce2(8, ShortID_Now);
+                        string Name = hash.Bruteforce(8, ShortID_Now);
                         Master_Mixer.Master_Audio_Info[Master_Bus_Info_Number].Name = Name;
                     }
                     System.Windows.MessageBox.Show(ShortID_Now + "を文字列へ変換できませんでした。\nプロジェクトに支障がない場合はこのまま続行します。");

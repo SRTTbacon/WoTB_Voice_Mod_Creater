@@ -259,7 +259,8 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                     }
                     foreach (string File_Now in ofd.FileNames)
                     {
-                        if (!Wwise_Player.Load_Bank(File_Now))
+                        string filePath = Path.GetDirectoryName(File_Now) + "\\" + Path.GetFileNameWithoutExtension(File_Now);
+                        if (!Wwise_Player.Load_Bank(filePath + ".bnk"))
                         {
                             uint ErrorCode = Wwise_Player.Get_Result_Index();
                             if (ErrorCode == 69)
@@ -268,6 +269,12 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                                 return;
                             }
                             throw new Exception("ファイル:" + File_Now + "をロードできませんでした。\nエラーコード:" + Wwise_Player.Get_Result_Index());
+                        }
+                        if (File.Exists(filePath + ".pck"))
+                        {
+                            MessageBox.Show(Wwise_Player.Load_PCK(filePath + ".pck").ToString());
+                            uint ErrorCode = Wwise_Player.Get_Result_Index();
+                            MessageBox.Show("エラーコード:" + ErrorCode);
                         }
                         string Name_Only = Path.GetFileName(File_Now);
                         IsMessageShowing = false;

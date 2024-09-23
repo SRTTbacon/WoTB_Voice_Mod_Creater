@@ -1,11 +1,13 @@
 ﻿using Microsoft.Win32;
 using NAudio.Wave;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -237,44 +239,52 @@ namespace WoTB_Voice_Mod_Creater
         {
             try
             {
-                RegistryKey rKey = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\WOT.ASIA.PRODUCTION");
-                string location = (string)rKey.GetValue("InstallLocation");
-                rKey.Close();
-                if (File.Exists(location + "/WorldOfTanks.exe"))
+                RegistryKey parentKey = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall");
+                string[] keys = parentKey.GetSubKeyNames();
+                foreach (string key in keys)
                 {
-                    string[] ModDirs = Directory.GetDirectories(location + "/res_mods");
-                    List<double> Version_List = new List<double>();
-                    List<string> ModDir_List = new List<string>();
-                    foreach (string Dir_Now in ModDirs)
+                    RegistryKey childKey = parentKey.OpenSubKey(key);
+                    object value = childKey.GetValue("InstallLocation");
+                    childKey.Close();
+                    if (value != null)
                     {
-                        string Dir_Name_Only = Path.GetFileName(Dir_Now);
-                        if (!Dir_Name_Only.Contains('.'))
-                            continue;
-                        try
+                        string valueString = (string)value;
+                        if (File.Exists(valueString + "\\WorldOfTanks.exe"))
                         {
-                            string Temp_01 = Dir_Name_Only.Substring(Dir_Name_Only.IndexOf('.') + 1).Replace(".", "");
-                            string Temp_02 = Dir_Name_Only.Substring(0, Dir_Name_Only.IndexOf('.') + 1) + Temp_01;
-                            Version_List.Add(double.Parse(Temp_02));
-                            ModDir_List.Add(Dir_Now);
+                            string[] ModDirs = Directory.GetDirectories(valueString + "\\res_mods");
+                            List<double> Version_List = new List<double>();
+                            List<string> ModDir_List = new List<string>();
+                            foreach (string Dir_Now in ModDirs)
+                            {
+                                string Dir_Name_Only = Path.GetFileName(Dir_Now);
+                                if (!Dir_Name_Only.Contains('.'))
+                                    continue;
+                                try
+                                {
+                                    string Temp_01 = Dir_Name_Only.Substring(Dir_Name_Only.IndexOf('.') + 1).Replace(".", "");
+                                    string Temp_02 = Dir_Name_Only.Substring(0, Dir_Name_Only.IndexOf('.') + 1) + Temp_01;
+                                    Version_List.Add(double.Parse(Temp_02));
+                                    ModDir_List.Add(Dir_Now);
+                                }
+                                catch { }
+                            }
+                            //最新バージョンのフォルダ名を取得
+                            if (Version_List.Count > 0)
+                            {
+                                // 最大の要素を取得
+                                double max = 0;
+                                foreach (double e in Version_List)
+                                    if (max < e) max = e;
+                                Voice_Set.WoT_Mod_Path = ModDir_List[Version_List.IndexOf(max)];
+                                Version_List.Clear();
+                                ModDir_List.Clear();
+                                return true;
+                            }
+                            break;
                         }
-                        catch
-                        {
-
-                        }
-                    }
-                    //最新バージョンのフォルダ名を取得
-                    if (Version_List.Count > 0)
-                    {
-                        // 最大の要素を取得
-                        double max = 0;
-                        foreach (double e in Version_List)
-                            if (max < e) max = e;
-                        Voice_Set.WoT_Mod_Path = ModDir_List[Version_List.IndexOf(max)];
-                        Version_List.Clear();
-                        ModDir_List.Clear();
-                        return true;
                     }
                 }
+                parentKey.Close();
                 return false;
             }
             catch
@@ -2112,9 +2122,9 @@ namespace WoTB_Voice_Mod_Creater
         {
             return r.NextDouble() * (Maximum - Minimum) + Minimum;
         }
-        public static string Get_Time_String(double Position)
+        public static string Get_Time_String(double position)
         {
-            TimeSpan Time = TimeSpan.FromSeconds(Position);
+            TimeSpan Time = TimeSpan.FromSeconds(position);
             string Minutes = Time.Minutes.ToString();
             string Seconds = Time.Seconds.ToString();
             if (Time.Minutes < 10)
@@ -2122,6 +2132,15 @@ namespace WoTB_Voice_Mod_Creater
             if (Time.Seconds < 10)
                 Seconds = "0" + Time.Seconds;
             return Minutes + ":" + Seconds;
+        }
+        public static string Get_TimeMil_String(double position)
+        {
+            string time = Get_Time_String(position);
+            position %= 1;
+            string millSeconds = Math.Round(position, 1).ToString();
+            char mill = millSeconds[millSeconds.Length - 1];
+            time += "." + mill;
+            return time;
         }
         /*public static void Set_SE_Change_Name(string Project_SE_Dir, Wwise_Class.Wwise_Project_Create Wwise)
         {
@@ -2203,29 +2222,29 @@ namespace WoTB_Voice_Mod_Creater
             Event_Settings[0][7].Set_Param(619058694, 334837201, 162440597, 18, -1);
             Event_Settings[0][8].Set_Param(794420468, 381780774, 52837378, 23);
             Event_Settings[0][9].Set_Param(109598189, 489572734, 582349497, 5, -1);
-            Event_Settings[0][10].Set_Param(244621664, 210078142, 750651777, 19, -2);
-            Event_Settings[0][11].Set_Param(73205091, 249535989, 1042937732, 20, -2);
-            Event_Settings[0][12].Set_Param(466111031, 908710042, 125367048, 21, -2);
+            Event_Settings[0][10].Set_Param(244621664, 210078142, 750651777, 19, -1);
+            Event_Settings[0][11].Set_Param(73205091, 249535989, 1042937732, 20, -1);
+            Event_Settings[0][12].Set_Param(466111031, 908710042, 125367048, 21, -1);
             Event_Settings[0][13].Set_Param(471196930, 1057023960);
             Event_Settings[0][14].Set_Param(337626756, 953778289);
             Event_Settings[0][15].Set_Param(930519512, 121897540, 602706971, 8, -1);
-            Event_Settings[0][16].Set_Param(1063632502, 127877647, 953241595, 19, -2);
-            Event_Settings[0][17].Set_Param(175994480, 462397017, 734855314, 20, -2);
-            Event_Settings[0][18].Set_Param(546476029, 651656679, 265156722, 21, -2);
+            Event_Settings[0][16].Set_Param(1063632502, 127877647, 953241595, 19, -1);
+            Event_Settings[0][17].Set_Param(175994480, 462397017, 734855314, 20, -1);
+            Event_Settings[0][18].Set_Param(546476029, 651656679, 265156722, 21, -1);
             Event_Settings[0][19].Set_Param(337748775, 739086111, 738480888, 18);
             Event_Settings[0][20].Set_Param(302644322, 363753108, 97368200, 18);
             Event_Settings[0][21].Set_Param(356562073, 91697210, 948692451, 7);
             Event_Settings[0][22].Set_Param(156782042, 987172940, 87851485, 18);
             Event_Settings[0][23].Set_Param(769815093, 518589126, 267487625, 22);
-            Event_Settings[0][24].Set_Param(236686366, 330491031, 904204732, 19, -2);
-            Event_Settings[0][25].Set_Param(559710262, 792301846, 42606663, 20, -2);
-            Event_Settings[0][26].Set_Param(47321344, 539730785, 308135346, 21, -2);
-            Event_Settings[0][27].Set_Param(978556760, 38261315, 792373436, 19, -2);
-            Event_Settings[0][28].Set_Param(878993268, 37535832);
-            Event_Settings[0][29].Set_Param(581830963, 558576963);
-            Event_Settings[0][30].Set_Param(984973529, 1014565012, 124621166, 19, -2);
-            Event_Settings[0][31].Set_Param(381112709, 135817430, 634991721, 20, -2);
-            Event_Settings[0][32].Set_Param(33436524, 985679417, 940515369, 21, -2);
+            Event_Settings[0][24].Set_Param(236686366, 330491031, 904204732, 19, -1);
+            Event_Settings[0][25].Set_Param(559710262, 792301846, 42606663, 20, -1);
+            Event_Settings[0][26].Set_Param(47321344, 539730785, 308135346, 21, -1);
+            Event_Settings[0][27].Set_Param(978556760, 38261315, 480932913, 19, -1);
+            Event_Settings[0][28].Set_Param(878993268, 37535832, 887022, 20, -1);
+            Event_Settings[0][29].Set_Param(581830963, 558576963, 783375460, 21, -1);
+            Event_Settings[0][30].Set_Param(984973529, 1014565012, 124621166, 19, -1);
+            Event_Settings[0][31].Set_Param(381112709, 135817430, 634991721, 20, -1);
+            Event_Settings[0][32].Set_Param(33436524, 985679417, 940515369, 21, -1);
             Event_Settings[0][33].Set_Param(116097397, 164671745, 667880140, 4);
             Event_Settings[1][0].Set_Param(308272618, 447063394, 479275647, 13);
             Event_Settings[1][1].Set_Param(767278023, 154835998, 917399664, 12);
@@ -2591,6 +2610,54 @@ namespace WoTB_Voice_Mod_Creater
                 return true;
             }
             return false;
+        }
+
+        public static double Get_Version_To_Double(string version)
+        {
+            string onePoint = "";
+            foreach (char c in version)
+            {
+                if (onePoint == "")
+                    onePoint += c + ".";
+                else if (c != '.')
+                    onePoint += c;
+            }
+            try
+            {
+                return double.Parse(onePoint, CultureInfo.InvariantCulture);
+            }
+            catch
+            {
+                return 0.0;
+            }
+        }
+
+        //容量確認
+        public static double GetDriveFreeSize()
+        {
+            string[] drives = Directory.GetLogicalDrives();
+            foreach (string s in drives)
+            {
+                DriveInfo drive = new DriveInfo(s);
+                if (drive.IsReady)
+                {
+                    if (drive.Name.Contains(Directory.GetCurrentDirectory()[0]))
+                    {
+                        return ToGigaByte(Convert.ToDouble(drive.TotalFreeSpace));
+                    }
+                }
+            }
+            return 0.0;
+        }
+
+        // GB換算して戻すメソッド(見やすさ優先)
+        public static int ToGigaByte(Double calcTarget)
+        {
+            Double i = calcTarget / 1024; //Kbyte
+            i /= 1024; //MB
+            i /= 1024; //GB
+            i = Math.Ceiling(i);
+            return Convert.ToInt16(i);
         }
     }
     //ウィンドウにフォーカスがないとき、アイコンを光らせる
