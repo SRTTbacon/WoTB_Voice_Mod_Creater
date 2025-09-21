@@ -78,7 +78,7 @@ namespace WoTB_Voice_Mod_Creater.FMOD_Class
             return true;
         }
         //FSB内のすべての音声をディレクトリに抽出
-        public static bool FSB_Extract_To_Directry(string FSB_File, string To_Dir, ref List<string> Output_Files)
+        public static bool FSB_Extract_To_Directry(string FSB_File, string To_Dir, List<string> Output_Files, bool bIncludeNameIndex = false)
         {
             try
             {
@@ -90,7 +90,7 @@ namespace WoTB_Voice_Mod_Creater.FMOD_Class
                 {
                     Directory.CreateDirectory(To_Dir);
                 }
-                Extract_All_Files(FSB_File, To_Dir, ref Output_Files);
+                Extract_All_Files(FSB_File, To_Dir, Output_Files, bIncludeNameIndex);
                 return true;
             }
             catch (Exception e)
@@ -100,7 +100,7 @@ namespace WoTB_Voice_Mod_Creater.FMOD_Class
             }
         }
         //FSB内のすべてのファイルを抽出
-        static RESULT Extract_All_Files(string FSBFileStr, string To_Dir, ref List<string> Output_Files)
+        static RESULT Extract_All_Files(string FSBFileStr, string To_Dir, List<string> Output_Files, bool bIncludeNameIndex)
         {
             RESULT FModResult;
             Sound FModSound = new Sound();
@@ -122,8 +122,10 @@ namespace WoTB_Voice_Mod_Creater.FMOD_Class
                     {
                         SubSound.seekData(0);
                         //今のところwav形式しか対応していません(.wav以外はffmpegでエンコードします)
-                        FileStream SubSoundStream = new FileStream(To_Dir + @"\" + Names[i] + ".wav", FileMode.Create, FileAccess.Write);
-                        Output_Files.Add(To_Dir + "\\" + Names[i] + ".wav");
+                        FileStream SubSoundStream = bIncludeNameIndex ? new FileStream(To_Dir + @"\" + Names[i] + "_" + i + ".wav", FileMode.Create, FileAccess.Write) :
+                            new FileStream(To_Dir + @"\" + Names[i] + ".wav", FileMode.Create, FileAccess.Write);
+                        if (Output_Files != null)
+                            Output_Files.Add(To_Dir + "\\" + Names[i] + ".wav");
                         uint Length = WriteHeader(SubSoundStream, SubSound);
                         do
                         {

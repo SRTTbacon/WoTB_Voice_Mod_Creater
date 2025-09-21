@@ -89,7 +89,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             else
                 Volume_S.Value = 75;
             if (Sub_Code.IsWindowBarShow)
-                Delete_B.Margin = new Thickness(-3368, 25, 0, 0);
+                Delete_B.Margin = new Thickness(-3368, Sub_Code.WINDOW_BAR_HEIGHT, 0, 0);
             else
                 Delete_B.Margin = new Thickness(-3368, 0, 0, 0);
             while (Opacity < 1 && !IsClosing)

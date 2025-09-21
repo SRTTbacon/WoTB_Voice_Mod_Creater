@@ -500,7 +500,10 @@ namespace WoTB_Voice_Mod_Creater.Class
                 }
             }
             if (!Setting_Window.IsConfigsLoaded)
+            {
                 Setting_Window.Configs_Load();
+                All_Volume_Set = Setting_Window.All_Volume_S.Value / 100;
+            }
             if (Setting_Window.Framerate_C.SelectedIndex == 0)
                 FPS = 30;
             else if (Setting_Window.Framerate_C.SelectedIndex == 1)
@@ -511,7 +514,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             if (!Setting_Window.Save_Once_C.IsChecked.Value)
                 Set_Serial_Number(Setting_Window.Save_Dir + "\\" + Setting_Window.Save_File_Name_T.Text);
             if (Sub_Code.IsWindowBarShow)
-                Window_Bar_Canvas.Margin = new Thickness(0, 25, 0, 0);
+                Window_Bar_Canvas.Margin = new Thickness(0, Sub_Code.WINDOW_BAR_HEIGHT, 0, 0);
             else
                 Window_Bar_Canvas.Margin = new Thickness(0, 0, 0, 0);
             foreach (int Handle in Sound_Streams)

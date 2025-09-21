@@ -155,16 +155,16 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             if (IsClear)
                 return false;
             List<string> Temp = new List<string>();
-            return Wwise_Extract_To_WEM_Directory(To_Dir, Name_Mode, ref Temp, "");
+            return Wwise_Extract_To_WEM_Directory(To_Dir, Name_Mode, Temp, "");
         }
         public bool Wwise_Extract_To_WEM_Directory(string To_Dir, int Name_Mode, string Plus_Name)
         {
             if (IsClear)
                 return false;
             List<string> Temp = new List<string>();
-            return Wwise_Extract_To_WEM_Directory(To_Dir, Name_Mode, ref Temp, Plus_Name);
+            return Wwise_Extract_To_WEM_Directory(To_Dir, Name_Mode, Temp, Plus_Name);
         }
-        public bool Wwise_Extract_To_WEM_Directory(string To_Dir, int Name_Mode, ref List<string> File_Names, string Plus_Name)
+        public bool Wwise_Extract_To_WEM_Directory(string To_Dir, int Name_Mode, List<string> File_Names, string Plus_Name)
         {
             if (Name_Mode < 1 || Name_Mode > 2 || IsClear)
                 return false;
@@ -172,7 +172,8 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 Directory.CreateDirectory(To_Dir);
             try
             {
-                File_Names.Clear();
+                if (File_Names != null)
+                    File_Names.Clear();
                 int Number = 0;
                 foreach (LoLSoundBankManager.WEMFile Files in WEML)
                 {
@@ -188,7 +189,8 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                     using (FileStream ms = new FileStream(To_Dir + "/" + Name + ".wem", FileMode.Create))
                         using (BinaryWriter bw = new BinaryWriter(ms))
                             bw.Write(LOL.GetFileData(Files.ID));
-                    File_Names.Add(To_Dir + "\\" + Name + ".wem");
+                    if (File_Names != null)
+                        File_Names.Add(To_Dir + "\\" + Name + ".wem");
                 }
                 return true;
             }
@@ -314,7 +316,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             }
         }
         //.bnkファイルからwemをすべて抽出しoggへエンコード
-        public bool Wwise_Extract_To_Ogg_Directory(string To_Dir, int Name_Mode, ref List<string> File_Names)
+        public bool Wwise_Extract_To_Ogg_Directory(string To_Dir, int Name_Mode, List<string> File_Names)
         {
             if (IsClear)
                 return false;
@@ -322,14 +324,16 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             {
                 if (!Directory.Exists(To_Dir))
                     Directory.CreateDirectory(To_Dir);
-                File_Names.Clear();
+                if (File_Names != null)
+                    File_Names.Clear();
                 List<string> Temp = new List<string>();
-                if (Wwise_Extract_To_WEM_Directory(To_Dir, Name_Mode, ref Temp, ""))
+                if (Wwise_Extract_To_WEM_Directory(To_Dir, Name_Mode, Temp, ""))
                 {
                     foreach (string File_Now in Temp)
                     {
                         Sub_Code.WEM_To_File(File_Now, File_Now.Replace(".wem", ".ogg"), "ogg", true);
-                        File_Names.Add(File_Now.Replace(".wem", ".ogg"));
+                        if (File_Names != null)
+                            File_Names.Add(File_Now.Replace(".wem", ".ogg"));
                     }
                 }
                 return true;

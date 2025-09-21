@@ -36,11 +36,12 @@ namespace WoTB_Voice_Mod_Creater.Class
         }
         //ヘッダ情報(WVSFormatの9バイトとバージョン情報の2バイトは確定)
         public const string WVS_Header = "WVSFormat";
-        public const ushort WVS_Version = 4;
+        public const ushort WVS_BLITZ_Version = 4;
+        public const ushort WVS_WoT_Version = 10000;
         public readonly bool WVS_IsWoT = false;
         List<List<Voice_Event_Setting>> Blitz_Events;
         List<Dictionary<string, Voice_Event_Setting>> WoT_Events;
-        Dictionary<string, List<SE_Info_Parent>> SE_Info;
+        Dictionary<string, SE_Info_Parent> SE_Info;
         readonly List<WVS_WoT_Format_Parent> WoT_Infos = new List<WVS_WoT_Format_Parent>();
         readonly List<Voice_Sound_Setting> Sound_Files = new List<Voice_Sound_Setting>();
         //4バイト
@@ -77,7 +78,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 }
             }
         }
-        public void Add_Sound(List<Dictionary<string, Voice_Event_Setting>> WoT_Events, Dictionary<string, List<SE_Info_Parent>> SE_Info, WVS_Load WVS_File)
+        public void Add_Sound(List<Dictionary<string, Voice_Event_Setting>> WoT_Events, Dictionary<string, SE_Info_Parent> SE_Info, WVS_Load WVS_File)
         {
             this.WoT_Events = WoT_Events;
             this.SE_Info = SE_Info;
@@ -103,12 +104,12 @@ namespace WoTB_Voice_Mod_Creater.Class
             List<string> SE_Keys = SE_Info.Keys.ToList();
             foreach (string SE_Key_Name in SE_Keys)
             {
-                for (int Number_01 = 0; Number_01 < SE_Info[SE_Key_Name].Count; Number_01++)
+                for (int Number_01 = 0; Number_01 < SE_Info[SE_Key_Name].SEFiles.Count; Number_01++)
                 {
-                    if (WVS_File != null && !SE_Info[SE_Key_Name][Number_01].SE_Path.Contains("\\"))
-                        SE_Info[SE_Key_Name][Number_01].Sound_Binary = WVS_File.Load_Sound(SE_Info[SE_Key_Name][Number_01].Stream_Position);
+                    if (WVS_File != null && !SE_Info[SE_Key_Name].SEFiles[Number_01].FilePath.Contains("\\"))
+                        SE_Info[SE_Key_Name].SEFiles[Number_01].Sound_Binary = WVS_File.Load_Sound(SE_Info[SE_Key_Name].SEFiles[Number_01].Stream_Position);
                     else
-                        SE_Info[SE_Key_Name][Number_01].Sound_Binary = null;
+                        SE_Info[SE_Key_Name].SEFiles[Number_01].Sound_Binary = null;
                 }
             }
         }
@@ -123,7 +124,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             //謎の4バイト
             bin.Write(new byte[] { 0x00, 0x00, 0x00, 0x00 });
             //WVSファイルのバージョン
-            bin.Write(WVS_Version);
+            bin.Write(WVS_IsWoT ? WVS_WoT_Version : WVS_BLITZ_Version);
             //フォーマット
             bin.Write(WVS_IsWoT);
             if (WVS_IsWoT)
@@ -151,7 +152,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                     }
                     foreach (string Key_Name in SE_Info.Keys)
                     {
-                        foreach (string Sound in SE_Info[Key_Name].Select(h => h.SE_Path))
+                        foreach (string Sound in SE_Info[Key_Name].SEFiles.Select(h => h.FilePath))
                         {
                             string Dir = Path.GetDirectoryName(Sound);
                             if (Path.IsPathRooted(Sound) && !Dir_Names.Contains(Dir))
@@ -210,12 +211,12 @@ namespace WoTB_Voice_Mod_Creater.Class
                     byte[] Dir_Name_Byte = Encoding.UTF8.GetBytes(Key_Name);
                     bin.Write((byte)Dir_Name_Byte.Length);
                     bin.Write(Dir_Name_Byte);
-                    bin.Write((byte)SE_Info[Key_Name].Count);
-                    foreach (SE_Info_Parent SE_File in SE_Info[Key_Name])
+                    bin.Write((byte)SE_Info[Key_Name].SEFiles.Count);
+                    foreach (SE_Info SE_File in SE_Info[Key_Name].SEFiles)
                     {
                         if (!IsIncludeSound)
-                            bin.Write((ushort)Dir_Names.IndexOf(Path.GetDirectoryName(SE_File.SE_Path)));
-                        byte[] File_Name_Byte = Encoding.UTF8.GetBytes(Path.GetFileName(SE_File.SE_Path));
+                            bin.Write((ushort)Dir_Names.IndexOf(Path.GetDirectoryName(SE_File.FilePath)));
+                        byte[] File_Name_Byte = Encoding.UTF8.GetBytes(Path.GetFileName(SE_File.FilePath));
                         bin.Write((byte)File_Name_Byte.Length);
                         bin.Write(File_Name_Byte);
                         if (IsIncludeSound)
@@ -227,7 +228,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                             }
                             else
                             {
-                                byte[] Sound_File_Bytes = File.ReadAllBytes(SE_File.SE_Path);
+                                byte[] Sound_File_Bytes = File.ReadAllBytes(SE_File.FilePath);
                                 bin.Write(Sound_File_Bytes.Length);
                                 bin.Write(Sound_File_Bytes);
                             }
@@ -381,7 +382,6 @@ namespace WoTB_Voice_Mod_Creater.Class
         BinaryReader bin = null;
         public string WVS_File { get; private set; } = "";
         public bool IsLoaded = false;
-        private const byte Max_Version = 5;
         //サウンドが含まれている.wvsファイルか確認(そうであればtrue)
         public static WVS_Result IsBlitzWVSFile(string From_File)
         {
@@ -395,8 +395,6 @@ namespace WoTB_Voice_Mod_Creater.Class
             if (Version >= 4)
                 IsWoTMode = bin.ReadBoolean();
             bin.Close();
-            if (Version > Max_Version)
-                return WVS_Result.Wrong_Version;
             if (Header != "WVSFormat")
                 return WVS_Result.Wrong_Header;
             if (IsWoTMode)
@@ -415,15 +413,15 @@ namespace WoTB_Voice_Mod_Creater.Class
             if (Version >= 4)
                 IsWoTMode = bin.ReadBoolean();
             bin.Close();
-            if (Version > Max_Version)
-                return WVS_Result.Wrong_Version;
             if (Header != "WVSFormat")
                 return WVS_Result.Wrong_Header;
             if (!IsWoTMode)
                 return WVS_Result.BlitzMode;
+            if (Version < 10000)
+                return WVS_Result.Wrong_Version;
             return WVS_Result.OK;
         }
-        public bool WVS_Load_File(string From_File, List<Dictionary<string, Voice_Event_Setting>> WoT_Events, Dictionary<string, List<SE_Info_Parent>> SE_Info)
+        public bool WVS_Load_File(string From_File, List<Dictionary<string, Voice_Event_Setting>> WoT_Events, Dictionary<string, SE_Info_Parent> SE_Info)
         {
             if (!File.Exists(From_File))
                 return false;
@@ -432,7 +430,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 foreach (string Key_Name in WoT_Events[Number_01].Keys)
                     WoT_Events[Number_01][Key_Name].Sounds.Clear();
             foreach (string key_Name in SE_Info.Keys)
-                SE_Info[key_Name].Clear();
+                SE_Info[key_Name].SEFiles.Clear();
             List<string> Dir_Names = new List<string>();
             bin = new BinaryReader(File.OpenRead(From_File));
             //ヘッダーが異なればfalse
@@ -445,7 +443,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             bin.ReadBytes(4);
             //セーブファイルのバージョン
             ushort Version = bin.ReadUInt16();
-            if (Version < 4 || !bin.ReadBoolean())
+            if (Version < 10000 || !bin.ReadBoolean())
             {
                 bin.Close();
                 return false;
@@ -502,14 +500,14 @@ namespace WoTB_Voice_Mod_Creater.Class
                     if (!IsIncludedSound)
                         File_Name = Dir_Names[bin.ReadUInt16()] + "\\";
                     File_Name += Encoding.UTF8.GetString(bin.ReadBytes(bin.ReadByte()));
-                    SE_Info_Parent Parent = new SE_Info_Parent(File_Name, WoT_Sound_Mod_Settings.SE_ShortIDs[WoT_Sound_Mod_Settings.SE_Info.Keys.ToList().IndexOf(KeyName)]);
+                    SE_Info seInfo = new SE_Info(File_Name);
                     if (IsIncludedSound)
                     {
-                        Parent.Stream_Position = bin.BaseStream.Position;
+                        seInfo.Stream_Position = bin.BaseStream.Position;
                         int Sound_Length = bin.ReadInt32();
                         bin.BaseStream.Seek(Sound_Length, SeekOrigin.Current);
                     }
-                    SE_Info[KeyName].Add(Parent);
+                    SE_Info[KeyName].SEFiles.Add(seInfo);
                 }
             }
             Sub_Code.Set_Event_ShortID(WoT_Events);

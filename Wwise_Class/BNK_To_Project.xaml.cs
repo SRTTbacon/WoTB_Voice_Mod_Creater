@@ -29,7 +29,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
         public async void Window_Show()
         {
             if (Sub_Code.IsWindowBarShow)
-                Attention_B.Margin = new Thickness(0, 25, 0, 0);
+                Attention_B.Margin = new Thickness(0, Sub_Code.WINDOW_BAR_HEIGHT, 0, 0);
             else
                 Attention_B.Margin = new Thickness(0, 0, 0, 0);
             Opacity = 0;
@@ -275,7 +275,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 Message_Feed_Out("Init.bnkファイルが選択されていません。");
                 return;
             }
-            else if (SoundbankInfo_File == "")
+            else if (SoundbankInfo_File == "" && !No_SoundInfo_C.IsChecked.Value)
             {
                 Message_Feed_Out("SoundbanksInfo.jsonファイルが選択されていません。");
                 return;
@@ -466,6 +466,24 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             File.WriteAllLines(To_File, To_Actor);
             From_Actor = null;
             To_Actor.Clear();
+        }
+
+        private void ActorMixerFix_B_Click(object sender, RoutedEventArgs e)
+        {
+            System.Windows.Forms.OpenFileDialog ofd = new System.Windows.Forms.OpenFileDialog()
+            {
+                Title = "ActorMixerを選択してください。",
+                Filter = "ActorMixier(*.wwu)|*.wwu",
+                Multiselect = false,
+            };
+
+            if (ofd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                Actor_Mixer_Fix actorMixierFix = new Actor_Mixer_Fix(ofd.FileName);
+                actorMixierFix.Execute();
+
+                Message_Feed_Out("変換しました。");
+            }
         }
     }
 }

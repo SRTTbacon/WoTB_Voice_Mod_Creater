@@ -115,8 +115,8 @@
             <Button x:Name="Voice_Extract_Help_B" Content="?" Height="60" VerticalAlignment="Top" Width="60" Style="{StaticResource Button_MouseOver_Style}" Margin="-930,25,0,0" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Focusable="False" Click="Voice_Extract_Help_B_Click"/>
             <Button x:Name="Voice_Clear_B" Content="クリア" Height="60" VerticalAlignment="Top" Width="225" Style="{StaticResource Button_MouseOver_Style}" Margin="-228,0,0,0" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Focusable="False" Click="Voice_Clear_B_Click"/>
             <Button x:Name="Voice_Create_B" Content="ビルド画面へ" Height="75" VerticalAlignment="Top" Width="325" Foreground="Aqua" FontSize="40" Style="{StaticResource Button_MouseOver_Style}" BorderBrush="Aqua" Focusable="False" Margin="-326,1004,0,0" Click="Voice_Create_B_Click"/>
-            <Button x:Name="Voice_Add_Dir_B" Content="自動選択" Height="60" VerticalAlignment="Top" Width="225" Style="{StaticResource Button_MouseOver_Style}" Margin="-3613,0,0,0" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Focusable="False" Click="Voice_Add_Dir_B_Click"/>
-            <Button x:Name="Voice_Add_Dir_Help_B" Content="?" Height="50" VerticalAlignment="Top" Width="50" Style="{StaticResource Button_MouseOver_Style}" Margin="-3320,5,0,0" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Focusable="False" Click="Voice_Add_Dir_Help_B_Click"/>
+            <Button x:Name="AutoSelection_B" Content="自動選択" Height="60" VerticalAlignment="Top" Width="200" Style="{StaticResource Button_MouseOver_Style}" Margin="-3640,0,0,0" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Focusable="False" Click="AutoSelection_B_Click"/>
+            <Button x:Name="AutoSelection_Setting_B" Content="設定" Height="60" VerticalAlignment="Top" Width="150" Style="{StaticResource Button_MouseOver_Style}" Margin="-3280,0,0,0" Foreground="Aqua" BorderBrush="Aqua" FontSize="40" Focusable="False" Click="AutoSelection_Setting_B_Click"/>
             <TextBlock x:Name="Project_Name_Text" Height="50" Width="575" TextWrapping="Wrap" Text="プロジェクト名" Foreground="Aqua" FontSize="35" Margin="-1920,815,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
             <TextBox x:Name="Project_Name_T" Height="60" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="500" FontSize="40" Margin="-1920,870,0,0" TextAlignment="Center"/>
             <Border x:Name="Border_All" BorderBrush="Transparent" BorderThickness="1" Background="Black" Height="1080" VerticalAlignment="Top" Visibility="Hidden" Width="1920" Opacity=" 0.001" Margin="-1920,0,0,0"/>
@@ -124,6 +124,7 @@
             <TextBlock Height="55" Width="280" TextWrapping="Wrap" Text="適応後WoTBを起動" Foreground="Aqua" FontSize="33" Margin="-965,1017,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
             <Class1:Save_Configs x:Name="Voice_Create_Window" Width="1920" Height="1080" Margin="-1920,0,0,0" Visibility="Hidden"/>
             <Class1:Voice_Create_Setting x:Name="Voice_Create_Setting_Window" Width="1920" Height="1080" Margin="-1920,0,0,0" Visibility="Hidden"/>
+            <Class1:AutoSelection x:Name="AutoSelection_Window" Width="1920" Height="1080" Margin="-1920,0,0,0" Visibility="Hidden"/>
         </DockPanel>
     </Viewbox>
 </UserControl>

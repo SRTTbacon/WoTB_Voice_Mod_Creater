@@ -155,7 +155,10 @@ namespace WoTB_Voice_Mod_Creater.Class
                 }
             }
 
+            modPage = 0;
+            Mod_List_T.Text = "Modリスト" + (modPage + 1);
             Mod_List.ItemsSource = modList;
+            File_List.ItemsSource = null;
 
             if (bDVPLMode)
                 DVPL_C.Source = Sub_Code.Check_03;
@@ -617,11 +620,14 @@ namespace WoTB_Voice_Mod_Creater.Class
                 return;
             }
 
-            MessageBoxResult result = MessageBox.Show("'" + modList[Mod_List.SelectedIndex].ModName + "'をリストから削除しますか?", "確認",
-                MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.No);
+            if (modList[Mod_List.SelectedIndex].fileList.Count > 0)
+            {
+                MessageBoxResult result = MessageBox.Show("'" + modList[Mod_List.SelectedIndex].ModName + "'をリストから削除しますか?", "確認",
+                    MessageBoxButton.YesNo, MessageBoxImage.Exclamation, MessageBoxResult.No);
 
-            if (result != MessageBoxResult.Yes)
-                return;
+                if (result != MessageBoxResult.Yes)
+                    return;
+            }
 
             string modName = modList[Mod_List.SelectedIndex].ModName;
 

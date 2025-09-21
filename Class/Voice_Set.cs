@@ -608,18 +608,44 @@ namespace WoTB_Voice_Mod_Creater
                     continue;
                 if (Name_Temp.Contains("_"))
                 {
-                    string Name = Name_Temp.Substring(0, Name_Temp.LastIndexOf('_'));
-                    Name = Name.Trim();
+                    string Name_01 = Name_Temp.Substring(0, Name_Temp.IndexOf('_'));
+                    Name_01 = Name_01.Trim();
+                    string Name_02 = Name_Temp.Substring(0, Name_Temp.LastIndexOf('_'));
+                    Name_02 = Name_02.Trim();
+                    bool bExistName01 = false;
+
                     for (int Number = 0; Number < 34; Number++)
                     {
-                        if (To_File_Name[Number] == Name)
+                        if (To_File_Name[Number] == Name_01)
+                        {
+                            BNK_FSB_Voices.Add_Voice(Index, Name_Temp, Number);
+                            bExistName01 = true;
+                            break;
+                        }
+                        foreach (string Voice_Name in Voice_BGM_Change_List[Number])
+                        {
+                            if (Name_01.Equals(Voice_Name, StringComparison.InvariantCultureIgnoreCase))
+                            {
+                                BNK_FSB_Voices.Add_Voice(Index, Name_Temp, Number);
+                                bExistName01 = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (bExistName01)
+                        continue;
+
+                    for (int Number = 0; Number < 34; Number++)
+                    {
+                        if (To_File_Name[Number] == Name_02)
                         {
                             BNK_FSB_Voices.Add_Voice(Index, Name_Temp, Number);
                             break;
                         }
                         foreach (string Voice_Name in Voice_BGM_Change_List[Number])
                         {
-                            if (Name.Contains(Voice_Name))
+                            if (Name_02.Equals(Voice_Name, StringComparison.InvariantCultureIgnoreCase))
                             {
                                 BNK_FSB_Voices.Add_Voice(Index, Name_Temp, Number);
                                 break;

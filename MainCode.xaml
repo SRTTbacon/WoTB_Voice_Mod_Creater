@@ -151,12 +151,12 @@
             <Class1:WoT_Sound_Mod x:Name="WoT_Sound_Mod_Window" Width="1920" Height="1080" Margin="-1920,0,0,0" Visibility="Hidden"/>
             <Class1:Extension_Converter x:Name="Extension_Converter_Window" Width="1920" Height="1080" Margin="-1920,0,0,0" Visibility="Hidden"/>
             <Class1:ModManager x:Name="ModManager_Window" Width="1920" Height="1080" Margin="-1920,0,0,0" Visibility="Hidden"/>
-            <Canvas  x:Name="WindowBarCanvas" Width="1920" Height="25" Background="White" VerticalAlignment="Top" Margin="-1920,0,0,0" MouseLeftButtonDown="Canvas_MouseLeftButtonDown">
-                <Image x:Name="Icon_Small_Image" Stretch="Fill" Width="22" Height="22" Focusable="False" Margin="2,1,0,0"/>
-                <TextBlock Width="500" Height="20" Text="WoTB_Mod_Creator" FontSize="15" TextDecorations="{x:Null}" Margin="33,2,0,0" Focusable="False"/>
-                <Button x:Name="Minimize_B" Width="35" Height="43" Content="-" FontSize="35" VerticalAlignment="Top" Background="Transparent" BorderBrush="Transparent" Margin="1815,-18,0,0" Focusable="False" Click="Minimize_B_Click"/>
-                <Button x:Name="Maximize_B" Width="35" Height="33" Content="▭" FontSize="23" VerticalAlignment="Top" Background="Transparent" BorderBrush="Transparent" Margin="1850,-8,0,0" Focusable="False" Click="Maximize_B_Click"/>
-                <Button x:Name="Close_B" Width="35" Height="34" Content="×" FontSize="25" VerticalAlignment="Top" Background="Transparent" BorderBrush="Transparent" Margin="1885,-9,0,0" Focusable="False" Click="Close_B_Click"/>
+            <Canvas  x:Name="WindowBarCanvas" Width="1920" Height="20" Background="White" VerticalAlignment="Top" Margin="-1920,0,0,0" MouseLeftButtonDown="Canvas_MouseLeftButtonDown">
+                <Image x:Name="Icon_Small_Image" Stretch="Fill" Width="18" Height="18" Focusable="False" Margin="2,1,0,0"/>
+                <TextBlock Width="500" Height="20" Text="WoTB_Mod_Creator" FontSize="15" TextDecorations="{x:Null}" Margin="33,0,0,0" Focusable="False"/>
+                <Button x:Name="Minimize_B" Width="35" Height="40" Content="-" FontSize="35" VerticalAlignment="Top" Background="Transparent" BorderBrush="Transparent" Margin="1815,-20,0,0" Focusable="False" Click="Minimize_B_Click"/>
+                <Button x:Name="Maximize_B" Width="35" Height="30" Content="▭" FontSize="23" VerticalAlignment="Top" Background="Transparent" BorderBrush="Transparent" Margin="1850,-10,0,0" Focusable="False" Click="Maximize_B_Click"/>
+                <Button x:Name="Close_B" Width="35" Height="31" Content="×" FontSize="25" VerticalAlignment="Top" Background="Transparent" BorderBrush="Transparent" Margin="1885,-11,0,0" Focusable="False" Click="Close_B_Click"/>
             </Canvas>
         </DockPanel>
     </Viewbox>

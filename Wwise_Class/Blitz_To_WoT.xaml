@@ -65,7 +65,7 @@
             <Border BorderBrush="Aqua" BorderThickness="1" Background="#111216" Height="1080" VerticalAlignment="Top" Width="1920"/>
             <Button x:Name="Back_B" Content="戻る" Height="75" VerticalAlignment="Top" Width="275" Background="Transparent" Margin="-3565,1005,0,0" Foreground="Aqua" BorderBrush="Aqua" FontSize="38" Click="Back_B_Click"/>
             <Button x:Name="Open_File_B" Content="FSBまたはBNKを開く" Height="75" VerticalAlignment="Top" Width="350" Background="Transparent" Margin="-1920,100,0,0" Foreground="Aqua" BorderBrush="Aqua" FontSize="38" Click="Open_File_B_Click"/>
-            <TextBlock x:Name="Message_T" Height="105" Width="770" TextWrapping="Wrap" Text="" Foreground="Aqua" FontSize="37" Margin="-1920,905,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
+            <TextBlock x:Name="Message_T" Height="105" Width="750" TextWrapping="Wrap" Text="" Foreground="Aqua" FontSize="37" Margin="-1920,905,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
             <TextBlock x:Name="File_Name_T" Height="50" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="800" Foreground="Aqua" FontSize="37" Margin="-1920,200,0,0" TextAlignment="Center"/>
             <ListBox x:Name="Voices_L" Height="750" VerticalAlignment="Top" Width="550" Margin="-3240,150,0,0" Background="Transparent" BorderBrush="Aqua" Foreground="Aqua" FontSize="37" SelectionChanged="Voices_L_SelectionChanged"/>
             <ListBox x:Name="Content_L" Height="750" VerticalAlignment="Top" Width="550" Margin="-600,150,0,0" Background="Transparent" BorderBrush="Aqua" Foreground="Aqua" FontSize="37" SelectionChanged="Content_L_SelectionChanged"/>
@@ -81,13 +81,12 @@
             <Button x:Name="Plus_B" Content="+5秒" Height="60" Margin="-1715,575,0,0" VerticalAlignment="Top" Width="200" Background="Transparent" Foreground="Aqua" FontSize="40" BorderBrush="Aqua" Click="Plus_B_Click"/>
             <TextBlock x:Name="Location_T" Height="50" Width="300" FontSize="40" Foreground="Aqua" TextWrapping="Wrap" Text="00:00" Margin="-1920,460,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
             <Slider x:Name="Location_S" Height="27" VerticalAlignment="Top"  Width="410" Margin="-1920,530,0,0" Style="{StaticResource CustomSliderStyle}" SmallChange="0" LargeChange="0" Maximum="0" ValueChanged="Location_S_ValueChanged"/>
-            <Button x:Name="Start_B" Content="WoTへ変換" Height="75" VerticalAlignment="Top" Width="350" Background="Transparent" Margin="-1920,750,0,0" Foreground="Aqua" BorderBrush="Aqua" FontSize="38" Click="Start_B_Click"/>
+            <Button x:Name="Start_B" Content="WoTへ変換" Height="75" VerticalAlignment="Top" Width="350" Background="Transparent" Margin="-1920,805,0,0" Foreground="Aqua" BorderBrush="Aqua" FontSize="38" Click="Start_B_Click"/>
             <Button x:Name="Voice_Enable_B" Content="有効化" Height="75" VerticalAlignment="Top" Width="270" Background="Transparent" Margin="-320,900,0,0" Foreground="Aqua" BorderBrush="Aqua" FontSize="38" Click="Voice_Enable_B_Click"/>
             <Button x:Name="Voice_Disable_B" Content="無効化" Height="75" VerticalAlignment="Top" Width="270" Background="Transparent" Margin="-880,900,0,0" Foreground="Aqua" BorderBrush="Aqua" FontSize="38" Click="Voice_Disable_B_Click"/>
-            <CheckBox x:Name="Volume_Set_C" Content="" Height="15" VerticalAlignment="Top" Width="15" Margin="-2175,680,0,0" Click="Volume_Set_C_Click"/>
-            <TextBlock Height="50" TextWrapping="Wrap" Text="音量を調整" VerticalAlignment="Top" Width="200" Foreground="Aqua" FontSize="37" Margin="-1925,662,0,0"/>
-            <Button x:Name="Volume_Set_Help_B" Content="?" Height="50" VerticalAlignment="Top" Width="50" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="35" Margin="-1675,662,0,0" Click="Volume_Set_Help_B_Click"/>
             <Button x:Name="Help_B" Content="注意事項" Height="70" VerticalAlignment="Top" Width="275" Background="Transparent" Foreground="Aqua" BorderBrush="Aqua" FontSize="35" Margin="-275,1010,0,0" Click="Help_B_Click"/>
+            <TextBlock Height="50" Width="575" TextWrapping="Wrap" Text="プロジェクト名" Foreground="Aqua" FontSize="35" Margin="-1920,655,0,0" VerticalAlignment="Top" TextAlignment="Center"/>
+            <TextBox x:Name="Project_Name_T" Height="60" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="500" FontSize="40" Margin="-1920,720,0,0" TextAlignment="Center"/>
         </DockPanel>
     </Viewbox>
 </UserControl>

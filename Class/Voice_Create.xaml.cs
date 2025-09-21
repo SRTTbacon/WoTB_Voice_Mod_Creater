@@ -125,7 +125,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                     System.Windows.Forms.Application.DoEvents();
                     continue;
                 }
-                if (Visibility == Visibility.Visible)
+                if (Visibility == Visibility.Visible && Sub_Code.IsForcusWindow)
                 {
                     if (Bass.BASS_ChannelIsActive(Stream) == BASSActive.BASS_ACTIVE_PLAYING && !bLocationChanging)
                     {
@@ -288,41 +288,47 @@ namespace WoTB_Voice_Mod_Creater.Class
             Three_Voice_List.Add("チャット:小隊-受信 | 未選択");
             for (int Number = 0; Number < Main_Voice_List.Count; Number++)
             {
-                Voice_List.Items.Add(Main_Voice_List[Number]);
+                ListBoxItem item = new ListBoxItem();
+                item.Content = Main_Voice_List[Number];
+                Voice_List.Items.Add(item);
                 Sound_Setting[0].Add(new Voice_Event_Setting());
             }
             for (int Number = 0; Number < Sub_Voice_List.Count; Number++)
             {
-                Voice_Sub_List.Items.Add(Sub_Voice_List[Number]);
+                ListBoxItem item = new ListBoxItem();
+                item.Content = Sub_Voice_List[Number];
+                Voice_Sub_List.Items.Add(item);
                 if (Number == 15)
                     Sound_Setting[1][Sound_Setting[1].Count - 1].Volume = 0;
                 Sound_Setting[1].Add(new Voice_Event_Setting());
             }
             for (int Number = 0; Number < Three_Voice_List.Count; Number++)
             {
-                Voice_Three_List.Items.Add(Three_Voice_List[Number]);
+                ListBoxItem item = new ListBoxItem();
+                item.Content = Three_Voice_List[Number];
+                Voice_Three_List.Items.Add(item);
                 Sound_Setting[2].Add(new Voice_Event_Setting());
             }
             Sub_Code.Set_Event_ShortID(Sound_Setting);
-            ColorMode_Change();
+            UpdateListColor();
         }
         //引数:新サウンドエンジンの音声Mod=true,旧サウンドエンジン=false
         public async void Window_Show()
         {
             //画面を表示
-            ColorMode_Change();
+            UpdateListColor();
             Voice_Create_Window.InitializeLoadData();
             if (Sub_Code.IsWindowBarShow)
             {
-                Voice_Clear_B.Margin = new Thickness(Voice_Clear_B.Margin.Left, 25, 0, 0);
-                Voice_Add_Dir_B.Margin = new Thickness(Voice_Add_Dir_B.Margin.Left, 25, 0, 0);
-                Voice_Add_Dir_Help_B.Margin = new Thickness(Voice_Add_Dir_Help_B.Margin.Left, 30, 0, 0);
+                Voice_Clear_B.Margin = new Thickness(Voice_Clear_B.Margin.Left, Sub_Code.WINDOW_BAR_HEIGHT, 0, 0);
+                AutoSelection_B.Margin = new Thickness(AutoSelection_B.Margin.Left, Sub_Code.WINDOW_BAR_HEIGHT, 0, 0);
+                AutoSelection_Setting_B.Margin = new Thickness(AutoSelection_Setting_B.Margin.Left, Sub_Code.WINDOW_BAR_HEIGHT, 0, 0);
             }
             else
             {
                 Voice_Clear_B.Margin = new Thickness(Voice_Clear_B.Margin.Left, 0, 0, 0);
-                Voice_Add_Dir_B.Margin = new Thickness(Voice_Add_Dir_B.Margin.Left, 0, 0, 0);
-                Voice_Add_Dir_Help_B.Margin = new Thickness(Voice_Add_Dir_Help_B.Margin.Left, 5, 0, 0);
+                AutoSelection_B.Margin = new Thickness(AutoSelection_B.Margin.Left, 0, 0, 0);
+                AutoSelection_Setting_B.Margin = new Thickness(AutoSelection_Setting_B.Margin.Left, 5, 0, 0);
             }
             Opacity = 0;
             Visibility = Visibility.Visible;
@@ -366,7 +372,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             while (Message_T.Opacity > 0 && bMessageShowing)
             {
                 Number++;
-                if (Number >= 120)
+                if (Number >= 150)
                     Message_T.Opacity -= 0.025;
                 await Task.Delay(1000 / 60);
             }
@@ -557,8 +563,6 @@ namespace WoTB_Voice_Mod_Creater.Class
             if (bBusy || bCreating)
                 return;
             List<Voice_Sound_Setting> Voice_Settings = new List<Voice_Sound_Setting>();
-            List<int> Change_Colors_Main = new List<int>();
-            List<int> Change_Colors_Sub = new List<int>();
             foreach (Add_Voice_Param Files in Add_Files)
             {
                 Voice_Settings.Add(new Voice_Sound_Setting(Files.File_Path));
@@ -566,31 +570,8 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Voice_Settings[Voice_Settings.Count - 1].Voice_Index = Files.Voice_Index;
                 Voice_Settings[Voice_Settings.Count - 1].File_Index = Sound_Setting[Files.Type_Index][Files.Voice_Index].Sounds.Count;
                 Sound_Setting[Files.Type_Index][Files.Voice_Index].Sounds.Add(Voice_Settings[Voice_Settings.Count - 1]);
-                if (Files.Type_Index == 0 && !Change_Colors_Main.Contains(Files.Voice_Index))
-                    Change_Colors_Main.Add(Files.Voice_Index);
-                else if (Files.Type_Index == 1 && !Change_Colors_Sub.Contains(Files.Voice_Index))
-                    Change_Colors_Sub.Add(Files.Voice_Index);
             }
-            foreach (int Index in Change_Colors_Main)
-            {
-                Main_Voice_List[Index] = Main_Voice_List[Index].Replace("未選択", "選択済み");
-                Voice_List.Items[Index] = Main_Voice_List[Index];
-                ListBoxItem LBI = new ListBoxItem();
-                LBI.Content = Main_Voice_List[Index];
-                Voice_List.Items[Index] = LBI;
-                Voice_List.SelectedIndex = Index;
-            }
-            foreach (int Index in Change_Colors_Sub)
-            {
-                Sub_Voice_List[Index] = Sub_Voice_List[Index].Replace("未選択", "選択済み");
-                Voice_Sub_List.Items[Index] = Sub_Voice_List[Index];
-                ListBoxItem LBI = new ListBoxItem();
-                LBI.Content = Sub_Voice_List[Index];
-                Voice_Sub_List.Items[Index] = LBI;
-                Voice_Sub_List.SelectedIndex = Index;
-            }
-            Change_Colors_Main.Clear();
-            Change_Colors_Sub.Clear();
+            UpdateListColor();
             Add_Back(Voice_Settings);
             Voice_List.SelectedIndex = -1;
             Voice_Sub_List.SelectedIndex = -1;
@@ -665,33 +646,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 }
             }
             Voice_File_Reset(Sound_Setting[List_Type_Index], IndexNumber);
-            if (List_Type_Index == 0)
-            {
-                Main_Voice_List[IndexNumber] = Main_Voice_List[IndexNumber].Replace("未選択", "選択済み");
-                Voice_List.Items[IndexNumber] = Main_Voice_List[IndexNumber];
-                ListBoxItem LBI = new ListBoxItem();
-                LBI.Content = Main_Voice_List[IndexNumber];
-                Voice_List.Items[IndexNumber] = LBI;
-                Voice_List.SelectedIndex = IndexNumber;
-            }
-            else if (List_Type_Index == 1)
-            {
-                Sub_Voice_List[IndexNumber] = Sub_Voice_List[IndexNumber].Replace("未選択", "選択済み");
-                Voice_Sub_List.Items[IndexNumber] = Sub_Voice_List[IndexNumber];
-                ListBoxItem LBI = new ListBoxItem();
-                LBI.Content = Sub_Voice_List[IndexNumber];
-                Voice_Sub_List.Items[IndexNumber] = LBI;
-                Voice_Sub_List.SelectedIndex = IndexNumber;
-            }
-            else if (List_Type_Index == 2)
-            {
-                Three_Voice_List[IndexNumber] = Three_Voice_List[IndexNumber].Replace("未選択", "選択済み");
-                Voice_Three_List.Items[IndexNumber] = Three_Voice_List[IndexNumber];
-                ListBoxItem LBI = new ListBoxItem();
-                LBI.Content = Three_Voice_List[IndexNumber];
-                Voice_Three_List.Items[IndexNumber] = LBI;
-                Voice_Three_List.SelectedIndex = IndexNumber;
-            }
+            UpdateListColor();
             if (Voice_Index == -1)
                 Add_Back(Voice_Settings);
         }
@@ -732,48 +687,9 @@ namespace WoTB_Voice_Mod_Creater.Class
         }
         private void Voice_Delete(int Type_Index, int Voice_Index, int File_Index)
         {
-            ListBoxItem LBI = new ListBoxItem();
             Sound_Setting[Type_Index][Voice_Index].Sounds.RemoveAt(File_Index);
             int Before_Voice_Index = -1;
-            if (Type_Index == 0)
-            {
-                Before_Voice_Index = Voice_List.SelectedIndex;
-                if (Sound_Setting[Type_Index][Voice_Index].Sounds.Count == 0)
-                {
-                    Main_Voice_List[Voice_Index] = Main_Voice_List[Voice_Index].Replace("選択済み", "未選択");
-                    Voice_List.Items[Voice_Index] = Main_Voice_List[Voice_Index];
-                    LBI.Content = Main_Voice_List[Voice_Index];
-                    LBI.Foreground = (Brush)new BrushConverter().ConvertFromString("#BFFF2C8C");
-                    Voice_List.Items[Voice_Index] = LBI;
-                }
-                Voice_List.SelectedIndex = Voice_Index;
-            }
-            else if (Type_Index == 1)
-            {
-                Before_Voice_Index = Voice_Sub_List.SelectedIndex;
-                if (Sound_Setting[Type_Index][Voice_Index].Sounds.Count == 0)
-                {
-                    Sub_Voice_List[Voice_Index] = Sub_Voice_List[Voice_Index].Replace("選択済み", "未選択");
-                    Voice_Sub_List.Items[Voice_Index] = Sub_Voice_List[Voice_Index];
-                    LBI.Content = Sub_Voice_List[Voice_Index].Replace("System.Windows.Controls.ListBoxItem: ", "");
-                    LBI.Foreground = (Brush)new BrushConverter().ConvertFromString("#BFFF2C8C");
-                    Voice_Sub_List.Items[Voice_Index] = LBI;
-                }
-                Voice_Sub_List.SelectedIndex = Voice_Index;
-            }
-            else if (Type_Index == 2)
-            {
-                Before_Voice_Index = Voice_Three_List.SelectedIndex;
-                if (Sound_Setting[Type_Index][Voice_Index].Sounds.Count == 0)
-                {
-                    Three_Voice_List[Voice_Index] = Three_Voice_List[Voice_Index].Replace("選択済み", "未選択");
-                    Voice_Three_List.Items[Voice_Index] = Three_Voice_List[Voice_Index];
-                    LBI.Content = Three_Voice_List[Voice_Index].Replace("System.Windows.Controls.ListBoxItem: ", "");
-                    LBI.Foreground = (Brush)new BrushConverter().ConvertFromString("#BFFF2C8C");
-                    Voice_Three_List.Items[Voice_Index] = LBI;
-                }
-                Voice_Three_List.SelectedIndex = Voice_Index;
-            }
+            UpdateListColor(Type_Index, Voice_Index);
             if (List_Index_Mode == Type_Index && Before_Voice_Index == Voice_Index && Voice_File_List.Items.Count > File_Index)
                 Voice_File_List.Items.RemoveAt(File_Index);
         }
@@ -1007,30 +923,6 @@ namespace WoTB_Voice_Mod_Creater.Class
                     else
                         Project_Name_Text.Text = "プロジェクト名";
                     Project_Name_T.IsEnabled = !this.WVS_File.IsNotChangeNameMode;
-                    for (int Number = 0; Number < Sound_Setting[0].Count; Number++)
-                    {
-                        if (Sound_Setting[0][Number].Sounds.Count > 0)
-                        {
-                            Main_Voice_List[Number] = Main_Voice_List[Number].Replace("未選択", "選択済み");
-                            Voice_List.Items[Number] = Main_Voice_List[Number];
-                        }
-                    }
-                    for (int Number = 0; Number < Sound_Setting[1].Count; Number++)
-                    {
-                        if (Sound_Setting[1][Number].Sounds.Count > 0)
-                        {
-                            Sub_Voice_List[Number] = Sub_Voice_List[Number].Replace("未選択", "選択済み");
-                            Voice_Sub_List.Items[Number] = Sub_Voice_List[Number];
-                        }
-                    }
-                    for (int Number = 0; Number < Sound_Setting[2].Count; Number++)
-                    {
-                        if (Sound_Setting[2][Number].Sounds.Count > 0)
-                        {
-                            Three_Voice_List[Number] = Three_Voice_List[Number].Replace("未選択", "選択済み");
-                            Voice_Three_List.Items[Number] = Three_Voice_List[Number];
-                        }
-                    }
                     bLoadedWVS = true;
                     bWVSIncludeSound = this.WVS_File.IsIncludedSound;
                     bIncludeSound = this.WVS_File.IsIncludedSound;
@@ -1038,6 +930,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                         Voice_Save_WVS_C.Source = Sub_Code.Check_03;
                     else
                         Voice_Save_WVS_C.Source = Sub_Code.Check_01;
+                    Message_Feed_Out("ロードしました。");
                 }
                 else if (Result == WVS_Load.WVS_Result.WoTMode)
                 {
@@ -1100,24 +993,19 @@ namespace WoTB_Voice_Mod_Creater.Class
                         if (Number < 34)
                         {
                             Sound_Setting[0][Number].Sounds.Add(new Voice_Sound_Setting(File_Path));
-                            Main_Voice_List[Number] = Main_Voice_List[Number].Replace("未選択", "選択済み");
-                            Voice_List.Items[Number] = Main_Voice_List[Number];
                         }
                         else if (Number < 50)
                         {
                             Sound_Setting[1][Number - 34].Sounds.Add(new Voice_Sound_Setting(File_Path));
-                            Sub_Voice_List[Number - 34] = Sub_Voice_List[Number - 34].Replace("未選択", "選択済み");
-                            Voice_Sub_List.Items[Number - 34] = Sub_Voice_List[Number - 34];
                         }
                         else
                         {
                             Sound_Setting[2][Number - 50].Sounds.Add(new Voice_Sound_Setting(File_Path));
-                            Three_Voice_List[Number - 50] = Three_Voice_List[Number - 50].Replace("未選択", "選択済み");
-                            Voice_Three_List.Items[Number - 50] = Three_Voice_List[Number - 50];
                         }
                     }
                     file.Close();
                     Sub_Code.Set_Event_ShortID(Sound_Setting);
+                    Message_Feed_Out("ロードしました。");
                 }
                 if (List_Index_Mode == 0 && Voice_List.SelectedIndex != -1)
                     Voice_File_Reset(Sound_Setting[0], Voice_List.SelectedIndex);
@@ -1125,7 +1013,6 @@ namespace WoTB_Voice_Mod_Creater.Class
                     Voice_File_Reset(Sound_Setting[1], Voice_Sub_List.SelectedIndex);
                 else if (List_Index_Mode == 2 && Voice_Three_List.SelectedIndex != -1)
                     Voice_File_Reset(Sound_Setting[2], Voice_Three_List.SelectedIndex);
-                ColorMode_Change();
                 Back_Pos_Now = 0;
                 Back_To_The_Future.Clear();
                 Copy_Voices.Clear();
@@ -1142,7 +1029,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                     Voice_Extract_B.Visibility = Visibility.Hidden;
                     Voice_Extract_Help_B.Visibility = Visibility.Hidden;
                 }
-                Message_Feed_Out("ロードしました。");
+                UpdateListColor();
             }
             catch (Exception e1)
             {
@@ -1344,19 +1231,6 @@ namespace WoTB_Voice_Mod_Creater.Class
             Directory.CreateDirectory(Dir_Name);
             Message_T.Text = "プロジェクトファイルを作成しています...";
             await Task.Delay(50);
-            foreach (string dir in Directory.GetDirectories(Dir_Name))
-                if (Path.GetFileName(dir) != "All_Voices")
-                    Directory.Delete(dir, true);
-            try
-            {
-                foreach (string file in Directory.GetFiles(Dir_Name))
-                {
-                    string Ex = Path.GetExtension(file);
-                    if (Ex != ".bnk" && Ex != ".dvpl" && Ex != ".wvs")
-                        File.Delete(file);
-                }
-            }
-            catch { }
             File.Copy(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Default Work Unit.bak", Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Actor-Mixer Hierarchy/Default Work Unit.wwu", true);
             File.Copy(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Events/base_capture.bak", Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Events/base_capture.wwu", true);
             File.Copy(Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Events/Chat.bak", Voice_Set.Special_Path + "/Wwise/WoTB_Sound_Mod/Events/Chat.wwu", true);
@@ -1452,53 +1326,6 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Message_Feed_Out("内容をクリアしました。");
                 Project_Name_T.UndoLimit = 15;
             }
-        }
-        void ColorMode_Change()
-        {
-            Brush br = (Brush)new BrushConverter().ConvertFromString("#BFFF2C8C");
-            int Select_Index = -1;
-            if (Voice_List.Visibility == Visibility.Visible && Voice_List.SelectedIndex != -1)
-                Select_Index = Voice_List.SelectedIndex;
-            else if (Voice_Sub_List.Visibility == Visibility.Visible && Voice_Sub_List.SelectedIndex != -1)
-                Select_Index = Voice_Sub_List.SelectedIndex;
-            else if (Voice_Three_List.Visibility == Visibility.Visible && Voice_Three_List.SelectedIndex != -1)
-                Select_Index = Voice_Three_List.SelectedIndex;
-            for (int Number = 0; Number < Voice_List.Items.Count; Number++)
-            {
-                if (Main_Voice_List[Number].Contains("未選択"))
-                {
-                    ListBoxItem LBI = new ListBoxItem();
-                    LBI.Content = Main_Voice_List[Number];
-                    LBI.Foreground = br;
-                    Voice_List.Items[Number] = LBI;
-                }
-            }
-            for (int Number = 0; Number < Voice_Sub_List.Items.Count; Number++)
-            {
-                if (Sub_Voice_List[Number].Contains("未選択"))
-                {
-                    ListBoxItem LBI = new ListBoxItem();
-                    LBI.Content = Sub_Voice_List[Number];
-                    LBI.Foreground = br;
-                    Voice_Sub_List.Items[Number] = LBI;
-                }
-            }
-            for (int Number = 0; Number < Voice_Three_List.Items.Count; Number++)
-            {
-                if (Three_Voice_List[Number].Contains("未選択"))
-                {
-                    ListBoxItem LBI = new ListBoxItem();
-                    LBI.Content = Three_Voice_List[Number];
-                    LBI.Foreground = br;
-                    Voice_Three_List.Items[Number] = LBI;
-                }
-            }
-            if (List_Index_Mode == 0 && Select_Index != -1)
-                Voice_List.SelectedIndex = Select_Index;
-            else if (List_Index_Mode == 1 && Select_Index != -1)
-                Voice_Sub_List.SelectedIndex = Select_Index;
-            else if (List_Index_Mode == 2 && Select_Index != -1)
-                Voice_Three_List.SelectedIndex = Select_Index;
         }
         private void BGM_Reload_C_Click(object sender, RoutedEventArgs e)
         {
@@ -1830,12 +1657,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             }
             Back_Pos_Now++;
         }
-        private void Voice_Add_Dir_Help_B_Click(object sender, RoutedEventArgs e)
-        {
-            if (bBusy || bCreating)
-                return;
-            Message_Feed_Out("リソースフォルダ内のAdd_Voice_Setting.txtファイルをご覧ください。見ても分からなかった場合、この機能はスルーしてください。");
-        }
+
         private void Voice_Add_Dir_B_Click(object sender, RoutedEventArgs e)
         {
             if (bBusy || bCreating)
@@ -1939,50 +1761,17 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Clone.Type_Index = List_Index_Mode;
                 Clone.File_Index = Index;
                 Clone.IsNormalMode = false;
-                ListBoxItem LBI = new ListBoxItem();
                 Sound_Setting[List_Index_Mode][Event_Index].Sounds.RemoveAt(Index);
                 int Before_Voice_Index = -1;
                 if (List_Index_Mode == 0)
-                {
                     Before_Voice_Index = Voice_List.SelectedIndex;
-                    if (Sound_Setting[List_Index_Mode][Event_Index].Sounds.Count == 0)
-                    {
-                        Main_Voice_List[Event_Index] = Main_Voice_List[Event_Index].Replace("選択済み", "未選択");
-                        Voice_List.Items[Event_Index] = Main_Voice_List[Event_Index];
-                        LBI.Content = Main_Voice_List[Event_Index];
-                        LBI.Foreground = (Brush)new BrushConverter().ConvertFromString("#BFFF2C8C");
-                        Voice_List.Items[Event_Index] = LBI;
-                    }
-                    Voice_List.SelectedIndex = Event_Index;
-                }
                 else if (List_Index_Mode == 1)
-                {
                     Before_Voice_Index = Voice_Sub_List.SelectedIndex;
-                    if (Sound_Setting[List_Index_Mode][Event_Index].Sounds.Count == 0)
-                    {
-                        Sub_Voice_List[Event_Index] = Sub_Voice_List[Event_Index].Replace("選択済み", "未選択");
-                        Voice_Sub_List.Items[Event_Index] = Sub_Voice_List[Event_Index];
-                        LBI.Content = Sub_Voice_List[Event_Index].Replace("System.Windows.Controls.ListBoxItem: ", "");
-                        LBI.Foreground = (Brush)new BrushConverter().ConvertFromString("#BFFF2C8C");
-                        Voice_Sub_List.Items[Event_Index] = LBI;
-                    }
-                    Voice_Sub_List.SelectedIndex = Event_Index;
-                }
                 else if (List_Index_Mode == 2)
-                {
                     Before_Voice_Index = Voice_Three_List.SelectedIndex;
-                    if (Sound_Setting[List_Index_Mode][Event_Index].Sounds.Count == 0)
-                    {
-                        Three_Voice_List[Event_Index] = Three_Voice_List[Event_Index].Replace("選択済み", "未選択");
-                        Voice_Three_List.Items[Event_Index] = Three_Voice_List[Event_Index];
-                        LBI.Content = Sub_Voice_List[Event_Index].Replace("System.Windows.Controls.ListBoxItem: ", "");
-                        LBI.Foreground = (Brush)new BrushConverter().ConvertFromString("#BFFF2C8C");
-                        Voice_Three_List.Items[Event_Index] = LBI;
-                    }
-                    Voice_Three_List.SelectedIndex = Event_Index;
-                }
                 if (Before_Voice_Index == Event_Index && Voice_File_List.Items.Count > Index)
                     Voice_File_List.Items.RemoveAt(Index);
+                UpdateListColor();
                 Clone.Voice_Index = Before_Voice_Index;
                 Clone_Settings.Add(Clone);
             }
@@ -2249,6 +2038,129 @@ namespace WoTB_Voice_Mod_Creater.Class
             }
             bfb.Dispose();
             bOpenedChangeDir = false;
+        }
+
+        private void AutoSelection_Setting_B_Click(object sender, RoutedEventArgs e)
+        {
+            if (bBusy)
+                return;
+
+            AutoSelection_Window.Window_Show(Sound_Setting, Main_Voice_List, Sub_Voice_List, Three_Voice_List, true);
+        }
+
+        private void AutoSelection_B_Click(object sender, RoutedEventArgs e)
+        {
+            string message = "自動選択を開始します。\n自動選択の設定をまだ行っていない場合は\"設定\"ボタンから設定してください。";
+            MessageBoxResult result = MessageBox.Show(message, "確認", MessageBoxButton.YesNo);
+            if (result == MessageBoxResult.Yes)
+            {
+                AutoSelection_Window.Window_Show(Sound_Setting, Main_Voice_List, Sub_Voice_List, Three_Voice_List, false);
+
+                bool bSettingOK = false;
+                foreach (CAutoSelectionEvent autoSelectEvent in AutoSelection_Window.m_eventList)
+                {
+                    if (autoSelectEvent.ItemList.Count > 0)
+                    {
+                        bSettingOK = true;
+                        break;
+                    }
+                }
+                if (!bSettingOK)
+                {
+                    Message_Feed_Out("検索キーワードが1つもセットされていません。\n先に\"設定\"ボタンから自動選択の設定を行ってください。");
+                    return;
+                }
+
+                BetterFolderBrowser bfb = new BetterFolderBrowser()
+                {
+                    Title = "検索フォルダを選択してください。",
+                    RootFolder = Sub_Code.Get_OpenDirectory_Path()
+                };
+                if (bfb.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                {
+                    Sub_Code.Set_Directory_Path(bfb.SelectedFolder);
+                    int count = SetAutoSelection(bfb.SelectedFolder);
+                    UpdateListColor();
+                    Message_Feed_Out(count + "個のファイルを追加しました。");
+                }
+            }
+        }
+
+        void ChangeRefString(ref string str, Voice_Event_Setting eventSetting)
+        {
+            if (eventSetting.Sounds.Count > 0)
+                str += "選択済み";
+            else
+                str += "未選択";
+        }
+
+        void UpdateListColor(int listIndex, int eventIndex)
+        {
+            ListBoxItem itemData = null;
+            string eventName = "";
+            if (listIndex == 0)
+            {
+                eventName = Main_Voice_List[eventIndex].Substring(0, Main_Voice_List[eventIndex].LastIndexOf("|") + 2);
+                ChangeRefString(ref eventName, Sound_Setting[listIndex][eventIndex]);
+                Main_Voice_List[eventIndex] = eventName;
+                itemData = Voice_List.Items[eventIndex] as ListBoxItem;
+            }
+            else if (listIndex == 1)
+            {
+                eventName = Sub_Voice_List[eventIndex].Substring(0, Sub_Voice_List[eventIndex].LastIndexOf("|") + 2);
+                ChangeRefString(ref eventName, Sound_Setting[listIndex][eventIndex]);
+                Sub_Voice_List[eventIndex] = eventName;
+                itemData = Voice_Sub_List.Items[eventIndex] as ListBoxItem;
+            }
+            else if (listIndex == 2)
+            {
+                eventName = Three_Voice_List[eventIndex].Substring(0, Three_Voice_List[eventIndex].LastIndexOf("|") + 2);
+                ChangeRefString(ref eventName, Sound_Setting[listIndex][eventIndex]);
+                Three_Voice_List[eventIndex] = eventName;
+                itemData = Voice_Three_List.Items[eventIndex] as ListBoxItem;
+            }
+
+            if (itemData == null)
+                return;
+
+            itemData.Content = eventName;
+            itemData.Foreground = Sound_Setting[listIndex][eventIndex].Sounds.Count > 0 ? Brushes.Aqua : (Brush)new BrushConverter().ConvertFromString("#BFFF2C8C");
+        }
+
+        void UpdateListColor()
+        {
+            for (int i = 0; i < Main_Voice_List.Count; i++)
+                UpdateListColor(0, i);
+            for (int i = 0; i < Sub_Voice_List.Count; i++)
+                UpdateListColor(1, i);
+            for (int i = 0; i < Three_Voice_List.Count; i++)
+                UpdateListColor(2, i);
+        }
+
+        int SetAutoSelection(string searchDirectory)
+        {
+            int count = 0;
+            foreach (CAutoSelectionEvent autoEvent in AutoSelection_Window.m_eventList)
+            {
+                List<string> files = AutoSelection_Window.GetFiles(searchDirectory, autoEvent);
+                foreach (List<Voice_Event_Setting> voiceEvents in Sound_Setting)
+                {
+                    foreach (Voice_Event_Setting voiceEvent in voiceEvents)
+                    {
+                        if (voiceEvent.Voice_ShortID == autoEvent.ShortID)
+                        {
+                            foreach (string file in files)
+                            {
+                                voiceEvent.Sounds.Add(new Voice_Sound_Setting(file));
+                            }
+                            count += files.Count;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            return count;
         }
     }
 } 

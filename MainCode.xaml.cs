@@ -232,7 +232,6 @@ namespace WoTB_Voice_Mod_Creater
                 if (File.Exists(Path + "\\Update.bat"))
                     File.Delete(Path + "\\Update.bat");
 
-                Update_T.Visibility = Visibility.Hidden;
                 Update_B.Visibility = Visibility.Hidden;
                 if (System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable())
                     CheckUpdate();
@@ -565,35 +564,58 @@ namespace WoTB_Voice_Mod_Creater
             }
             if ((System.Windows.Forms.Control.ModifierKeys & System.Windows.Forms.Keys.Shift) == System.Windows.Forms.Keys.Shift && e.Key == System.Windows.Input.Key.G)
             {
-                BetterFolderBrowser bfb = new BetterFolderBrowser()
+                System.Windows.Forms.OpenFileDialog ofd = new System.Windows.Forms.OpenFileDialog()
                 {
-                    Title = "保存先のフォルダを選択してください。",
-                    RootFolder = Sub_Code.Get_OpenDirectory_Path(),
-                    Multiselect = false,
+                    Title = "ActorMixierを選択してください。",
+                    Filter = "ActorMixier(*.wwu)|*.wwu"
                 };
-                if (bfb.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+
+                if (ofd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                 {
-                    foreach (string Project_File in Directory.GetFiles(bfb.SelectedFolder))
+                    BetterFolderBrowser bfb1 = new BetterFolderBrowser()
                     {
-                        List<string> Lines = new List<string>(File.ReadAllLines(Project_File));
-                        bool IsEnd = false;
-                        foreach (string line in Lines)
+                        Title = "wemファイルが存在するフォルダを選択してください。",
+                        RootFolder = Sub_Code.Get_OpenDirectory_Path(),
+                        Multiselect = false,
+                    };
+                    if (bfb1.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                    {
+                        BetterFolderBrowser bfb2 = new BetterFolderBrowser()
                         {
-                            if (line.Contains("<GameParameter Name="))
-                            {
-                                string GameParam_Name = Get_Config.Get_Name(line);
-                                uint ID = WwiseHash.HashString(GameParam_Name);
-                                if (ID == 682857933)
-                                {
-                                    IsEnd = true;
-                                    MessageBox.Show("発見しました!\nファイル名:" + System.IO.Path.GetFileName(Project_File) + "\n" + "RTPC名:" + GameParam_Name);
-                                    break;
-                                }
-                            }
+                            Title = "出力先を指定してください。",
+                            RootFolder = Sub_Code.Get_OpenDirectory_Path(),
+                            Multiselect = false,
+                        };
+                        if (bfb2.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                        {
+                            SearchWEMAndConvert searchWEM = new SearchWEMAndConvert(ofd.FileName, bfb1.SelectedFolder, bfb2.SelectedFolder);
+                            int count = searchWEM.Execute();
+
+                            Message_Feed_Out(count + "個のファイルを検出しました。");
                         }
-                        Lines.Clear();
-                        if (IsEnd)
-                            break;
+                    }
+                }
+            }
+            if ((System.Windows.Forms.Control.ModifierKeys & System.Windows.Forms.Keys.Shift) == System.Windows.Forms.Keys.Shift && e.Key == System.Windows.Input.Key.H)
+            {
+                System.Windows.Forms.OpenFileDialog ofd = new System.Windows.Forms.OpenFileDialog()
+                {
+                    Title = "移植元Eventを選択してください。",
+                    Filter = "Events(*.wwu)|*.wwu"
+                };
+
+                if (ofd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                {
+                    System.Windows.Forms.OpenFileDialog ofd2 = new System.Windows.Forms.OpenFileDialog()
+                    {
+                        Title = "移植先Eventを選択してください。",
+                        Filter = "Events(*.wwu)|*.wwu"
+                    };
+                    if (ofd2.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                    {
+                        int count = Game_Parameter_Fix.GameParameter_Fix_Execute(ofd.FileName, ofd2.FileName);
+
+                        Message_Feed_Out(count + "個の命名を変更しました。");
                     }
                 }
             }
@@ -779,7 +801,20 @@ namespace WoTB_Voice_Mod_Creater
         }
         private void Window_PreviewDragOver(object sender, DragEventArgs e)
         {
+            if (IsClosing || update != UpdateMode.None)
+            {
+                e.Effects = DragDropEffects.None;
+                return;
+            }
+
             string[] Drag_Files = (string[])e.Data.GetData(DataFormats.FileDrop);
+
+            if (Drag_Files != null && Drag_Files.Length <= 0)
+            {
+                e.Effects = DragDropEffects.None;
+                return;
+            }
+
             string Ex = System.IO.Path.GetExtension(Drag_Files[0]);
             if (Ex == ".wvs" || Ex == ".wms" || Ex == ".wse")
                 e.Effects = DragDropEffects.Copy;
@@ -788,7 +823,7 @@ namespace WoTB_Voice_Mod_Creater
                 if (Ex == ".mp3" || Ex == ".wav" || Ex == ".ogg" || Ex == ".aiff" || Ex == ".flac" || Ex == ".m4a" || Ex == ".mp4")
                     e.Effects = DragDropEffects.Copy;
                 else
-                    e.Effects = DragDropEffects.None;
+                    e.Effects = DragDropEffects.None; 
             }
             else if (Sound_Editor_Window.Visibility == Visibility.Visible)
             {
@@ -817,7 +852,7 @@ namespace WoTB_Voice_Mod_Creater
         }
         private void Window_Drop(object sender, DragEventArgs e)
         {
-            if (IsClosing)
+            if (IsClosing || update != UpdateMode.None)
                 return;
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
             {
@@ -911,7 +946,7 @@ namespace WoTB_Voice_Mod_Creater
                     Sub_Code.IsForcusWindow = true;
                 else
                     Sub_Code.IsForcusWindow = false;
-                await Task.Delay(50);
+                await Task.Delay(200);
             }
         }
         private void Sound_Editor_B_Click(object sender, RoutedEventArgs e)
@@ -931,6 +966,9 @@ namespace WoTB_Voice_Mod_Creater
         }
         private void Close_B_Click(object sender, RoutedEventArgs e)
         {
+            if (IsClosing || update != UpdateMode.None)
+                return;
+
             Application.Current.Shutdown();
         }
         private void Window_MouseUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
@@ -1071,11 +1109,18 @@ namespace WoTB_Voice_Mod_Creater
                     Update_T.Visibility = Visibility.Visible;
                     Update_B.Visibility = Visibility.Visible;
                 }
+                else
+                {
+                    Update_T.Text = "最新のバージョンです。";
+                    Update_T.Margin = new Thickness(Update_T.Margin.Left, 350.0, 0.0, 0.0);
+                }
             }
             catch (Exception e)
             {
                 Message_Feed_Out("アップデート確認中にエラーが発生しました。\n" + e.Message);
                 Sub_Code.Error_Log_Write(e.Message);
+                Update_T.Text = "アップデートを確認できませんでした。";
+                Update_T.Margin = new Thickness(Update_T.Margin.Left, 350.0, 0.0, 0.0);
                 bCanUpdate = false;
             }
         }
@@ -1101,8 +1146,10 @@ namespace WoTB_Voice_Mod_Creater
                 }
                 catch (Exception e1)
                 {
+                    string message2 = "リソースフォルダをエクスプローラーで開かれている場合は閉じる必要があります。\nエラー:" + e1.Message;
+                    MessageBox.Show(message2);
                     Message_Feed_Out("リソースファイルのアップデートがあるため、ソフトを再起動させる必要があります。");
-                    MessageBox.Show(e1.Message);
+
                     return;
                 }
             }

@@ -164,6 +164,24 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                     if (!Directory.Exists(Voice_Set.Special_Path + "/Wwise/BNK_WAV_Special"))
                         Directory.CreateDirectory(Voice_Set.Special_Path + "/Wwise/BNK_WAV_Special");
                     File_Name_T.Text = Path.GetFileName(ofd.FileName);
+                    if (Event_List.Count <= 0)
+                    {
+                        if (Wwise_PCK != null)
+                            Wwise_PCK.Pck_Clear();
+                        if (Wwise_BNK != null)
+                            Wwise_BNK.Bank_Clear();
+                        if (p != null)
+                            p.Clear();
+                        Wwise_PCK = null;
+                        Wwise_BNK = null;
+                        p = null;
+                        IsPCKMode = false;
+                        File_Name_T.Text = "";
+                        Event_Type_L.Items.Clear();
+                        Sound_L.Items.Clear();
+                        Message_Feed_Out(".bnkファイルを解析できませんでした。\nライセンスが適応されているファイルは読み取れません。");
+                        return;
+                    }
                     Message_Feed_Out(".bnkファイルをロードしました。");
                 }
                 catch (Exception e1)

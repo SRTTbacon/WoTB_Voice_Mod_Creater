@@ -851,6 +851,10 @@ namespace WoTB_Voice_Mod_Creater.Class
         void List_Remove_Index()
         {
             ListBoxItem LBI = Music_List.SelectedItem as ListBoxItem;
+
+            if (LBI == null)
+                return;
+
             string NameOnly = LBI.Content.ToString();
             Music_List.SelectedIndex = -1;
             int Delete_Number = Music_Data[Music_Select_List].Select(h => h.File_Name_Path).ToList().IndexOf(NameOnly);
@@ -907,7 +911,12 @@ namespace WoTB_Voice_Mod_Creater.Class
                 int Select_Index = Music_Data[Music_Select_List].Select(h => h.File_Name_Path).ToList().IndexOf(LBI.Content.ToString());
                 if (!File.Exists(Music_Data[Music_Select_List][Select_Index].File_Full_Path))
                 {
-                    System.Windows.MessageBox.Show("ファイルが存在しません。\n場所:" + Music_Data[Music_Select_List][Select_Index].File_Full_Path);
+                    MessageBoxResult result = System.Windows.MessageBox.Show("ファイルが存在しません。\n場所:" + Music_Data[Music_Select_List][Select_Index].File_Full_Path
+                        + "\nリストから削除しますか?", "警告", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No);
+
+                    if (result == MessageBoxResult.Yes)
+                        List_Remove_Index();
+
                     Music_List.SelectedIndex = -1;
                     return;
                 }
@@ -1407,7 +1416,7 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Video_V.Visibility = Visibility.Visible;
                 Video_V.Play();
                 if (Sub_Code.IsWindowBarShow)
-                    Window_Bar_Canvas.Margin = new Thickness(0, 25, 0, 0);
+                    Window_Bar_Canvas.Margin = new Thickness(0, Sub_Code.WINDOW_BAR_HEIGHT, 0, 0);
                 if (IsPaused)
                     Video_V.Pause();
             }

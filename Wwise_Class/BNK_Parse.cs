@@ -52,7 +52,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             string Temp_Name = Sub_Code.Get_Time_Now(DateTime.Now, "-", 1, 6);
             StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Wwise_Parse/BNK_Parse_Start.bat");
             stw.WriteLine("chcp 65001");
-            stw.Write("\"" + Voice_Set.Special_Path + "/Wwise_Parse/Python/python.exe\" \"" + Voice_Set.Special_Path + "/Wwise_Parse/wwiser.pyz\" -iv \"" + BNK_File + "\" -dn \"" +
+            stw.Write("\"" + Voice_Set.Special_Path + "/Wwise_Parse/Python/python.exe\" \"" + Voice_Set.Special_Path + "/Wwise_Parse/wwiser2.pyz\" -d xml \"" + BNK_File + "\" -dn \"" +
                 Voice_Set.Special_Path + "/Wwise_Parse/" + Temp_Name + "\"");
             stw.Close();
             ProcessStartInfo processStartInfo1 = new ProcessStartInfo

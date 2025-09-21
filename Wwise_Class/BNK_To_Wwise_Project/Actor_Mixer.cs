@@ -51,6 +51,12 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class.BNK_To_Wwise_Project
             string strValue = Read_Line.Substring(Read_Line.IndexOf("ShortID=\"") + 9);
             return strValue.Substring(0, strValue.IndexOf("\""));
         }
+        //ShortID=の後の数字を取得
+        public static uint Get_ShortID(string Read_Line)
+        {
+            string strValue = Read_Line.Substring(Read_Line.IndexOf("ShortID=\"") + 9);
+            return uint.Parse(strValue.Substring(0, strValue.IndexOf("\"")));
+        }
         //[]の中に入っている文字を取得
         public static string Get_Value_FMT(string Read_Line)
         {
@@ -74,6 +80,21 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class.BNK_To_Wwise_Project
         {
             string strValue = Read_Line.Substring(Read_Line.IndexOf("hashname=\"") + 10);
             return strValue.Substring(0, strValue.IndexOf("\""));
+        }
+        public static string Get_UUID(string Read_Line)
+        {
+            string strValue = Read_Line.Substring(Read_Line.IndexOf("ID=\"") + 4);
+            return strValue.Substring(0, strValue.IndexOf("\""));
+        }
+        public static string Get_UnitID(string Read_Line)
+        {
+            string strValue = Read_Line.Substring(Read_Line.IndexOf("WorkUnitID=\"") + 12);
+            return strValue.Substring(0, strValue.IndexOf("\""));
+        }
+        public static string Get_ContainerType(string Read_Line)
+        {
+            string strValue = Read_Line.Substring(Read_Line.IndexOf("<") + 1);
+            return strValue.Substring(0, strValue.IndexOf(" "));
         }
         //説明が難しい...
         public static Property_Type Get_Property_Type(string Type_Name)
@@ -123,6 +144,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class.BNK_To_Wwise_Project
         readonly List<uint> Switch_Child_ShortID = new List<uint>();
         readonly List<uint> Switch_Parent_ShortID = new List<uint>();
         System.Windows.Controls.TextBlock Message_T;
+        StreamWriter bw = null;
         public Actor_Mixer()
         {
             BNK_Info.Actor_Mixer_Hierarchy_Project.Clear();
@@ -143,7 +165,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class.BNK_To_Wwise_Project
             await Task.Delay(50);
             //全プロジェクト共通の記述
             BNK_Info.Actor_Mixer_Hierarchy_Project.Add("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
-            BNK_Info.Actor_Mixer_Hierarchy_Project.Add("<WwiseDocument Type=\"WorkUnit\" ID=\"{" + Actor_Mixer_Unit + "}\" SchemaVersion=\"97\">");
+            BNK_Info.Actor_Mixer_Hierarchy_Project.Add("<WwiseDocument Type=\"WorkUnit\" ID=\"{" + Actor_Mixer_Unit + "}\" SchemaVersion=\"119\">");
             BNK_Info.Actor_Mixer_Hierarchy_Project.Add("<AudioObjects>");
             BNK_Info.Actor_Mixer_Hierarchy_Project.Add("<WorkUnit Name=\"Default Work Unit\" ID=\"{" + Actor_Mixer_Unit + "}\" PersistMode=\"Standalone\">");
             BNK_Info.Actor_Mixer_Hierarchy_Project.Add("<ChildrenList>");
@@ -190,6 +212,9 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class.BNK_To_Wwise_Project
             More_Class.List_Add(BNK_Info.Actor_Mixer_Hierarchy_Project, "</WwiseDocument>");
             Message_T.Text = "Actor_Mixerを変換しました。";
             await Task.Delay(50);
+
+            bw = new StreamWriter(Voice_Set.Special_Path + "\\ShortIDs.txt");
+
             //RTPCのShortIDを文字列に変換
             if (RTPC_ShortID.Count > 0)
             {
@@ -210,9 +235,10 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class.BNK_To_Wwise_Project
                     {
                         string Name = Get_Config.Get_Hash_Name_From_ShortID(ShortID_Now);
                         BNK_Info.RTPC_Info[RTPC_Info_Number].Name = Name;
+                        bw.WriteLine(ShortID_Now + " - " + Name);
                         continue;
                     }
-                    System.Windows.MessageBox.Show(ShortID_Now + "を文字列へ変換できませんでした。\nプロジェクトに支障がない場合はこのまま続行します。");
+                    //System.Windows.MessageBox.Show(ShortID_Now + "を文字列へ変換できませんでした。\nプロジェクトに支障がない場合はこのまま続行します。");
                 }
                 for (int Number = 0; Number < BNK_Info.Actor_Mixer_Hierarchy_Project.Count; Number++)
                 {
@@ -254,8 +280,9 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class.BNK_To_Wwise_Project
                         //string Name = Get_Config.Get_Hash_Name_From_ShortID(ShortID_Now);
                         string Name = hash.Bruteforce(8, ShortID_Now);
                         Master_Mixer.Master_Audio_Info[Master_Bus_Info_Number].Name = Name;
+                        bw.WriteLine(ShortID_Now + " - " + Name);
                     }
-                    System.Windows.MessageBox.Show(ShortID_Now + "を文字列へ変換できませんでした。\nプロジェクトに支障がない場合はこのまま続行します。");
+                    //System.Windows.MessageBox.Show(ShortID_Now + "を文字列へ変換できませんでした。\nプロジェクトに支障がない場合はこのまま続行します。");
                 }
                 for (int Number = 0; Number < BNK_Info.Actor_Mixer_Hierarchy_Project.Count; Number++)
                 {
@@ -278,6 +305,8 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class.BNK_To_Wwise_Project
             await Set_Switch_Name();
             File.WriteAllLines(To_File, BNK_Info.Actor_Mixer_Hierarchy_Project);
             BNK_Info.Actor_Mixer_Hierarchy_Project.Clear();
+
+            bw.Close();
         }
         async Task Set_Switch_Name()
         {
@@ -301,6 +330,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class.BNK_To_Wwise_Project
                     {
                         string Name = Get_Config.Get_Hash_Name_From_ShortID(ShortID_Now);
                         Switch.Switch_Info[Switch_Info_Number].Name = Name;
+                        bw.WriteLine(ShortID_Now + " - " + Name);
                     }
                 }
                 for (int Number = 0; Number < BNK_Info.Actor_Mixer_Hierarchy_Project.Count; Number++)
@@ -344,6 +374,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class.BNK_To_Wwise_Project
                     {
                         string Name = Get_Config.Get_Hash_Name_From_ShortID(ShortID_Now);
                         Switch.Switch_Info[Switch_Info_Number].Children[Switch_Info_Child_Number].Name = Name;
+                        bw.WriteLine(ShortID_Now + " - " + Name);
                     }
                 }
                 for (int Number = 0; Number < BNK_Info.Actor_Mixer_Hierarchy_Project.Count; Number++)

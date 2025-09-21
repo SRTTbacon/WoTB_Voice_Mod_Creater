@@ -1490,7 +1490,7 @@ namespace WoTB_Voice_Mod_Creater.Class
             if (IsClosing || IsBusy || IsOpenDialog)
                 return;
             //後からリストを追加しても大丈夫なように
-            if (Mod_Page < 3)
+            if (Mod_Page < 2)
                 Mod_Page++;
             Change_OverWrite_Visibility();
             Mod_Page_Change();
@@ -1527,8 +1527,8 @@ namespace WoTB_Voice_Mod_Creater.Class
                 Mod_Name_T.Text = "ガレージSE";
             else if (Mod_Page == 2)
                 Mod_Name_T.Text = "砲撃音(Blitz用)";
-            else if (Mod_Page == 3)
-                Mod_Name_T.Text = "砲撃音(本家WoT用)";
+            //else if (Mod_Page == 3)
+                //Mod_Name_T.Text = "砲撃音(本家WoT用)";
             BGM_Type_L.Items.Clear();
             foreach (Other_Type_List Info in Other_List[Mod_Page])
             {

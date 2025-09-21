@@ -642,7 +642,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 if (IsPCKFile)
                     Wwise_Pck.Wwise_Extract_To_OGG_OR_WAV_Directory(Voice_Set.Special_Path + "\\Other\\Extract_To_WAV", true);
                 else
-                    Wwise_Bnk.Wwise_Extract_To_OGG_OR_WAV_Directory(Voice_Set.Special_Path + "\\Other\\Extract_To_WAV", true);
+                    Wwise_Bnk.Wwise_Extract_To_OGG_OR_WAV_Directory(Voice_Set.Special_Path + "\\Other\\Extract_To_WAV", false, true);
                 await Multithread.Convert_OGG_To_Wav(Directory.GetFiles(Voice_Set.Special_Path + "\\Other\\Extract_To_WAV", "*.ogg", SearchOption.TopDirectoryOnly), true);
                 Message_T.Text = "音量を調整しています...";
                 await Task.Delay(50);

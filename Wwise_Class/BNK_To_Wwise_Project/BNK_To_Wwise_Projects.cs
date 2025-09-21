@@ -194,7 +194,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class.BNK_To_Wwise_Project
                         List<string> ID_Line_Tmp = new List<string>();
                         //イベントIDを取得
                         string strValue = line.Remove(0, line.IndexOf("value=\"") + 7);
-                        uint strValue_1 = uint.Parse(strValue.Remove(strValue.LastIndexOf("\"")));
+                        uint strValue_1 = uint.Parse(strValue.Remove(strValue.IndexOf("\"")));
                         if (ShortIDs.Contains(strValue_1))
                             continue;
                         ShortIDs.Add(strValue_1);

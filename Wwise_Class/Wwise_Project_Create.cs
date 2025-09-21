@@ -176,13 +176,13 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 return false;
             }
         }
-        public bool Add_Sound(SE_Info_Parent Info, WVS_Load WVS_File)
+        public bool Add_Sound(SE_Info_Parent Info, int index, WVS_Load WVS_File)
         {
             Voice_Event_Setting Setting = new Voice_Event_Setting(0, Info.SE_ShortID);
-            Voice_Sound_Setting Sound = new Voice_Sound_Setting(Info.SE_Path);
-            Sound.Stream_Position = Info.Stream_Position;
+            Voice_Sound_Setting Sound = new Voice_Sound_Setting(Info.SEFiles[index].FilePath);
+            Sound.Stream_Position = Info.SEFiles[index].Stream_Position;
             Setting.Sounds.Add(Sound);
-            return Add_Sound(Setting, WVS_File, false, true, "Japanese");
+            return Add_Sound(Setting, WVS_File, false, true, "SFX");
         }
         //音声Mod作成の際の処理です。V1.5.0にて大幅な仕様変更があったためそれに合わせて関数を分けています。
         public bool Add_Sound(Voice_Event_Setting Event_Setting, WVS_Load WVS_File, bool IsWoTToBlitzMode = false, bool IsIgnoreParent = false, string Language = "ja")
@@ -250,20 +250,37 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                     {
                         Add_Voice_From.Add(Setting.File_Path.Replace("/", "\\"));
                         Add_Voice_To.Add(Random_ID);
-                        Add_Voice_Type.Add("Voices\\" + Language);
+                        if (Language == "SFX")
+                            Add_Voice_Type.Add("SFX");
+                        else
+                            Add_Voice_Type.Add("Voices\\" + Language);
                     }
                     else if (IsWoTToBlitzMode)
                         File.Copy(Voice_Set.Special_Path + "\\Wwise\\No_Sound.wav", Project_Dir + "\\Originals\\Voices\\" + Language + "\\" + Setting.File_Path + ".wav", true);
                     else
                     {
                         string Ex = Path.GetExtension(Setting.File_Path);
-                        File.WriteAllBytes(Project_Dir + "/Originals/Voices/" + Language + "/Temp_" + Random_ID + Ex, WVS_File.Load_Sound(Setting.Stream_Position));
-                        Add_Voice_From.Add(Project_Dir + "\\Originals\\Voices\\" + Language + "\\Temp_" + Random_ID + Ex);
+                        if (Language == "SFX")
+                        {
+                            File.WriteAllBytes(Project_Dir + "/Originals/SFX/Temp_" + Random_ID + Ex, WVS_File.Load_Sound(Setting.Stream_Position));
+                            Add_Voice_From.Add(Project_Dir + "\\Originals\\SFX\\Temp_" + Random_ID + Ex);
+                            Add_Voice_Type.Add("SFX");
+                        }
+                        else
+                        {
+                            File.WriteAllBytes(Project_Dir + "/Originals/Voices/" + Language + "/Temp_" + Random_ID + Ex, WVS_File.Load_Sound(Setting.Stream_Position));
+                            Add_Voice_From.Add(Project_Dir + "\\Originals\\Voices\\" + Language + "\\Temp_" + Random_ID + Ex);
+                            Add_Voice_Type.Add("Voices\\" + Language);
+                        }
                         Add_Voice_To.Add(Random_ID);
-                        Add_Voice_Type.Add("Voices\\" + Language);
                     }
                     if (!IsWoTToBlitzMode)
-                        Add_Wav_Files.Add(Project_Dir + "\\Originals\\Voices\\" + Language + "\\" + Random_ID + ".wav");
+                    {
+                        if (Language == "SFX")
+                            Add_Wav_Files.Add(Project_Dir + "\\Originals\\SFX\\" + Random_ID + ".wav");
+                        else
+                            Add_Wav_Files.Add(Project_Dir + "\\Originals\\Voices\\" + Language + "\\" + Random_ID + ".wav");
+                    }
                     Setting.Delay += Event_Setting.Delay;
                     bool Temp = IsWoTToBlitzMode ? List_Add_File(Start_Line, Setting.File_Path + ".wav", Language, uint.Parse(Setting.File_Path), "", 0, false, 50, Setting) : List_Add_File(Start_Line, Random_ID + ".wav", Language, 0, "", 0, false, 50, Setting);
                     Setting.Delay -= Event_Setting.Delay;
@@ -1412,14 +1429,14 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                         Add_Sound(816581364, fileNow, 0, true);
             }
         }
-        public void Sound_Add_Wwise(List<Dictionary<string, Voice_Event_Setting>> Event_Settings, Dictionary<string, List<SE_Info_Parent>> SE_Info, WVS_Load WVS_File)
+        public void Sound_Add_Wwise(List<Dictionary<string, Voice_Event_Setting>> Event_Settings, Dictionary<string, SE_Info_Parent> SE_Info, WVS_Load WVS_File)
         {
             foreach (Dictionary<string, Voice_Event_Setting> Settings in Event_Settings)
                 foreach (string Key_Name in Settings.Keys)
-                    Add_Sound(Settings[Key_Name], WVS_File, false, true, "Japanese");
+                    Add_Sound(Settings[Key_Name], WVS_File, false, true, "Japanese_ja_JP");
             foreach (string Key_Name in SE_Info.Keys)
-                foreach (SE_Info_Parent Parent in SE_Info[Key_Name])
-                    Add_Sound(Parent, WVS_File);
+                for (int i = 0; i < SE_Info[Key_Name].SEFiles.Count; i++)
+                    Add_Sound(SE_Info[Key_Name], i, WVS_File);
         }
         public void Sound_Add_Wwise(List<Voice_Event_Setting> Event_Settings, SE_Setting seSetting)
         {
@@ -1531,7 +1548,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 }
             }
         }
-        public void Clear_All_Sounds(List<Dictionary<string, Voice_Event_Setting>> Sound_Settings, Dictionary<string, List<SE_Info_Parent>> SE_Info)
+        public void Clear_All_Sounds(List<Dictionary<string, Voice_Event_Setting>> Sound_Settings, Dictionary<string, SE_Info_Parent> SE_Info)
         {
             foreach (Dictionary<string, Voice_Event_Setting> Settings in Sound_Settings)
             {
@@ -1543,8 +1560,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 }
             }
             foreach (string Key_Name in SE_Info.Keys)
-                foreach (SE_Info_Parent Parent in SE_Info[Key_Name])
-                    Delete_CAkSounds(Parent.SE_ShortID);
+                Delete_CAkSounds(SE_Info[Key_Name].SE_ShortID);
         }
         public void Clear_All_Sounds(List<Voice_Event_Setting> Sound_Settings)
         {

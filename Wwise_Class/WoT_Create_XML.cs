@@ -30,15 +30,18 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 stw.WriteLine("\t\t</bank>");
             }
             stw.WriteLine("\t</loadBanks>");
-            stw.WriteLine("\t<events>");
-            foreach (string Key_Name in All_Change.Keys)
+            if (All_Change.Count > 0)
             {
-                stw.WriteLine("\t\t<event>");
-                stw.WriteLine("\t\t\t<name>" + Key_Name + "</name>");
-                stw.WriteLine("\t\t\t<mod>" + All_Change[Key_Name] + "</mod>");
-                stw.WriteLine("\t\t</event>");
+                stw.WriteLine("\t<events>");
+                foreach (string Key_Name in All_Change.Keys)
+                {
+                    stw.WriteLine("\t\t<event>");
+                    stw.WriteLine("\t\t\t<name>" + Key_Name + "</name>");
+                    stw.WriteLine("\t\t\t<mod>" + All_Change[Key_Name] + "</mod>");
+                    stw.WriteLine("\t\t</event>");
+                }
+                stw.WriteLine("\t</events>");
             }
-            stw.WriteLine("\t</events>");
             stw.Write("</audio_mods.xml>");
             stw.Close();
         }

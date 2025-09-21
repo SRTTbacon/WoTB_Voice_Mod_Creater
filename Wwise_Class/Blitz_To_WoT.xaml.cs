@@ -14,6 +14,7 @@ using Un4seen.Bass.AddOn.Fx;
 using WK.Libraries.BetterFolderBrowserNS;
 using WoTB_Voice_Mod_Creater.Class;
 using WoTB_Voice_Mod_Creater.FMOD_Class;
+using static WoTB_Voice_Mod_Creater.Class.Voice_Mod_Mixer;
 
 namespace WoTB_Voice_Mod_Creater.Wwise_Class
 {
@@ -36,6 +37,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
     public class Type_Setting
     {
         public List<Voice_Setting> Voices = new List<Voice_Setting>();
+        public string[] toWoTEventNames = { };
         public uint Parent_Unique_ID = 0;
         public uint Container_ID = 0;
         public int Type_Index = 0;
@@ -45,11 +47,129 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             this.Parent_Unique_ID = Parent_Unique_ID;
             this.Container_ID = Container_ID;
             this.Type_Index = Type_Index;
+
+            TypeToWoTDevide();
         }
         public Type_Setting(uint Container_ID,int Type_Index)
         {
             this.Container_ID = Container_ID;
+            this.Parent_Unique_ID = Container_ID;
             this.Type_Index = Type_Index;
+
+            TypeToWoTDevide();
+        }
+
+        void TypeToWoTDevide()
+        {
+            switch (Type_Index)
+            {
+                case 0:
+                    toWoTEventNames = new string[]{ "味方にダメージ"};
+                    break;
+                case 1:
+                    toWoTEventNames = new string[]{ "弾薬庫破損" };
+                    break;
+                case 2:
+                    toWoTEventNames = new string[]{ "敵への非貫通" };
+                    break;
+                case 3:
+                    toWoTEventNames = new string[]{ "敵への有効弾", "敵への榴弾直撃" };
+                    break;
+                case 4:
+                    toWoTEventNames = new string[]{ "敵への有効弾(+履帯ダメージ)", "敵への有効弾(+砲身ダメージ)", "敵への非貫通(+履帯破壊)", "敵への非貫通(+砲身破壊)",
+                    "敵への非貫通(+履帯ダメージ)", "敵への非貫通(+砲身ダメージ)"};
+                    break;
+                case 5:
+                    toWoTEventNames = new string[]{ "敵への跳弾" };
+                    break;
+                case 6:
+                    toWoTEventNames = new string[]{ "車長負傷" };
+                    break;
+                case 7:
+                    toWoTEventNames = new string[]{ "操縦手負傷" };
+                    break;
+                case 8:
+                    toWoTEventNames = new string[]{ "敵炎上" };
+                    break;
+                case 9:
+                    toWoTEventNames = new string[]{ "自車両が敵を撃破" };
+                    break;
+                case 10:
+                    toWoTEventNames = new string[]{ "エンジン破損" };
+                    break;
+                case 11:
+                    toWoTEventNames = new string[]{ "エンジン大破" };
+                    break;
+                case 12:
+                    toWoTEventNames = new string[]{ "エンジン復旧" };
+                    break;
+                case 13:
+                    toWoTEventNames = new string[]{ "自車両火災" };
+                    break;
+                case 14:
+                    toWoTEventNames = new string[]{ "自車両消火" };
+                    break;
+                case 15:
+                    toWoTEventNames = new string[]{ "燃料タンク破損" };
+                    break;
+                case 16:
+                    toWoTEventNames = new string[]{ "砲身破損" };
+                    break;
+                case 17:
+                    toWoTEventNames = new string[]{ "砲身大破" };
+                    break;
+                case 18:
+                    toWoTEventNames = new string[]{ "砲身復旧" };
+                    break;
+                case 19:
+                    toWoTEventNames = new string[]{ "砲手負傷" };
+                    break;
+                case 20:
+                    toWoTEventNames = new string[]{ "装填手負傷" };
+                    break;
+                case 21:
+                    toWoTEventNames = new string[]{ "無線機損傷" };
+                    break;
+                case 22:
+                    toWoTEventNames = new string[]{ "通信手負傷" };
+                    break;
+                case 23:
+                    toWoTEventNames = new string[]{ "戦闘開始" };
+                    break;
+                case 24:
+                    toWoTEventNames = new string[]{ "観測装置破損" };
+                    break;
+                case 25:
+                    toWoTEventNames = new string[]{ "観測装置大破" };
+                    break;
+                case 26:
+                    toWoTEventNames = new string[]{ "観測装置復旧" };
+                    break;
+                case 27:
+                    toWoTEventNames = new string[]{ "履帯破損" };
+                    break;
+                case 28:
+                    toWoTEventNames = new string[]{ "履帯大破" };
+                    break;
+                case 29:
+                    toWoTEventNames = new string[]{ "履帯復旧", "履帯復旧+移動可能" };
+                    break;
+                case 30:
+                    toWoTEventNames = new string[]{ "砲塔破損" };
+                    break;
+                case 31:
+                    toWoTEventNames = new string[]{ "砲塔大破" };
+                    break;
+                case 32:
+                    toWoTEventNames = new string[]{ "砲塔復旧" };
+                    break;
+                case 33:
+                    toWoTEventNames = new string[]{ "自車両大破" };
+                    break;
+                case 34:
+                    //戦闘BGMはPC版は無視
+                    break;
+            }
         }
     }
     public class BNK_FSB_Voice
@@ -192,7 +312,6 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 {
                     StreamReader str = Sub_Code.File_Decrypt_To_Stream(Voice_Set.Special_Path + "/Configs/Blitz_To_WoT.conf", "Blitz_To_WoT_Configs_Save");
                     Volume_S.Value = double.Parse(str.ReadLine());
-                    Volume_Set_C.IsChecked = bool.Parse(str.ReadLine());
                     str.Close();
                 }
                 catch (Exception e)
@@ -223,7 +342,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             while (Message_T.Opacity > 0 && IsMessageShowing)
             {
                 Number++;
-                if (Number >= 120)
+                if (Number >= 180)
                     Message_T.Opacity -= 0.025;
                 await Task.Delay(1000 / 60);
             }
@@ -388,7 +507,6 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             {
                 StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Configs/Blitz_To_WoT.tmp");
                 stw.WriteLine(Volume_S.Value);
-                stw.WriteLine(Volume_Set_C.IsChecked.Value);
                 stw.Close();
                 Sub_Code.File_Encrypt(Voice_Set.Special_Path + "/Configs/Blitz_To_WoT.tmp", Voice_Set.Special_Path + "/Configs/Blitz_To_WoT.conf", "Blitz_To_WoT_Configs_Save", true);
             }
@@ -562,10 +680,6 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 if (Types.IsEnable)
                     Now_Stream_Count += Types.Voices.Where(h => h.IsEnable).Count();
         }
-        private void Volume_Set_C_Click(object sender, RoutedEventArgs e)
-        {
-            Configs_Save();
-        }
         private void Details_B_Click(object sender, RoutedEventArgs e)
         {
             if (IsClosing || IsBusy)
@@ -578,14 +692,6 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
             Get_Available_Voice_Count();
             Message_Feed_Out("ファイル内の音声ファイル数:" + Max_Stream_Count + "\n" + "移植後の音声数:" + Now_Stream_Count);
         }
-        private void Volume_Set_Help_B_Click(object sender, RoutedEventArgs e)
-        {
-            if (IsClosing || IsBusy)
-                return;
-            string Message_01 = "・この機能はV1.5.4で新しくなりました。まだ調整中なため、正確に調整されない可能性があります。\n";
-            string Message_02 = "・特殊な方法で音量を調整しているため、この機能により処理時間が増えることはありません。";
-            System.Windows.MessageBox.Show(Message_01 + Message_02);
-        }
         private async void Start_B_Click(object sender, RoutedEventArgs e)
         {
             if (IsClosing || IsBusy || IsOpenDialog)
@@ -595,110 +701,103 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 Message_Feed_Out("音声ファイルが選択されていません。");
                 return;
             }
-            IsOpenDialog = true;
-            BetterFolderBrowser fbd = new BetterFolderBrowser()
+
+            if (!Sub_Code.IsSafeFileName(Project_Name_T.Text))
             {
-                Title = "保存先を選択してください。",
-                Multiselect = false,
-                RootFolder = Sub_Code.Get_OpenDirectory_Path()
-            };
-            if (fbd.ShowDialog() == DialogResult.OK)
-            {
-                IsBusy = true;
-                //string To_Dir = Voice_Set.Special_Path + "/Wwise/BNK_WAV_WoT";
-                string SetPath = fbd.SelectedFolder;
-                Sub_Code.Set_Directory_Path(SetPath);
-                if (!Sub_Code.CanDirectoryAccess(SetPath))
-                {
-                    Message_Feed_Out("指定したフォルダにアクセスできませんでした。");
-                    IsBusy = false;
-                    IsOpenDialog = false;
-                    return;
-                }
-                try
-                {
-                    Message_T.Opacity = 1;
-                    IsMessageShowing = false;
-                    /*string Log_01 = Sub_Code.Set_Voice_Type_Change_Name_By_Index(To_Dir, To_Dir + "/Voices", BNK_FSB_Voices, BNK_FSB_Enable);
-                    if (Log_01 != "")
-                    {
-                        Message_Feed_Out("ファイルをコピーできませんでした。詳しくは\"Error_Log.txt\"を参照してください。");
-                        Directory.Delete(To_Dir + "/Voices", true);
-                        IsBusy = false;
-                        IsOpenDialog = false;
-                        return;
-                    }*/
-                    await BNK_Create_V2(SetPath);
-                    Flash.Flash_Start();
-                    if (Sub_Code.WoT_Get_ModDirectory())
-                    {
-                        Message_T.Text = "ダイアログを表示しています...";
-                        await Task.Delay(50);
-                        MessageBoxResult result = System.Windows.MessageBox.Show("WoTのインストールフォルダの取得に成功しました。\n作成した音声ModをWoTに導入しますか？\n配置場所:" + Voice_Set.WoT_Mod_Path, "確認",
-                            MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.Yes);
-                        if (result == MessageBoxResult.Yes)
-                        {
-                            try
-                            {
-                                if (!Directory.Exists(Voice_Set.WoT_Mod_Path + "/audioww"))
-                                    Directory.CreateDirectory(Voice_Set.WoT_Mod_Path + "/audioww");
-                                if (File.Exists(Voice_Set.WoT_Mod_Path + "/audioww/voiceover.bnk") && !File.Exists(Voice_Set.WoT_Mod_Path + "/audioww/voiceover_bak.bnk"))
-                                    File.Move(Voice_Set.WoT_Mod_Path + "/audioww/voiceover.bnk", Voice_Set.WoT_Mod_Path + "/audioww/voiceover_bak.bnk");
-                                File.Copy(SetPath + "/voiceover.bnk", Voice_Set.WoT_Mod_Path + "/audioww/voiceover.bnk", true);
-                            }
-                            catch (Exception e1)
-                            {
-                                Sub_Code.Error_Log_Write(e1.Message);
-                                Message_Feed_Out("WoTにインストールできませんでした。Error_Log.txtを確認してください。");
-                                IsBusy = false;
-                                fbd.Dispose();
-                                IsOpenDialog = false;
-                                return;
-                            }
-                        }
-                    }
-                    Message_Feed_Out("完了しました。");
-                }
-                catch (Exception e1)
-                {
-                    Sub_Code.Error_Log_Write(e1.Message);
-                    Message_Feed_Out("エラーが発生しました。Error_Log.txtを参照してください。");
-                }
-                IsBusy = false;
-            }
-            fbd.Dispose();
-            IsOpenDialog = false;
-        }
-        //Voice_Create.xaml.csから引用&若干の修正
-        async Task BNK_Create_V2(string Save_Dir)
-        {
-            if (!Directory.Exists(Save_Dir))
+                Message_Feed_Out("プロジェクト名が空白か、使用できない文字が含まれています。");
                 return;
-            Message_T.Text = "WEMファイルを抽出しています...";
+            }
+
+            IsBusy = true;
+            try
+            {
+                Message_T.Opacity = 1;
+                IsMessageShowing = false;
+                await CreateSaveFile();
+                Flash.Flash_Start();
+                Message_Feed_Out("完了しました。\n保存先:\\Projects\\" + Project_Name_T.Text);
+            }
+            catch (Exception e1)
+            {
+                Sub_Code.Error_Log_Write(e1.Message);
+                Message_Feed_Out("エラーが発生しました。Error_Log.txtを参照してください。");
+            }
+            IsBusy = false;
+        }
+
+        async Task CreateSaveFile()
+        {
+            string toSaveDir = Directory.GetCurrentDirectory() + "\\Projects\\" + Project_Name_T.Text;
+            string toVoiceDir = toSaveDir + "\\Voices";
+
+            if (!Directory.Exists(toSaveDir))
+                Directory.CreateDirectory(toSaveDir);
+
+            try
+            {
+                if (Directory.Exists(toVoiceDir))
+                    Directory.Delete(toVoiceDir, true);
+            }
+            catch (Exception e)
+            {
+                Sub_Code.Error_Log_Write(toVoiceDir + "を削除できませんでした。中のファイルが使用中の場合は処理を実行できません。");
+                Sub_Code.Error_Log_Write(e.Message);
+                return;
+            }
+
+            Directory.CreateDirectory(toVoiceDir);
+
+            List<Dictionary<string, Voice_Event_Setting>> soundSetting = new List<Dictionary<string, Voice_Event_Setting>>();
+            WoT_Sound_Mod.CreateSoundSettings(new List<string>(), new List<string>(), new List<string>(), soundSetting);
+
+            Message_T.Text = "サウンドを抽出しています...";
             await Task.Delay(50);
+
             if (BNK_FSB_Voices.IsBNKMode)
             {
-                if (Directory.Exists(Voice_Set.Special_Path + "/Wwise/WoT_Sound_Mod/.cache/Windows_HighRes/Voices/Japanese"))
-                    Directory.Delete(Voice_Set.Special_Path + "/Wwise/WoT_Sound_Mod/.cache/Windows_HighRes/Voices/Japanese", true);
-                Directory.CreateDirectory(Voice_Set.Special_Path + "/Wwise/WoT_Sound_Mod/.cache/Windows_HighRes/Voices/Japanese");
-                BNK_FSB_Voices.Wwise_BNK.Wwise_Extract_To_WEM_Directory(BNK_FSB_Voices, Voice_Set.Special_Path + "/Wwise/WoT_Sound_Mod/.cache/Windows_HighRes/Voices/Japanese");
+                BNK_FSB_Voices.Wwise_BNK.Wwise_Extract_To_Ogg_Directory(toVoiceDir, 2, null);
             }
-            Message_T.Text = "プロジェクトファイルを作成しています...";
+            else
+            {
+                Fmod_File_Extract_V1.FSB_Extract_To_Directry(BNK_FSB_Voices.FSB_File, toVoiceDir, null, true);
+            }
+
+            Message_T.Text = "セーブデータを作成しています...";
             await Task.Delay(50);
-            FileInfo fi = new FileInfo(Voice_Set.Special_Path + "/Wwise/WoT_Sound_Mod/Actor-Mixer Hierarchy/Default Work Unit.wwu");
-            if (File.Exists(Voice_Set.Special_Path + "/Wwise/WoT_Sound_Mod/Actor-Mixer Hierarchy/Backup.tmp") && fi.Length >= 200000)
-                File.Copy(Voice_Set.Special_Path + "/Wwise/WoT_Sound_Mod/Actor-Mixer Hierarchy/Backup.tmp", Voice_Set.Special_Path + "/Wwise/WoT_Sound_Mod/Actor-Mixer Hierarchy/Default Work Unit.wwu", true);
-            if (!File.Exists(Voice_Set.Special_Path + "/Wwise/WoT_Sound_Mod/Actor-Mixer Hierarchy/Backup.tmp"))
-                File.Copy(Voice_Set.Special_Path + "/Wwise/WoT_Sound_Mod/Actor-Mixer Hierarchy/Default Work Unit.wwu", Voice_Set.Special_Path + "/Wwise/WoT_Sound_Mod/Actor-Mixer Hierarchy/Backup.tmp", true);
-            Wwise_Class.Wwise_Project_Create Wwise = new Wwise_Class.Wwise_Project_Create(Voice_Set.Special_Path + "/Wwise/WoT_Sound_Mod");
-            Wwise.Sound_Add_Wwise(BNK_FSB_Voices, Volume_Set_C.IsChecked.Value);
-            Wwise.Save();
-            Message_T.Text = "voiceover.bnkを作成しています...";
-            await Task.Delay(50);
-            Wwise.Project_Build("voiceover", Save_Dir + "/voiceover.bnk", "WinHighRes", true, "Japanese", Voice_Set.Special_Path + "/Wwise/WoT_Sound_Mod/.cache/Windows_HighRes/Voices/Japanese");
-            Wwise.Clear(true, "Windows_HighRes");
-            if (File.Exists(Voice_Set.Special_Path + "/Wwise/WoT_Sound_Mod/Actor-Mixer Hierarchy/Backup.tmp"))
-                File.Copy(Voice_Set.Special_Path + "/Wwise/WoT_Sound_Mod/Actor-Mixer Hierarchy/Backup.tmp", Voice_Set.Special_Path + "/Wwise/WoT_Sound_Mod/Actor-Mixer Hierarchy/Default Work Unit.wwu", true);
+
+            foreach (Type_Setting typeSetting in BNK_FSB_Voices.Types.Values)
+            {
+                if (!typeSetting.IsEnable)
+                    continue;
+
+                foreach (string eventName in typeSetting.toWoTEventNames)
+                {
+                    for (int i = 0; i < soundSetting.Count; i++)
+                    {
+                        if (soundSetting[i].Keys.Contains(eventName))
+                        {
+                            foreach (Voice_Setting voiceSetting in typeSetting.Voices)
+                            {
+                                if (!voiceSetting.IsEnable)
+                                    continue;
+
+                                string filePath = toVoiceDir + "\\" + (voiceSetting.File_ID == 0 ? voiceSetting.File_Name : voiceSetting.File_ID.ToString());
+                                if (BNK_FSB_Voices.IsBNKMode)
+                                    filePath += ".ogg";
+                                else
+                                    filePath += ".wav";
+                                soundSetting[i][eventName].Sounds.Add(new Voice_Sound_Setting(filePath));
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+
+            WVS_Save saveData = new WVS_Save(true);
+            saveData.Add_Sound(soundSetting, WoT_Sound_Mod_Settings.SE_Info, null);
+            saveData.Create(toSaveDir + "\\" + Project_Name_T.Text + ".wvs", Project_Name_T.Text, false, false);
+            saveData.Dispose();
         }
         private void Voice_Enable_B_Click(object sender, RoutedEventArgs e)
         {
@@ -828,7 +927,7 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                 foreach (Voice_Setting Voices in Types.Voices)
                 {
                     string Name_Temp = "  " + (Voices.File_ID == 0 ? Voices.File_Name.Substring(0, Voices.File_Name.LastIndexOf('_')) : Voices.File_ID.ToString());
-                    if (Name_Temp.Length > 13)
+                    if (Name_Temp.Length > 16)
                     {
                         if (Voices.IsEnable)
                             Name_Temp = Name_Temp.Substring(0, 16) + "...|有効";
@@ -1042,8 +1141,12 @@ namespace WoTB_Voice_Mod_Creater.Wwise_Class
                     uint Container_ID =  uint.Parse(Temp.Substring(Temp.IndexOf("->") + 2));
                     IEnumerable<Type_Setting> t = BNK_FSB_Voices.Types.Values.Where(h => h.Type_Index == Voices_L.SelectedIndex);
                     foreach (Type_Setting Types in t)
+                    {
                         if (Types.Container_ID == Container_ID)
+                        {
                             return Types.Parent_Unique_ID;
+                        }
+                    }
                 }
             }
             return 0;

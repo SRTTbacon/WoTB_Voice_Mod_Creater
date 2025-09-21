@@ -37,6 +37,7 @@ namespace WoTB_Voice_Mod_Creater
         public static List<uint> ShortIDs = new List<uint>();
         public const string Random_String = "0123456789abcdefghijklmnopqrstuvwxyz";
         public const double Window_Feed_Time = 0.04;
+        public const int WINDOW_BAR_HEIGHT = 20;
         static List<string> IsAutoListAdd = new List<string>();
         public static Random r = new Random();
         static string IsLanguage = "";
@@ -1805,7 +1806,7 @@ namespace WoTB_Voice_Mod_Creater
         {
             StreamWriter stw = File.CreateText(Voice_Set.Special_Path + "/Wwise_Parse/BNK_Parse_Start.bat");
             stw.WriteLine("chcp 65001");
-            stw.Write("\"" + Voice_Set.Special_Path + "/Wwise_Parse/Python/python.exe\" \"" + Voice_Set.Special_Path + "/Wwise_Parse/wwiser.pyz\" -iv \"" + From_BNK_File + "\" -dn \"" +
+            stw.Write("\"" + Voice_Set.Special_Path + "/Wwise_Parse/Python/python.exe\" \"" + Voice_Set.Special_Path + "/Wwise_Parse/wwiser2.pyz\" -d xml \"" + From_BNK_File + "\" -dn \"" +
                 To_XML_File.Replace(".xml", "") + "\"");
             stw.Close();
             ProcessStartInfo processStartInfo1 = new ProcessStartInfo
@@ -2274,61 +2275,65 @@ namespace WoTB_Voice_Mod_Creater
         }
         public static void Set_Event_ShortID(List<Dictionary<string, Voice_Event_Setting>> Event_Settings)
         {
-            Event_Settings[0]["味方にダメージ"].Set_Param("vo_ally_killed_by_player", 647867654);
-            Event_Settings[0]["弾薬庫破損"].Set_Param("vo_ammo_bay_damaged", 956781602);
-            Event_Settings[0]["敵への非貫通"].Set_Param("vo_armor_not_pierced_by_player", 891351729);
+            Event_Settings[0]["味方にダメージ"].Set_Param("vo_ally_killed_by_player", 496744290);
+            Event_Settings[0]["弾薬庫破損"].Set_Param("vo_ammo_bay_damaged", 80768846);
             Event_Settings[0]["敵への跳弾"].Set_Param("vo_armor_ricochet_by_player", 985747875);
-            Event_Settings[0]["敵への至近弾"].Set_Param("vo_damage_by_near_explosion_by_player", 401760710);
-            Event_Settings[0]["敵炎上"].Set_Param("vo_enemy_fire_started_by_player", 962073157);
-            Event_Settings[0]["敵への榴弾直撃"].Set_Param("vo_enemy_hp_damaged_by_explosion_at_direct_hit_by_player", 375524654);
-            Event_Settings[0]["敵への有効弾(+履帯ダメージ)"].Set_Param("vo_enemy_hp_damaged_by_projectile_and_chassis_damaged_by_player", 258641633);
-            Event_Settings[0]["敵への有効弾(+モジュールダメージ)"].Set_Param("vo_enemy_hp_damaged_by_projectile_and_gun_damaged_by_player", 406687788);
-            Event_Settings[0]["敵への有効弾"].Set_Param("vo_enemy_hp_damaged_by_projectile_by_player", 715908210);
-            Event_Settings[0]["自車両が敵を撃破"].Set_Param("vo_enemy_killed_by_player", 130818866);
-            Event_Settings[0]["味方が敵を撃破"].Set_Param("expl_enemy_NPC", 110599610);
-            Event_Settings[0]["敵の誤射による敵撃破"].Set_Param("vo_enemy_killed", 206068019);
-            Event_Settings[0]["敵が味方車両を撃破"].Set_Param("expl_ally_NPC", 24820636);
-            Event_Settings[0]["敵への非貫通(+履帯破壊)"].Set_Param("vo_enemy_no_hp_damage_at_attempt_and_chassis_damaged_by_player", 123484080);
-            Event_Settings[0]["敵への非貫通(+モジュール破壊)"].Set_Param("vo_enemy_no_hp_damage_at_attempt_and_gun_damaged_by_player", 606723544);
-            Event_Settings[0]["敵への非貫通(+履帯ダメージ)"].Set_Param("vo_enemy_no_hp_damage_at_no_attempt_and_chassis_damaged_by_player", 826504023);
-            Event_Settings[0]["敵への非貫通(+モジュールダメージ)"].Set_Param("vo_enemy_no_hp_damage_at_no_attempt_and_gun_damaged_by_player", 556370764);
-            Event_Settings[0]["敵への非貫通"].Set_Param("vo_enemy_no_hp_damage_at_no_attempt_by_player", 891351729);
-            Event_Settings[0]["搭乗員全滅"].Set_Param("vo_crew_deactivated", 156469938);
-            Event_Settings[0]["車長負傷"].Set_Param("vo_commander_killed", 803799062);
-            Event_Settings[0]["操縦手負傷"].Set_Param("vo_driver_killed", 509522089);
-            Event_Settings[0]["砲手負傷"].Set_Param("vo_gunner_killed", 93452340);
-            Event_Settings[0]["装填手負傷"].Set_Param("vo_loader_killed", 825298907);
-            Event_Settings[0]["通信手負傷"].Set_Param("vo_radioman_killed", 304672798);
-            Event_Settings[0]["自車両火災"].Set_Param("vo_fire_started", 630401544);
-            Event_Settings[0]["自車両消火"].Set_Param("vo_fire_stopped", 228596803);
-            Event_Settings[0]["燃料タンク破損"].Set_Param("vo_fuel_tank_damaged", 241888377);
-            Event_Settings[0]["無線機損傷"].Set_Param("vo_radio_damaged", 298484235);
-            Event_Settings[0]["戦闘開始"].Set_Param("vo_start_battle", 779140459);
-            Event_Settings[0]["自車両大破"].Set_Param("vo_vehicle_destroyed", 112179165);
-            Event_Settings[1]["エンジン破損"].Set_Param("vo_engine_damaged", 194063185);
-            Event_Settings[1]["エンジン大破"].Set_Param("vo_engine_destroyed", 606689164);
-            Event_Settings[1]["エンジン復旧"].Set_Param("vo_engine_functional", 841042183);
-            Event_Settings[1]["砲身破損"].Set_Param("vo_gun_damaged", 910164046);
-            Event_Settings[1]["砲身大破"].Set_Param("vo_gun_destroyed", 3474169);
-            Event_Settings[1]["砲身復旧"].Set_Param("vo_gun_functional", 52992479);
-            Event_Settings[1]["観測装置破損"].Set_Param("vo_surveying_devices_damaged", 260981670);
-            Event_Settings[1]["観測装置大破"].Set_Param("vo_surveying_devices_destroyed", 302485444);
-            Event_Settings[1]["観測装置復旧"].Set_Param("vo_surveying_devices_functional", 867900123);
-            Event_Settings[1]["履帯破損"].Set_Param("vo_track_damaged", 666482897);
-            Event_Settings[1]["履帯大破"].Set_Param("vo_track_destroyed", 604740571);
-            Event_Settings[1]["履帯復旧"].Set_Param("vo_track_functional", 55589824);
-            Event_Settings[1]["履帯復旧+移動可能"].Set_Param("vo_track_functional_can_move", 704248833);
-            Event_Settings[1]["砲塔破損"].Set_Param("vo_turret_rotator_damaged", 982380106);
-            Event_Settings[1]["砲塔大破"].Set_Param("vo_turret_rotator_destroyed", 68494932);
-            Event_Settings[1]["砲塔復旧"].Set_Param("vo_turret_rotator_functional", 354769968);
-            Event_Settings[2]["小隊へ勧誘"].Set_Param("vo_dp_assistance_been_requested", 147467011);
-            Event_Settings[2]["小隊へ参加(自身)"].Set_Param("vo_dp_platoon_joined", 480443644);
-            Event_Settings[2]["小隊へ参加(他人)"].Set_Param("vo_dp_player_joined_platoon", 745934433);
-            Event_Settings[2]["オートエイム開始"].Set_Param("vo_target_captured", 884977578);
-            Event_Settings[2]["オートエイムロスト"].Set_Param("vo_target_lost", 111545873);
-            Event_Settings[2]["オートエイム解除"].Set_Param("vo_target_unlocked", 798032659);
-            Event_Settings[2]["第六感"].Set_Param("lightbulb", 665693041);
-            Event_Settings[2]["自走砲の警報"].Set_Param("artillery_lightbulb", 249143697);
+            Event_Settings[0]["敵への至近弾"].Set_Param("vo_damage_by_near_explosion_by_player", 569021006);
+            Event_Settings[0]["敵への榴弾直撃"].Set_Param("vo_enemy_hp_damaged_by_explosion_at_direct_hit_by_player", 586836082);
+            Event_Settings[0]["敵への有効弾(+履帯ダメージ)"].Set_Param("vo_enemy_hp_damaged_by_projectile_and_chassis_damaged_by_player", 114246473);
+            Event_Settings[0]["敵への有効弾(+砲身ダメージ)"].Set_Param("vo_enemy_hp_damaged_by_projectile_and_gun_damaged_by_player", 758697169);
+            Event_Settings[0]["敵への有効弾"].Set_Param("vo_enemy_hp_damaged_by_projectile_by_player", 198894981);
+            Event_Settings[0]["自車両が敵を撃破"].Set_Param("vo_enemy_killed_by_player", 921878250);
+            Event_Settings[0]["味方が敵を撃破"].Set_Param("expl_enemy_NPC", 857271927);
+            Event_Settings[0]["敵の誤射による敵撃破"].Set_Param("vo_enemy_killed", 921878250);
+            Event_Settings[0]["敵が味方車両を撃破"].Set_Param("expl_ally_NPC", 932249684);
+            Event_Settings[0]["敵への非貫通"].Set_Param("vo_enemy_no_hp_damage_at_no_attempt_by_player", 904946415);
+            Event_Settings[0]["敵への非貫通(+履帯破壊)"].Set_Param("vo_enemy_no_hp_damage_at_attempt_and_chassis_damaged_by_player", 315035946);
+            Event_Settings[0]["敵への非貫通(+砲身破壊)"].Set_Param("vo_enemy_no_hp_damage_at_attempt_and_gun_damaged_by_player", 544988916);
+            Event_Settings[0]["敵への非貫通(+履帯ダメージ)"].Set_Param("vo_enemy_no_hp_damage_at_no_attempt_and_chassis_damaged_by_player", 894898226);
+            Event_Settings[0]["敵への非貫通(+砲身ダメージ)"].Set_Param("vo_enemy_no_hp_damage_at_no_attempt_and_gun_damaged_by_player", 91710501);
+            Event_Settings[0]["敵炎上"].Set_Param("vo_enemy_fire_started_by_player", 675832160);
+            Event_Settings[0]["搭乗員全滅"].Set_Param("vo_crew_deactivated", 659317082);
+            Event_Settings[0]["車長負傷"].Set_Param("vo_commander_killed", 694419949);
+            Event_Settings[0]["操縦手負傷"].Set_Param("vo_driver_killed", 750503602);
+            Event_Settings[0]["砲手負傷"].Set_Param("vo_gunner_killed", 290791237);
+            Event_Settings[0]["装填手負傷"].Set_Param("vo_loader_killed", 574952129);
+            Event_Settings[0]["通信手負傷"].Set_Param("vo_radioman_killed", 557399837);
+            Event_Settings[0]["自車両火災"].Set_Param("vo_fire_started", 55455728);
+            Event_Settings[0]["自車両消火"].Set_Param("vo_fire_stopped", 108269930);
+            Event_Settings[0]["燃料タンク破損"].Set_Param("vo_fuel_tank_damaged", 518449764);
+            Event_Settings[0]["無線機損傷"].Set_Param("vo_radio_damaged", 947428834);
+            Event_Settings[0]["戦闘開始"].Set_Param("vo_start_battle", 629260003);
+            Event_Settings[0]["自車両大破"].Set_Param("vo_vehicle_destroyed", 1015146434);
+            Event_Settings[1]["エンジン破損"].Set_Param("vo_engine_damaged", 156949684);
+            Event_Settings[1]["エンジン大破"].Set_Param("vo_engine_destroyed", 779775207);
+            Event_Settings[1]["エンジン復旧"].Set_Param("vo_engine_functional", 153685024);
+            Event_Settings[1]["砲身破損"].Set_Param("vo_gun_damaged", 396042361);
+            Event_Settings[1]["砲身大破"].Set_Param("vo_gun_destroyed", 111157803);
+            Event_Settings[1]["砲身復旧"].Set_Param("vo_gun_functional", 468738015);
+            Event_Settings[1]["観測装置破損"].Set_Param("vo_surveying_devices_damaged", 60412176);
+            Event_Settings[1]["観測装置大破"].Set_Param("vo_surveying_devices_destroyed", 693388069);
+            Event_Settings[1]["観測装置復旧"].Set_Param("vo_surveying_devices_functional", 407686850);
+            Event_Settings[1]["履帯破損"].Set_Param("vo_track_damaged", 189198188);
+            Event_Settings[1]["履帯大破"].Set_Param("vo_track_destroyed", 113684286);
+            Event_Settings[1]["履帯復旧"].Set_Param("vo_track_functional", 764683321);
+            Event_Settings[1]["履帯復旧+移動可能"].Set_Param("vo_track_functional_can_move", 1035064657);
+            Event_Settings[1]["砲塔破損"].Set_Param("vo_turret_rotator_damaged", 755962743);
+            Event_Settings[1]["砲塔大破"].Set_Param("vo_turret_rotator_destroyed", 464113292);
+            Event_Settings[1]["砲塔復旧"].Set_Param("vo_turret_rotator_functional", 230672484);
+            Event_Settings[2]["小隊へ勧誘"].Set_Param("vo_dp_assistance_been_requested", 855722607);
+            Event_Settings[2]["小隊を作成"].Set_Param("vo_dp_platoon_created", 140164442);
+            Event_Settings[2]["小隊へ参加(自身)"].Set_Param("vo_dp_platoon_joined", 816207362);
+            Event_Settings[2]["小隊へ参加(他人)"].Set_Param("vo_dp_player_joined_platoon", 51308407);
+            Event_Settings[2]["小隊を解除"].Set_Param("vo_dp_left_platoon", 28867352);
+            Event_Settings[2]["小隊を解雇された"].Set_Param("vo_dp_been_excluded_platoon", 620841463);
+            Event_Settings[2]["オートエイム開始"].Set_Param("vo_target_captured", 1491984609);
+            Event_Settings[2]["オートエイムロスト"].Set_Param("vo_target_lost", 2836359293);
+            Event_Settings[2]["オートエイム解除"].Set_Param("vo_target_unlocked", 85617264);
+            Event_Settings[2]["第六感"].Set_Param("lightbulb", 138572733);
+            Event_Settings[2]["敵発見"].Set_Param("enemy_sighted_for_team", 271879707);
+            Event_Settings[2]["自走砲の警報"].Set_Param("artillery_lightbulb", 587659626);
+            Event_Settings[2]["ミニマップぴこぴこ"].Set_Param("minimap_attention", 697698781);
         }
         public static void Set_Event_ShortID(List<Voice_Event_Setting> Event_Settings)
         {
